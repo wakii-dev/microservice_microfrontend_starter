@@ -10,6 +10,9 @@ on:
     branches: ["**"]
   workflow_dispatch:
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — các workflow khác: repo-wide follow-up)
+
 jobs:
   e2e-smoke:
     name: "e2e smoke — compose login→task→feed qua gateway"

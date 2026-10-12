@@ -14,7 +14,7 @@ coverage/
 # --- java (spring-svc) ---
 target/
 *.class
-.mvn/wrapper/maven-wrapper.jar
+**/.mvn/wrapper/maven-wrapper.jar
 
 # --- go ---
 bin/

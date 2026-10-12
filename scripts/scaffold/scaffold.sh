@@ -52,7 +52,7 @@ tar -C "$SRC" -cf - \
   --exclude='./.github/workflow-templates' \
   --exclude='./.github/workflows/convergence.yml' \
   --exclude='./.story-brief.md' \
-  --exclude='./platform/.env' \
+  --exclude='.env' \
   . | tar -C "$OUT" -xf -
 
 echo "[scaffold] rename @boilerplate/* → @$NAME/* (package.json + source imports + lockfile)"

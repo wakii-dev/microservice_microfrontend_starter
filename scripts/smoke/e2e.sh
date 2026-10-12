@@ -40,6 +40,9 @@ extract() { # extract <json-field> <body-file> — grep thuần, không jq
 
 command -v curl >/dev/null || fail 1 "curl không có trong PATH"
 
+# dọn temp files (chứa token/body) kể cả khi fail giữa chừng (P2 security-audit SF-7)
+trap 'rm -f "$LOGIN_BODY" "$STATS_BEFORE" "$TASK_BODY" "$FEED_BODY" "$STATS_AFTER"' EXIT 2>/dev/null || true
+
 # --- Bước 1: gateway + auth-mock ready (poll — gateway không có /readyz riêng,
 #            conventions/02 rule 3; /api/auth/readyz = auth-mock qua gateway) ---
 READY=0
@@ -57,7 +60,8 @@ HTTP=$(curl -s -o "$LOGIN_BODY" -w '%{http_code}' -X POST "$GW/api/auth/login" \
   -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
 [ "$HTTP" = "200" ] || fail 3 "login HTTP $HTTP (expect 200): $(cat "$LOGIN_BODY")"
 TOKEN="$(extract accessToken "$LOGIN_BODY")"
-[ -n "$TOKEN" ] && [ "${#TOKEN}" -gt 40 ] || fail 3 "accessToken rỗng/quá ngắn trong: $(cat "$LOGIN_BODY")"
+# không in body login (chứa token) — chỉ báo shape field (P2 security-audit SF-7)
+[ -n "$TOKEN" ] && [ "${#TOKEN}" -gt 40 ] || fail 3 "login 200 nhưng thiếu accessToken hợp lệ (field accessToken không parse được — kiểm shape LoginResponse contract)"
 say "2/5 login OK (token ${#TOKEN} chars)"
 
 # --- Bước 3: baseline stats (go-svc) TRƯỚC khi tạo task ---

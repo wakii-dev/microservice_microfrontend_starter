@@ -1,15 +1,15 @@
 # ============================================================================
-# Boilerplate Microservice + Micro-frontend — compose PRE-SEED (SF-1, FI-64)
+# Boilerplate Microservice + Micro-frontend — compose (SF-1 pre-seed, FI-64)
 #
 # ⚠️ SF-2/3/4/5/6 KHÔNG được sửa file này — chỉ điền impl vào entry có sẵn
 #    (code trong services/<svc> hoặc frontend/<app> mà entry đã trỏ tới).
 #    Muốn đổi compose → flag lên coordinator (SF-1 sở hữu).
 #
-# SF-1: postgres + auth-mock + gateway chạy được trọn vẹn.
-#       node-svc/spring-svc/go-svc là KHUNG — build sẽ fail đến khi SF-2/3/4
-#       điền code (Dockerfile + src). `docker compose config` validate được ngay.
-# SF-5/6: thêm entry shell/remote-tasks/remote-activity? KHÔNG — entry sẽ được
-#       pre-seed riêng; hỏi coordinator trước.
+# SF-7 (FI-75, convergence — được phép theo touch map): THÊM health-gated
+#    depends_on (healthcheck /readyz node-svc + spring-svc; gateway gate
+#    auth-mock/node/spring service_healthy + go-svc service_started — distroless
+#    không có shell/wget, xem conventions/02 rule 3; gateway KHÔNG có healthcheck).
+#    KHÔNG sửa phần khác của file này.
 # ============================================================================
 
 name: boilerplate
@@ -67,7 +67,17 @@ services:
     depends_on:
       auth-mock:
         condition: service_healthy
-    # không healthcheck riêng — nginx chỉ proxy; SF-7 thêm health-gated compose check nếu cần
+      node-svc:
+        condition: service_healthy
+      spring-svc:
+        condition: service_healthy
+      # go-svc: service_started — distroless không có shell/wget cho healthcheck
+      # (conventions/02 rule 3); readiness chứng minh bằng scripts/smoke/e2e.sh
+      # poll /api/activity/stats (SF-7, FI-75).
+      go-svc:
+        condition: service_started
+    # KHÔNG healthcheck cho gateway — nginx proxy thuần, không route /readyz
+    # (probe sẽ 404); wait do scripts/smoke/e2e.sh poll /api/auth/readyz đảm nhiệm.
 
   # --- KHUNG services (SF-2/3/4 điền impl — KHÔNG sửa entry) ---
 
@@ -86,6 +96,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      spring-svc:
+        condition: service_healthy # readyz node kiểm spring reachable lúc boot — gate ở đây (SF-7)
+    healthcheck: # SF-7: health-gated /readyz (conventions/02) — node:22-alpine có busybox wget
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s # chờ migration + spring reachability check lúc boot
 
   spring-svc:
     build: ../services/spring-svc
@@ -105,6 +123,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck: # SF-7: health-gated /readyz (conventions/02) — temurin alpine có busybox wget
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s # chờ Flyway migration + JVM boot
 
   go-svc:
     build: ../services/go-svc

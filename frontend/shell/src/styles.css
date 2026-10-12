@@ -1,0 +1,68 @@
+/* Shell — UI tối giản sạch (spec: không design system phức tạp, dễ thay) */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  color: #1a202c;
+}
+nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+nav a {
+  color: #2b6cb0;
+  text-decoration: none;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+main:focus {
+  outline: none;
+}
+main:focus-visible {
+  outline: 2px solid #2b6cb0;
+}
+/* Skip link: ẩn khỏi mắt thường, hiện khi focus qua bàn phím (a11y baseline) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #2b6cb0;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 20rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+button {
+  cursor: pointer;
+}
+.error-banner {
+  background: #fed7d7;
+  color: #742a2a;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+.remote-fallback {
+  border: 1px dashed #e2e8f0;
+  padding: 1rem;
+  border-radius: 4px;
+}

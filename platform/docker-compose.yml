@@ -122,8 +122,20 @@ services:
       postgres:
         condition: service_healthy
 
-  # --- FE entries: pre-seed ở SF-5/6 (shell, remote-tasks, remote-activity) —
-  #     hỏi coordinator trước khi thêm, kể cả entry khung. ---
+  # --- FE entries: shell (SF-5 thêm — GAP-ANSWER coordinator trên epic FI-62 2026-10-12:
+  #     "BẠN tự thêm theo port table, coordinator duyệt ở review"). remote-tasks /
+  #     remote-activity do SF-6 thêm. ---
+  shell:
+    build:
+      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
+      dockerfile: frontend/shell/Dockerfile
+    ports:
+      - "${SHELL_PORT:-3000}:3000" # container port cố định 3000 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
 volumes:
   pgdata:

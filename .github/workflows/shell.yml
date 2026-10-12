@@ -1,0 +1,73 @@
+name: shell
+
+# SF-5 (FI-73) — shell MF host: typecheck + vitest + rspack build + boot-smoke (docker build + up + HTTP 200).
+# Lưu ý: job chạy trên pnpm-lock.yaml của NHÁNH — nếu SF-6 đang regenerate song song, lockfile
+# stale là việc coordinator resolve khi merge, KHÔNG phải bug code (P2 plan-critic note).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "frontend/shell/**"
+      - "frontend/shared/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/shell.yml"
+  pull_request:
+    paths:
+      - "frontend/shell/**"
+      - "frontend/shared/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/shell.yml"
+
+jobs:
+  build-test:
+    name: typecheck + vitest + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install (workspace, frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --filter @boilerplate/shell typecheck
+      - name: Tests (vitest + testing-library)
+        run: pnpm --filter @boilerplate/shell test
+      - name: Build (rspack production)
+        run: pnpm --filter @boilerplate/shell build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shell-dist
+          path: frontend/shell/dist/
+          retention-days: 3
+
+  boot-smoke:
+    name: boot-smoke (docker build + up + 200)
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker build (multi-stage node→nginx, context = repo root)
+        run: docker build -f frontend/shell/Dockerfile -t boilerplate-shell .
+      - name: Up container
+        run: docker run -d --name shell -p 3000:3000 boilerplate-shell
+      - name: Smoke — HTTP 200 trên / (SPA index)
+        run: |
+          for i in $(seq 1 24); do
+            if curl -fsS -o /dev/null -w "%{http_code}" http://localhost:3000/ | grep -q 200; then
+              echo "boot-smoke OK (HTTP 200)"; exit 0
+            fi
+            sleep 2
+          done
+          echo "boot-smoke FAILED — shell không trả 200 sau 48s"; docker logs shell; exit 1
+      - name: Smoke — SPA deep-link fallback (/tasks → 200 index)
+        run: |
+          code=$(curl -fsS -o /dev/null -w "%{http_code}" http://localhost:3000/tasks)
+          [ "$code" = "200" ] || { echo "SPA fallback FAILED ($code)"; exit 1; }
+          echo "SPA fallback OK (HTTP 200)"

@@ -30,3 +30,4 @@ Quy tắc:
 1. Shell đọc registry từ env (`REMOTE_TASKS_URL`, `REMOTE_ACTIVITY_URL`) lúc build/bootstrap — KHÔNG hardcode URL.
 2. Remote name (`tasks`, `activity`) là khoá module federation — đổi tên = breaking, phải đồng bộ shell + remote + file này.
 3. Shared singletons (react, react-dom): quản qua pnpm catalog — chi tiết trong `frontend/shared/package.json` (trường `mfToolkit.pinned`, kết quả spike SF-1).
+4. **Singleton remote khai `requiredVersion: false` tường minh (SF-7 sync — học từ SF-6):** giá trị `catalog:` là literal pnpm-workspace, bundler MF không hiểu — `@module-federation/enhanced` infer thành `requiredVersion: "catalog:"` sai và match fail lúc runtime. Remote dùng shared singleton từ host phải khai `requiredVersion: false` trong share config (precedent: `frontend/remotes/{tasks,activity}/rspack.config.js`).

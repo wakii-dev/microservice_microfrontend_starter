@@ -72,3 +72,7 @@ ENTRYPOINT ["/go-svc"]
 4. Healthcheck KHÔNG khai trong Dockerfile — khai trong `platform/docker-compose.yml` (một nguồn duy nhất).
 5. Thứ tự `COPY` tối ưu cache: lockfile/manifest trước, source sau.
 6. CI boot-smoke build đúng Dockerfile này — nếu build local pass mà CI fail, check `.dockerignore` trước (node_modules/target/bin không được vào context).
+7. **Lockfile variant cho workspace member (SF-7 sync — học từ SF-2, improvements-log):** service là member của pnpm workspace nhưng compose build context = **thư mục con** → root `pnpm-lock.yaml` KHÔNG vào được context. Hai cách chuẩn:
+   - **Local standalone lockfile** (precedent auth-mock, node-svc): commit `pnpm-lock.yaml` trong thư mục service (sinh bằng `pnpm install --ignore-workspace`), Dockerfile `COPY package.json pnpm-lock.yaml` + `pnpm install --frozen-lockfile`.
+   - **Repo-root build context** (precedent shell/remotes): Dockerfile khai `context: ..` + `dockerfile: frontend/<app>/Dockerfile` để root workspace lockfile + `frontend/shared` vào được context.
+   Đừng trộn: COPY root lockfile trong context thư mục con = build fail lúc deps stage.

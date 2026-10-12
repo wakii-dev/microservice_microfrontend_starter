@@ -14,6 +14,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,10 +22,12 @@ import java.util.UUID;
 
 /**
  * Users API — implement generated UsersApi (codegen từ snapshot users.yaml).
- * FINAL paths (contract-resolved): /api/users/users, /api/users/users/{userId}.
- * Mirrors getHealthz/getReadyz theo spec §4.5 (probe thật dùng naked /healthz,/readyz — HealthController).
+ * interfaceOnly KHÔNG gắn class-level base path → implementor tự gắn
+ * (property openapi.usersAPI.base-path, default /api/users khớp FINAL path table §4.5).
+ * Mirrors getHealthz/getReadyz → /api/users/healthz|readyz (probe thật dùng naked — HealthController).
  */
 @RestController
+@RequestMapping("${openapi.usersAPI.base-path:/api/users}")
 public class UserController implements UsersApi {
 
     private final UserRepository users;

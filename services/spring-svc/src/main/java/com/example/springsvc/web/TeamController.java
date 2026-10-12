@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashSet;
@@ -17,10 +18,12 @@ import java.util.UUID;
 
 /**
  * Teams API — implement generated TeamsApi. FINAL path (contract-resolved):
- * /api/users/teams, /api/users/teams/{teamId}. memberIds dedupe trước insert
+ * /api/users/teams, /api/users/teams/{teamId}. interfaceOnly KHÔNG gắn base path
+ * → class-level @RequestMapping như UserController. memberIds dedupe trước insert
  * (team_members PK (team_id, user_id) — tránh 500 vi phạm PK).
  */
 @RestController
+@RequestMapping("${openapi.usersAPI.base-path:/api/users}")
 public class TeamController implements TeamsApi {
 
     private final TeamRepository teams;

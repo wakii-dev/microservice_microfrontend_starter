@@ -1,0 +1,76 @@
+name: services-go-svc
+
+# SF-4 (FI-72) — CI cho go-svc. Copy từ .github/workflow-templates/services-ci.yml.example.
+# jobs: build-test (go vet + unit + integration vs postgres service), docker-build,
+# boot-smoke (compose up + health + migration + POST event→feed + schemathesis).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/go-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+      - ".github/workflows/services-go-svc.yml"
+  pull_request:
+    paths:
+      - "services/go-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+
+jobs:
+  build-test:
+    name: build + test (go-svc)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: boilerplate
+          POSTGRES_PASSWORD: ci-postgres-password
+          POSTGRES_DB: boilerplate
+          # init script (01-init.sh) cần password per-service role để tạo roles
+          NODE_SVC_DB_PASSWORD: ci-node-password
+          SPRING_SVC_DB_PASSWORD: ci-spring-password
+          GO_SVC_DB_PASSWORD: ci-go-password
+          GO_READONLY_DB_PASSWORD: ci-goreadonly-password
+        ports:
+          - "5432:5432"
+        volumes:
+          # chạy init script THẬT của SF-1 — tạo schemas + roles + default privileges
+          - ${{ github.workspace }}/platform/postgres/init:/docker-entrypoint-initdb.d:ro
+        options: >-
+          --health-cmd "pg_isready -U boilerplate -d boilerplate"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      # integration test đọc qua env này (test/integration, build tag `integration`)
+      GO_TEST_ADMIN_URL: postgres://boilerplate:ci-postgres-password@localhost:5432/boilerplate
+      GO_TEST_NODE_URL: postgres://node_svc:ci-node-password@localhost:5432/boilerplate
+      GO_TEST_GO_URL: postgres://go_svc:ci-go-password@localhost:5432/boilerplate
+      GO_TEST_READONLY_URL: postgres://go_readonly:ci-goreadonly-password@localhost:5432/boilerplate
+      GO_TEST_JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      # go.sum không commit được (dev machine không có Go) — tidy sinh + verify
+      - name: go mod tidy
+        run: |
+          cd services/go-svc
+          go mod tidy
+          git diff --exit-code go.mod || (echo "::error::go.mod drift sau tidy — commit go.mod đúng" && exit 1)
+      - name: go vet
+        run: cd services/go-svc && go vet ./...
+      - name: unit tests
+        run: cd services/go-svc && go test ./...
+      # T7 sẽ thêm: integration tests (readonly-exit criterion) vs postgres service
+
+  docker-build:
+    name: docker build (go-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage distroless — platform/conventions/01)
+        run: docker build -t go-svc:ci services/go-svc

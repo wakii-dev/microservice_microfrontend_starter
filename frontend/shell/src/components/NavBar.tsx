@@ -1,11 +1,14 @@
 import { Link, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@boilerplate/fe-shared';
-import { useState } from 'react';
 
-/** Nav tối giản: links + user email (decode từ JWT, KHÔNG verify — verify là việc BE) + logout. */
+/**
+ * Nav tối giản: links + user email (decode từ JWT, KHÔNG verify — verify là việc BE) + logout.
+ * Đọc token MỖI render (không useState cache) — login/logout navigate là re-render trigger,
+ * nav cập nhật email ngay.
+ */
 export function NavBar() {
   const navigate = useNavigate();
-  const [token] = useState(() => tokenStorage.getToken());
+  const token = tokenStorage.getToken();
   const claims = token && !isExpired(token) ? readClaims(token) : null;
 
   function logout() {

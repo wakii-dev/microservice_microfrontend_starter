@@ -55,7 +55,7 @@ public class UserController implements UsersApi {
                 .setMaxResults(safeLimit)
                 .getResultList();
         UserList list = new UserList();
-        list.setItems(items);
+        list.setItems(items.stream().map(UserController::toApi).toList());
         list.setTotal(Math.toIntExact(users.count()));
         return ResponseEntity.ok(list);
     }

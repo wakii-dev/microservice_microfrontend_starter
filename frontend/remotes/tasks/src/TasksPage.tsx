@@ -156,3 +156,4 @@ export function TasksPage() {
     </section>
   );
 }
+export default TasksPage;

@@ -16,6 +16,9 @@
   "engines": {
     "node": ">=22"
   },
+  "dependencies": {
+    "@module-federation/enhanced": "catalog:"
+  },
   "devDependencies": {
     "typescript": "^5.7.0"
   },

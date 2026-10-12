@@ -119,6 +119,10 @@ importers:
         version: 3.2.4(@types/node@22.20.5)(jiti@2.4.2)(jsdom@27.0.0)(tsx@4.23.15)(yaml@2.9.1)
 
   frontend/shared:
+    dependencies:
+      '@module-federation/enhanced':
+        specifier: 'catalog:'
+        version: 0.21.6(@rspack/core@1.7.12)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
     devDependencies:
       typescript:
         specifier: ^5.7.0

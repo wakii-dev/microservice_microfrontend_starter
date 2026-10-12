@@ -152,3 +152,4 @@ export function ActivityPage() {
     </section>
   );
 }
+export default ActivityPage;

@@ -73,10 +73,13 @@ export default {
         './ActivityPage': './src/ActivityPage.tsx',
       },
       // Singleton theo pin matrix — KHÔNG bundle duplicate react (spec slice mục 3;
-      // remote consume singleton do shell host cung cấp khi load trong shell)
+      // remote consume singleton do shell host cung cấp khi load trong shell).
+      // requiredVersion: false — deps ghi "catalog:" (pnpm protocol) bị mf-enhanced infer
+      // nhầm thành requiredVersion literal → version-check warning sai against host 19.3.0.
+      // Singleton = luôn dùng bản của host, không cần check.
       shared: {
-        react: { singleton: true },
-        'react-dom': { singleton: true },
+        react: { singleton: true, requiredVersion: false },
+        'react-dom': { singleton: true, requiredVersion: false },
       },
     }),
   ],

@@ -101,7 +101,9 @@ jobs:
 
       - name: Schemathesis contract test (scaffold — auth.yaml)
         run: |
-          pipx install "schemathesis==3.*"
-          ~/.local/bin/schemathesis run contracts/openapi/auth.yaml \
+          # venv path deterministic — pipx bin dir trên runner không ổn định (run 38213445973)
+          python3 -m venv /tmp/stenv
+          /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"
+          /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml \
             --base-url http://localhost:8090 \
             --checks all --max-examples 25 --hypothesis-deadline 5000

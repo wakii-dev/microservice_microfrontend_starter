@@ -43,7 +43,19 @@ không có postgres local, không có spring/go local):
   được native (không postgres) — CI boot-smoke (compose postgres thật + migration
   lúc boot + readyz 200 + CRUD smoke) là bằng chứng cho phần đó
 
-CI: [ĐIỀN SAU PUSH — run URL + verdict 3 jobs]
+CI: GitHub Actions run 38231074947 (branch wakii-dev/sf-2-node-svc, HEAD 0d3ffd3) —
+https://github.com/wakii-dev/architecture-overview/actions/runs/38231074947
+- build + test (node-svc): SUCCESS — pnpm frozen install, 23/23 vitest, tsc build, typegen drift check
+- docker build (node-svc): SUCCESS — multi-stage image (conventions/01)
+- boot-smoke (node-svc + postgres): SUCCESS — compose up postgres (init thật, role node_svc) +
+  node-svc container; migration chạy lúc boot (custom runner db/migrate.ts — drizzle migrator
+  phát CREATE SCHEMA cần CREATE trên DB → permission denied, fix 0d3ffd3);
+  healthz/readyz 200 {"status":"ok"}; JWT CI tự ký: POST create KHÔNG assignee → 201
+  (go-svc vắng = fire-and-forget evidence) → GET list thấy task → PATCH status=done →
+  DELETE 204 → no-token 401
+- Run đỏ trước (bằng chứng debug loop): 38227939477 (pnpm version conflict + readyz timeout),
+  38228924847 (logs step thiếu --env-file), 38229973307 (logs lộ root cause CREATE SCHEMA
+  permission denied) → fix custom runner → 38231074947 XANH
 
 tdd: RED→GREEN cho error-envelope mapping (HttpError.statusCode + FST_ERR_VALIDATION
 →VALIDATION_ERROR): test ĐỎ 6 case (500 thay 4xx/422, FST_ERR_VALIDATION thay

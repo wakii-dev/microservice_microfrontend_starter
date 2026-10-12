@@ -1,0 +1,22 @@
+# Spectral ruleset — lint contracts/openapi/*.yaml trong CI (workflows/contracts.yml)
+extends:
+  - spectral:oas
+
+# Boilerplate điều chỉnh: specs tự-contained (mỗi repo-con copy đi độc lập được —
+# không $ref chéo file), nên tắt các rule khuyến-khích không áp dụng cho template nội bộ.
+rules:
+  # Không bắt buộc license trên sample API
+  info-license: off
+  # Tag tự do — sample domain nhỏ, không cần gắn liên kết ngoài
+  oas3-api-servers: off
+
+  # Rule riêng: mọi response error phải dùng Error envelope chung
+  error-envelope-shape:
+    description: Response 4xx/5xx phải dùng schema Error envelope (components/schemas/Error).
+    severity: warn
+    recommended: true
+    message: "{{error}}"
+    given: $.paths[*][*].responses[?(@property.match(/^[45]/))].content.application/json.schema
+    then:
+      field: $ref
+      const: "#/components/schemas/Error"

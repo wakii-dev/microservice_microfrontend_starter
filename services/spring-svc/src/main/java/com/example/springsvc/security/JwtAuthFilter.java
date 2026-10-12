@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -57,7 +58,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 Claims claims = verifier.verify(auth.substring(7).trim());
                 request.setAttribute("jwt.claims", claims);
-                chain.doFilter(request, response);
+                // ContentCaching: controller đọc key-presence raw body (vd PATCH roles:[])
+                chain.doFilter(new ContentCachingRequestWrapper(request), response);
             } catch (JwtException | IllegalArgumentException e) {
                 // KHÔNG log token — chỉ log lý do chung (conventions/03)
                 unauthorized(response, requestId, "Invalid or expired token");

@@ -97,6 +97,10 @@ jobs:
           done
           curl -sf http://localhost:8081/healthz | grep -q '"status":"ok"'
           curl -sf http://localhost:8081/readyz | grep -q '"status":"ok"'
+      - name: Smoke — api-docs phục vụ + chứa FINAL paths (swagger acceptance, host-port)
+        run: |
+          curl -sf http://localhost:8081/v3/api-docs | grep -q '/api/users/users'
+          curl -sf http://localhost:8081/v3/api-docs | grep -q '/api/users/teams'
       - name: Login auth-mock qua gateway → GET fixture user (seed id khớp token sub)
         run: |
           TOKEN=$(curl -sf -X POST http://localhost:8080/api/auth/login \

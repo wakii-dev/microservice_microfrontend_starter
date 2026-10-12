@@ -167,4 +167,16 @@ class UserApiTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("NOT_FOUND"));
     }
+
+    @Test
+    void patchRolesEmptyArrayClearsRoles() throws Exception {
+        // contract: minProperties đếm key, roles không minItems → {"roles":[]} hợp lệ = clear
+        // (review r2 P1: đỏ trên code cũ — empty==absent → 400)
+        mockMvc.perform(patch("/api/users/users/" + ALICE_ID)
+                        .header("Authorization", bearer())
+                        .contentType("application/json")
+                        .content("{\"roles\":[]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.roles.length()").value(0));
+    }
 }

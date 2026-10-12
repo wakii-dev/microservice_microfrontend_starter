@@ -32,13 +32,16 @@ public class UserController implements UsersApi {
 
     private final UserRepository users;
     private final Validator validator;
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
 
     @PersistenceContext
     private EntityManager em;
 
-    public UserController(UserRepository users, Validator validator) {
+    public UserController(UserRepository users, Validator validator,
+            com.fasterxml.jackson.databind.ObjectMapper mapper) {
         this.users = users;
         this.validator = validator;
+        this.mapper = mapper;
     }
 
     @Override
@@ -99,9 +102,10 @@ public class UserController implements UsersApi {
             throw ApiException.badRequest(first.getPropertyPath() + " " + first.getMessage());
         }
         boolean hasDisplayName = updateUserRequest.getDisplayName() != null;
-        // Generated model init collection mặc định → {} deserialize roles = []
-        // (không null) — coi empty == absent, bảo toàn minProperties:1 semantics
-        boolean hasRoles = updateUserRequest.getRoles() != null && !updateUserRequest.getRoles().isEmpty();
+        // Generated model init collection → roles empty không phân biệt absent/[] — đọc
+        // key-presence từ raw body (contract: minProperties đếm key; roles KHÔNG minItems
+        // nên {"roles":[]} hợp lệ = clear roles). JwtAuthFilter wrap ContentCachingRequestWrapper.
+        boolean hasRoles = bodyHas("roles");
         if (!hasDisplayName && !hasRoles) {
             // contract minProperties: 1
             throw ApiException.badRequest("At least one of displayName, roles is required");
@@ -115,6 +119,23 @@ public class UserController implements UsersApi {
         }
         users.save(user);
         return ResponseEntity.ok(toApi(user));
+    }
+
+    private boolean bodyHas(String field) {
+        var attrs = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes sra
+                && sra.getRequest() instanceof org.springframework.web.util.ContentCachingRequestWrapper wrapper) {
+            try {
+                byte[] content = wrapper.getContentAsByteArray();
+                if (content.length == 0) {
+                    return false;
+                }
+                return mapper.readTree(content).has(field);
+            } catch (java.io.IOException e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     // ---- mirrors của healthz/readyz theo spec §4.5 (probe thật = naked path) ----

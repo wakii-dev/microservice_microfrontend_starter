@@ -32,9 +32,17 @@ export default {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.jsx', '.js'],
+    // fe-shared (READ-ONLY, SF-1) import kiểu NodeNext: './x.js' chỉ tới file .ts
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js'],
+    },
   },
   module: {
     rules: [
+      {
+        test: /\.css$/,
+        type: 'css',
+      },
       {
         test: /\.tsx?$/,
         // fe-shared là package TS raw (main: ./src/index.ts) — bundler phải compile luôn
@@ -74,6 +82,9 @@ export default {
       },
     }),
   ],
+  experiments: {
+    css: true,
+  },
   devServer: {
     port: Number(process.env.SHELL_PORT || 3000),
     historyApiFallback: true,

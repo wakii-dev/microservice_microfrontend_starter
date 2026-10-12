@@ -1,6 +1,5 @@
 package db.migration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
@@ -32,9 +31,8 @@ public class V2__SeedUsers extends BaseJavaMigration {
             throw new IllegalStateException("users fixture not found at " + fixturePath);
         }
 
-        // FAIL_ON_UNKNOWN_PROPERTIES=false — fixture có key "$comment"
-        ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // readTree tree-model bỏ qua tự nhiên key "$comment" của fixture
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode users = mapper.readTree(path.toFile()).get("users");
         if (users == null || !users.isArray() || users.isEmpty()) {
             throw new IllegalStateException("users fixture malformed: expected non-empty users[] at " + fixturePath);

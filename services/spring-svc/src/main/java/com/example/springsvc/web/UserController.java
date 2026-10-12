@@ -72,7 +72,9 @@ public class UserController implements UsersApi {
         List<Role> roles = createUserRequest.getRoles() == null || createUserRequest.getRoles().isEmpty()
                 ? List.of(Role.USER)
                 : createUserRequest.getRoles();
-        User user = new User(UUID.randomUUID(), email,
+        // ⚠️ import collision: User (imported) = api.model.User — entity phải fully-qualify
+        com.example.springsvc.domain.User user = new com.example.springsvc.domain.User(
+                UUID.randomUUID(), email,
                 createUserRequest.getDisplayName(), roles.stream().map(Role::getValue).toList());
         users.save(user);
         return ResponseEntity.status(201).body(toApi(user));
@@ -86,6 +88,13 @@ public class UserController implements UsersApi {
     @Override
     @Transactional
     public ResponseEntity<User> updateUser(UUID userId, UpdateUserRequest updateUserRequest) {
+        // Constraint trên generated model (displayName minLength 1...) — @Valid trên interface
+        // param KHÔNG inherit xuống impl → validate thủ công như createUser (review P1)
+        var violations = validator.validate(updateUserRequest);
+        if (!violations.isEmpty()) {
+            ConstraintViolation<UpdateUserRequest> first = violations.iterator().next();
+            throw ApiException.badRequest(first.getPropertyPath() + " " + first.getMessage());
+        }
         boolean hasDisplayName = updateUserRequest.getDisplayName() != null;
         // roles: [] hợp lệ (set rỗng) — chỉ coi absent khi null (contract minProperties tính key)
         boolean hasRoles = updateUserRequest.getRoles() != null;

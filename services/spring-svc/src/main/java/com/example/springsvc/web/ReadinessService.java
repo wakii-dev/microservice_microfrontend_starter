@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 @Component("dbReadiness")
 public class ReadinessService implements HealthIndicator {
 
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(ReadinessService.class);
+
     private final JdbcTemplate jdbc;
 
     public ReadinessService(JdbcTemplate jdbc) {
@@ -24,6 +27,8 @@ public class ReadinessService implements HealthIndicator {
             jdbc.queryForObject("SELECT count(*) FROM users", Integer.class);
             return true;
         } catch (Exception e) {
+            // conventions/03: lỗi có dấu vết đọc được — operator chẩn đoán 503 từ log
+            log.error("readyz check failed: {}", e.toString(), e);
             return false;
         }
     }

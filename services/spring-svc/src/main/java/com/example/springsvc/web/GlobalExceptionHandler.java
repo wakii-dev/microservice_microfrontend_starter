@@ -56,6 +56,22 @@ public class GlobalExceptionHandler {
         return respond(409, "CONFLICT", "Dữ liệu vi phạm ràng buộc (vd email đã tồn tại)", null);
     }
 
+    // Framework 4xx — KHÔNG để rơi vào catch-all 500 (conventions/04: INTERNAL chỉ unhandled)
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorEnvelope.ErrorWrapper> noResource(org.springframework.web.servlet.resource.NoResourceFoundException e) {
+        return respond(404, "NOT_FOUND", "Không tìm thấy resource", null);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorEnvelope.ErrorWrapper> methodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException e) {
+        return respond(405, "METHOD_NOT_ALLOWED", "Method không được hỗ trợ", null);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorEnvelope.ErrorWrapper> mediaTypeNotSupported(org.springframework.web.HttpMediaTypeNotSupportedException e) {
+        return respond(415, "UNSUPPORTED_MEDIA_TYPE", "Content-Type không được hỗ trợ", null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorEnvelope.ErrorWrapper> internal(Exception e) {
         // KHÔNG lộ stack trong message (conventions/04) — log đầy đủ có err

@@ -148,4 +148,23 @@ class UserApiTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
     }
+
+    @Test
+    void patchBlankDisplayNameIs400() throws Exception {
+        // contract displayName minLength 1 — @Valid không inherit qua interface, validate thủ công
+        mockMvc.perform(patch("/api/users/users/" + ALICE_ID)
+                        .header("Authorization", bearer())
+                        .contentType("application/json")
+                        .content("{\"displayName\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void unknownPathIs404Not500() throws Exception {
+        // NoResourceFoundException không được rơi vào catch-all 500 (review P1)
+        mockMvc.perform(get("/api/users/khong-ton-tai").header("Authorization", bearer()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("NOT_FOUND"));
+    }
 }

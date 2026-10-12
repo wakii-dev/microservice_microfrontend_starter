@@ -52,6 +52,7 @@ jobs:
         # Service container KHÔNG mount init (mount workspace trước checkout = dir root-owned
         # → checkout EACCES); chạy script sau checkout qua psql client của runner.
         env:
+          PGHOST: localhost
           PGPASSWORD: change-me-postgres
           POSTGRES_USER: boilerplate
           POSTGRES_DB: boilerplate

@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * (CI trỏ về contracts/auth/users.json tuyệt đối; compose mount vào container).
  * KHÔNG @Transactional — assert trạng thái seed thuần, không phụ thuộc test khác.
  */
-@SpringBootTest
+@SpringBootTest(properties = "app.jwt-secret=test-secret-for-jwt-filter-0123456789abcdef")
 class SeedMatchIntegrationTest {
 
     @Autowired

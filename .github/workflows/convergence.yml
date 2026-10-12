@@ -54,7 +54,7 @@ jobs:
       - name: Copy node-svc ra tmp + build/test standalone (theo README node-svc)
         run: |
           REPO_ROOT="$PWD"
-          mkdir -p "$RUNNER_TEMP/contracts/db"
+          mkdir -p "$RUNNER_TEMP/standalone" "$RUNNER_TEMP/contracts/db"
           cp -r services/node-svc "$RUNNER_TEMP/standalone/node-svc"
           # schema-diff.test đọc ../../contracts/db/tasks-schema.sql (repo-relative —
           # resolve từ standalone/node-svc lên $RUNNER_TEMP/contracts/db)

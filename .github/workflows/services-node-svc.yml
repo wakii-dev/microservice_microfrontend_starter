@@ -25,7 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
+        # version đọc từ packageManager trong package.json (root) — không khai
+        # trùng ở đây (ERR_PNPM_BAD_PM_VERSION conflict, run 38227939477)
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - name: Install (workspace root, frozen)
@@ -63,10 +64,16 @@ jobs:
             up -d --build postgres node-svc
       - name: Smoke — healthz/readyz 200 (readyz = migration xong + DB ok)
         run: |
+          ok=0
           for i in $(seq 1 60); do
-            curl -sf http://localhost:3001/readyz >/dev/null && break
+            curl -sf http://localhost:3001/readyz >/dev/null && ok=1 && break
             sleep 2
           done
+          if [ "$ok" != "1" ]; then
+            echo "::error::readyz không 200 trong 120s — node-svc logs:"
+            docker compose -f platform/docker-compose.yml logs node-svc postgres
+            exit 1
+          fi
           curl -sf http://localhost:3001/healthz | grep -q '"status":"ok"'
           curl -sf http://localhost:3001/readyz | grep -q '"status":"ok"'
       - name: Smoke — CRUD qua JWT tự ký (create KHÔNG assignee → 201 khi go-svc vắng = fire-and-forget)

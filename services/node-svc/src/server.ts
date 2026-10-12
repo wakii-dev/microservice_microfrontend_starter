@@ -24,8 +24,10 @@ async function main(): Promise<void> {
   );
 
   // Migration — exit criterion SF-2: sinh đúng canonical DDL (schema-diff.test
-  // verify cấu trúc; bước này chạy thật lên postgres).
-  await migrate(db, { migrationsFolder: migrationsFolder() });
+  // verify cấu trúc; bước này chạy thật lên postgres). migrationsSchema: 'tasks'
+  // — role node_svc chỉ có CREATE trên schema tasks (01-init.sh), mặc định
+  // schema "drizzle" của migrator sẽ bị permission denied → boot crash.
+  await migrate(db, { migrationsFolder: migrationsFolder(), migrationsSchema: 'tasks' });
   logger.info('migrations applied');
 
   // Spring reachability — boot-time check 1 lần, CHỈ log (deviation D3):

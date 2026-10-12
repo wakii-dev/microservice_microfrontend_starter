@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><style>body{background:#fff;margin:16px}</style></head><body><pre class="mermaid">
+graph TB
+    subgraph repo ["repo này (multi-repo convention — mỗi thư mục = repo-con)"]
+        subgraph contracts ["contracts/ — source of truth"]
+            openapi["openapi/ tasks·users·activity·auth.yaml"]
+            ddl["db/tasks-schema.sql — canonical DDL"]
+            authc["auth/ users.json + token-contract.md"]
+        end
+        subgraph platform ["platform/ — SF-1 sở hữu"]
+            compose["docker-compose.yml (pre-seed 6 services)"]
+            pginit["postgres/init/ (schemas + roles + default privileges)"]
+            nginx["gateway/nginx (routing + JWT presence 401)"]
+            authmock["auth-mock :8090 (JWT HS256, NOT-FOR-PROD)"]
+            conv["conventions/ (8 docs)"]
+        end
+        subgraph services ["services/ — khung, SF-2/3/4 điền impl"]
+            node["node-svc :3001 (Fastify+TS)"]
+            spring["spring-svc :8081 (Spring Boot 3)"]
+            go["go-svc :8082 (Go 1.24+chi)"]
+        end
+        subgraph frontend ["frontend/"]
+            shared["shared (fe-shared — api client, token, MF helper)"]
+            spike["spike (MF pin versions — đã test)"]
+        end
+    end
+
+    browser["Browser"] --> gw["nginx gateway :8080<br/>CỔNG DUY NHẤT"]
+    gw -- "/" --> shell["shell MF host :3000<br/>(SF-5)"]
+    gw -- "/remotes/*" --> remotes["remote tasks :4001 / activity :4002<br/>(SF-6)"]
+    gw -- "/api/tasks/* + JWT" --> node
+    gw -- "/api/users/* + JWT" --> spring
+    gw -- "/api/activity/* + JWT" --> go
+    gw -- "/api/auth/* (mở)" --> authmock
+    node -- "validate user (2s, fail-closed 503)" --> spring
+    node -- "event push fire-and-forget" --> go
+    node -- "SQL (schema tasks)" --> db[("postgres :5432")]
+    spring -- "SQL (schema users)" --> db
+    go -- "readonly schema tasks + own activity" --> db
+    authmock -- "đọc fixture" --> authc
+    node -.-> openapi
+    spring -.-> openapi
+    go -.-> openapi
+    node -.-> ddl
+    go -.-> ddl
+
+</pre><script>mermaid.initialize({startOnLoad:true, securityLevel:'loose'});</script></body></html>

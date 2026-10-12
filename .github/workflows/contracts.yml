@@ -106,4 +106,4 @@ jobs:
           /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"
           /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml \
             --base-url http://localhost:8090 \
-            --checks all --max-examples 25 --hypothesis-deadline 5000
+            --checks all --hypothesis-max-examples 25 --hypothesis-deadline 5000

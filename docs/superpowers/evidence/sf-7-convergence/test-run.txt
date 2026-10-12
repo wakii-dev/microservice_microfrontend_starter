@@ -1,6 +1,14 @@
 # SF-7 Convergence & Scaffold — test run evidence (FI-75)
-Date: 2026-10-13 | HEAD code: 887b133 (branch wakii-dev/sf-7-convergence; commit này là evidence commit CUỐI — HEAD~1 = 887b133)
+Date: 2026-10-13 | HEAD code: a7a6644 (branch wakii-dev/sf-7-convergence; commit này là evidence commit CUỐI — HEAD~1 = a7a6644)
 tdd: skipped-tdd: convergence scripts/docs — smoke KHÔNG có unit test; verify bằng real-run native (Rule 0) + negative tests (wrong-password exit 3, go-svc-down retry exit 4) + CI jobs chạy lại trên compose sau push.
+
+## RE-CONVERGED (2026-10-13) — CI 3/3 GREEN sau khi coordinator fix 2 bugs trên dest @d1c1147
+
+- Merge dest → branch: commit **a7a6644** (clean merge — compose + node-svc spring.ts; không conflict).
+- Fixes merge vào: (1) node client validate → `/api/users/users/{id}` (SF-3 contract resolution); (2) compose:138 DATABASE_READONLY_URL → `go_readonly` role.
+- **CI convergence run 38294292923 @ a7a6644: 3/3 GREEN** — e2e-smoke ✓ 3m15s (login→task→feed qua gateway trên compose; go_readonly readonly-path chạy thật lần đầu — PASS) + scaffold-verify ✓ + copy-dir ✓.
+  https://github.com/wakii-dev/architecture-overview/actions/runs/38294292923
+- Lịch sử FAIL-flag (runs 38288599832 / 38289733584 / 38290411393, 2/3 + root cause) giữ nguyên bên dưới làm audit trail.
 
 ## CI convergence (GitHub Actions) — 3 runs, kết quả cuối: 2/3 GREEN + 1 FAIL-FLAG (COORDINATOR QUYẾT 2026-10-13)
 

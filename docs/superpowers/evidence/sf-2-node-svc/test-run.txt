@@ -1,8 +1,8 @@
-SF-2 node-svc test evidence — 2026-10-12T09:05Z
-HEAD code commit: b87f7dd (branch wakii-dev/sf-2-node-svc; evidence commit ngay sau)
+SF-2 node-svc test evidence — 2026-10-12T09:05Z (updated 2026-10-12T10:10Z sau CI xanh + review)
+HEAD code commit: b541bfc (branch wakii-dev/sf-2-node-svc; re-run tests 23/23 PASS tại HEAD này — coordinator yêu cầu sync evidence HEAD)
 
 Unit/contract tests (vitest):
-- services/node-svc: 23/23 PASS
+- services/node-svc: 23/23 PASS (re-run tại HEAD b541bfc 2026-10-12T10:10Z — cùng kết quả)
   (healthz/readyz naked+mirror, readyz DB fail→503 DEPENDENCY_DOWN, auth
   missing/bad-signature/expired/wrong-iss→401, CRUD happy+validation 400,
   404 TASK_NOT_FOUND, non-uuid→400, 422 UNPROCESSABLE assignee lạ + KHÔNG ghi

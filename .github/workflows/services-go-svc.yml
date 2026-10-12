@@ -103,9 +103,11 @@ jobs:
 
       - name: Apply canonical DDL + seed bằng ROLE node_svc (ALTER DEFAULT PRIVILEGES chỉ hiệu lực với bảng do node_svc tạo)
         run: |
+          # grep -v CREATE SCHEMA: schema tasks đã có từ init — node_svc không có
+          # CREATE trên DATABASE nên CREATE SCHEMA IF NOT EXISTS vẫn permission-denied
+          grep -v '^CREATE SCHEMA' contracts/db/tasks-schema.sql | \
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            exec -T postgres psql -v ON_ERROR_STOP=1 -U node_svc -d boilerplate \
-            < contracts/db/tasks-schema.sql
+            exec -T postgres psql -v ON_ERROR_STOP=1 -U node_svc -d boilerplate
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T postgres psql -v ON_ERROR_STOP=1 -U node_svc -d boilerplate -c "
           INSERT INTO tasks.tasks (id, title, description, status, created_by) VALUES

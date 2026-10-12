@@ -23,7 +23,7 @@ type fakeStore struct {
 	eventsLenForRecent int
 }
 
-func (f *fakeStore) InsertEvent(_ context.Context, e *Event) error {
+func (f *fakeStore) InsertEvent(_ context.Context, e *model.Event) error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.insertErr != nil {
@@ -33,7 +33,7 @@ func (f *fakeStore) InsertEvent(_ context.Context, e *Event) error {
 	return nil
 }
 
-func (f *fakeStore) ListEvents(_ context.Context, limit, offset int) ([]Event, int, error) {
+func (f *fakeStore) ListEvents(_ context.Context, limit, offset int) ([]model.Event, int, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.listErr != nil {
@@ -41,7 +41,7 @@ func (f *fakeStore) ListEvents(_ context.Context, limit, offset int) ([]Event, i
 	}
 	total := len(f.events)
 	// events giữ thứ tự insert; feed cần mới nhất trước — reverse slice
-	out := make([]Event, 0, limit)
+	out := make([]model.Event, 0, limit)
 	for i := total - 1 - offset; i >= 0 && len(out) < limit; i-- {
 		out = append(out, f.events[i])
 	}

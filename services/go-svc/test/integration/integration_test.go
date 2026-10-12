@@ -61,11 +61,15 @@ func openDB(t *testing.T, url string) *sql.DB {
 
 // splitStatements tách SQL file thành statements đơn (DDL không có function body;
 // bỏ comment line — đủ an toàn cho canonical DDL + migration của mình).
+// Bỏ statement CREATE SCHEMA: schema đã có từ init script — node_svc không có
+// CREATE trên DATABASE nên CREATE SCHEMA IF NOT EXISTS vẫn permission-denied
+// (CI boot-smoke cũng grep -v tương tự).
 func splitStatements(t *testing.T, content string) []string {
 	t.Helper()
 	var lines []string
 	for _, l := range strings.Split(content, "\n") {
-		if strings.TrimSpace(l) == "" || strings.HasPrefix(strings.TrimSpace(l), "--") {
+		trimmed := strings.TrimSpace(l)
+		if trimmed == "" || strings.HasPrefix(trimmed, "--") || strings.HasPrefix(trimmed, "CREATE SCHEMA") {
 			continue
 		}
 		lines = append(lines, l)

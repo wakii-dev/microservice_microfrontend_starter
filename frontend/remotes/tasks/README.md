@@ -48,3 +48,5 @@ Copy thư mục này **KÈM `frontend/shared/`** (+ root `pnpm-workspace.yaml`/`
 ## API contract
 
 `contracts/openapi/tasks.yaml` — source of truth (list/create/patch shape, error envelope, status enum `todo|in_progress|done`).
+
+> Lưu ý: override `REMOTE_TASKS_PORT` KHÔNG tự đổi publicPath (default vẫn :4001) — đặt kèm `REMOTE_PUBLIC_PATH` nếu đổi port dev.

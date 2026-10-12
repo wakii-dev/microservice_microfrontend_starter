@@ -48,3 +48,5 @@ Copy thư mục này **KÈM `frontend/shared/`** (+ root `pnpm-workspace.yaml`/`
 ## API contract
 
 `contracts/openapi/activity.yaml` — source of truth (feed/stats shape, user-display fields, error envelope).
+
+> Lưu ý: override `REMOTE_ACTIVITY_PORT` KHÔNG tự đổi publicPath (default vẫn :4002) — đặt kèm `REMOTE_PUBLIC_PATH` nếu đổi port dev.

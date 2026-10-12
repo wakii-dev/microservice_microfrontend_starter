@@ -2,8 +2,8 @@
 # deps stage
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml* package-lock.json* ./
-RUN corepack enable && (test -f pnpm-lock.yaml && pnpm install --frozen-lockfile || npm install --omit=dev)
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
 # runtime stage
 FROM node:22-alpine AS runtime

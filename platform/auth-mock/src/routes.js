@@ -18,16 +18,22 @@ export function registerRoutes(app, { users, jwtSecret, devPassword, ttlSeconds,
   const usersByEmail = new Map(users.map((u) => [u.email.toLowerCase(), u]));
   let fixtureLoaded = true; // buildApp đã load trước khi register — ready từ đầu
 
-  // ---- healthcheck (naked path — conventions/02) ----
-  app.get('/healthz', async () => ({ status: 'ok' }));
-  app.get('/readyz', async (_req, reply) => {
+  // ---- healthcheck (naked path cho compose healthcheck + mirror /api/auth/* cho
+  //      gateway + schemathesis — conventions/02 rule 5) ----
+  const healthz = async () => ({ status: 'ok' });
+  const readyz = async (_req, reply) => {
     if (!fixtureLoaded) {
       return reply.status(503).send({
         error: { code: 'NOT_READY', message: 'users fixture not loaded', requestId: null, details: null },
       });
     }
     return { status: 'ok' };
-  });
+  };
+  app.get('/healthz', healthz);
+  app.get('/readyz', readyz);
+  // mirror qua gateway prefix (gateway chỉ route /api/auth — conventions/08)
+  app.get('/api/auth/healthz', healthz);
+  app.get('/api/auth/readyz', readyz);
 
   // ---- login ----
   app.post('/api/auth/login', async (request, reply) => {

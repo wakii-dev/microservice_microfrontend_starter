@@ -41,7 +41,10 @@ export const tokenStorage: TokenStorage = {
  */
 export function readClaims(token: string): { sub: string; email: string; roles: string[]; exp: number } | null {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // base64url → base64: đổi alphabet + tự bổ sung padding (JWT segment không có '=')
+    let seg = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    seg += '='.repeat(seg.length % 4 === 0 ? 0 : 4 - (seg.length % 4));
+    const payload = JSON.parse(atob(seg));
     return payload.sub ? payload : null;
   } catch {
     return null;

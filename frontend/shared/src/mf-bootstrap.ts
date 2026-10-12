@@ -12,19 +12,17 @@ export interface RemoteEntry {
   url: string;
 }
 
-/** Đọc URL remote từ env (Vite/Rspack inject DEFINE tại build; runtime thì window.__REMOTE_URLS__). */
+/** Đọc URL remote từ env — host app (SF-5) inject `__REMOTE_URLS__` lúc bootstrap
+ * (build-time env REMOTE_TASKS_URL/REMOTE_ACTIVITY_URL); fallback prod đi qua gateway
+ * (conventions/08 remote registry prod URL). Không import `process` — giữ side-effect-free. */
 export function resolveRemoteUrl(name: RemoteName): string {
-  const envKey = name === 'tasks' ? 'REMOTE_TASKS_URL' : 'REMOTE_ACTIVITY_URL';
   const fromWindow = (globalThis as Record<string, unknown>)['__REMOTE_URLS__'] as
     | Record<string, string>
     | undefined;
   if (fromWindow?.[name]) {
     return fromWindow[name];
   }
-  // Fallback prod: đi qua gateway path (conventions/08 remote registry prod URL)
   return `/remotes/${name}/remoteEntry.js`;
-  // NOTE: build-time env (`process.env[envKey]`) do host app (SF-5) inject — helper này
-  // không import process để giữ side-effect-free cho cả browser bundle.
 }
 
 /**

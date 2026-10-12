@@ -6,6 +6,7 @@
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import jwt from 'jsonwebtoken';
@@ -46,6 +47,14 @@ export async function buildApp(opts = {}) {
     // /healthz + /readyz không cần body parsing phức tạp — tắt cho nhanh
     bodyLimit: 64 * 1024,
   });
+
+  // CORS dev-profile — conventions/07: auth-mock luôn mở cho dev origin
+  // (native FE dev gọi thẳng :8090 không qua gateway). Prod: origin rỗng → deny-by-default.
+  const devOrigins = (opts.corsDevOrigin ?? process.env.CORS_DEV_ORIGIN ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  await app.register(cors, { origin: devOrigins });
 
   await app.register(swagger, {
     openapi: {

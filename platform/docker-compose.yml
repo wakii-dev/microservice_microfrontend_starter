@@ -40,8 +40,9 @@ services:
   auth-mock:
     build: ./auth-mock
     environment:
-      PORT: ${AUTH_MOCK_PORT:-8090}
+      PORT: 8090 # container port CỐ ĐỊNH (conventions/05) — override ${AUTH_MOCK_PORT} chỉ đổi side host
       JWT_SECRET: ${JWT_SECRET:?set in .env}
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
       AUTH_MOCK_DEV_PASSWORD: ${AUTH_MOCK_DEV_PASSWORD:-demo-password}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # fixture mount trực tiếp từ contracts/ — sửa fixture không cần rebuild image
@@ -49,7 +50,7 @@ services:
     volumes:
       - ../contracts/auth/users.json:/app/users.json:ro
     ports:
-      - "${AUTH_MOCK_PORT:-8090}:8090"
+      - "${AUTH_MOCK_PORT:-8090}:8090" # host-side port — truy cập từ máy dev
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:${AUTH_MOCK_PORT:-8090}/healthz"]
       interval: 5s
@@ -72,7 +73,7 @@ services:
   node-svc:
     build: ../services/node-svc
     environment:
-      PORT: ${NODE_SVC_PORT:-3001}
+      PORT: 3001 # container port CỐ ĐỊNH (conventions/05)
       DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${NODE_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
       SPRING_SVC_URL: http://spring-svc:8081
@@ -80,7 +81,7 @@ services:
       CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - "${NODE_SVC_PORT:-3001}:3001"
+      - "${NODE_SVC_PORT:-3001}:3001" # host-side
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,7 +89,7 @@ services:
   spring-svc:
     build: ../services/spring-svc
     environment:
-      SERVER_PORT: ${SPRING_SVC_PORT:-8081}
+      SERVER_PORT: 8081 # container port CỐ ĐỊNH (conventions/05)
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?set in .env}
       SPRING_DATASOURCE_USERNAME: spring_svc
       SPRING_DATASOURCE_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
@@ -99,7 +100,7 @@ services:
     volumes:
       - ../contracts/auth/users.json:/app/contracts/auth/users.json:ro
     ports:
-      - "${SPRING_SVC_PORT:-8081}:8081"
+      - "${SPRING_SVC_PORT:-8081}:8081" # host-side
     depends_on:
       postgres:
         condition: service_healthy
@@ -107,7 +108,7 @@ services:
   go-svc:
     build: ../services/go-svc
     environment:
-      PORT: ${GO_SVC_PORT:-8082}
+      PORT: 8082 # container port CỐ ĐỊNH (conventions/05)
       DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       DATABASE_READONLY_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
@@ -115,7 +116,7 @@ services:
       CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - "${GO_SVC_PORT:-8082}:8082"
+      - "${GO_SVC_PORT:-8082}:8082" # host-side
     depends_on:
       postgres:
         condition: service_healthy

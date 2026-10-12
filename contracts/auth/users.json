@@ -1,19 +1,22 @@
 {
-  "$comment": "Fixture users chung — auth-mock (SF-1) đọc runtime; spring-svc seed migration (SF-3) đọc cùng file, id phải khớp 100%. UUID cố định có chủ đích (dễ debug demo). Thêm user mới = thêm entry, KHÔNG đổi id của user cũ (SF-2/3/4 đã seed theo).",
+  "$comment": "Fixture users chung — auth-mock (SF-1) đọc runtime; spring-svc seed migration (SF-3) đọc cùng file, id phải khớp 100%. UUID cố định có chủ đích (dễ debug demo). Thêm user mới = thêm entry, KHÔNG đổi id của user cũ (SF-2/3/4 đã seed theo). displayName là nguồn sự thật cho seed SF-3 (khớp User schema trong contracts/openapi/users.yaml).",
   "users": [
     {
       "id": "11111111-1111-4111-8111-111111111111",
       "email": "alice@demo.local",
+      "displayName": "Alice Demo",
       "roles": ["admin"]
     },
     {
       "id": "22222222-2222-4222-8222-222222222222",
       "email": "bob@demo.local",
+      "displayName": "Bob Demo",
       "roles": ["user"]
     },
     {
       "id": "33333333-3333-4333-8333-333333333333",
       "email": "carol@demo.local",
+      "displayName": "Carol Demo",
       "roles": ["user"]
     }
   ]

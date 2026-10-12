@@ -42,6 +42,8 @@ CURL="curl -s --max-time 5" # timeout cụ thể — hung curl = treo CI tới 6
 command -v curl >/dev/null || fail 1 "curl không có trong PATH"
 
 # dọn temp files (chứa token/body) kể cả khi fail giữa chừng (P2 security-audit SF-7)
+# init rỗng TRƯỚC trap — set -u sẽ lỗi unbound khi trap fire trước khi mktemp chạy
+LOGIN_BODY=""; STATS_BEFORE=""; TASK_BODY=""; FEED_BODY=""; STATS_AFTER=""
 trap 'rm -f "$LOGIN_BODY" "$STATS_BEFORE" "$TASK_BODY" "$FEED_BODY" "$STATS_AFTER"' EXIT 2>/dev/null || true
 
 # --- Bước 1: gateway + auth-mock ready (poll — gateway không có /readyz riêng,

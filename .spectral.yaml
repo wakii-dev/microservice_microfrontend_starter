@@ -9,6 +9,8 @@ extends:
 rules:
   # Không bắt buộc license trên sample API
   info-license: off
+  # Contact = epic FI-62 nội bộ — không cần contact object formal
+  info-contact: off
   # Tag tự do — sample domain nhỏ, không cần gắn liên kết ngoài
   oas3-api-servers: off
   # Mọi operation đã có summary + description cấp path/info — không ép description riêng từng op

@@ -33,19 +33,37 @@ func NewRouter(d Deps) http.Handler {
 	r.Use(RecoverMiddleware(d.Log))
 	r.Use(RequestLoggerMiddleware(d.Log))
 
-	// CORS dev-profile (conventions/07): origin list từ CORS_DEV_ORIGIN;
-	// rỗng (prod/compose) → không emit ACAO nào = deny-by-default.
-	c := cors.New(cors.Options{
-		AllowedOrigins: d.CORSOrigins,
-		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Authorization", "Content-Type", "X-Request-Id"},
-	})
-	r.Use(c.Handler)
+	// CORS dev-profile (conventions/07): origin list từ CORS_DEV_ORIGIN.
+	// P1 code-review: rs/cors với AllowedOrigins rỗng = allow-ALL (không phải
+	// deny-by-default) → CHỈ mount khi có origin; prod/compose (qua gateway)
+	// vốn không cần CORS → không header ACAO nào được emit.
+	if len(d.CORSOrigins) > 0 {
+		c := cors.New(cors.Options{
+			AllowedOrigins: d.CORSOrigins,
+			AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
+			AllowedHeaders: []string{"Authorization", "Content-Type", "X-Request-Id"},
+		})
+		r.Use(c.Handler)
+	}
 
 	r.Get("/healthz", Healthz)
 	r.Get("/readyz", Readyz(d.Readiness))
 
+	// 4xx ngoài /api/activity cũng đi qua envelope (conventions/04: MỌI 4xx/5xx)
+	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
+		WriteError(w, req, http.StatusNotFound, CodeNotFound, "route not found", nil)
+	})
+	r.MethodNotAllowed(func(w http.ResponseWriter, req *http.Request) {
+		WriteError(w, req, http.StatusMethodNotAllowed, CodeValidationError, "method not allowed", nil)
+	})
+
 	r.Route("/api/activity", func(ar chi.Router) {
+		// Mirror healthcheck dưới prefix (auth-mock precedent — conventions/02
+		// rule 5): spec activity.yaml khai /healthz+/readyz dưới servers.url
+		// /api/activity; naked path vẫn là nguồn cho compose/CI probes.
+		ar.Get("/healthz", Healthz)
+		ar.Get("/readyz", Readyz(d.Readiness))
+
 		// swagger static — KHÔNG auth (browser demo swagger-ui; gateway vẫn
 		// presence-check qua :8080 nên demo browser dùng direct :8082 — README)
 		ar.Get("/openapi.yaml", ServeOpenAPISpec)

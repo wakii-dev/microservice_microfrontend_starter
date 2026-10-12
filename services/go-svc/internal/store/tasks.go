@@ -93,10 +93,16 @@ func (s *Store) Stats(ctx context.Context) (model.TaskStats, error) {
 }
 
 // Probe — SELECT thử schema tasks bằng readonly role (readyz, conventions/02).
+// Bảng tồn tại nhưng RỖNG (node-svc migrate xong, chưa ai tạo task) → OK
+// (P1 code-review: sql.ErrNoRows ≠ permission/schema problem).
 func (s *Store) Probe(ctx context.Context) error {
 	var one int
-	if err := s.readonly.QueryRowContext(ctx,
-		`SELECT 1 FROM tasks.tasks LIMIT 1`).Scan(&one); err != nil {
+	err := s.readonly.QueryRowContext(ctx,
+		`SELECT 1 FROM tasks.tasks LIMIT 1`).Scan(&one)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+	if err != nil {
 		return mapTasksError(fmt.Errorf("probe schema tasks (readonly): %w", err))
 	}
 	return nil

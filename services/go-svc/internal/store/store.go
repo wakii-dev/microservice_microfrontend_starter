@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver "pgx"
 )
@@ -53,12 +54,12 @@ func (s *Store) Close() error {
 
 // Ready implements api.ReadinessChecker (conventions/02 go-svc row):
 // migration schema activity xong + SELECT thử được schema tasks (readonly role).
+// Probe có timeout 3s — DB hang không được treo readyz (P1 code-review).
 func (s *Store) Ready() error {
 	if !s.migrated {
 		return fmt.Errorf("migration schema activity not applied")
 	}
-	if err := s.Probe(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	return s.Probe(ctx)
 }

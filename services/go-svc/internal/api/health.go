@@ -19,10 +19,13 @@ type ReadinessChecker interface {
 }
 
 // Readyz — readiness: 200 khi checker Ready(), ngược lại 503 error envelope.
+// Message tĩnh — không lộ chi tiết pg error ra client (P2 code-review);
+// chi tiết nằm trong server log qua stats/health probes.
 func Readyz(checker ReadinessChecker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := checker.Ready(); err != nil {
-			WriteError(w, r, http.StatusServiceUnavailable, CodeDependencyDown, err.Error(), nil)
+			WriteError(w, r, http.StatusServiceUnavailable, CodeDependencyDown,
+				"service is not ready (migration or schema tasks probe failed)", nil)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")

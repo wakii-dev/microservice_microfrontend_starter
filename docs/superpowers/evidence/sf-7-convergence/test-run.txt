@@ -1,0 +1,68 @@
+# SF-7 Convergence & Scaffold — test run evidence (FI-75)
+Date: 2026-10-13 | HEAD code: 0bf5a8a (branch wakii-dev/sf-7-convergence; commit này là evidence commit CUỐI — HEAD~1 = 0bf5a8a)
+tdd: skipped-tdd: convergence scripts/docs — smoke KHÔNG có unit test; verify bằng real-run native (Rule 0) + negative tests (wrong-password exit 3, go-svc-down retry exit 4) + CI jobs chạy lại trên compose sau push.
+
+## Rule 0 — smoke script chạy THẬT local (native, không Docker)
+
+Stack sống native (~/Tools/sf6-e2e portable: JDK 21.0.12 + Go 1.24 + Postgres 16.9):
+postgres :5432 → spring-svc :8081 (mvnw) → node-svc :3001 → go-svc :8082 (bản copy /tmp — go mod tidy không bẩn tree) → auth-mock :8090 → **mini Node gateway :8080** (native không có nginx; path mapping khớp routing table conventions/08 — /api/auth→8090, /api/tasks→3001, /api/users→8081, /api/activity→8082; KHÔNG commit, chỉ verify).
+
+| # | Run | Kết quả |
+|---|-----|---------|
+| 1 | `bash scripts/smoke/e2e.sh` lần 1 | PASS exit 0 — login(272-char token) → POST task 201 → feed có action=task.created + taskTitle → stats 2→3 |
+| 2 | lần 2 (re-run) | PASS exit 0 — baseline tích luỹ 3→4 (title epoch+PID, re-run được) |
+| 3 | SMOKE_PASSWORD=sai-password | FAIL ĐÚNG bước 3, exit 3, message 401 rõ |
+| 4 | kill go-svc :8082 rồi chạy | FAIL ĐÚNG bước 4 sau 30×1s retry (KHÔNG crash sớm — poll readiness đúng), exit 4; restart go → PASS lại |
+| 5 | sau fix code-review (0bf5a8a) | PASS exit 0 — stats 7→8 |
+
+Loop đã sửa trong lúc chạy (3-WHY đủ): mini gateway chỉ match prefix có trailing slash → POST /api/tasks 404 (fix matcher); smoke assert-ngay-feed sẽ flaky → poll 10×1s.
+
+## Scaffold thật (T6 exit — output tree + rename + build)
+
+- `scaffold.sh demo-app --out /tmp/scaffold-test/demo-app`: prune 7/7 đúng (không rò .git/node_modules/docs-superpowers/spike/workflow-templates/convergence.yml/.story-brief.md), keep đủ (contracts/platform/services/frontend/scripts/workflows generic).
+- Rename: 0 leftover `@boilerplate` functional (package.json + **source imports** + **Dockerfile** + yml/yaml + md + lockfile). Leftover chỉ text mô tả trong SCAFFOLD.md + chính scaffold.sh (functional-neutral — reviewer chấp nhận).
+- `pnpm install --no-frozen-lockfile` 11s (store cache) + `pnpm --filter "@demo-app/shell" build` — **Rspack compiled successfully** (đúng sequence CI job scaffold-verify).
+- OUT-in-SRC guard: default OUT từ repo root → REFUSED đúng (tar copy-into-self đã bị reviewer bắt, đã fix).
+
+## fe-shared standalone (P0 code-review round-1 — repro PASS sau fix)
+
+copy frontend/shared ra tmp + mini workspace (catalog block từ root) + `pnpm install --no-frozen-lockfile` + `tsc --noEmit --strict ...` → **EXIT=0** (không có catalog → ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC, đã fix bằng mini pnpm-workspace.yaml).
+
+## ACCEPTANCE (context pack sf-7.md) — line-by-line
+
+1. "CI job e2e smoke xanh: script curl login → tạo task → đọc feed qua gateway" → **PASS local (5 runs trên)**; CI gate thật = job `convergence/e2e-smoke` chạy compose sau push (xác nhận ở DONE comment — run link).
+2. "Copy-dir smoke xanh: ≥1 service + fe-shared copy ra tmp build/test được" → **PASS local**: node-svc (lockfile local committed, `--ignore-workspace` install + vitest + tsc build — pattern đã xanh CI per-service từ SF-2) + fe-shared standalone (trên). CI gate = job `copy-dir-smoke`.
+3. "Scaffold: chạy script → thư mục project mới → cùng flow chạy được (CI verify scaffold output build được)" → **PASS local**: scaffold → install → build shell (trên). CI gate = job `scaffold-verify` (+ compose config -q trong job). Full e2e trên output = **human gate** (narrowing đã duyệt ở context pack) — hướng dẫn trong SCAFFOLD.md + walkthrough.md mục 5.
+4. "README + ADR + fresh-clone walkthrough đọc theo được" → **PASS**: README viết lại (mermaid = kiến trúc thật 6 svc + FE + scripts; không còn text stale SF-1 — reviewer xác nhận); docs/adr/ 7 quyết định khớp danh sách spec; docs/walkthrough.md lệnh khớp script e2e.sh + những gì đã chạy thật (đường A compose + đường B native).
+5. "Security-audit: 0 P0/P1 còn mở" → **PASS**: security-audit agent = 0 P0/P1, 4 P2 ĐÃ FIX hết (commit 8c71a0d: exclude .env mọi tầng, trap cleanup + redact token, permissions: contents: read, gitignore maven-wrapper nested).
+
+## CHECKLIST-4Q (code-reviewer round-2) — 4/4 PASS — VERDICT: APPROVED
+Materialized: /tmp/story/fi62/code-reviewer-sf-7-convergence.md
+
+## Spec slice #6 — multi-stage + pinned base images (rà lần cuối, report KHÔNG sửa)
+
+| Dockerfile | Multi-stage | Base images | Pin |
+|-----------|-------------|-------------|-----|
+| node-svc | ✓ deps→build→runtime | node:22-alpine ×2 | major-only [P2 flag] |
+| spring-svc | ✓ deps→build→runtime | temurin 21-jdk/jre-alpine | minor ✓ |
+| go-svc | ✓ build→runtime | golang:1.24-alpine + distroless/static-debian12:nonroot | minor ✓ |
+| auth-mock | ✓ deps→runtime | node:22-alpine ×2 | major-only [P2 flag] |
+| shell + remotes ×2 | ✓ build→runtime | node:22-alpine + nginx:1.27-alpine | node major-only [P2 flag], nginx minor ✓ |
+| compose postgres | — | postgres:16-alpine | major-only [P2 flag] |
+
+7/7 multi-stage ✓, non-root ✓ (USER node / 1001 / distroless nonroot). P2 flag: node:22-alpine + postgres:16-alpine pin major-only (conventions/01 rule 1 muốn minor/digest) — services/FE READ-ONLY + compose ngoài health-gated → **flag story-level, KHÔNG tự sửa**.
+
+## BUG REPORT cho coordinator (services READ-ONLY — KHÔNG fix, đúng boundary)
+
+1. **spring-svc double-prefix user routes (P1, bắt được bởi chính e2e smoke)**: codegen `interfaceOnly` giữ FULL path từ users.yaml (`value="/users"`, `"/{userId}"` — KHÔNG strip servers.url) + class-level `@RequestMapping("/api/users")` (gotcha SF-3) → route thật `/api/users/users/*`. Gateway route `/api/users/*` → GET `/api/users/{id}` = 404. Hậu quả chuỗi: node-svc validate assignee → 422 cho MỌI assignee; go-svc resolve userName → rỗng (giải thích observation SF-6 "userName RỖNG"). SF-3 CI boot-smoke không bắt vì chỉ probe healthz mirrors. Fix thuộc SF-3 (bỏ class base-path HOẶC cấu hình path-strip). Verify của tôi: GET :8081/api/users/users/2222... = 200 bob, GET :8081/api/users/2222... = 404.
+2. **Compose DATABASE_READONLY_URL (observation, SF-1 compose sở hữu)**: `postgres://${POSTGRES_USER}:${GO_READONLY_DB_PASSWORD}@...` — dùng OWNER user + password readonly-role → lệch ý đồ "readonly role đọc schema tasks". Native e2e dùng owner user nên vẫn chạy; compose path cần SF-1 xác nhận (nên là `go_readonly` user).
+
+## Known limitation (narrowing đã duyệt)
+
+- Browser walkthrough = **human gate pending user** — KHÔNG trong CI (ràng buộc brief). Hướng dẫn 4 bước: docs/walkthrough.md mục 4 (login → tasks tạo → activity feed → kill remote isolation). SF-6 đã walkthrough browser thật trên cùng kiến trúc FE; SF-7 thay đổi chỉ ở BE chain (smoke API-level cover) + docs.
+- Native verify dùng mini Node gateway thay nginx (nginx không chạy native) — path mapping khớp conventions/08; compose path + CI chạy nginx thật.
+
+## Môi trường reproduce
+
+- ~/Tools/sf6-e2e portable (JDK 21.0.12.1+1, Go 1.24, Postgres 16.9, pgdata sẵn roles pw-node/pw-spring/pw-go/pw-goro; JWT_SECRET dev "sf7-e2e-dev-secret-0123456789abcdef" khớp 4 service).
+- Start scripts biến thể SF-7: /tmp (AppData Temp)/sf7-start.sh + sf7-gateway.js (không commit).

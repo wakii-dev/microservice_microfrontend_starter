@@ -1,6 +1,28 @@
 # SF-7 Convergence & Scaffold — test run evidence (FI-75)
-Date: 2026-10-13 | HEAD code: 0bf5a8a (branch wakii-dev/sf-7-convergence; commit này là evidence commit CUỐI — HEAD~1 = 0bf5a8a)
+Date: 2026-10-13 | HEAD code: 887b133 (branch wakii-dev/sf-7-convergence; commit này là evidence commit CUỐI — HEAD~1 = 887b133)
 tdd: skipped-tdd: convergence scripts/docs — smoke KHÔNG có unit test; verify bằng real-run native (Rule 0) + negative tests (wrong-password exit 3, go-svc-down retry exit 4) + CI jobs chạy lại trên compose sau push.
+
+## CI convergence (GitHub Actions) — 3 runs, kết quả cuối: 2/3 GREEN + 1 FAIL-FLAG (COORDINATOR QUYẾT 2026-10-13)
+
+| Run | Commit | e2e-smoke | copy-dir | scaffold-verify |
+|-----|--------|-----------|----------|-----------------|
+| 38288599832 | b3f797a | ✗ go-svc 502 | ✗ schema-diff ENOENT contracts | ✓ |
+| 38289733584 | 8a73ceb | ✗ (FAIL-flag — bug compose SF-1, xem dưới) | ✗ mkdir regression của SF-7 | ✓ |
+| **38290411393** | **887b133** | **✗ FAIL-FLAG — root cause ngoài SF-7 boundary** | **✓** | **✓** |
+
+### FAIL-FLAG e2e-smoke — root cause CHÍNH XÁC (coordinator fix trên dest — SF-1-owned surface)
+
+- **File + dòng**: `platform/docker-compose.yml:138` (entry `go-svc`, env `DATABASE_READONLY_URL`)
+- **Giá trị SAI (hiện tại)**: `postgres://${POSTGRES_USER:?...}:${GO_READONLY_DB_PASSWORD:?...}@postgres:5432/${POSTGRES_DB:?...}`
+  → connect với user **owner** (`boilerplate`) nhưng password của role **go_readonly** → SASL auth FAIL (SQLSTATE 28P01) → go-svc `store open failed` → Exited(1) → gateway 502 mọi /api/activity/*. CI log: `failed SASL auth: FATAL: password authentication failed for user "boilerplate"`.
+- **Giá trị ĐÚNG (theo design — init/01-init.sh:25 tạo `go_readonly` với chính GO_READONLY_DB_PASSWORD; go-svc config.go/store.go comment "role go_readonly")**:
+  `postgres://go_readonly:${GO_READONLY_DB_PASSWORD:?...}@postgres:5432/${POSTGRES_DB:?...}`
+- **Grant đã sẵn sàng cho user đúng**: init script dòng 36 (`GRANT USAGE ON SCHEMA tasks TO go_readonly`) + dòng 40-41 (`ALTER DEFAULT PRIVILEGES FOR ROLE node_svc IN SCHEMA tasks GRANT SELECT ON TABLES TO go_readonly`).
+- **Vì sao SF-7 KHÔNG tự fix**: compose boundary của SF-7 chỉ health-gated (touch map context pack); coordinator đã authorize rồi đổi quyết sang option 2 (FAIL-flag) 2026-10-13 — bug là pre-existing SF-1 pre-seed, coordinator = single writer cho surface SF-1 trên dest.
+- **Lưu ý khi fix**: native e2e (SF-6 + SF-7) dùng owner user cho readonly conn nên go_readonly path CHƯA TỪNG chạy thật — sau khi coordinator fix, re-run CI là lần đầu path này được kiểm (nếu thiếu grant khác sẽ lộ ngay ở stats/readyz).
+- **Re-convergence condition (thoả coordinator)**: coordinator fix compose trên dest → SF-7 rebase dest → re-run convergence → e2e-smoke XANH → khi đó SF-7 mới coi là converged hoàn toàn (hiện tại 2/3).
+
+Bug này cũng giải thích vì sao SF-6 native evidence không thấy: native dùng owner user cho readonly conn (start script), compose path mới expose.
 
 ## Rule 0 — smoke script chạy THẬT local (native, không Docker)
 

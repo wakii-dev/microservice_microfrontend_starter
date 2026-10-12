@@ -99,8 +99,9 @@ public class UserController implements UsersApi {
             throw ApiException.badRequest(first.getPropertyPath() + " " + first.getMessage());
         }
         boolean hasDisplayName = updateUserRequest.getDisplayName() != null;
-        // roles: [] hợp lệ (set rỗng) — chỉ coi absent khi null (contract minProperties tính key)
-        boolean hasRoles = updateUserRequest.getRoles() != null;
+        // Generated model init collection mặc định → {} deserialize roles = []
+        // (không null) — coi empty == absent, bảo toàn minProperties:1 semantics
+        boolean hasRoles = updateUserRequest.getRoles() != null && !updateUserRequest.getRoles().isEmpty();
         if (!hasDisplayName && !hasRoles) {
             // contract minProperties: 1
             throw ApiException.badRequest("At least one of displayName, roles is required");

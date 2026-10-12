@@ -163,6 +163,9 @@ jobs:
 
       - name: Gateway presence check — /api/activity không token → 401 envelope
         run: |
+          # postgres đã có DDL từ step boot-trước (test readonly) → node migration
+          # CREATE TABLE sẽ đụng bảng tồn tại. Reset volume cho chain boot sạch.
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example down -v
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             up -d gateway || {
               echo "=== dependency failed — dump node-svc logs ===";

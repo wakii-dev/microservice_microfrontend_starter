@@ -1,0 +1,12 @@
+SF-1 test evidence — 2026-10-12T06:27Z
+HEAD: 92892266080e6ae0f6b10a75e6f551061ee570d3 (branch wakii-dev/sf-1-contracts-platform)
+
+Unit/service tests:
+- platform/auth-mock: node --test → 7/7 pass (login claims+TTL, 401 sai password/email lạ, 400 thiếu field, healthz/readyz, discovery stub, fail-fast JWT_SECRET)
+
+Native runtime verification (dev machine KHÔNG Docker — docker verify qua CI):
+- auth-mock native: curl healthz/readyz 200; login alice@demo.local → JWT HS256 decode claims sub=11111111-...-111111111111, roles=[admin], iss=auth-mock, TTL exp-iat=28800 (đúng token-contract.md)
+- login sai password → 401; discovery stub → 200; swagger UI /api/auth/docs → 200
+- MF spike: host :3000 load remote :4001 PASSED (browser-verified, evidence sf-1-mf-spike-host.png)
+
+tdd: skipped-tdd: contracts/docs nền móng (spec/DDL/token-contract) — đặc tả hợp đồng, không phải code; auth-mock có tests viết cùng service (không red-first); spike là thí nghiệm pin-version

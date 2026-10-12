@@ -137,3 +137,32 @@ test('thiếu JWT_SECRET → fail-fast khi boot (conventions/06)', async () => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('CORS dev-profile — origin hợp lệ echo, origin lạ deny (conventions/07)', async () => {
+  const { dir, file } = makeFixtureFile();
+  try {
+    const app = await buildApp({
+      usersFixturePath: file,
+      jwtSecret: SECRET,
+      devPassword: 'demo-password',
+      corsDevOrigin: 'http://localhost:3000',
+    });
+    // preflight origin hợp lệ → 204 + ACAO echo
+    const pre = await app.inject({
+      method: 'OPTIONS',
+      url: '/api/auth/login',
+      headers: { Origin: 'http://localhost:3000', 'Access-Control-Request-Method': 'POST' },
+    });
+    assert.equal(pre.statusCode, 204);
+    assert.equal(pre.headers['access-control-allow-origin'], 'http://localhost:3000');
+    // GET thường với origin hợp lệ → ACAO có mặt
+    const get = await app.inject({ method: 'GET', url: '/api/auth/users', headers: { Origin: 'http://localhost:3000' } });
+    assert.equal(get.headers['access-control-allow-origin'], 'http://localhost:3000');
+    // origin lạ → KHÔNG có ACAO (deny-by-default)
+    const bad = await app.inject({ method: 'GET', url: '/api/auth/users', headers: { Origin: 'http://evil.local' } });
+    assert.equal(bad.headers['access-control-allow-origin'], undefined);
+    await app.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

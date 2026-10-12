@@ -52,7 +52,8 @@ services:
     ports:
       - "${AUTH_MOCK_PORT:-8090}:8090" # host-side port — truy cập từ máy dev
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:${AUTH_MOCK_PORT:-8090}/healthz"]
+      # probe TRONG container — hardcode 8090 (conventions/05); ${AUTH_MOCK_PORT} chỉ host-side
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/healthz"]
       interval: 5s
       timeout: 3s
       retries: 12

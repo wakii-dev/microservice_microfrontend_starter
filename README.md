@@ -81,7 +81,7 @@ docker compose up -d        # sau khi SF-2/3/4 điền impl services
 ```bash
 # auth-mock (service duy nhất SF-1 chạy được native ngay bây giờ)
 cd platform/auth-mock && pnpm install --ignore-workspace
-USERS_FIXTURE_PATH=../../contracts/auth/users.json JWT_SECRET=dev-secret-min-32-chars-long!!! pnpm start
+USERS_FIXTURE_PATH=../../contracts/auth/users.json JWT_SECRET=dev-secret-min-32-chars-long!!! CORS_DEV_ORIGIN=http://localhost:3000 pnpm start
 # → http://localhost:8090/api/auth/docs
 
 # node-svc / spring-svc / go-svc: sau SF-2/3/4 (mỗi README trong services/<svc>/ có hướng dẫn)

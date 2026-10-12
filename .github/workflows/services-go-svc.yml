@@ -28,16 +28,8 @@ jobs:
           POSTGRES_USER: boilerplate
           POSTGRES_PASSWORD: ci-postgres-password
           POSTGRES_DB: boilerplate
-          # init script (01-init.sh) cần password per-service role để tạo roles
-          NODE_SVC_DB_PASSWORD: ci-node-password
-          SPRING_SVC_DB_PASSWORD: ci-spring-password
-          GO_SVC_DB_PASSWORD: ci-go-password
-          GO_READONLY_DB_PASSWORD: ci-goreadonly-password
         ports:
           - "5432:5432"
-        volumes:
-          # chạy init script THẬT của SF-1 — tạo schemas + roles + default privileges
-          - ${{ github.workspace }}/platform/postgres/init:/docker-entrypoint-initdb.d:ro
         options: >-
           --health-cmd "pg_isready -U boilerplate -d boilerplate"
           --health-interval 5s
@@ -52,6 +44,18 @@ jobs:
       GO_TEST_JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
     steps:
       - uses: actions/checkout@v4
+      # KHÔNG mount init script vào service container (mount từ workspace chạy
+      # TRƯỚC checkout → dir root-owned → checkout clean EACCES — run 38226444489).
+      # Chạy init script THẬT của SF-1 qua psql client (TCP + PGHOST) sau checkout.
+      - name: Init schemas + roles (SF-1 init script thật qua psql TCP)
+        run: |
+          PGHOST=localhost PGPORT=5432 PGPASSWORD=ci-postgres-password \
+          POSTGRES_USER=boilerplate POSTGRES_DB=boilerplate \
+          NODE_SVC_DB_PASSWORD=ci-node-password \
+          SPRING_SVC_DB_PASSWORD=ci-spring-password \
+          GO_SVC_DB_PASSWORD=ci-go-password \
+          GO_READONLY_DB_PASSWORD=ci-goreadonly-password \
+          bash platform/postgres/init/01-init.sh
       - uses: actions/setup-go@v5
         with:
           go-version: "1.24"

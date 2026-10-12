@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,13 +15,9 @@ import (
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/api"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/config"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/logging"
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/resolve"
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/store"
 )
-
-// notReady là readiness stub — T3 thay bằng readiness thật
-// (migration schema activity xong + SELECT probe schema tasks).
-type notReady struct{}
-
-func (notReady) Ready() error { return errors.New("store not initialized yet") }
 
 func main() {
 	cfg, err := config.Load(os.Getenv)
@@ -31,10 +28,32 @@ func main() {
 	}
 	log := logging.New(cfg.LogLevel)
 
+	// DB — 2 pool: owner (go_svc, schema activity) + readonly (go_readonly, schema tasks)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	st, err := store.Open(ctx, cfg.DatabaseURL, cfg.DatabaseReadonlyURL, log)
+	if err != nil {
+		log.Error("store open failed", "err", err.Error())
+		os.Exit(1)
+	}
+	defer st.Close()
+
+	// Migration schema activity (go-svc OWNS — context pack item 4)
+	if err := st.Migrate(ctx); err != nil {
+		log.Error("migration failed", "err", err.Error())
+		os.Exit(1)
+	}
+
+	resolver := resolve.New(cfg.SpringSvcURL)
+
 	handler := api.NewRouter(api.Deps{
 		Log:         log,
-		Readiness:   &notReady{},
+		Readiness:   st, // Ready() = migration xong + SELECT probe schema tasks
 		CORSOrigins: cfg.CORSDevOrigins,
+		JWTSecret:   []byte(cfg.JWTSecret),
+		Events: &api.EventsHandler{Store: st, Resolver: resolver, Tasks: st, Log: log},
+		Feed:   &api.FeedHandler{Store: st, Resolver: resolver, Tasks: st, Log: log},
+		Stats:  &api.StatsHandler{Store: st, Tasks: st, Log: log},
 	})
 
 	srv := &http.Server{

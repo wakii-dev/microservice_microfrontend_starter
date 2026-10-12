@@ -1,5 +1,6 @@
 # SF-6 FE remotes — test run evidence (FI-74)
-Date: 2026-10-12 | HEAD: c81309d589fcb7ee28756c94691928aa7ea0db2c (branch wakii-dev/sf-6-fe-remotes)
+Date: 2026-10-12 | HEAD: bd8859d (branch wakii-dev/sf-6-fe-remotes)
+Tác động commit sau lần chạy chính: c81309d (MF runtime fix — browser walkthrough chạy TRÊN build chứa fix này), 5af5659 (evidence docs), bd8859d (review round-1 fixes — comment/README-only, KHÔNG chạm code → kết quả test còn giá trị tại HEAD; reviewer round 2 đã xác nhận "deterministic round 1 còn giá trị tại bd8859d").
 tdd: RED→GREEN — api tests viết trước khi fix lazy-bind fetch (4 RED → fix bind lazy tại call-time → 10 GREEN, remote tasks); activity + shell suites GREEN tại HEAD.
 
 ## Suites

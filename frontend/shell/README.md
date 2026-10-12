@@ -36,7 +36,7 @@ REMOTE_TASKS_URL=http://localhost:4001/remoteEntry.js pnpm --filter @boilerplate
 ## Tests + build
 
 ```bash
-pnpm --filter @boilerplate/shell test        # vitest + testing-library (11 tests: a11y, login, remote-down, integration)
+pnpm --filter @boilerplate/shell test        # vitest + testing-library (15 tests: a11y, login, remote-down, api-timeout, integration)
 pnpm --filter @boilerplate/shell typecheck
 pnpm --filter @boilerplate/shell build       # rspack production build → dist/
 ```

@@ -1,0 +1,45 @@
+SF-3 spring-svc (FI-71) — test-run evidence
+============================================
+
+HEAD: 2abfe8ef93984274c7d9c50213d4b02a9c1b426f (commit 2abfe8e)
+tdd: skipped-tdd: CI-only (dev machine không JDK/Docker — brief ràng buộc);
+test + impl cùng commit, verify qua CI run 38237292149.
+
+CI run GREEN: 38237292149 @ 2abfe8e (4/4 jobs success)
+  https://github.com/wakii-dev/architecture-overview/actions/runs/38237292149
+  - build + test (mvnw verify — Postgres thật): Tests run: 33, Failures: 0
+    (init script SF-1 chạy thật qua psql PGHOST=localhost; SeedMatchIntegrationTest
+    seed-id-match 100% đọc contracts/auth/users.json)
+  - docker build (multi-stage conventions/01): success (mvnw wrapper tải Maven
+    trong eclipse-temurin:21-jdk-alpine — acceptance mvnw-without-JDK)
+  - boot-smoke: compose up postgres+auth-mock+gateway+spring-svc → naked
+    /healthz + /readyz {"status":"ok"} → api-docs grep FINAL paths
+    (/api/users/users, /api/users/teams) → login auth-mock qua gateway →
+    GET /api/users/users/11111111-1111-4111-8111-111111111111 200
+    (email=alice@demo.local) → direct :8081 no-token → 401 TỪ SERVICE,
+    garbage-token → 401
+  - drift-guard: snapshot users.yaml bit-identical contracts (diff sạch)
+
+Code review độc lập (2 reviewer, 3 vòng):
+  - Nhóm A (T1-T4): round 1 CHANGES-REQUESTED (P1 test-context JWT_SECRET)
+    → fixed 6b2815b; round 2 CHANGES-REQUESTED (P1 roles:[] 400 lệch contract)
+    → fixed 2abfe8e → round 3 VERDICT: APPROVED (P2 audit-log: {"roles":null}
+    → NPE 500 thay vì 400 — schema-invalid edge, không corrupt data, fix sau)
+  - Nhóm B (T5-T9): round 1 CHANGES-REQUESTED (3 P1: catch-all 500, PATCH
+    validate, readyz swallow) → fixed 6b2815b; round 2 VERDICT: APPROVED
+    (P2: roles:[] clear-roles deviation — resolved bởi 2abfe8e)
+
+Verify độc lập (Phase 5): PARTIAL 9/10 @ 804fbc3 (duy nhất api-docs step
+chưa commit) → đóng bởi run 38237292149 @ 2abfe8e (verdict cuối comment FI-71).
+
+Rule 0 khai báo trung thực: swagger UI KHÔNG browser-verify được (dev machine
+không Docker/JDK — service không chạy local được). Bằng chứng thay thế:
+boot-smoke curl /v3/api-docs chứa đúng FINAL paths + healthz shape grep.
+Nhờ user mở http://localhost:8081/swagger-ui/index.html khi có Docker/máy
+có JDK để xác nhận thêm.
+
+CI loop (attempt ledger, hội tụ theo stage):
+  38227579500 đỏ (mvnw exec bit + service mount) → 38228318849 đỏ (psql
+  PGHOST + import collision) → 38229902300 đỏ (2 compile) → 38231139200 đỏ
+  (testCompile visibility) → 38233699163 đỏ 31/32 (interfaceOnly base-path)
+  → 38234898721 xanh 32/32 → 38237292149 xanh 33/33 (api-docs + roles:[] fix)

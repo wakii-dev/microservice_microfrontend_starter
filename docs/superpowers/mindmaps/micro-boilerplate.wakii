@@ -19,70 +19,153 @@
       "kind": "sf",
       "title": "Contracts & Platform Foundation",
       "tier": 0,
-      "summary": "Phase 1/3 — shippable: nền tảng. OpenAPI specs + canonical tasks DDL + users fixture + token contract; conventions (healthcheck, JSON log, error envelope, port table, CORS dev); compose PRE-SEED đủ khung 6 services + postgres init (readonly grants qua default privileges); nginx gateway; auth-mock; fe-shared kèm spike MF/Rspack pin versions; CI templates (path-filter + boot-smoke + gitleaks). Demo: swagger auth-mock login nhận JWT hợp lệ; CI contract lint xanh. Context pack: docs/superpowers/contexts/sf-1.md"
+      "summary": "Phase 1/3 — shippable: nền tảng. OpenAPI specs + canonical tasks DDL + users fixture + token contract; conventions (healthcheck, JSON log, error envelope, port table, CORS dev); compose PRE-SEED đủ khung 6 services + postgres init (readonly grants qua default privileges); nginx gateway; auth-mock; fe-shared kèm spike MF/Rspack pin versions; CI templates (path-filter + boot-smoke + gitleaks). Demo: swagger auth-mock login nhận JWT hợp lệ; CI contract lint xanh. Context pack: docs/superpowers/contexts/sf-1.md",
+      "linear": "FI-64"
     },
     {
       "id": "sf-2",
       "kind": "sf",
       "title": "node-svc — task API (Fastify + TS)",
       "tier": 1,
-      "summary": "Phase 1/3 — shippable: task CRUD qua gateway, user validate qua spring (timeout 2s, fail-closed 503), event push fire-and-forget sang go-svc, migration khớp canonical DDL, boot-smoke CI. Demo: swagger tạo/list task. Context pack: docs/superpowers/contexts/sf-2.md"
+      "summary": "Phase 1/3 — shippable: task CRUD qua gateway, user validate qua spring (timeout 2s, fail-closed 503), event push fire-and-forget sang go-svc, migration khớp canonical DDL, boot-smoke CI. Demo: swagger tạo/list task. Context pack: docs/superpowers/contexts/sf-2.md",
+      "linear": "FI-70"
     },
     {
       "id": "sf-3",
       "kind": "sf",
       "title": "spring-svc — user API (Spring Boot 3)",
       "tier": 1,
-      "summary": "Phase 1/3 — shippable: users + teams CRUD, seed đọc users fixture (id khớp 100%), JWT service-side verify, Flyway migration, mvnw wrapper, boot-smoke CI. Demo: swagger GET fixture user. Context pack: docs/superpowers/contexts/sf-3.md"
+      "summary": "Phase 1/3 — shippable: users + teams CRUD, seed đọc users fixture (id khớp 100%), JWT service-side verify, Flyway migration, mvnw wrapper, boot-smoke CI. Demo: swagger GET fixture user. Context pack: docs/superpowers/contexts/sf-3.md",
+      "linear": "FI-71"
     },
     {
       "id": "sf-4",
       "kind": "sf",
       "title": "go-svc — activity API (Go 1.24 + chi)",
       "tier": 1,
-      "summary": "Phase 1/3 — shippable: nhận POST /activity/events, feed + stats (đọc readonly schema tasks theo canonical DDL), tự migrate schema activity, readonly-read exit criterion (seed qua owner role), boot-smoke CI. Demo: swagger-ui POST event → feed. Context pack: docs/superpowers/contexts/sf-4.md"
+      "summary": "Phase 1/3 — shippable: nhận POST /activity/events, feed + stats (đọc readonly schema tasks theo canonical DDL), tự migrate schema activity, readonly-read exit criterion (seed qua owner role), boot-smoke CI. Demo: swagger-ui POST event → feed. Context pack: docs/superpowers/contexts/sf-4.md",
+      "linear": "FI-72"
     },
     {
       "id": "sf-5",
       "kind": "sf",
       "title": "FE shell — MF host (Rspack)",
       "tier": 1,
-      "summary": "Phase 2/3 — shippable: shell login mock JWT, nav + routing, load remotes theo registry, error boundary remote-down, a11y baseline có test (route focus + skip link). Task đầu: re-validation spike SF-1 + fe-shared fit-check. Context pack: docs/superpowers/contexts/sf-5.md"
+      "summary": "Phase 2/3 — shippable: shell login mock JWT, nav + routing, load remotes theo registry, error boundary remote-down, a11y baseline có test (route focus + skip link). Task đầu: re-validation spike SF-1 + fe-shared fit-check. Context pack: docs/superpowers/contexts/sf-5.md",
+      "linear": "FI-73"
     },
     {
       "id": "sf-6",
       "kind": "sf",
       "title": "FE remotes — tasks + activity",
       "tier": 2,
-      "summary": "Phase 2/3 — shippable: 2 remote gọi service thật qua gateway (tạo task qua node-svc; feed/stats qua go-svc), shared singletons theo catalog, boot-smoke per remote (remoteEntry fetch được). Context pack: docs/superpowers/contexts/sf-6.md"
+      "summary": "Phase 2/3 — shippable: 2 remote gọi service thật qua gateway (tạo task qua node-svc; feed/stats qua go-svc), shared singletons theo catalog, boot-smoke per remote (remoteEntry fetch được). Context pack: docs/superpowers/contexts/sf-6.md",
+      "linear": "FI-74"
     },
     {
       "id": "sf-7",
       "kind": "sf",
       "title": "Convergence & Scaffold",
       "tier": 3,
-      "summary": "Phase 3/3 — shippable: e2e smoke script committed + CI job (login → tạo task → đọc feed qua gateway), copy-dir standalone smoke, health-gated compose, docs + ADR + fresh-clone walkthrough, scaffold script (trễ = scope-flag, không auto-complete), security-audit checkpoint. Context pack: docs/superpowers/contexts/sf-7.md"
+      "summary": "Phase 3/3 — shippable: e2e smoke script committed + CI job (login → tạo task → đọc feed qua gateway), copy-dir standalone smoke, health-gated compose, docs + ADR + fresh-clone walkthrough, scaffold script (trễ = scope-flag, không auto-complete), security-audit checkpoint. Context pack: docs/superpowers/contexts/sf-7.md",
+      "linear": "FI-75"
     }
   ],
   "edges": [
-    { "from": "epic", "to": "sf-1", "rel": "contains" },
-    { "from": "epic", "to": "sf-2", "rel": "contains" },
-    { "from": "epic", "to": "sf-3", "rel": "contains" },
-    { "from": "epic", "to": "sf-4", "rel": "contains" },
-    { "from": "epic", "to": "sf-5", "rel": "contains" },
-    { "from": "epic", "to": "sf-6", "rel": "contains" },
-    { "from": "epic", "to": "sf-7", "rel": "contains" },
-    { "from": "sf-2", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-3", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-4", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-5", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-6", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-6", "to": "sf-2", "rel": "depends-on" },
-    { "from": "sf-6", "to": "sf-4", "rel": "depends-on" },
-    { "from": "sf-7", "to": "sf-2", "rel": "depends-on" },
-    { "from": "sf-7", "to": "sf-3", "rel": "depends-on" },
-    { "from": "sf-7", "to": "sf-4", "rel": "depends-on" },
-    { "from": "sf-7", "to": "sf-5", "rel": "depends-on" },
-    { "from": "sf-7", "to": "sf-6", "rel": "depends-on" }
+    {
+      "from": "epic",
+      "to": "sf-1",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-2",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-3",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-4",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-5",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-6",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-7",
+      "rel": "contains"
+    },
+    {
+      "from": "sf-2",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-3",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-4",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-5",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-6",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-6",
+      "to": "sf-2",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-6",
+      "to": "sf-4",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-7",
+      "to": "sf-2",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-7",
+      "to": "sf-3",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-7",
+      "to": "sf-4",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-7",
+      "to": "sf-5",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-7",
+      "to": "sf-6",
+      "rel": "depends-on"
+    }
   ]
 }

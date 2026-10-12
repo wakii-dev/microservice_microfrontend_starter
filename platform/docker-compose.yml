@@ -75,7 +75,7 @@ services:
     build: ../services/node-svc
     environment:
       PORT: 3001 # container port CỐ ĐỊNH (conventions/05)
-      DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${NODE_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      DATABASE_URL: postgres://node_svc:${NODE_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
       SPRING_SVC_URL: http://spring-svc:8081
       GO_SVC_URL: http://go-svc:8082
@@ -110,7 +110,7 @@ services:
     build: ../services/go-svc
     environment:
       PORT: 8082 # container port CỐ ĐỊNH (conventions/05)
-      DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      DATABASE_URL: postgres://go_svc:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       DATABASE_READONLY_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
       SPRING_SVC_URL: http://spring-svc:8081

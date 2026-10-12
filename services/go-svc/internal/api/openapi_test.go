@@ -17,7 +17,7 @@ func TestOpenAPISpecCopySyncsWithContract(t *testing.T) {
 	if !ok {
 		t.Fatal("cannot locate test file")
 	}
-	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..")
+	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..")
 	contract := filepath.Join(repoRoot, "contracts", "openapi", "activity.yaml")
 
 	if _, err := os.Stat(contract); os.IsNotExist(err) {

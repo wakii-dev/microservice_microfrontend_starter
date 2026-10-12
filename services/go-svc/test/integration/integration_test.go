@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -141,9 +143,19 @@ func setupTasksAsNodeSvc(t *testing.T) (taskIDs []uuid.UUID) {
 	return taskIDs
 }
 
+// repoRoot — absolute path repo root (robust hơn relative: go test CWD =
+// package dir nhưng không nên dựa vào đó khi copy-dir/CI layout khác nhau).
+func repoRoot() string {
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return "."
+	}
+	// test/integration → services/go-svc → services → repo root (4 cấp)
+	return filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..")
+}
+
 func filepathContractsTasksSchema() string {
-	// test/integration → services/go-svc → repo root
-	return "../../contracts/db/tasks-schema.sql"
+	return filepath.Join(repoRoot(), "contracts", "db", "tasks-schema.sql")
 }
 
 func mustUUID(t *testing.T, s string) uuid.UUID {

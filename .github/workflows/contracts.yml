@@ -80,12 +80,7 @@ jobs:
         run: |
           # JWT = base64url KHÔNG padding — `base64 -d` fail (learned run 38212318058);
           # decode qua python3 urlsafe_b64decode + tự bổ sung padding
-          PAYLOAD=$(TOKEN=$(cat /tmp/jwt) python3 -c '
-            import base64, json, os
-            seg = os.environ["TOKEN"].split(".")[1]
-            seg += "=" * (-len(seg) % 4)
-            print(json.dumps(json.loads(base64.urlsafe_b64decode(seg))))
-          ')
+          PAYLOAD=$(TOKEN=$(cat /tmp/jwt) python3 -c 'import base64, json, os; seg = os.environ["TOKEN"].split(".")[1]; seg += "=" * (-len(seg) % 4); print(json.dumps(json.loads(base64.urlsafe_b64decode(seg))))')
           echo "$PAYLOAD"
           echo "$PAYLOAD" | grep -q '"sub":"11111111-1111-4111-8111-111111111111"'
           echo "$PAYLOAD" | grep -q '"email":"alice@demo.local"'

@@ -1,11 +1,11 @@
 // server.ts — boot entry: env fail-fast → DB + migration → spring reachability
 // (1 lần, warn-only — deviation D3) → listen PORT. Migration chạy lúc boot →
 // boot-smoke CI thấy "migration chạy xong" qua readyz 200.
-import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { buildApp, migrationsFolder } from './app.js';
 import { HttpActivityClient } from './clients/activity.js';
 import { HttpSpringClient } from './clients/spring.js';
 import { closeDb, createDb } from './db/client.js';
+import { runMigrations } from './db/migrate.js';
 import { loadEnv } from './env.js';
 import { nodeSvcLogger } from './logger.js';
 import { DrizzleTaskRepo } from './repo.drizzle.js';
@@ -24,11 +24,10 @@ async function main(): Promise<void> {
   );
 
   // Migration — exit criterion SF-2: sinh đúng canonical DDL (schema-diff.test
-  // verify cấu trúc; bước này chạy thật lên postgres). migrationsSchema: 'tasks'
-  // — role node_svc chỉ có CREATE trên schema tasks (01-init.sh), mặc định
-  // schema "drizzle" của migrator sẽ bị permission denied → boot crash.
-  await migrate(db, { migrationsFolder: migrationsFolder(), migrationsSchema: 'tasks' });
-  logger.info('migrations applied');
+  // verify cấu trúc; bước này chạy thật lên postgres). Custom runner — xem
+  // db/migrate.ts (drizzle migrator phát CREATE SCHEMA cần CREATE trên DB).
+  const ran = await runMigrations(db, migrationsFolder());
+  logger.info({ migrations: ran }, 'migrations applied');
 
   // Spring reachability — boot-time check 1 lần, CHỈ log (deviation D3):
   // spring down lúc boot KHÔNG chặn ready; fail-closed enforce ở request-time.

@@ -11,6 +11,7 @@ on:
       - "services/node-svc/**"
       - "platform/docker-compose.yml" # compose entry đổi cũng phải re-test
       - "contracts/openapi/tasks.yaml" # typegen drift + contract
+      - "contracts/db/tasks-schema.sql" # schema-diff test đọc canonical DDL (review P2)
       - ".github/workflows/services-node-svc.yml"
   pull_request:
     paths:

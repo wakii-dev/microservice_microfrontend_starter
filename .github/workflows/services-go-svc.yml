@@ -149,9 +149,9 @@ jobs:
           echo "$STATS" | python3 -c '
           import json, sys
           s = json.load(sys.stdin)
-          assert s["totalTasks"] == 3, f"totalTasks={s[\"totalTasks\"]} want 3"
+          assert s["totalTasks"] == 3, "totalTasks=%s want 3" % s["totalTasks"]
           assert s["tasksByStatus"] == {"todo": 1, "in_progress": 1, "done": 1}, s["tasksByStatus"]
-          assert s["recentEvents"] >= 1, "recentEvents 0 sau khi vừa POST event"'
+          assert s["recentEvents"] >= 1, "recentEvents 0 sau khi vua POST event"'
           # 401 từ service (token sai — enforcement 2 lớp, không phụ thuộc gateway)
           CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8082/api/activity/stats -H "Authorization: Bearer wrong-token")
           [ "$CODE" = "401" ] || { echo "stats wrong-token = $CODE, want 401"; exit 1; }

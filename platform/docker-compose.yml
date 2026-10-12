@@ -137,5 +137,33 @@ services:
       timeout: 3s
       retries: 12
 
+  # --- remote-tasks / remote-activity: SF-6 (FI-74) điền impl vào khung pre-seed ---
+  # (gap-answer được BRIEF SF-6 ủy quyền 2026-10-12: "BẠN tự thêm 2 entry remotes — build
+  # ../frontend/remotes/*, port theo port table, healthcheck static; coordinator duyệt ở review".
+  # SF-6 KHÔNG sửa phần khác của file này.)
+  remote-tasks:
+    build:
+      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
+      dockerfile: frontend/remotes/tasks/Dockerfile
+    ports:
+      - "${REMOTE_TASKS_PORT:-4001}:4001" # container port cố định 4001 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4001/remoteEntry.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  remote-activity:
+    build:
+      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
+      dockerfile: frontend/remotes/activity/Dockerfile
+    ports:
+      - "${REMOTE_ACTIVITY_PORT:-4002}:4002" # container port cố định 4002 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4002/remoteEntry.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
 volumes:
   pgdata:

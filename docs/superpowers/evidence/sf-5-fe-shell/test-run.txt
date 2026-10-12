@@ -1,8 +1,8 @@
 SF-5 FE shell (FI-73) — test run evidence
-HEAD: 297b1672e25ff8b027684a1877b70a2a68afdc2c (297b167 fix review r1)
+HEAD: 32d4d8b16ad4a8d5a02d19e9190dcd3222594190 (32d4d8b — docs-only sau 297b167; nginx headers 1713247)
 local: vitest 15/15 passed (5 files: a11y 3, login 3, remote-slot 4, api-timeout 3, integration 2) + typecheck clean + rspack build green
 tdd: skipped-tdd: boilerplate scaffold — tests viết song song từng task (không RED-first); meta-tests cho review P1 fixes ĐỎ-trên-cũ đã verify bởi code-reviewer; CI xanh + browser walkthrough Rule 0 là chứng nghiệm chính
 browser: docs/superpowers/evidence/sf-5-fe-shell/01..06-*.png — login fixture user (alice@demo.local) → nav + layout → /tasks + /activity fallback remote-down + retry → logout; route focus (activeElement=main-content) xác nhận trên browser thật
-ci: https://github.com/wakii-dev/architecture-overview/actions/runs/38237347272 (shell 2/2 jobs success @297b167; contracts green)
+ci: https://github.com/wakii-dev/architecture-overview/actions/runs/38238412787 (HEAD; runs 38235363103, 38237347272 đều green) (shell 2/2 jobs success @297b167; contracts green)
 review: code-reviewer ĐỘC LẬP round 2 — APPROVED, CHECKLIST-4Q 4/4 PASS (round 1 CHANGES-REQUESTED 2 P1: HEALTHCHECK conv/01-r4, login timeout — đã fix + meta-test đỏ-trên-cũ)
 deviation: dev walkthrough chạy SHELL_PORT=3100 + auth-mock :8091 (port default 3000 bị stale spike server PID 3100 từ session khác chiếm — không có quyền kill; auth-mock :8090 sẵn có CORS không cho origin 3100). Port override là env chính thức (conventions/05 rule 1).

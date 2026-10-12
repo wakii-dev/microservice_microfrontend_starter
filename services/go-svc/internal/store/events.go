@@ -2,31 +2,20 @@ package store
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/model"
 )
 
-// Event mirror dòng activity.events — display fields đã resolve best-effort.
-type Event struct {
-	ID        uuid.UUID
-	TaskID    uuid.UUID
-	UserID    uuid.UUID
-	Action    string
-	Timestamp time.Time
-	UserName  string
-	TaskTitle string
-}
-
-// ErrTasksUnavailable — schema tasks chưa migrate / không đọc được (readonly).
-// Handlers map sang 503 DEPENDENCY_DOWN (conventions/04).
-var ErrTasksUnavailable = errors.New("schema tasks unavailable (not migrated yet or readonly permission denied)")
+// ErrTasksUnavailable deprecated — sentinel chuyển sang internal/apperr
+// (dùng chung api ↔ store không import cycle). Giữ alias cho tiện đọc.
+// (Không export thêm lỗi mới từ package store.)
 
 // InsertEvent persist event (owner conn — go_svc owns schema activity).
-func (s *Store) InsertEvent(ctx context.Context, e *Event) error {
+func (s *Store) InsertEvent(ctx context.Context, e *model.Event) error {
 	_, err := s.owner.ExecContext(ctx, `
 		INSERT INTO activity.events (id, task_id, user_id, action, event_ts, user_name, task_title)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -38,7 +27,7 @@ func (s *Store) InsertEvent(ctx context.Context, e *Event) error {
 }
 
 // ListEvents trả feed (mới nhất trước) + total (conventions: limit đã clamp ở handler).
-func (s *Store) ListEvents(ctx context.Context, limit, offset int) ([]Event, int, error) {
+func (s *Store) ListEvents(ctx context.Context, limit, offset int) ([]model.Event, int, error) {
 	var total int
 	if err := s.owner.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM activity.events`).Scan(&total); err != nil {
@@ -54,9 +43,9 @@ func (s *Store) ListEvents(ctx context.Context, limit, offset int) ([]Event, int
 	}
 	defer rows.Close()
 
-	var out []Event
+	var out []model.Event
 	for rows.Next() {
-		var e Event
+		var e model.Event
 		if err := rows.Scan(&e.ID, &e.TaskID, &e.UserID, &e.Action, &e.Timestamp, &e.UserName, &e.TaskTitle); err != nil {
 			return nil, 0, fmt.Errorf("scan event: %w", err)
 		}

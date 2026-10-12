@@ -7,17 +7,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/apperr"
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/model"
 )
 
 // Side của readonly connection (go_readonly): CHỈ SELECT schema tasks.
 // Query khớp chính xác canonical DDL — contracts/db/tasks-schema.sql:
 //   status varchar(20) CHECK IN ('todo','in_progress','done').
-
-// TaskStats kết quả stats từ schema tasks.
-type TaskStats struct {
-	TotalTasks int
-	ByStatus   map[string]int // todo / in_progress / done — 3 giá trị CHECK constraint
-}
 
 // isPermissionOrMissing — phân biệt lỗi permission/schema với lỗi thật khác.
 func isPermissionOrMissing(err error) bool {
@@ -38,13 +35,13 @@ func isPermissionOrMissing(err error) bool {
 	return false
 }
 
-// mapTasksError — lỗi đọc tasks → ErrTasksUnavailable (503) hoặc passthrough.
+// mapTasksError — lỗi đọc tasks → apperr.ErrTasksUnavailable (503) hoặc passthrough.
 func mapTasksError(err error) error {
 	if err == nil {
 		return nil
 	}
 	if isPermissionOrMissing(err) {
-		return ErrTasksUnavailable
+		return apperr.ErrTasksUnavailable
 	}
 	return err
 }
@@ -66,17 +63,17 @@ func (s *Store) TaskTitle(ctx context.Context, id uuid.UUID) (string, error) {
 
 // Stats — COUNT(*) + GROUP BY status trên tasks.tasks (readonly, canonical DDL).
 // tasks chưa tồn tại / mất grant → ErrTasksUnavailable → handler 503.
-func (s *Store) Stats(ctx context.Context) (TaskStats, error) {
+func (s *Store) Stats(ctx context.Context) (model.TaskStats, error) {
 	var total int
 	if err := s.readonly.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM tasks.tasks`).Scan(&total); err != nil {
-		return TaskStats{}, mapTasksError(fmt.Errorf("count tasks: %w", err))
+		return model.TaskStats{}, mapTasksError(fmt.Errorf("count tasks: %w", err))
 	}
 
 	rows, err := s.readonly.QueryContext(ctx,
 		`SELECT status, COUNT(*) FROM tasks.tasks GROUP BY status`)
 	if err != nil {
-		return TaskStats{}, mapTasksError(fmt.Errorf("group tasks by status: %w", err))
+		return model.TaskStats{}, mapTasksError(fmt.Errorf("group tasks by status: %w", err))
 	}
 	defer rows.Close()
 
@@ -85,14 +82,14 @@ func (s *Store) Stats(ctx context.Context) (TaskStats, error) {
 		var st string
 		var n int
 		if err := rows.Scan(&st, &n); err != nil {
-			return TaskStats{}, fmt.Errorf("scan status row: %w", err)
+			return model.TaskStats{}, fmt.Errorf("scan status row: %w", err)
 		}
 		byStatus[st] = n
 	}
 	if err := rows.Err(); err != nil {
-		return TaskStats{}, fmt.Errorf("iterate status rows: %w", err)
+		return model.TaskStats{}, fmt.Errorf("iterate status rows: %w", err)
 	}
-	return TaskStats{TotalTasks: total, ByStatus: byStatus}, nil
+	return model.TaskStats{TotalTasks: total, ByStatus: byStatus}, nil
 }
 
 // Probe — SELECT thử schema tasks bằng readonly role (readyz, conventions/02).

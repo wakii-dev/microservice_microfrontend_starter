@@ -1,0 +1,34 @@
+SF-4 go-svc (FI-72) — test-run evidence
+========================================
+HEAD: 4f19b32 (fix(review r2): integration + openapi sync test sai repo-root path)
+CI run: https://github.com/wakii-dev/architecture-overview/actions/runs/38236563321 — conclusion: SUCCESS (3/3 jobs)
+
+Jobs:
+- build + test (go-svc): setup-go 1.24 + postgres 16 service container (init script SF-1
+  chạy thật qua psql TCP) → go mod tidy, go vet, unit tests PASS, integration tests
+  (readonly-exit criterion) PASS — DDL apply bằng role node_svc + seed → stats đúng;
+  REVOKE SELECT → ErrTasksUnavailable/readyz 503; re-grant → 200; API roundtrip
+  POST event → feed (userName "Alice Demo" từ fake spring, taskTitle từ seed) → stats.
+- docker build (go-svc): multi-stage distroless image build PASS.
+- boot-smoke (go-svc + postgres + auth-mock): compose up → healthz ok → readyz 503
+  TRƯỚC khi có tasks table (probe thật, conventions/02) → canonical DDL apply bằng
+  role node_svc (assert tableowner=node_svc) → readyz 200 → login auth-mock (JWT thật) →
+  POST /events 202 accepted → feed chứa event + taskTitle "Seed task A" → stats
+  {totalTasks:3, tasksByStatus:{todo:1, in_progress:1, done:1}, recentEvents>=1} →
+  gateway :8080 401 envelope không-token → schemathesis activity.yaml kèm JWT PASS.
+
+Acceptance mapping (context pack sf-4.md):
+- Swagger-ui go-svc mở được: /api/activity/docs 200 (boot-smoke curl) + /openapi.yaml spec content
+- POST event → event hiện trong feed: boot-smoke + integration + unit
+- Stats đúng rows seeded bằng owner role: boot-smoke assert 3/1/1/1 + integration
+- Không có readonly grant → fail rõ ràng: integration REVOKE → 503 DEPENDENCY_DOWN; boot-smoke readyz 503 trước DDL
+- Token sai → 401 từ go-svc: unit token matrix (8 case) + boot-smoke wrong-token 401 + gateway presence 401
+- CI xanh: run 38236563321 SUCCESS
+
+tdd: RED→GREEN — 3 vòng CI fail-first (run 38226444489 docker+mount EACCES; run
+38230367271 compile; run 38231803476 vet+CREATE SCHEMA; run 38233217232 f-string;
+run 38235480887 integration path) → fix từng root cause (đọc FULL log) → GREEN.
+Code-reviewer độc lập: CHANGES-REQUESTED r1 → P1 (CORS allow-all, Probe empty-table,
+probe timeout) + schemathesis 4×404 (mirror healthcheck) đã fix ở 39e69b8.
+
+Update: HEAD 483a4b6 (docs/superpowers/improvements-log.md — không đổi code). Code commit cuối: 4f19b32 (CI 38236563321 GREEN 3/3). Evidence commit: 0c2f5fd.

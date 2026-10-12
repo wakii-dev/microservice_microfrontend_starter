@@ -54,7 +54,8 @@
       "Bash(cp *)",
       "Bash(curl http://localhost*)",
       "Bash(sleep *)",
-      "Bash(echo *)"
+      "Bash(echo *)",
+      "~/.claude/bin/linear-rate-limit run *"
     ]
   }
 }

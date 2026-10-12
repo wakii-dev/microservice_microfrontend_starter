@@ -30,3 +30,5 @@ tdd: RED→GREEN — 3 vòng CI fail-first (run 38226444489 docker+mount EACCES;
 run 38235480887 integration path) → fix từng root cause (đọc FULL log) → GREEN.
 Code-reviewer độc lập: CHANGES-REQUESTED r1 → P1 (CORS allow-all, Probe empty-table,
 probe timeout) + schemathesis 4×404 (mirror healthcheck) đã fix ở 39e69b8.
+
+Update: HEAD 483a4b6 (docs/superpowers/improvements-log.md — không đổi code). Code commit cuối: 4f19b32 (CI 38236563321 GREEN 3/3). Evidence commit: 0c2f5fd.

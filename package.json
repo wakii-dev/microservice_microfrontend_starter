@@ -1,0 +1,14 @@
+{
+  "name": "architecture-overview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Boilerplate microservice + micro-frontend — template nội bộ copy-able (epic FI-62)",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "lint:contracts": "spectral lint contracts/openapi/*.yaml"
+  }
+}

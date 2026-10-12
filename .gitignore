@@ -1,0 +1,37 @@
+# --- secrets / env ---
+.env
+.env.*
+!.env.example
+
+# --- node / pnpm ---
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# --- java (spring-svc) ---
+target/
+*.class
+.mvn/wrapper/maven-wrapper.jar
+
+# --- go ---
+bin/
+*.exe
+*.test
+*.out
+
+# --- postgres local volume ---
+pgdata/
+
+# --- logs / temp ---
+*.log
+tmp/
+.cache/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

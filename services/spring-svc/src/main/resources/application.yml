@@ -1,0 +1,42 @@
+# ============================================================================
+# spring-svc config — 100% env-var (platform/conventions/06), fail-fast secret
+# Compose entry pre-seed inject: SERVER_PORT, SPRING_DATASOURCE_*, JWT_SECRET,
+# USERS_FIXTURE_PATH, CORS_DEV_ORIGIN, LOG_LEVEL (KHÔNG sửa compose).
+# ============================================================================
+server:
+  port: ${SERVER_PORT:8081} # conventions/05-ports.md
+
+spring:
+  application:
+    name: spring-svc
+  datasource:
+    # Role spring_svc có search_path=users (platform/postgres/init/01-init.sh)
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/boilerplate}
+    username: ${SPRING_DATASOURCE_USERNAME:spring_svc}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Flyway là schema owner — Hibernate không tự tạo/đổi schema
+      ddl-auto: none
+  flyway:
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true # /actuator/health/liveness — conventions/02
+
+app:
+  jwt-secret: ${JWT_SECRET:}          # fail-fast validate ở JwtVerifier (task 4)
+  users-fixture-path: ${USERS_FIXTURE_PATH:} # seed V2 đọc contracts/auth/users.json
+  cors-dev-origins: ${CORS_DEV_ORIGIN:}      # CORS @Profile("dev") — conventions/07
+
+logging:
+  level:
+    root: ${LOG_LEVEL:info}

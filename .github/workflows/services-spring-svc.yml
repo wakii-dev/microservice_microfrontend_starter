@@ -35,8 +35,6 @@ jobs:
           GO_READONLY_DB_PASSWORD: change-me-goreadonly
         ports:
           - 5432:5432
-        volumes:
-          - ${{ github.workspace }}/platform/postgres/init:/docker-entrypoint-initdb.d:ro
         options: >-
           --health-cmd "pg_isready -U boilerplate -d boilerplate"
           --health-interval 5s
@@ -50,6 +48,18 @@ jobs:
       SPRING_DATASOURCE_PASSWORD: change-me-spring
     steps:
       - uses: actions/checkout@v4
+      - name: Apply postgres init script SF-1 (schemas + roles + search_path — nguyên văn platform/postgres/init)
+        # Service container KHÔNG mount init (mount workspace trước checkout = dir root-owned
+        # → checkout EACCES); chạy script sau checkout qua psql client của runner.
+        env:
+          PGPASSWORD: change-me-postgres
+          POSTGRES_USER: boilerplate
+          POSTGRES_DB: boilerplate
+          NODE_SVC_DB_PASSWORD: change-me-node
+          SPRING_SVC_DB_PASSWORD: change-me-spring
+          GO_SVC_DB_PASSWORD: change-me-go
+          GO_READONLY_DB_PASSWORD: change-me-goreadonly
+        run: bash platform/postgres/init/01-init.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

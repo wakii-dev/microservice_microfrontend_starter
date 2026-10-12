@@ -5,9 +5,14 @@
 # build stage — cài + build rspack
 FROM node:22-alpine AS build
 WORKDIR /repo
-RUN corepack enable
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+# Pin pnpm 9.15.9 = dev machine + lockfileVersion (corepack default sẽ tải pnpm 12 — lệch format)
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+# COPY đủ MỌI importer trong pnpm-lock.yaml (., shared, shell, spike/host, spike/remote) —
+# thiếu importer nào frozen-lockfile cũng fail
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/shared/package.json frontend/shared/
+COPY frontend/spike/host/package.json frontend/spike/host/
+COPY frontend/spike/remote/package.json frontend/spike/remote/
 COPY frontend/shell/package.json frontend/shell/
 RUN pnpm install --frozen-lockfile --filter @boilerplate/shell...
 COPY frontend/shared frontend/shared

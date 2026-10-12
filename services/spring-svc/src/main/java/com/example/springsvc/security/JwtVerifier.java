@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class JwtVerifier {
 
-    static final String REQUIRED_ISSUER = "auth-mock";
+    public static final String REQUIRED_ISSUER = "auth-mock";
 
     private final SecretKey key;
 

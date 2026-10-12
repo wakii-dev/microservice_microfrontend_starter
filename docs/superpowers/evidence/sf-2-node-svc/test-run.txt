@@ -1,0 +1,51 @@
+SF-2 node-svc test evidence — 2026-10-12T09:05Z
+HEAD code commit: b87f7dd (branch wakii-dev/sf-2-node-svc; evidence commit ngay sau)
+
+Unit/contract tests (vitest):
+- services/node-svc: 23/23 PASS
+  (healthz/readyz naked+mirror, readyz DB fail→503 DEPENDENCY_DOWN, auth
+  missing/bad-signature/expired/wrong-iss→401, CRUD happy+validation 400,
+  404 TASK_NOT_FOUND, non-uuid→400, 422 UNPROCESSABLE assignee lạ + KHÔNG ghi
+  nửa chừng, 503 DEPENDENCY_DOWN spring down + KHÔNG ghi, fire-and-forget
+  go-svc closed-port→vẫn 201, list filter/phân trang, patch minProperties,
+  delete 204/404 + event task.deleted, CORS echo dev origin / deny-by-default,
+  envelope NOT_FOUND, swagger docs/json 200)
+
+Migration vs canonical DDL (exit criterion SF-2):
+- src/db/schema-diff.test.ts: 2/2 PASS — structural normalized comparison
+  migration drizzle/0000_init.sql vs contracts/db/tasks-schema.sql = 0
+  (schema/columns incl. types/nullability/default, CHECK 3 trạng thái,
+  3 indexes incl. created_at DESC; bỏ cosmetic: quote/USING btree/NULLS LAST/
+  constraint name). Migration CREATE SCHEMA IF NOT EXISTS (idempotent vs
+  platform/postgres/init/01-init.sh).
+
+Typegen drift:
+- pnpm generate:types (openapi-typescript 7.13) — src/types/api.d.ts khớp
+  contracts/openapi/tasks.yaml (output committed; CI re-generate + git diff
+  --exit-code chặn drift)
+
+Native runtime verification (dev machine KHÔNG Docker — docker/compose verify
+qua CI boot-smoke; server boot bằng buildApp thật + fake repo/postgres vì
+không có postgres local, không có spring/go local):
+- healthz 200 {"status":"ok"}; swagger UI /api/tasks/docs 200 — BROWSER-VERIFIED
+  (headless Edge, real render): "Tasks API (node-svc) 0.1.0 OAS 3.0", server
+  /api/tasks, đủ 7 operations, Authorize button → evidence swagger-ui-native-3001.png
+- curl API thật trên :3001 (JWT HS256 tự ký iss=auth-mock):
+  * no token → 401 envelope UNAUTHORIZED
+  * POST create (không assignee) → 201 + body Task đúng shape
+  * GET list?limit=5 → {"items":[...],"total":1} thấy task vừa tạo
+  * PATCH status=done → 200 "status":"done"
+  * POST assignee 999…→422 {"error":{"code":"UNPROCESSABLE","message":"Assignee … không tồn tại",…}}
+  * DELETE → 204; expired token → 401
+- Fire-and-forget: go-svc vắng mặt (không có gì listen :8082) → tạo task VẪN
+  201 (log warn event push failed) — khớp acceptance
+- Lưu ý trung thực: readyz DB-hard-gate và migration-run-at-boot KHÔNG verify
+  được native (không postgres) — CI boot-smoke (compose postgres thật + migration
+  lúc boot + readyz 200 + CRUD smoke) là bằng chứng cho phần đó
+
+CI: [ĐIỀN SAU PUSH — run URL + verdict 3 jobs]
+
+tdd: RED→GREEN cho error-envelope mapping (HttpError.statusCode + FST_ERR_VALIDATION
+→VALIDATION_ERROR): test ĐỎ 6 case (500 thay 4xx/422, FST_ERR_VALIDATION thay
+VALIDATION_ERROR) → fix → 23/23 XANH. schema-diff test: RED từng bước normalizer
+(CRLF, index regex, timestamptz collapse, CHECK inline) → GREEN diff=0.

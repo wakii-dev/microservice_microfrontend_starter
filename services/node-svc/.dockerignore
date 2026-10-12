@@ -1,7 +1,5 @@
 node_modules
 dist
-*.test.ts
-src/types/*.d.ts.tmp
 coverage
 .vitest
 README.md

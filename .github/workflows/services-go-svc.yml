@@ -164,7 +164,10 @@ jobs:
       - name: Gateway presence check — /api/activity không token → 401 envelope
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            up -d gateway
+            up -d gateway || {
+              echo "=== dependency failed — dump node-svc logs ===";
+              docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail 60 node-svc;
+              exit 1; }
           sleep 3
           CODE=$(curl -s -o /tmp/gw401.json -w '%{http_code}' http://localhost:8080/api/activity/stats)
           [ "$CODE" = "401" ] || { echo "gateway = $CODE, want 401"; exit 1; }

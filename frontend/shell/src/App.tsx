@@ -1,9 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { Layout } from './components/Layout';
+import { RemoteSlot } from './components/RemoteSlot';
 import { RequireAuth } from './components/RequireAuth';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
-import { RemotePage } from './pages/RemotePage';
 
 /** Routes inner — tách riêng để test mount được với MemoryRouter. */
 export function AppRoutes() {
@@ -11,12 +11,12 @@ export function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
-        {/* /tasks /activity — remote theo registry (conventions/08); T5 thay RemotePage bằng RemoteSlot */}
+        {/* Remote slots theo registry conventions/08: expose ./TasksPage, ./ActivityPage (SF-6 impl) */}
         <Route
           path="/tasks"
           element={
             <RequireAuth>
-              <RemotePage title="Tasks" />
+              <RemoteSlot name="tasks" exposedModule="./TasksPage" />
             </RequireAuth>
           }
         />
@@ -24,7 +24,7 @@ export function AppRoutes() {
           path="/activity"
           element={
             <RequireAuth>
-              <RemotePage title="Activity" />
+              <RemoteSlot name="activity" exposedModule="./ActivityPage" />
             </RequireAuth>
           }
         />

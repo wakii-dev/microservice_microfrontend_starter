@@ -3,9 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/model"
 )

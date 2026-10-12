@@ -5,7 +5,6 @@ package api
 // ActivityFeedItem required) — FE render trực tiếp, không tự bịa placeholder.
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"

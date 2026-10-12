@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/apperr"
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/model"
 )
 
 // allowedActions — enum nguồn sự thật (activity.yaml ActivityEventInput.action).
@@ -68,7 +69,7 @@ func (h *EventsHandler) Ingest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ev := &Event{
+	ev := &model.Event{
 		ID:        uuid.New(), // id do app sinh — cùng quyết định canonical DDL tasks
 		TaskID:    taskID,
 		UserID:    userID,

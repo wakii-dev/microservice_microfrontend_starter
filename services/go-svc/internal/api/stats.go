@@ -6,13 +6,11 @@ package api
 // boundary (exit criterion context pack).
 
 import (
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/apperr"
-	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/model"
 )
 
 // statsResponse mirror ActivityStats (activity.yaml).

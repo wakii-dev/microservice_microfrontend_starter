@@ -1,0 +1,127 @@
+# ============================================================================
+# Boilerplate Microservice + Micro-frontend — compose PRE-SEED (SF-1, FI-64)
+#
+# ⚠️ SF-2/3/4/5/6 KHÔNG được sửa file này — chỉ điền impl vào entry có sẵn
+#    (code trong services/<svc> hoặc frontend/<app> mà entry đã trỏ tới).
+#    Muốn đổi compose → flag lên coordinator (SF-1 sở hữu).
+#
+# SF-1: postgres + auth-mock + gateway chạy được trọn vẹn.
+#       node-svc/spring-svc/go-svc là KHUNG — build sẽ fail đến khi SF-2/3/4
+#       điền code (Dockerfile + src). `docker compose config` validate được ngay.
+# SF-5/6: thêm entry shell/remote-tasks/remote-activity? KHÔNG — entry sẽ được
+#       pre-seed riêng; hỏi coordinator trước.
+# ============================================================================
+
+name: boilerplate
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+      # password cho per-service roles — init script (01-init.sh) dùng
+      NODE_SVC_DB_PASSWORD: ${NODE_SVC_DB_PASSWORD:?set in .env}
+      SPRING_SVC_DB_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
+      GO_SVC_DB_PASSWORD: ${GO_SVC_DB_PASSWORD:?set in .env}
+      GO_READONLY_DB_PASSWORD: ${GO_READONLY_DB_PASSWORD:?set in .env}
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  auth-mock:
+    build: ./auth-mock
+    environment:
+      PORT: ${AUTH_MOCK_PORT:-8090}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      AUTH_MOCK_DEV_PASSWORD: ${AUTH_MOCK_DEV_PASSWORD:-demo-password}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # fixture mount trực tiếp từ contracts/ — sửa fixture không cần rebuild image
+      USERS_FIXTURE_PATH: /app/users.json
+    volumes:
+      - ../contracts/auth/users.json:/app/users.json:ro
+    ports:
+      - "${AUTH_MOCK_PORT:-8090}:8090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:${AUTH_MOCK_PORT:-8090}/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  gateway:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./gateway/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      auth-mock:
+        condition: service_healthy
+    # không healthcheck riêng — nginx chỉ proxy; SF-7 thêm health-gated compose check nếu cần
+
+  # --- KHUNG services (SF-2/3/4 điền impl — KHÔNG sửa entry) ---
+
+  node-svc:
+    build: ../services/node-svc
+    environment:
+      PORT: ${NODE_SVC_PORT:-3001}
+      DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${NODE_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      SPRING_SVC_URL: http://spring-svc:8081
+      GO_SVC_URL: http://go-svc:8082
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${NODE_SVC_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  spring-svc:
+    build: ../services/spring-svc
+    environment:
+      SERVER_PORT: ${SPRING_SVC_PORT:-8081}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?set in .env}
+      SPRING_DATASOURCE_USERNAME: spring_svc
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      USERS_FIXTURE_PATH: /app/contracts/auth/users.json
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ../contracts/auth/users.json:/app/contracts/auth/users.json:ro
+    ports:
+      - "${SPRING_SVC_PORT:-8081}:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  go-svc:
+    build: ../services/go-svc
+    environment:
+      PORT: ${GO_SVC_PORT:-8082}
+      DATABASE_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      DATABASE_READONLY_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      SPRING_SVC_URL: http://spring-svc:8081
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${GO_SVC_PORT:-8082}:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- FE entries: pre-seed ở SF-5/6 (shell, remote-tasks, remote-activity) —
+  #     hỏi coordinator trước khi thêm, kể cả entry khung. ---
+
+volumes:
+  pgdata:

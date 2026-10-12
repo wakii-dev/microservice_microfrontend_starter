@@ -50,13 +50,13 @@ Dev team copy boilerplate cần shell demo được login + nav ngay khi mở �
 |---|------|------|
 | 1 | Re-validation spike + fe-shared fit-check (pin còn đúng? export đủ dùng? lệch = FLAG ngay) | — |
 | 2 | Scaffold `frontend/shell/` — Rspack + MF host + React 19 + TS + catalog singletons, chạy được hello shell :3000 | 1 |
-| 3 | Routing + layout + nav (`/`, `/tasks`, `/activity`) + route focus + skip link a11y | 2 |
-| 4 | Login page — fe-shared token-storage + api-client, auth-mock qua gateway `/api/auth/login` | 2 |
-| 5 | Remote slots + error boundary + fallback remote-down + retry | 3 |
-| 6 | Tests vitest + testing-library (login flow, a11y focus/skip-link, error boundary) | 3,4,5 |
+| 3 | Routing + layout + nav (`/`, `/tasks`, `/activity`) + route focus + skip link; tạo sẵn route `/login` stub + Layout mount (chống đụng file với T4); **kèm a11y vitest riêng (route focus + skip link)** | 2 |
+| 4 | **Chỉ `LoginPage.tsx` + login vitest riêng** (mocked api + token persist); dev API base = env `API_BASE_URL` default `http://localhost:8090` (auth-mock trực tiếp — native không có gateway, conventions/05 rule 3 + CORS 07: auth-mock luôn mở dev origin); prod = same-origin `""` qua gateway `/api/auth/login` | 2 |
+| 5 | Remote slots + error boundary + fallback remote-down + retry; **kèm error-boundary vitest riêng** | 3 |
+| 6 | Suite-green toàn bộ + 1 integration test cross-cutting (login → nav → remote-down fallback) | 3,4,5 |
 | 7 | Dockerfile (nginx static) + nginx.conf + README `frontend/shell/` | 2 |
 | 8 | CI `shell.yml` — build + tests + boot-smoke static (up + 200) | 6,7 |
-| 9 | BROWSER VERIFY Rule 0 walkthrough + screenshot evidence + ACCEPTANCE line-by-line + verifier | 8 |
+| 9 | BROWSER VERIFY Rule 0 walkthrough + screenshot evidence + ACCEPTANCE line-by-line + verifier. Tiền tố walkthrough: start auth-mock native :8090 (fixture user + dev password). DONE report phải chứa FLAG: compose thiếu entry `shell` (claim pre-seed sai) — owner: coordinator/SF-7; SF-5 không đụng compose | 8 |
 
 ## 6. Risks & unknowns
 - **Must verify (Task 1):** pin versions còn cài được; fe-shared export đủ (ApiClient, tokenStorage, readClaims, isExpired, loadRemoteModule, resolveRemoteUrl, REMOTE_NAMES) cho mọi nhu cầu shell.

@@ -111,7 +111,7 @@ services:
     environment:
       PORT: 8082 # container port CỐ ĐỊNH (conventions/05)
       DATABASE_URL: postgres://go_svc:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
-      DATABASE_READONLY_URL: postgres://${POSTGRES_USER:?set in .env}:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      DATABASE_READONLY_URL: postgres://go_readonly:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
       SPRING_SVC_URL: http://spring-svc:8081
       CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}

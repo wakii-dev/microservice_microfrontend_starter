@@ -1,4 +1,4 @@
-// spring.ts — user-validation client (spec §4): GET {SPRING_SVC_URL}/api/users/{id}
+// spring.ts — user-validation client (spec §4): GET {SPRING_SVC_URL}/api/users/users/{id} (SF-3 contract resolution — đã FIX-P0-FIRST)
 // timeout 2s. Kết quả 3 trạng thái — route map: ok→ghi, not_found→422, down→503 fail-closed.
 import type { LogFn } from '../types/log.js';
 
@@ -21,7 +21,7 @@ export class HttpSpringClient implements SpringClient {
   async validateUser(userId: string, bearerToken: string | undefined): Promise<UserValidation> {
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl}/api/users/${encodeURIComponent(userId)}`, {
+      res = await fetch(`${this.baseUrl}/api/users/users/${encodeURIComponent(userId)}`, {
         method: 'GET',
         headers: bearerToken ? { authorization: `Bearer ${bearerToken}` } : {},
         signal: AbortSignal.timeout(USER_VALIDATE_TIMEOUT_MS),

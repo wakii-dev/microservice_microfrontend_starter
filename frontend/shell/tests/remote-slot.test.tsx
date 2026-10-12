@@ -49,4 +49,18 @@ describe('RemoteSlot (error boundary remote-down)', () => {
     });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
+
+  it('re-render (click lại nav link đang đứng) KHÔNG load lại remote (lazy cache — P2 review fix)', async () => {
+    loadRemoteModuleMock.mockResolvedValue({ default: () => <div>STABLE</div> });
+    const { rerender } = render(
+      <RemoteSlot name="tasks" exposedModule="./TasksPage" key="x" />,
+    );
+    await waitFor(() => expect(screen.getByText('STABLE')).toBeInTheDocument());
+    expect(loadRemoteModuleMock).toHaveBeenCalledTimes(1);
+
+    // re-render cùng props — lazy cache phải giữ component type, không import lại
+    rerender(<RemoteSlot name="tasks" exposedModule="./TasksPage" key="x" />);
+    expect(loadRemoteModuleMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('STABLE')).toBeInTheDocument();
+  });
 });

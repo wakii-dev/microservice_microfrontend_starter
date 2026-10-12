@@ -7,7 +7,8 @@ export function RequireAuth({ children }: { children: ReactElement }) {
   const location = useLocation();
   const token = tokenStorage.getToken();
   if (!token || isExpired(token)) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    // giữ cả search + pathname — login xong quay lại đúng deep-link
+    return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />;
   }
   return children;
 }

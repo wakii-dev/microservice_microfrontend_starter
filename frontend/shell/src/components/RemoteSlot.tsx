@@ -1,4 +1,4 @@
-import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useState } from 'react';
+import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@boilerplate/fe-shared';
 
 /**
@@ -52,8 +52,12 @@ export function RemoteSlot({
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
 
-  // lazy tạo lại theo attempt — retry remount để import chạy từ đầu
-  const LazyRemote = lazy(() => loadRemote(name, exposedModule));
+  // lazy cache theo (module, attempt) — re-render KHÔNG tạo component type mới (tránh remount
+  // + Suspense flash khi click lại nav link đang đứng); retry đổi attempt → lazy mới → import lại
+  const LazyRemote = useMemo(
+    () => lazy(() => loadRemote(name, exposedModule)),
+    [name, exposedModule, attempt],
+  );
 
   return (
     <RemoteErrorBoundary onRetry={retry} remoteName={name} key={attempt}>

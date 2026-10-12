@@ -28,9 +28,8 @@ ENV REMOTE_TASKS_URL=${REMOTE_TASKS_URL} \
 RUN pnpm --filter @boilerplate/shell build
 
 # runtime stage — nginx serve static, port cố định 3000 (conventions/05)
+# Healthcheck KHÔNG khai ở đây (conventions/01 rule 4 — một nguồn duy nhất: compose entry `shell`)
 FROM nginx:1.27-alpine AS runtime
 COPY frontend/shell/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /repo/frontend/shell/dist /usr/share/nginx/html
 EXPOSE 3000
-HEALTHCHECK --interval=5s --timeout=3s --retries=12 \
-  CMD wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1

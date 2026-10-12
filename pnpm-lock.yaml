@@ -26,6 +26,52 @@ importers:
 
   .: {}
 
+  frontend/remotes/activity:
+    dependencies:
+      '@boilerplate/fe-shared':
+        specifier: workspace:*
+        version: link:../../shared
+      react:
+        specifier: 'catalog:'
+        version: 19.3.0
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.3.0(react@19.3.0)
+    devDependencies:
+      '@module-federation/enhanced':
+        specifier: 'catalog:'
+        version: 0.21.6(@rspack/core@1.7.12)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@5.9.3)
+      '@rspack/cli':
+        specifier: 1.7.12
+        version: 1.7.12(@rspack/core@1.7.12)(@types/express@4.17.25)
+      '@rspack/core':
+        specifier: 'catalog:'
+        version: 1.7.12
+      '@testing-library/jest-dom':
+        specifier: 6.9.0
+        version: 6.9.0
+      '@testing-library/react':
+        specifier: 16.3.0
+        version: 16.3.0(@testing-library/dom@10.4.2)(@types/react-dom@19.2.3(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@testing-library/user-event':
+        specifier: 14.6.1
+        version: 14.6.1(@testing-library/dom@10.4.2)
+      '@types/react':
+        specifier: 19.2.2
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.2)
+      jsdom:
+        specifier: 27.0.0
+        version: 27.0.0
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@22.20.5)(jiti@2.4.2)(jsdom@27.0.0)(tsx@4.23.15)(yaml@2.9.1)
+
   frontend/remotes/tasks:
     dependencies:
       '@boilerplate/fe-shared':

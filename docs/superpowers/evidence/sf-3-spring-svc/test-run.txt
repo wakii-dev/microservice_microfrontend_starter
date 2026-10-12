@@ -1,7 +1,7 @@
 SF-3 spring-svc (FI-71) — test-run evidence
 ============================================
 
-HEAD: 2abfe8ef93984274c7d9c50213d4b02a9c1b426f (commit 2abfe8e)
+HEAD: 9a6a13a (evidence/docs anchor) · code commit: 2abfe8ef93984274c7d9c50213d4b02a9c1b426f (2abfe8e)
 tdd: skipped-tdd: CI-only (dev machine không JDK/Docker — brief ràng buộc);
 test + impl cùng commit, verify qua CI run 38237292149.
 

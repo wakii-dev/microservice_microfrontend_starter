@@ -36,6 +36,9 @@ SRC="$(cd "$(dirname "$0")/../.." && pwd)" # repo root (script ở scripts/scaff
 [ -f "$SRC/pnpm-workspace.yaml" ] || { echo "LỖI: không tìm thấy repo root tại $SRC" >&2; exit 1; }
 OUT="${OUT:-$PWD/$NAME}"
 [ ! -e "$OUT" ] || { echo "LỖI: output đã tồn tại: $OUT" >&2; exit 1; }
+# chặn OUT nằm TRONG source (tar copy-into-self ô nhiễm output — P0 code-review SF-7)
+OUT_REAL="$(realpath -m "$OUT")"
+case "$OUT_REAL" in "$SRC"/*) echo "LỖI: --out không được nằm trong repo nguồn: $OUT" >&2; exit 1;; esac
 
 echo "[scaffold] copy $SRC → $OUT (prune boilerplate-infra)"
 mkdir -p "$OUT"
@@ -55,8 +58,9 @@ tar -C "$SRC" -cf - \
   --exclude='.env' \
   . | tar -C "$OUT" -xf -
 
-echo "[scaffold] rename @boilerplate/* → @$NAME/* (package.json + source imports + lockfile)"
-find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \) \
+echo "[scaffold] rename @boilerplate/* → @$NAME/* (package.json + source imports + Dockerfile + yml + md + lockfile)"
+find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
+  -o -name 'Dockerfile*' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) \
   -not -path '*/node_modules/*' -not -path '*/target/*' -not -path '*/dist/*' \
   -exec sed -i "s/@boilerplate\//@$NAME\//g" {} +
 sed -i "s/@boilerplate\//@$NAME\//g" "$OUT/pnpm-lock.yaml"

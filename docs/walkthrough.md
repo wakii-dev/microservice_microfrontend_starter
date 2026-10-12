@@ -30,7 +30,7 @@ Cần Postgres 16 chạy sẵn với init script của platform (schemas + roles
 cd platform
 cp .env.example .env                # điền JWT_SECRET (openssl rand -base64 48) + passwords
 docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự
-bash scripts/smoke/e2e.sh           # PASS = chuỗi login→task→feed qua gateway :8080 chạy thật
+bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root (PASS = chuỗi login→task→feed qua :8080)
 # Mở browser: http://localhost:8080/ → login alice@demo.local / demo-password
 ```
 
@@ -53,7 +53,7 @@ cd services/node-svc && JWT_SECRET=<dev-secret> PORT=3001 \
 
 cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
   DATABASE_URL="postgres://go_svc:<pw>@localhost:5432/boilerplate" \
-  DATABASE_READONLY_URL="postgres://<owner>:<pw>@localhost:5432/boilerplate" \
+  DATABASE_READONLY_URL="postgres://<owner-user>:<owner-pw>@localhost:5432/boilerplate" \
   SPRING_SVC_URL=http://localhost:8081 go run ./cmd/server
 
 # FE (3 terminal):
@@ -67,7 +67,7 @@ Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conv
 ### Verify chain bằng smoke script (cả hai đường)
 
 Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08):
-- Đường A: `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`).
+- Đường A (từ repo root, không cd platform): `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`).
 - Đường B: không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
 
 ## 4. Browser walkthrough (human gate — KHÔNG trong CI)

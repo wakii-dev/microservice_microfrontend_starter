@@ -17,6 +17,7 @@ jobs:
   e2e-smoke:
     name: "e2e smoke — compose login→task→feed qua gateway"
     runs-on: ubuntu-latest
+    timeout-minutes: 20 # hung job không treo 6h (P1 code-review SF-7)
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +44,7 @@ jobs:
   copy-dir-smoke:
     name: "copy-dir standalone — node-svc + fe-shared ra tmp"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -65,16 +67,24 @@ jobs:
         # inert cho node-svc (backend không import) — proof FE copy-dir mạnh hơn
         # (remote kèm shared) là follow-up, ngoài scope SF-7 (context pack: "≥1 service + fe-shared").
         run: |
+          REPO_ROOT="$PWD" # checkout cwd — tmp copy nằm NGOÀI repo, path phải absolute
           mkdir -p "$RUNNER_TEMP/standalone/fe-shared"
           cp -r frontend/shared/. "$RUNNER_TEMP/standalone/fe-shared/"
           cd "$RUNNER_TEMP/standalone/fe-shared"
+          # fe-shared khai "catalog:" → cần workspace catalog khi standalone
+          # (P0 code-review SF-7: thiếu = ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC).
+          # Mini workspace = catalog block trích từ root pnpm-workspace.yaml.
+          # LƯU Ý: KHÔNG dùng --ignore-workspace ở đây — catalog là workspace
+          # feature, ignore-workspace tắt luôn catalog → lại ERR_CATALOG.
+          sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > pnpm-workspace.yaml
           corepack enable
-          pnpm install --ignore-workspace
+          pnpm install --no-frozen-lockfile
           pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler src/index.ts
 
   scaffold-verify:
     name: "scaffold output build được — demo-app"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

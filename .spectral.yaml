@@ -4,19 +4,12 @@ extends:
 
 # Boilerplate điều chỉnh: specs tự-contained (mỗi repo-con copy đi độc lập được —
 # không $ref chéo file), nên tắt các rule khuyến-khích không áp dụng cho template nội bộ.
+# Error envelope chung (conventions/04) là convention-by-review — mirror kiểm tay
+# trong components.schemas.Error của cả 4 specs (đồng bộ khi đổi).
 rules:
   # Không bắt buộc license trên sample API
   info-license: off
   # Tag tự do — sample domain nhỏ, không cần gắn liên kết ngoài
   oas3-api-servers: off
-
-  # Rule riêng: mọi response error phải dùng Error envelope chung
-  error-envelope-shape:
-    description: Response 4xx/5xx phải dùng schema Error envelope (components/schemas/Error).
-    severity: warn
-    recommended: true
-    message: "{{error}}"
-    given: $.paths[*][*].responses[?(@property.match(/^[45]/))].content.application/json.schema
-    then:
-      field: $ref
-      const: "#/components/schemas/Error"
+  # Mọi operation đã có summary + description cấp path/info — không ép description riêng từng op
+  operation-description: off

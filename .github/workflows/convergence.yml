@@ -1,7 +1,8 @@
 name: convergence
 
-# SF-7 (FI-75) — convergence proof: e2e smoke (login→task→feed qua gateway trên
-# compose stack) + copy-dir standalone + scaffold output build được.
+# SF-5 (FI-81, story FI-76) — convergence proof: e2e 2 chiều (happy login→task→feed
+# QUA KAFKA + saga assign svc-fail → assignment_failed → DLQ assert) trên compose
+# 10 services + copy-dir standalone + scaffold output build được.
 # File RIÊNG của convergence — KHÔNG đụng workflow-templates (SF-1 sở hữu).
 # Browser walkthrough KHÔNG nằm ở đây (human gate tại checkpoint — docs/walkthrough.md).
 
@@ -15,13 +16,13 @@ permissions:
 
 jobs:
   e2e-smoke:
-    name: "e2e smoke — compose login→task→feed qua gateway"
+    name: "e2e 2 chiều — compose login→task→feed (Kafka) + saga → assignment_failed → DLQ"
     runs-on: ubuntu-latest
-    timeout-minutes: 20 # hung job không treo 6h (P1 code-review SF-7)
+    timeout-minutes: 30 # 10 services + kafka build/boot — nới từ 20 của SF-7
     steps:
       - uses: actions/checkout@v4
 
-      - name: Boot full stack (9 services, health-gated chain)
+      - name: Boot full stack (10 services, health-gated chain — kafka lazy-connect)
         run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
 
       - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
@@ -32,14 +33,40 @@ jobs:
           done
           echo "gateway chain chưa ready sau 120s"; exit 1
 
-      - name: e2e smoke — scripts/smoke/e2e.sh
+      - name: Tạo topic tường minh task-events + task-events.dlq (chống auto-create race)
+        # Demo dùng auto-create (task-events.md) nhưng auto-create có race: relay
+        # publish lúc broker chưa kịp tạo topic → message fail/thất lạc giữa chừng
+        # (SF-2 hit: consumer subscribe trước topic tồn tại). Tạo --if-not-exists
+        # TRƯỚC e2e — broker đã healthy ở bước trên (wait chain polls qua services
+        # lazy-connect; đây poll broker trực tiếp cho chắc).
+        run: |
+          for i in $(seq 1 30); do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && break
+            sleep 2
+          done
+          for topic in task-events task-events.dlq; do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+              --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
+          done
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+      - name: e2e 2 chiều — scripts/smoke/e2e.sh (happy + saga kèm DLQ assert)
         run: bash scripts/smoke/e2e.sh
 
-      - name: Dump compose state + logs khi fail (CÙNG --env-file — interpolation ẩn lỗi thật)
+      - name: Dump compose state + logs + DLQ khi fail (CÙNG --env-file — interpolation ẩn lỗi thật)
         if: failure()
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example ps -a
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100
+          echo "=== consumer logs (node-svc relay/compensation + go-svc consumer) ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100 node-svc go-svc
+          echo "=== task-events.dlq hiện có ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events.dlq --from-beginning --timeout-ms 10000 2>/dev/null | tail -20 || true
 
   copy-dir-smoke:
     name: "copy-dir standalone — node-svc + fe-shared ra tmp"

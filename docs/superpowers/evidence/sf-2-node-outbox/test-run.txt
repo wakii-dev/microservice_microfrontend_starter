@@ -1,0 +1,36 @@
+SF-2 (FI-79) — node-svc outbox + producer + compensation consumer — test evidence
+HEAD (code): 923124e7eade96f0664be85a1a8fff09d628ab7e
+  (commit sau dòng này chỉ docs/evidence — B1 docs-only)
+
+Commands (2026-10-13, worktree sf-2-node-outbox):
+  pnpm --filter node-svc test  → Test Files 5 passed (5) / Tests 48 passed (48)
+  pnpm --filter node-svc build → tsc OK (exit 0)
+  drizzle-kit generate         → 0001_status-assignment-failed.sql + 0002_outbox-table.sql
+  schema-diff.test             → migration vs canonical DDL diff = 0 (outbox whitelist riêng)
+
+Test coverage chính (48, từ 23 baseline):
+  - event matrix presence-based: POST→task.created, PATCH có assigneeId→task.assigned
+    (+task.updated nếu còn field), PATCH không→task.updated, DELETE→task.deleted;
+    payload so golden fixtures contracts/events/fixtures (load chung 2 đầu)
+  - tx rollback seam (repo.drizzle.test.ts, mock-db): outbox insert fail giữa 2 step
+    → task + outbox cùng biến mất (committed rỗng)
+  - regression P0 (code-reviewer FI-79): PATCH/DELETE miss 0 row (404) → KHÔNG emit
+    outbox event (phantom-event guard, gate theo row-affected)
+  - relay unit (fake producer/store): message value khớp golden fixture 1:1 cho cả 4
+    type, key = payload.taskId, publish-then-mark, broker down → warn + không mark
+  - consumer unit (fake deps): conditional guard (stale assignee → không đổi vẫn
+    commit), idempotent replay, filter-by-type, JSON hỏng → DLQ, DB fail ×3 → DLQ
+    message gốc + metadata + commit
+  - PATCH status assignment_failed → 400 VALIDATION_ERROR; GET assignment_failed → 200
+
+tdd: RED→GREEN cho seam rollback + regression phantom-event (mock-db fail path quan
+sát đỏ trước khi gate emit theo row-affected); phần còn lại viết song song code
+(CI-only verify: dev machine không Docker/kafka — broker thật chứng minh ở CI job
+kafka-boot-smoke mới: assert outbox published_at IS NOT NULL sau publish).
+
+CI: push branch wakii-dev/sf-2-node-outbox → services-node-svc.yml (build-test +
+docker-build + boot-smoke + kafka-boot-smoke MỚI) — URL cập nhật ở comment FI-79.
+
+Independent review: code-reviewer CHANGES-REQUESTED (1 P0 phantom event) → fixed
+(regression test kèm theo) + 3 P2 fixed (dead args, relay in-flight guard,
+producer reset on send error) — verdict materialize /tmp/story/fi62/code-reviewer-sf-2-node-outbox.md

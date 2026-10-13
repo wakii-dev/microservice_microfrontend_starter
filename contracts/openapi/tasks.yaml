@@ -200,8 +200,18 @@ components:
       type: string
       enum: [todo, in_progress, done]
       description: |
-        Phải khớp CHECK constraint trong contracts/db/tasks-schema.sql.
+        WRITABLE status — query param + PATCH body CHỈ nhận 3 giá trị này
+        (khớp CHECK constraint writable trong contracts/db/tasks-schema.sql).
         go-svc stats group theo đúng 3 giá trị này.
+        `assignment_failed` KHÔNG ở đây — system-owned (compensation ghi,
+        không client) — xem TaskStatusExtended.
+    TaskStatusExtended:
+      type: string
+      enum: [todo, in_progress, done, assignment_failed]
+      description: |
+        READ-ONLY — chỉ `Task.status` response. `assignment_failed` là trạng
+        thái hệ thống (saga compensation — ADR-0008): consumer node-svc-compensation
+        ghi qua conditional UPDATE; PATCH KHÔNG nhận giá trị này.
     Task:
       type: object
       required: [id, title, status, createdBy, createdAt, updatedAt]
@@ -216,7 +226,7 @@ components:
           type: string
           nullable: true
         status:
-          $ref: "#/components/schemas/TaskStatus"
+          $ref: "#/components/schemas/TaskStatusExtended"
         assigneeId:
           type: string
           format: uuid

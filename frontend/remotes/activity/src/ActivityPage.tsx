@@ -6,7 +6,9 @@ import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from
 const ACTION_LABELS: Record<string, string> = {
   'task.created': 'đã tạo',
   'task.updated': 'đã cập nhật',
+  'task.assigned': 'đã giao',
   'task.deleted': 'đã xoá',
+  'task.assignment_failed': 'gán thất bại',
 };
 
 function formatTime(iso: string): string {

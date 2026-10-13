@@ -15,6 +15,9 @@ interface TableDef {
   name: string;
   columns: string[];
   checks: string[];
+  // nội bộ parse — CHECK giữ tên constraint để ALTER ... DROP/ADD CONSTRAINT
+  // (migration sửa CHECK viết dạng drop + add cùng tên) tác động đúng entry.
+  checkDefs: Array<{ name: string; text: string }>;
 }
 
 function stripComments(sql: string): string {
@@ -95,11 +98,18 @@ function normalizeDdl(sqlText: string): { schemas: string[]; tables: TableDef[];
     );
     if (tblMatch) {
       const name = unquote(tblMatch[1]).toLowerCase();
-      const def: TableDef = { name, columns: [], checks: [] };
+      const def: TableDef = { name, columns: [], checks: [], checkDefs: [] };
       for (const item of splitTopLevel(tblMatch[2])) {
         if (/^constraint /i.test(item) || /^check\s*\(/i.test(item)) {
           const checkBody = item.match(/check\s*\(([\s\S]+)\)/i);
-          if (checkBody) def.checks.push(`check (${normExpr(checkBody[1])})`);
+          const cname = item.match(/^constraint\s+(\S+)/i);
+          if (checkBody) {
+            def.checkDefs.push({
+              name: cname ? unquote(cname[1]).toLowerCase() : '',
+              text: normExpr(checkBody[1]),
+            });
+            def.checks = def.checkDefs.map((c) => `check (${c.text})`).sort();
+          }
           continue;
         }
         // Column def: name type [primary key] [not null] [default expr] — bố trí lại
@@ -126,7 +136,8 @@ function normalizeDdl(sqlText: string): { schemas: string[]; tables: TableDef[];
           } else if (m === 'check') {
             // CHECK inline (canonical style) — gom phần còn lại làm check body
             const body = parts.slice(i + 1).join(' ').replace(/^\(/, '').replace(/\)$/, '');
-            def.checks.push(`check (${normExpr(body)})`);
+            def.checkDefs.push({ name: '', text: normExpr(body) });
+            def.checks = def.checkDefs.map((c) => `check (${c.text})`).sort();
             break;
           }
         }
@@ -143,6 +154,34 @@ function normalizeDdl(sqlText: string): { schemas: string[]; tables: TableDef[];
       continue;
     }
 
+    // ALTER TABLE ... DROP CONSTRAINT x / ADD CONSTRAINT x CHECK (...) — kiểu
+    // statement drizzle-kit sinh khi sửa CHECK (SF-2 migration 0001). Net effect
+    // trên model: xoá/thêm entry checkDefs theo tên, checks derive lại sorted.
+    const alterMatch = stmt.match(
+      /^alter table (?:only )?\s*((?:"[^"]*"|[\w]+)(?:\.(?:"[^"]*"|[\w]+))?)\s+([\s\S]+)$/i,
+    );
+    if (alterMatch) {
+      const tableName = unquote(alterMatch[1]).toLowerCase();
+      const action = alterMatch[2].trim();
+      const table = tables.find((t) => t.name === tableName);
+      if (!table) throw new Error(`ALTER TABLE trên bảng chưa parse: ${tableName}`);
+
+      const dropMatch = action.match(/^drop constraint (?:if exists )?(\S+)$/i);
+      if (dropMatch) {
+        const cname = unquote(dropMatch[1]).toLowerCase();
+        table.checkDefs = table.checkDefs.filter((c) => c.name !== cname);
+        table.checks = table.checkDefs.map((c) => `check (${c.text})`).sort();
+        continue;
+      }
+      const addMatch = action.match(/^add constraint (\S+) check\s*\(([\s\S]+)\)$/i);
+      if (addMatch) {
+        table.checkDefs.push({ name: unquote(addMatch[1]).toLowerCase(), text: normExpr(addMatch[2]) });
+        table.checks = table.checkDefs.map((c) => `check (${c.text})`).sort();
+        continue;
+      }
+      throw new Error(`Unhandled ALTER TABLE action (mở rộng normalizer): ${action.slice(0, 120)}`);
+    }
+
     throw new Error(`Unhandled DDL statement (mở rộng normalizer): ${stmt.slice(0, 120)}`);
   }
 
@@ -155,30 +194,59 @@ function normalizeDdl(sqlText: string): { schemas: string[]; tables: TableDef[];
 describe('migration khớp canonical DDL (exit criterion SF-2: diff = 0)', () => {
   const canonical = normalizeDdl(readFileSync(CANONICAL, 'utf8'));
 
-  it('mọi migration file cộng lại = canonical', () => {
+  function loadMigrated() {
     const { readdirSync } = require('node:fs') as typeof import('node:fs');
     const files = readdirSync(MIGRATIONS)
       .filter((f) => f.endsWith('.sql'))
       .sort();
     expect(files.length).toBeGreaterThan(0);
-
     const combined = files.map((f) => readFileSync(resolve(MIGRATIONS, f), 'utf8')).join('\n');
-    const migrated = normalizeDdl(combined);
+    return normalizeDdl(combined);
+  }
+
+  it('mọi migration file cộng lại = canonical (outbox whitelist riêng — không đếm vào canonical)', () => {
+    const migrated = loadMigrated();
+    // Bảng outbox là node-internal infra (ADR-0008) — KHÔNG vào canonical DDL:
+    // tách khỏi so sánh canonical, assert expected-def riêng ở test dưới.
+    const OUTBOX = 'tasks.outbox';
+    const migratedContract = migrated.tables.filter((t) => t.name !== OUTBOX);
 
     // bảng/schema/index sinh ra bởi migration phải phủ đúng canonical
     expect(migrated.schemas).toEqual(canonical.schemas);
-    expect(migrated.tables.map((t) => t.name)).toEqual(canonical.tables.map((t) => t.name));
+    expect(migratedContract.map((t) => t.name)).toEqual(canonical.tables.map((t) => t.name));
     for (const canonTable of canonical.tables) {
-      const migTable = migrated.tables.find((t) => t.name === canonTable.name);
+      const migTable = migratedContract.find((t) => t.name === canonTable.name);
       expect(migTable, `table ${canonTable.name} missing`).toBeDefined();
       expect(migTable!.columns, `columns of ${canonTable.name}`).toEqual(canonTable.columns);
       expect(migTable!.checks, `checks of ${canonTable.name}`).toEqual(canonTable.checks);
     }
     expect(migrated.indexes).toEqual(canonical.indexes);
+    expect(migrated.tables.map((t) => t.name)).toContain(OUTBOX);
   });
 
-  it('sanity: canonical có bảng tasks.tasks + 3 index', () => {
+  it('outbox def đúng expected-def riêng (whitelist SF-2 — node-internal infra)', () => {
+    const { 'tasks.outbox': outboxTable } = Object.fromEntries(
+      loadMigrated()
+        .tables.map((t) => [t.name, t]),
+    );
+    expect(outboxTable).toBeDefined();
+    // Cột đúng spec (epic spec rev 3 / context pack sf-2.md mục 3): id UUID do
+    // node sinh, type, payload jsonb, created_at, published_at nullable.
+    expect(outboxTable!.columns.sort()).toEqual(
+      [
+        'created_at timestamptz not null default now()',
+        'id uuid primary key',
+        'payload jsonb not null',
+        'published_at timestamptz',
+        'type varchar(40) not null',
+      ].sort(),
+    );
+    expect(outboxTable!.checks).toEqual([]); // không CHECK — type do app kiểm soát
+  });
+
+  it('sanity: canonical có bảng tasks.tasks + 3 index + KHÔNG outbox', () => {
     expect(canonical.tables.map((t) => t.name)).toContain('tasks.tasks');
+    expect(canonical.tables.map((t) => t.name)).not.toContain('tasks.outbox');
     expect(canonical.indexes.length).toBe(3);
   });
 });

@@ -1,14 +1,17 @@
 // TasksPage — expose `./TasksPage` (registry conventions/08), shell mount vào route /tasks
 // (RequireAuth đã lo redirect login; trang này giả định có token, 401 → error banner).
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { ApiError, createTask, fetchTasks, Task, TaskStatus, updateTask } from './api';
+import { ApiError, createTask, fetchTasks, Task, TaskStatus, TaskStatusExtended, updateTask } from './api';
 
-const STATUS_LABELS: Record<TaskStatus, string> = {
+// Labels đủ 4 giá trị (SF-3 cascade) — nhưng select CHỈ 3 writable:
+// `assignment_failed` là status hệ thống (saga compensation), PATCH CẤM.
+const STATUS_LABELS: Record<TaskStatusExtended, string> = {
   todo: 'Cần làm',
   in_progress: 'Đang làm',
   done: 'Xong',
+  assignment_failed: 'Gán thất bại',
 };
-const STATUSES = Object.keys(STATUS_LABELS) as TaskStatus[];
+const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'done'];
 
 /**
  * CRUD tối giản theo spec slice mục 3: danh sách + tạo + sửa (đổi status).
@@ -133,21 +136,40 @@ export function TasksPage() {
               >
                 <strong>{task.title}</strong>
                 {task.description && <span>— {task.description}</span>}
-                <label style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
-                  {' '}
-                  Trạng thái
-                  <select
+                {task.status === 'assignment_failed' ? (
+                  // Status hệ thống — badge, KHÔNG select (PATCH cấm assignment_failed)
+                  <span
+                    role="status"
                     aria-label={`Trạng thái task ${task.title}`}
-                    value={task.status}
-                    onChange={(e) => void handleStatusChange(task, e.target.value as TaskStatus)}
+                    style={{
+                      marginLeft: 'auto',
+                      padding: '0.15rem 0.6rem',
+                      borderRadius: 999,
+                      background: '#fde8e8',
+                      color: '#c53030',
+                      fontSize: '0.85rem',
+                      whiteSpace: 'nowrap',
+                    }}
                   >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {STATUS_LABELS[s]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    {STATUS_LABELS[task.status]}
+                  </span>
+                ) : (
+                  <label style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
+                    {' '}
+                    Trạng thái
+                    <select
+                      aria-label={`Trạng thái task ${task.title}`}
+                      value={task.status}
+                      onChange={(e) => void handleStatusChange(task, e.target.value as TaskStatus)}
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
               </li>
             ))}
           </ul>

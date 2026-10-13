@@ -5,6 +5,10 @@ API source of truth `contracts/openapi/tasks.yaml`, DB source of truth
 `contracts/db/tasks-schema.sql` (canonical DDL — migration của service này sinh
 đúng cấu trúc, có test `schema-diff.test.ts` chặn diff ≠ 0).
 
+Epic FI-76 (SF-2 FI-79) thêm **transactional outbox + Kafka producer/consumer**
+(ADR-0008, conventions/09): mutation task + outbox ghi CÙNG 1 tx, relay publish
+topic `task-events`, compensation consumer nhận `task.assignment_failed`.
+
 ## Chạy native (dev — máy không Docker)
 
 ```bash
@@ -20,14 +24,16 @@ export SPRING_SVC_URL="http://localhost:8081"   # default native
 export GO_SVC_URL="http://localhost:8082"
 export CORS_DEV_ORIGIN="http://localhost:3000,http://localhost:4001,http://localhost:4002"
 export LOG_LEVEL=info
+# export KAFKA_BROKERS="localhost:9092"  # optional — thiếu = relay + consumer không start
 
 pnpm --filter node-svc dev        # tsx watch, port 3001 (PORT để override)
-pnpm --filter node-svc test       # vitest — 23 tests, không cần postgres
+pnpm --filter node-svc test       # vitest — 48 tests, không cần postgres/kafka
 pnpm --filter node-svc build      # tsc → dist/
 ```
 
 Boot sequence: env fail-fast (thiếu biến = thoát ngay) → drizzle migration →
-spring reachability check (1 lần) → listen `0.0.0.0:$PORT`.
+spring reachability check (1 lần) → relay + compensation consumer (chỉ khi có
+`KAFKA_BROKERS` — lazy, KHÔNG chặn boot/readyz) → listen `0.0.0.0:$PORT`.
 
 Swagger UI: `http://localhost:3001/api/tasks/docs` (mirror tối thiểu của
 tasks.yaml). Qua gateway `:8080/api/tasks/docs` cần Bearer token (gateway
@@ -55,9 +61,10 @@ context. Healthcheck khai ở compose (conventions/01 rule 4).
 | `DATABASE_URL` | ✓ | Postgres URL, role `node_svc`, search_path `tasks` |
 | `JWT_SECRET` | ✓ | Secret HS256 — verify token auth-mock (token-contract.md) |
 | `SPRING_SVC_URL` | ✓ | spring-svc base URL — validate assignee |
-| `GO_SVC_URL` | ✓ | go-svc base URL — event push |
+| `GO_SVC_URL` | ✓ | (hiện không dùng — event push đã thay bằng outbox; giữ cho compose inject không fail) |
 | `CORS_DEV_ORIGIN` | ✗ | Dev origins phân tách phẩy; rỗng = deny-by-default |
 | `LOG_LEVEL` | ✗ (default info) | debug\|info\|warn\|error |
+| `KAFKA_BROKERS` | ✗ | Phẩy-phân-tách broker list (vd `kafka:9092`). Thiếu = relay + compensation consumer KHÔNG start (warn 1 lần) — lazy-connect, KHÔNG vào readyz (conventions/09 rule 1) |
 
 ## API summary (chi tiết: contracts/openapi/tasks.yaml)
 
@@ -66,7 +73,7 @@ context. Healthcheck khai ở compose (conventions/01 rule 4).
 | GET | `/api/tasks` | filter `status`,`assigneeId`; `limit` (1-100, default 20), `offset` |
 | GET | `/api/tasks/{taskId}` | 404 `TASK_NOT_FOUND`; non-uuid → 400 |
 | POST | `/api/tasks` | `{title, description?, assigneeId?}` → 201; validate assignee (xem failure semantics) |
-| PATCH | `/api/tasks/{taskId}` | minProperties 1; **KHÔNG null được assigneeId** (contract non-nullable) |
+| PATCH | `/api/tasks/{taskId}` | minProperties 1; **KHÔNG null được assigneeId** (contract non-nullable); `status` chỉ nhận writable 3 giá trị — `assignment_failed` system-owned (compensation ghi, không client) |
 | DELETE | `/api/tasks/{taskId}` | 204 |
 | GET | `/healthz` (naked + `/api/tasks/healthz`) | liveness — không auth |
 | GET | `/readyz` (naked + `/api/tasks/readyz`) | readiness — không auth |
@@ -84,12 +91,23 @@ service TỰ verify signature + exp + iss (không tin gateway) → sai/hết h�
   (ADR): khi spring down, FE vẫn đọc/xoá task được; chỉ blocked thao tác có
   assignee mới. Chọn fail-closed vì `assignee_id` không có FK chéo schema —
   DB không tự chắn assignee ma (canonical DDL comment #1).
-- **Event push — fire-and-forget**: sau mutate thành công → POST
-  `{GO_SVC_URL}/api/activity/events` (timeout 2s, KHÔNG await — response trả
-  ngay sau DB commit, KHÔNG retry). go-svc down → chỉ log warn `event push
-  failed`; tạo task VẪN thành công (có test + boot-smoke assert). Trade-off
-  (ADR): chấp nhận mất event activity khi go-svc không khả dụng — activity là
-  nice-to-have, không phải source of truth của task.
+- **Event push — transactional outbox (ADR-0008, thay fire-and-forget ADR-0006)**:
+  mutation + INSERT `tasks.outbox` trong CÙNG 1 tx (`repo.drizzle.ts` — seam-fail
+  test chứng minh task + outbox cùng biến mất). Relay poll 500ms publish topic
+  `task-events` (key = `payload.taskId`, envelope khớp golden fixtures
+  `contracts/events/fixtures/`) rồi mark `published_at`; publish fail = retry
+  tick sau (at-least-once, consumer dedupe bằng envelope `id`); purge row
+  published cũ > 7 ngày. Event matrix PRESENCE-BASED (ADR-0008): POST →
+  `task.created`; PATCH có `assigneeId` → `task.assigned` (+`task.updated` nếu
+  body còn field khác); PATCH không `assigneeId` → `task.updated`; DELETE →
+  `task.deleted`. Envelope `id` UUIDv4 do repo sinh từng event.
+- **Compensation consumer (saga)**: group `node-svc-compensation`, CHỈ xử lý
+  `task.assignment_failed` (filter-by-type — task-events.md): conditional UPDATE
+  `SET status='assignment_failed' WHERE id AND assignee_id=<event.assigneeId>
+  AND status <> 'assignment_failed'` — guard chống stale compensation
+  (assignee khác / event lặp = không đổi), idempotent. Manual offset commit
+  SAU khi DB op xong; lỗi DB retry ×3 in-memory → hết lượt vào
+  `task-events.dlq` rồi commit (KHÔNG block partition — conventions/09 rule 7).
 - **Readiness — deviation ghi nhận**: `/readyz` = DB migrated + SELECT 1 ok
   (hard gate). Spring reachability chỉ kiểm 1 lần lúc boot + log warn, KHÔNG
   gate ready — lệch wordings của conventions/02 và summary `/readyz` trong
@@ -108,16 +126,30 @@ service TỰ verify signature + exp + iss (không tin gateway) → sai/hết h�
 pnpm --filter node-svc test
 ```
 
-- Unit/contract (23): auth (missing/bad signature/expired/wrong iss), CRUD
-  happy + validation + 404/422/503, fire-and-forget (go-svc closed port →
-  vẫn 201), CORS (echo dev origin / deny-by-default), readyz DB fail.
+- Unit/contract (48): auth (missing/bad signature/expired/wrong iss), CRUD
+  happy + validation + 404/422/503, **outbox event matrix** (payload so golden
+  fixtures — load chung với relay test + consumer test SF-3), seam-fail giữa
+  2 step → task + outbox cùng biến mất, PATCH `assignment_failed` → 400, GET
+  `assignment_failed` → 200, CORS (echo dev origin / deny-by-default), readyz
+  DB fail.
 - `schema-diff.test.ts`: migration vs canonical DDL — structural normalized
-  comparison (exit criterion SF-2 diff=0).
+  comparison (exit criterion SF-2 diff=0; bảng `tasks.outbox` whitelist riêng —
+  node-internal infra, KHÔNG vào canonical DDL).
+- `repo.drizzle.test.ts`: mutation + outbox trong CÙng 1 tx (mock-db — rollback
+  thật của postgres chứng minh ở CI boot-smoke + saga e2e).
+- `outbox-relay.test.ts` / `compensation-consumer.test.ts`: publish đúng golden
+  fixture format; filter-by-type + conditional guard + retry ×3 → DLQ.
 - CI (`services-node-svc.yml`): native build+test, docker build, **boot-smoke**
-  (compose postgres thật → container node-svc → healthz/readyz 200 → tạo/list/
-  xoá task bằng JWT CI → assert 201 khi go-svc vắng).
+  (compose postgres thật → CRUD smoke bằng JWT CI), **kafka-boot-smoke**
+  (postgres + kafka + node-svc → tạo task → assert outbox row
+  `published_at IS NOT NULL` — relay THẬT trên broker thật, P0 plan-critic).
 
 ## Copy-dir standalone (cho SF-7)
 
 Thư mục này tự chứa đủ: package.json + local pnpm-lock.yaml (không phụ thuộc
-workspace root), Dockerfile, README. Copy kèm `contracts/` nếu cần spec.
+workspace root), Dockerfile, README. Copy-dir phải KÈM dependency ngoài mà test
+resolve tới repo-relative:
+- `contracts/db/tasks-schema.sql` — `schema-diff.test.ts` đọc (FLAG sẵn
+  convergence.yml:62, đã gặp ở SF-7);
+- `contracts/events/fixtures/*.json` — relay/consumer test load chung (2 đầu
+  cùng nguồn sự thật, task-events.md).

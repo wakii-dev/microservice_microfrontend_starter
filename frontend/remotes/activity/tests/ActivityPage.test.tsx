@@ -29,7 +29,7 @@ const ITEM: api.ActivityFeedItem = {
 
 const STATS: api.ActivityStats = {
   totalTasks: 7,
-  tasksByStatus: { todo: 3, in_progress: 2, done: 2 },
+  tasksByStatus: { todo: 3, in_progress: 2, done: 2, assignment_failed: 0 },
   recentEvents: 4,
 };
 
@@ -51,6 +51,22 @@ describe('ActivityPage', () => {
     expect(screen.getByText('Task A')).toBeInTheDocument();
     expect(screen.getByText(/đã tạo/)).toBeInTheDocument();
     expect(screen.getByText('Feed (1/1)')).toBeInTheDocument();
+  });
+
+  it('action label MỚI (SF-3): task.assigned + task.assignment_failed render label tiếng Việt', async () => {
+    mockFeed([
+      { ...ITEM, id: 'e2', action: 'task.assigned' },
+      { ...ITEM, id: 'e3', action: 'task.assignment_failed' },
+    ]);
+    render(<ActivityPage />);
+    expect(await screen.findByText(/đã giao/)).toBeInTheDocument();
+    expect(screen.getByText(/gán thất bại/)).toBeInTheDocument();
+  });
+
+  it('action lạ ngoài labels → render nguyên văn (không bịa placeholder)', async () => {
+    mockFeed([{ ...ITEM, id: 'e4', action: 'task.whatever' }]);
+    render(<ActivityPage />);
+    expect(await screen.findByText(/task.whatever/)).toBeInTheDocument();
   });
 
   it('render stats tiles — tổng + 3 trạng thái + recent events', async () => {

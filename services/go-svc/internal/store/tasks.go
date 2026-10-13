@@ -77,7 +77,7 @@ func (s *Store) Stats(ctx context.Context) (model.TaskStats, error) {
 	}
 	defer rows.Close()
 
-	byStatus := map[string]int{"todo": 0, "in_progress": 0, "done": 0}
+	byStatus := map[string]int{"todo": 0, "in_progress": 0, "done": 0, "assignment_failed": 0}
 	for rows.Next() {
 		var st string
 		var n int

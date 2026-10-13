@@ -12,3 +12,4 @@ SF-1 (FI-64) sở hữu. **Mọi service/repo-con trong boilerplate PHẢI theo 
 | [06-configuration.md](06-configuration.md) | Config qua env-var — quy tắc + .env workflow |
 | [07-cors.md](07-cors.md) | CORS dev-profile rule |
 | [08-gateway-and-remotes.md](08-gateway-and-remotes.md) | Gateway routing table + MF remote registry |
+| [09-async-messaging.md](09-async-messaging.md) | Kafka lazy-connect + outbox + consumer idempotent + retry/DLQ (hợp đồng envelope: contracts/events/task-events.md) |

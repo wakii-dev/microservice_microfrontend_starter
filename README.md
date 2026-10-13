@@ -2,9 +2,9 @@
 
 Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Module Federation FE, demo e2e task management qua nginx gateway, Docker Compose + CI. Epic FI-62 — spec: `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` (rev 3).
 
-**Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (7 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
+**Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
-## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock)
+## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock + kafka broker)
 
 ```mermaid
 graph TB
@@ -15,16 +15,16 @@ graph TB
             authc["auth/ users.json + token-contract.md"]
         end
         subgraph platform ["platform/"]
-            compose["docker-compose.yml (9 services, health-gated chain)"]
+            compose["docker-compose.yml (10 services — kafka lazy-connect, không chặn chain)"]
             pginit["postgres/init/ (schemas + roles + default privileges)"]
             nginx["gateway/nginx (routing + JWT presence 401)"]
             authmock["auth-mock :8090 (JWT HS256, NOT-FOR-PROD)"]
-            conv["conventions/ (8 docs)"]
+            conv["conventions/ (9 docs)"]
         end
         subgraph services ["services/"]
-            node["node-svc :3001 (Fastify+TS) — task CRUD"]
-            spring["spring-svc :8081 (Spring Boot 3) — users/teams"]
-            go["go-svc :8082 (Go 1.24+chi) — activity feed/stats"]
+            node["node-svc :3001 (Fastify+TS) — task CRUD + outbox relay + compensation consumer"]
+            spring["spring-svc :8081 (Spring Boot 3) — users/teams + @Transactional demo"]
+            go["go-svc :8082 (Go 1.24+chi) — activity feed/stats + Kafka consumer + saga"]
         end
         subgraph frontend ["frontend/"]
             shared["shared (fe-shared — api client, token, MF helper)"]
@@ -43,8 +43,10 @@ graph TB
     gw -- "/api/activity/* + JWT" --> go
     gw -- "/api/auth/* (mở)" --> authmock
     node -- "validate user (2s, fail-closed 503)" --> spring
-    node -- "event push fire-and-forget" --> go
-    node -- "SQL (schema tasks)" --> db[("postgres :5432")]
+    node -- "outbox → Kafka task-events (relay 500ms)" --> kafka[("kafka :9092 compose-internal")]
+    kafka -- "consumer go-svc-activity" --> go
+    kafka -- "compensating task.assignment_failed" --> node
+    node -- "SQL (schema tasks + outbox)" --> db[("postgres :5432")]
     spring -- "SQL (schema users)" --> db
     go -- "readonly schema tasks + own activity" --> db
     authmock -- "đọc fixture" --> authc
@@ -65,7 +67,7 @@ Chuỗi e2e chứng minh bởi: `scripts/smoke/e2e.sh` (local + CI job `converge
 | shell (MF host) | 3000 | | spring-svc | 8081 |
 | remote tasks | 4001 | | go-svc | 8082 |
 | remote activity | 4002 | | auth-mock | 8090 |
-| postgres | 5432 | | | |
+| postgres | 5432 | | kafka (compose-internal) | 9092 — KHÔNG expose host |
 
 Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 chỗ cùng commit (conventions + .env.example + compose + README).
 
@@ -77,10 +79,20 @@ Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 c
 cd platform
 cp .env.example .env        # điền JWT_SECRET (openssl rand -base64 48) + passwords
 docker compose up -d --build   # health-gated chain: pg → auth-mock/spring → node → gateway (go-svc started)
-bash ../scripts/smoke/e2e.sh   # PASS = login → tạo task → đọc feed liền mạch qua :8080
+bash ../scripts/smoke/e2e.sh   # PASS = 2 chiều: happy (login→task→feed qua Kafka) + saga (assign svc-fail → assignment_failed → DLQ assert)
 # shell + remotes: http://localhost:8080/ → login alice@demo.local / demo-password
 # swagger: http://localhost:8080/api/auth/docs (auth-mock; các svc /api/<svc>/docs cần Bearer)
 ```
+
+> **Kafka lazy-connect** (ADR-0008, conventions/09): kafka compose-internal — 9092
+> không expose host, KHÔNG service nào `depends_on` kafka. Services connect retry
+> lúc boot (env `KAFKA_BROKERS`) — broker chưa lên không chặn health-gated chain.
+> Hợp đồng event: [contracts/events/task-events.md](contracts/events/task-events.md)
+> + golden fixtures `contracts/events/fixtures/`. SAGA demo: assign task cho
+> `fail@demo.local` → go consumer fail ×3 → task `assignment_failed` + event gốc
+> ở `task-events.dlq` (xem [walkthrough.md](docs/walkthrough.md) mục 4b).
+> ⚠️ Flyway V2 seed user `svc-fail`/`svc-activity` chạy 1 LẦN lúc volume mới —
+> pgdata volume TỪ bản cũ thiếu 2 user này → `docker compose down -v` sau pull.
 
 ### Native (không Docker — từng service một)
 
@@ -110,13 +122,13 @@ frontend/
   remotes/          # tasks + activity — 2 MF remote
   spike/            # MF pin versions — đã test (prune khi scaffold)
 scripts/
-  smoke/e2e.sh      # e2e smoke API-level: login → task → feed qua gateway
+  smoke/e2e.sh      # e2e API-level 2 chiều: happy (login→task→feed qua Kafka) + saga (→ assignment_failed → DLQ)
   scaffold/         # sinh project mới từ boilerplate
 .github/
   workflows/        # contracts + per-service + convergence (e2e smoke, copy-dir, scaffold)
   workflow-templates/ # services-ci.yml.example — template cho service mới (prune khi scaffold)
 docs/
-  adr/              # 7 quyết định kiến trúc
+  adr/              # 8 quyết định kiến trúc
   walkthrough.md    # fresh-clone → demo checklist
   toolchain.md      # tool cần ở đâu (dev/CI/copy-user)
 docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)

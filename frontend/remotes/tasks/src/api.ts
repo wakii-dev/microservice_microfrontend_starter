@@ -30,14 +30,17 @@ export const api = new ApiClient({
   fetchImpl: timeoutFetch(TIMEOUT_MS),
 });
 
-/** Mirror Task schema trong contracts/openapi/tasks.yaml */
+/** Mirror Task schema trong contracts/openapi/tasks.yaml — TaskStatus
+ * (writable, query/PATCH) vs TaskStatusExtended (response, SF-2 cascade thêm
+ * `assignment_failed` — status hệ thống do saga compensation ghi, PATCH CẤM). */
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskStatusExtended = TaskStatus | 'assignment_failed';
 
 export interface Task {
   id: string;
   title: string;
   description: string | null;
-  status: TaskStatus;
+  status: TaskStatusExtended;
   assigneeId: string | null;
   createdBy: string;
   createdAt: string;

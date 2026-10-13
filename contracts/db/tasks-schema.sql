@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS tasks.tasks (
     title         varchar(200) NOT NULL,
     description   text,
     status        varchar(20)  NOT NULL DEFAULT 'todo'
-                  CHECK (status IN ('todo', 'in_progress', 'done')),
+                  CHECK (status IN ('todo', 'in_progress', 'done', 'assignment_failed')),
     assignee_id   uuid,
     created_by    uuid NOT NULL,
     created_at    timestamptz  NOT NULL DEFAULT now(),
@@ -41,11 +41,15 @@ CREATE INDEX IF NOT EXISTS idx_tasks_created_at  ON tasks.tasks (created_at DESC
 -- 3. id do ứng dụng sinh (uuid v4) — không dùng DEFAULT gen_random_uuid()
 --    để migration của node-svc khớp DDL không cần extension pgcrypto.
 --
--- 4. Grants: role `go_readonly` được SELECT qua ALTER DEFAULT PRIVILEGES
+-- 4. `assignment_failed` là TRẠNG THÁI HỆ THỐNG (saga compensation — ADR-0008):
+--    chỉ node-svc compensation consumer ghi qua conditional UPDATE; API PATCH
+--    KHÔNG nhận (TaskStatus writable 3 giá trị, TaskStatusExtended response 4).
+--
+-- 5. Grants: role `go_readonly` được SELECT qua ALTER DEFAULT PRIVILEGES
 --    (platform/postgres/init/01-init.sh) — hiệu lực cho bảng do migration
 --    node-svc tạo SAU script init này.
 --
--- 5. APPLY CONTEXT (SF-7 note — học từ SF-4, improvements-log finding
+-- 6. APPLY CONTEXT (SF-7 note — học từ SF-4, improvements-log finding
 --    "CREATE SCHEMA IF NOT EXISTS permission-denied"): dòng `CREATE SCHEMA`
 --    ở đầu file cần **CREATE privilege trên DATABASE**, khác với phần table
 --    DDL bên dưới chỉ cần CREATE **trên schema `tasks`**. Khi apply-as-role

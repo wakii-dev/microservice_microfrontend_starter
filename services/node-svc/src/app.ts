@@ -9,7 +9,6 @@ import Fastify, { type FastifyBaseLogger, type FastifyError, type FastifyInstanc
 import cors from '@fastify/cors';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import type { HttpActivityClient } from './clients/activity.js';
 import type { SpringClient } from './clients/spring.js';
 import { nodeSvcLogger } from './logger.js';
 import type { Env } from './env.js';
@@ -21,11 +20,10 @@ export interface AppDeps {
   env: Env;
   repo: TaskRepo;
   spring: SpringClient;
-  activity: HttpActivityClient;
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
-  const { env, repo, spring, activity } = deps;
+  const { env, repo, spring } = deps;
   const logger = nodeSvcLogger(env.logLevel);
 
   const app = Fastify({
@@ -112,7 +110,6 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       registerTaskRoutes(scope, {
         repo,
         spring,
-        activity,
         jwtSecret: env.jwtSecret,
         log: (level, msg, fields) => logger[level](fields ?? {}, msg),
       });

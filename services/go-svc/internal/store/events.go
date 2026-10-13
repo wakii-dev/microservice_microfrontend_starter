@@ -12,13 +12,21 @@ import (
 // (Không export thêm lỗi mới từ package store.)
 
 // InsertEvent persist event (owner conn — go_svc owns schema activity).
+// Idempotency (conventions/09 rule 4): e.ID là envelope id do producer sinh
+// (node-svc outbox, mỗi event 1 id) — at-least-once redelivery cùng event →
+// ON CONFLICT DO NOTHING, KHÔNG nhân đôi feed. KHÔNG sinh id ở đây (api UUID
+// ingest đã thanh lý — id luôn đến từ envelope).
 func (s *Store) InsertEvent(ctx context.Context, e *model.Event) error {
-	_, err := s.owner.ExecContext(ctx, `
+	tag, err := s.owner.ExecContext(ctx, `
 		INSERT INTO activity.events (id, task_id, user_id, action, event_ts, user_name, task_title)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (id) DO NOTHING`,
 		e.ID, e.TaskID, e.UserID, e.Action, e.Timestamp, e.UserName, e.TaskTitle)
 	if err != nil {
 		return fmt.Errorf("insert event: %w", err)
+	}
+	if n, raErr := tag.RowsAffected(); raErr == nil && n == 0 {
+		s.log.Info("event duplicate skipped (idempotency)", "eventId", e.ID.String())
 	}
 	return nil
 }

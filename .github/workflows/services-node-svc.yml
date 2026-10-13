@@ -12,6 +12,7 @@ on:
       - "platform/docker-compose.yml" # compose entry đổi cũng phải re-test
       - "contracts/openapi/tasks.yaml" # typegen drift + contract
       - "contracts/db/tasks-schema.sql" # schema-diff test đọc canonical DDL (review P2)
+      - "contracts/events/fixtures/**" # relay/consumer test load chung golden fixtures
       - ".github/workflows/services-node-svc.yml"
   pull_request:
     paths:
@@ -104,3 +105,66 @@ jobs:
         run: |
           CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/api/tasks)
           [ "$CODE" = "401" ] || (echo "no-token → $CODE (expected 401)" && exit 1)
+
+  # SF-2 FI-79 (P0 plan-critic): relay THẬT trên broker thật — không fake.
+  # Boot postgres + kafka + node-svc, tạo task, poll outbox row published_at
+  # IS NOT NULL (relay publish vào topic task-events rồi mark). Kafka lazy:
+  # KHÔNG chặn boot/readyz (conventions/09 rule 1) — poll riêng cho publish.
+  kafka-boot-smoke:
+    name: boot-smoke kafka (relay outbox - published_at NOT NULL trên broker thật)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+      NODE_SVC_DB_PASSWORD: ci-node-password-not-real
+      POSTGRES_PASSWORD: ci-postgres-password-not-real
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot postgres + kafka + node-svc (compose - env từ .env.example)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres kafka node-svc
+      - name: Smoke - readyz 200 (DB migrated; kafka KHÔNG chặn boot — lazy)
+        run: |
+          ok=0
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:3001/readyz >/dev/null && ok=1 && break
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::readyz không 200 trong 180s — node-svc logs:"
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs node-svc postgres kafka
+            exit 1
+          fi
+      - name: Smoke - create task rồi assert outbox published_at IS NOT NULL (relay thật)
+        run: |
+          DB_USER=$(grep -E '^POSTGRES_USER=' platform/.env.example | cut -d= -f2-)
+          DB_NAME=$(grep -E '^POSTGRES_DB=' platform/.env.example | cut -d= -f2-)
+          DB_USER=${DB_USER:-postgres}
+          DB_NAME=${DB_NAME:-boilerplate}
+          TOKEN=$(node -e '
+            const c = require("crypto");
+            const b = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const h = b({ alg: "HS256", typ: "JWT" });
+            const now = Math.floor(Date.now() / 1000);
+            const p = b({ sub: "11111111-1111-4111-8111-111111111111", email: "alice@demo.local", roles: ["admin"], iss: "auth-mock", iat: now, exp: now + 3600 });
+            const s = c.createHmac("sha256", process.env.JWT_SECRET).update(h + "." + p).digest("base64url");
+            console.log(h + "." + p + "." + s);')
+          CODE=$(curl -s -o /tmp/task.json -w '%{http_code}' -X POST http://localhost:3001/api/tasks \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+            -d '{"title":"kafka boot-smoke task"}')
+          echo "create → $CODE"
+          [ "$CODE" = "201" ] || (cat /tmp/task.json && exit 1)
+          TASK_ID=$(node -e 'console.log(require("/tmp/task.json").id)')
+          seen=0
+          for i in $(seq 1 45); do
+            ROW=$(docker compose -f platform/docker-compose.yml --env-file platform/.env.example exec -T postgres \
+              psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT count(*) FROM tasks.outbox WHERE type='task.created' AND payload->>'taskId'='$TASK_ID' AND published_at IS NOT NULL")
+            if [ "$ROW" != "0" ]; then seen=1; break; fi
+            sleep 2
+          done
+          if [ "$seen" != "1" ]; then
+            echo "::error::outbox row không published trong 90s — relay/consumer/kafka logs:"
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs node-svc kafka
+            exit 1
+          fi
+          echo "outbox row published_at IS NOT NULL ✓ (taskId=$TASK_ID, attempt=$i)"

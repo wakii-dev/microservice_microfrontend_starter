@@ -1,6 +1,11 @@
 SF-3 go-svc consumer test evidence — 2026-10-13 (FI-80, story FI-76 kafka-outbox-saga)
-HEAD code commit: 1ce6b03 (branch wakii-dev/sf-3-go-consumer; fork từ dest @8d04e6d — SF-1 kafka-foundation đã merge)
-CI xanh: https://github.com/wakii-dev/architecture-overview/actions/runs/38389378485 (4/4 SUCCESS)
+HEAD repo lúc sync evidence: df01179; các commit sau 1ce6b03 ĐỀU là
+docs/evidence-only (test-run.txt + story brief) — code cuối cùng = 1ce6b03.
+HEAD CODE commit: 1ce6b03 (branch wakii-dev/sf-3-go-consumer; fork từ dest @8d04e6d —
+SF-1 kafka-foundation đã merge; commit sau 1ce6b03 chỉ là docs/evidence)
+CI xanh: https://github.com/wakii-dev/architecture-overview/actions/runs/38389378485
+(4/4 SUCCESS, headSha = 1ce6b03 = HEAD code — services-go-svc dùng paths filter nên
+docs-only commit không re-trigger; code tại df01179 == code tại 1ce6b03)
 Run xanh trước đó: 38387226127 @ 8536c98 (4/4) — trước fix P1 review.
 Dev machine KHÔNG Go/Docker (ràng buộc plan) — toàn bộ build/test/kafka verify QUA CI.
 
@@ -9,7 +14,38 @@ VERDICT ban đầu CHANGES-REQUESTED với 1 P1 (publish DLQ/compensating fail �
 vẫn commit → mất message vĩnh viễn) + 4 P2, KHÔNG P0. P1 ĐÃ FIX @ 1ce6b03
 (toDLQ trả error → runner SKIP commit khi publish fail; +2 test seam failOn);
 4 P2 ghi nhận, không chặn, không fix ở SF-3 (surgical scope). CI xanh 4/4 tại
-commit fix (run 38389378485).
+commit fix (run 38389378485). RE-REVIEW: VERDICT CUỐI APPROVED (meta-test xác
+nhận 2 test mới red-on-old/green-on-new; checklist 4/4 PASS).
+
+--- TEST OUTPUT verbatim (CI run 38389378485, job "build + test (go-svc)",
+log gh run view --job 115269076829, 2026-10-13) ---
+
+Unit tests (`cd services/go-svc && go test ./...`):
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/internal/api	0.010s
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/internal/config	0.002s
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/internal/consumer	0.186s
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/internal/resolve	3.012s
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/internal/store	0.002s
+ok  	github.com/wakii-dev/architecture-overview/services/go-svc/test/integration	0.638s
+(cmd/server, apperr, logging, model, swagger: no test files)
+
+Integration tests (`go test -tags integration -v ./test/integration/...`,
+postgres service container + init script thật):
+=== RUN   TestReadonlyExitCriterion
+--- PASS: TestReadonlyExitCriterion (0.13s)
+=== RUN   TestAPIRoundtrip
+--- PASS: TestAPIRoundtrip (0.08s)
+=== RUN   TestConsumerIdempotencyRealPG
+--- PASS: TestConsumerIdempotencyRealPG (0.33s)
+=== RUN   TestReadyz503WhenTasksUnreadable
+--- PASS: TestReadyz503WhenTasksUnreadable (0.09s)
+(kèm 2 unit P1 trong package consumer: TestRunner_DLQPublishFailSkipsCommit +
+TestRunner_CompensatingPublishFailSkipsCommit — ok internal/consumer 0.186s ở trên)
+
+Boot-smoke (job riêng, cùng run): kafka-topics --create task-events +
+task-events.dlq → console producer golden fixture → poll feed CÓ row
+(proof event→feed) → stats 4 keys exact — SUCCESS 4m34s.
+Drift-guard: diff activity.yaml ×2 rỗng — SUCCESS 4s. Docker build: SUCCESS 48s.
 
 CI services-go-svc run 38389378485 @ 1ce6b03 — 4/4 SUCCESS:
 - build + test (go-svc): SUCCESS — go mod tidy, go vet, unit tests

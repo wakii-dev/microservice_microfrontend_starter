@@ -1,0 +1,2 @@
+ALTER TABLE "tasks"."tasks" DROP CONSTRAINT "status_check";--> statement-breakpoint
+ALTER TABLE "tasks"."tasks" ADD CONSTRAINT "status_check" CHECK ("tasks"."tasks"."status" IN ('todo', 'in_progress', 'done', 'assignment_failed'));

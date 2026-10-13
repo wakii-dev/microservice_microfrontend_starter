@@ -1,5 +1,5 @@
 // env.ts — parse + fail-fast env config (conventions/06: 100% env-var, không
-// fallback im lặng cho secret). Compose entry pre-seed (SF-1) inject đủ 7 biến.
+// fallback im lặng cho secret). Compose entry pre-seed (SF-1) inject đủ biến.
 export interface Env {
   port: number;
   databaseUrl: string;
@@ -8,6 +8,9 @@ export interface Env {
   goSvcUrl: string;
   corsDevOrigin: string; // rỗng = deny-by-default (conventions/07)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+  // OPTIONAL (conventions/09 rule 1 — lazy-connect): thiếu = relay + consumer
+  // KHÔNG start (warn 1 lần), service vẫn boot — Kafka KHÔNG vào readyz.
+  kafkaBrokers: string | null;
 }
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
@@ -44,5 +47,6 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     goSvcUrl: goSvcUrl.replace(/\/+$/, ''),
     corsDevOrigin,
     logLevel: logLevelRaw as Env['logLevel'],
+    kafkaBrokers: source.KAFKA_BROKERS?.trim() || null,
   };
 }

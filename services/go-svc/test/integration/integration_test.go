@@ -412,6 +412,15 @@ func TestConsumerIdempotencyRealPG(t *testing.T) {
 	st := newAppStore(t)
 	ctx := context.Background()
 
+	// Test isolation: các test trước (TestAPIRoundtrip) để lại row trong
+	// activity.events — DB boilerplate dùng chung, setupTasksAsNodeSvc chỉ
+	// dọn tasks.tasks. go_svc là owner schema activity (migration qua owner
+	// conn) → TRUNCATE hợp lệ. Assert total==1 phải bắt đầu từ bàn sạch.
+	goDB := openDB(t, envURL(t, "GO_TEST_GO_URL"))
+	if _, err := goDB.Exec(`TRUNCATE activity.events`); err != nil {
+		t.Fatalf("truncate activity.events (go_svc owner): %v", err)
+	}
+
 	env, err := consumer.ParseEnvelope(loadGoldenFixture(t, "task.assigned.json"))
 	if err != nil {
 		t.Fatalf("parse fixture: %v", err)

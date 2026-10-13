@@ -2,6 +2,7 @@
 // (RequireAuth đã lo redirect login; trang này giả định có token, 401 → error banner).
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { ApiError, createTask, fetchTasks, Task, TaskStatus, TaskStatusExtended, updateTask } from './api';
+import { JsxProbe } from '@boilerplate/fe-shared/ui'; // SPIKE R2 tạm — gỡ sau spike (pack slice mục 6)
 
 // Labels đủ 4 giá trị (SF-3 cascade) — nhưng select CHỈ 3 writable:
 // `assignment_failed` là status hệ thống (saga compensation), PATCH CẤM.
@@ -86,6 +87,8 @@ export function TasksPage() {
   return (
     <section aria-label="Quản lý tasks">
       <h1>Tasks</h1>
+
+      <JsxProbe />
 
       {error && (
         <p role="alert" className="error-banner">

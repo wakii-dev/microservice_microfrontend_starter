@@ -11,7 +11,10 @@
     "./api-client": "./src/api-client.ts",
     "./token-storage": "./src/token-storage.ts",
     "./error-envelope": "./src/error-envelope.ts",
-    "./mf-bootstrap": "./src/mf-bootstrap.ts"
+    "./mf-bootstrap": "./src/mf-bootstrap.ts",
+    "./ui": "./src/ui/index.ts",
+    "./styles/tokens.css": "./src/styles/tokens.css",
+    "./styles/base.css": "./src/styles/base.css"
   },
   "engines": {
     "node": ">=22"

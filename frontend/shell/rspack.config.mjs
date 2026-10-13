@@ -28,6 +28,8 @@ export default {
   output: {
     publicPath: '/',
     filename: isDev ? '[name].js' : '[name].[contenthash].js',
+    // CSS emit ở ROOT (không nằm trong /assets/ immutable) + contenthash prod (cache-busting)
+    cssFilename: isDev ? '[name].css' : '[name].[contenthash].css',
     clean: true,
   },
   resolve: {
@@ -36,6 +38,11 @@ export default {
     extensionAlias: {
       '.js': ['.ts', '.tsx', '.js'],
     },
+    // fe-shared src/ui (SF-1) import 'react' nhưng package KHÔNG khai báo dep
+    // (thêm dep = đổi pnpm-lock.yaml — success criteria cấm). Resolve qua
+    // node_modules của consumer — react 19.3.0 catalog-pinned giống hệt ×3,
+    // MF singleton vẫn giữ 1 bản runtime.
+    modules: [path.resolve(rootDir, 'node_modules'), 'node_modules'],
   },
   module: {
     rules: [
@@ -75,10 +82,13 @@ export default {
         tasks: `tasks@${remoteTasksUrl}`,
         activity: `activity@${remoteActivityUrl}`,
       },
-      // Singleton theo pin matrix — KHÔNG bundle duplicate react (spec slice mục 3)
+      // Singleton theo pin matrix — KHÔNG bundle duplicate react (spec slice mục 3).
+      // react/jsx-runtime: JSX fe-shared compile ra import này — thiếu = remote bundle
+      // riêng jsx-runtime kéo theo react thứ 2 → "Invalid hook call" (SF-1 spike R2).
       shared: {
         react: { singleton: true },
         'react-dom': { singleton: true },
+        'react/jsx-runtime': { singleton: true, requiredVersion: false },
       },
     }),
   ],
@@ -90,5 +100,20 @@ export default {
     historyApiFallback: true,
     hot: true,
     headers: { 'Access-Control-Allow-Origin': '*' },
+    // DEV-ONLY proxy — topology gateway dev thu nhỏ: shell là host, REMOTE chạy trong
+    // page context của shell nên /api/<svc> của remote cũng về đây. Route theo prefix
+    // (đúng conventions/08): /api/tasks → node-svc, /api/auth → auth-mock.
+    // Origin dev khác cổng docker compose đã set CORS_DEV_ORIGIN (vd SHELL_PORT=3100)
+    // → cùng-origin qua proxy thay vì đụng stack compose. Prod không đi đây (gateway).
+    proxy: [
+      {
+        context: ['/api/tasks'],
+        target: `http://localhost:${process.env.NODE_SVC_PORT || 3001}`,
+      },
+      {
+        context: ['/api/auth'],
+        target: `http://localhost:${process.env.AUTH_MOCK_PORT || 8090}`,
+      },
+    ],
   },
 };

@@ -1,0 +1,221 @@
+/*
+ * Global base — SF-1 story VU-53 (hand-off §2 + §3, hướng B Linear-referenced dark).
+ * Kiến trúc: SHELL là nơi import LÀM CHỦ global base (SF-2 wire vào shell entry);
+ * remote trong shell KHÔNG import base — chỉ tokens + scoped classes của mình.
+ * Standalone remote (:4001/:4002) tự import tokens+base để debug đứng mình.
+ * GIỮ FILE NÀY GIỐNG HỆT mọi bản copy (standalone-copy contract).
+ *
+ * `@layer reset,base`: specificity thấp có chủ đích — CSS surface (SF-2/3/4,
+ * unlayered) luôn thắng base mà không cần !important.
+ */
+@layer reset, base;
+
+@layer reset {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+  }
+}
+
+@layer base {
+  :root {
+    /* Native controls (select dropdown, scrollbar) theo dark theme */
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--c-canvas);
+    color: var(--ink);
+    font-family: var(--f);
+    font-size: var(--fs-body);
+    line-height: 1.5;
+  }
+
+  /* Form controls: nền s3, viền line, radius r-1 — focus ring accent-hi (hand-off §2) */
+  input,
+  select,
+  textarea {
+    background: var(--c-s3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-1);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--fs-body);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent-hi);
+    outline-offset: 1px;
+  }
+
+  button {
+    border-radius: var(--r-2);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  /* Error banner — dùng kèm role="alert" (shell/remotes giữ tên class hiện có) */
+  .error-banner {
+    background: color-mix(in srgb, #f06a6a 10%, transparent);
+    border: 1px solid var(--st-fail);
+    border-radius: var(--r-1);
+    color: var(--st-fail);
+    padding: var(--sp-2) var(--sp-4);
+  }
+
+  /* Skip link: ẩn khỏi mắt thường, hiện khi focus qua bàn phím (a11y baseline) */
+  .skip-link {
+    left: -9999px;
+    padding: var(--sp-2) var(--sp-4);
+    position: absolute;
+    top: 0;
+    z-index: 100;
+  }
+  .skip-link:focus {
+    background: var(--accent);
+    color: #fff;
+    left: 0;
+  }
+
+  /* Responsive nền móng (hand-off §2): nav wrap hẹp; list 1 cột + stats grid
+   * co giãn theo §4 (auto-fit minmax) — không cần rule riêng ở đây. ≥1024px
+   * layout đầy đủ do từng surface (SF-2/3/4) tự set theo §4. */
+  @media (max-width: 768px) {
+    nav {
+      flex-wrap: wrap;
+      row-gap: var(--sp-2);
+    }
+  }
+
+  /*
+   * ── Primitives (hand-off §3) — namespace `bp-` ───────────────────────────
+   * CSS nằm trong base vì shell làm chủ global; consumer chỉ cần markup đúng
+   * DOM từ components fe-shared/src/ui (SF-2/3/4 dùng ĐÚNG props API).
+   */
+
+  /* Badge — pill chấm-màu + nhãn; nền ≤12% alpha màu dot; role="status" */
+  .bp-badge {
+    align-items: center;
+    background: color-mix(in srgb, var(--_dot) 12%, transparent);
+    border-radius: var(--r-pill);
+    color: var(--ink2);
+    display: inline-flex;
+    font-size: var(--fs-meta);
+    gap: 6px;
+    line-height: 1.25;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .bp-badge__dot {
+    background: var(--_dot);
+    border-radius: 50%;
+    height: 6px;
+    width: 6px;
+  }
+  /* task status */
+  .bp-badge--todo {
+    --_dot: var(--st-todo);
+  }
+  .bp-badge--doing {
+    --_dot: var(--st-doing);
+  }
+  .bp-badge--done {
+    --_dot: var(--st-done);
+  }
+  .bp-badge--failed {
+    --_dot: var(--st-fail);
+  }
+  /* activity action (hand-off §3 mapping) */
+  .bp-badge--created {
+    --_dot: var(--accent);
+  }
+  .bp-badge--updated {
+    --_dot: var(--st-doing);
+  }
+  .bp-badge--assigned {
+    --_dot: var(--accent-hi);
+  }
+  .bp-badge--deleted {
+    --_dot: var(--ink3);
+  }
+  .bp-badge--assignmentFailed {
+    --_dot: var(--st-fail);
+  }
+
+  /* EmptyState — KHÔNG icon; title + mô tả + optional action */
+  .bp-empty {
+    color: var(--ink3);
+    padding: var(--sp-6) var(--sp-4);
+    text-align: center;
+  }
+  .bp-empty__title {
+    color: var(--ink);
+    font-size: var(--fs-h2);
+    margin: 0 0 var(--sp-2);
+  }
+  .bp-empty__description {
+    color: var(--ink2);
+    margin: 0 0 var(--sp-4);
+  }
+
+  /* Skeleton — khối nền --line pulse (shimmer opacity .5→1); wrapper aria-busy */
+  .bp-skeleton {
+    background: var(--line);
+    border-radius: var(--r-1);
+    animation: bp-shimmer 1.2s ease-in-out infinite;
+  }
+  .bp-skeleton--text {
+    height: 14px;
+    width: 100%;
+  }
+  .bp-skeleton--row {
+    border-radius: var(--r-2);
+    height: 44px;
+    width: 100%;
+  }
+  .bp-skeleton--card {
+    border-radius: var(--r-3);
+    height: 96px;
+    width: 100%;
+  }
+  @keyframes bp-shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Spinner — vòng 14px viền 2px quay; per-item busy; label = aria-label bắt buộc */
+  .bp-spinner {
+    animation: bp-spin 0.8s linear infinite;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    display: inline-block;
+    height: 14px;
+    vertical-align: -2px;
+    width: 14px;
+  }
+  @keyframes bp-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Motion tối giản (hand-off §5): mọi animation tắt khi user reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .bp-skeleton,
+    .bp-spinner {
+      animation: none;
+    }
+  }
+}

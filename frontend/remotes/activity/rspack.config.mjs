@@ -29,6 +29,8 @@ export default {
   output: {
     publicPath,
     filename: isDev ? '[name].js' : '[name].[contenthash].js',
+    // CSS emit ở ROOT + contenthash prod (cache-busting) — y hệt shell
+    cssFilename: isDev ? '[name].css' : '[name].[contenthash].css',
     clean: true,
   },
   resolve: {
@@ -37,9 +39,20 @@ export default {
     extensionAlias: {
       '.js': ['.ts', '.tsx', '.js'],
     },
+    // fe-shared src/ui (SF-1) import 'react' nhưng package KHÔNG khai báo dep
+    // (thêm dep = đổi pnpm-lock.yaml — success criteria cấm). Resolve qua
+    // node_modules của consumer — react 19.3.0 catalog-pinned giống hệt ×3,
+    // MF singleton vẫn giữ 1 bản runtime.
+    modules: [path.resolve(rootDir, 'node_modules'), 'node_modules'],
   },
   module: {
     rules: [
+      // Copy y hệt shell (SF-1) — remote import CSS fe-shared (standalone tokens+base,
+      // primitives sau này) cần css experiment; thiếu rule = build fail trên import .css
+      {
+        test: /\.css$/,
+        type: 'css',
+      },
       {
         test: /\.tsx?$/,
         // fe-shared là package TS raw (main: ./src/index.ts) — bundler phải compile luôn
@@ -80,12 +93,27 @@ export default {
       shared: {
         react: { singleton: true, requiredVersion: false },
         'react-dom': { singleton: true, requiredVersion: false },
+        // JSX fe-shared compile ra import react/jsx-runtime — thiếu = bundle jsx-runtime
+        // riêng → react thứ 2 khi mount trong shell ("Invalid hook call", spike R2 SF-1)
+        'react/jsx-runtime': { singleton: true, requiredVersion: false },
       },
     }),
   ],
+  experiments: {
+    css: true,
+  },
   devServer: {
     port: Number(process.env.REMOTE_ACTIVITY_PORT || 4002),
     headers: { 'Access-Control-Allow-Origin': '*' },
     hot: true,
+    // DEV-ONLY proxy (SF-1): dev server origin khác cổng compose đã set
+    // CORS_DEV_ORIGIN (vd REMOTE_ACTIVITY_PORT=4102) → chạy dev với API_BASE_URL=
+    // (same-origin) là qua proxy này, không cần đụng stack compose. Prod không đi đây.
+    proxy: [
+      {
+        context: ['/api'],
+        target: `http://localhost:${process.env.GO_SVC_PORT || 8082}`,
+      },
+    ],
   },
 };

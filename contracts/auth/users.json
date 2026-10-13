@@ -1,5 +1,5 @@
 {
-  "$comment": "Fixture users chung — auth-mock (SF-1) đọc runtime; spring-svc seed migration (SF-3) đọc cùng file, id phải khớp 100%. UUID cố định có chủ đích (dễ debug demo). Thêm user mới = thêm entry, KHÔNG đổi id của user cũ (SF-2/3/4 đã seed theo). displayName là nguồn sự thật cho seed SF-3 (khớp User schema trong contracts/openapi/users.yaml).",
+  "$comment": "Fixture users chung — auth-mock (SF-1) đọc runtime; spring-svc seed migration (SF-3) đọc cùng file, id phải khớp 100%. UUID cố định có chủ đích (dễ debug demo). Thêm user mới = thêm entry, KHÔNG đổi id của user cũ (SF-2/3/4 đã seed theo). displayName là nguồn sự thật cho seed SF-3 (khớp User schema trong contracts/openapi/users.yaml). SF-1 FI-77 thêm 2 service user: svc-activity (go-svc login lấy service token — password = SVC_ACTIVITY_PASSWORD env, khớp AUTH_MOCK_DEV_PASSWORD) + svc-fail (simulate fail hook saga — assign task cho user này → go consumer fail ×3 → assignment_failed).",
   "users": [
     {
       "id": "11111111-1111-4111-8111-111111111111",
@@ -17,6 +17,18 @@
       "id": "33333333-3333-4333-8333-333333333333",
       "email": "carol@demo.local",
       "displayName": "Carol Demo",
+      "roles": ["user"]
+    },
+    {
+      "id": "44444444-4444-4444-8444-444444444444",
+      "email": "svc-activity@demo.local",
+      "displayName": "Svc Activity (service user)",
+      "roles": ["user"]
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555555",
+      "email": "fail@demo.local",
+      "displayName": "Fail Demo (saga fail hook)",
       "roles": ["user"]
     }
   ]

@@ -1,15 +1,22 @@
 # ============================================================================
-# Boilerplate Microservice + Micro-frontend — compose (SF-1 pre-seed, FI-64)
+# Boilerplate Microservice + Micro-frontend — compose
 #
-# ⚠️ SF-2/3/4/5/6 KHÔNG được sửa file này — chỉ điền impl vào entry có sẵn
-#    (code trong services/<svc> hoặc frontend/<app> mà entry đã trỏ tới).
-#    Muốn đổi compose → flag lên coordinator (SF-1 sở hữu).
+# ⚠️ SF-2/3/4/5 của story FI-76 KHÔNG được sửa file này — env downstream đã
+#    PRE-ADD trọn vẹn từ trước (KAFKA_BROKERS, AUTH_MOCK_URL,
+#    SVC_ACTIVITY_PASSWORD). Muốn đổi compose → FLAG lên coordinator qua
+#    orchestration message, KHÔNG tự sửa.
 #
-# SF-7 (FI-75, convergence — được phép theo touch map): THÊM health-gated
-#    depends_on (healthcheck /readyz node-svc + spring-svc; gateway gate
-#    auth-mock/node/spring service_healthy + go-svc service_started — distroless
-#    không có shell/wget, xem conventions/02 rule 3; gateway KHÔNG có healthcheck).
-#    KHÔNG sửa phần khác của file này.
+# Lịch sử sở hữu (người sửa cuối = SF-1 FI-77, story Kafka foundation):
+#   FI-64 SF-1: khung 9 services health-gated + postgres init + auth-mock
+#     + 2 entry remotes (FE điền impl vào khung).
+#   FI-75 SF-7: health-gated depends_on (healthcheck /readyz node-svc +
+#     spring-svc; gateway gate auth-mock/node/spring service_healthy + go-svc
+#     service_started — distroless không có shell/wget, conventions/02 rule 3;
+#     gateway KHÔNG có healthcheck).
+#   FI-77 SF-1: + entry kafka (apache/kafka KRaft single-node, KHÔNG zookeeper;
+#     heap 512m cho CI 7GB; healthcheck full-path /opt/kafka/bin/... — image
+#     không có script trên PATH; KHÔNG expose 9092 ra host; KHÔNG service nào
+#     depends_on kafka — lazy-connect, conventions/09).
 # ============================================================================
 
 name: boilerplate
@@ -36,6 +43,34 @@ services:
       interval: 5s
       timeout: 3s
       retries: 12
+
+  kafka:
+    # Apache Kafka KRaft single-node (KHÔNG zookeeper) — ADR-0008.
+    # Compose-internal ONLY: không có `ports` = KHÔNG expose 9092 ra host.
+    # KHÔNG service nào depends_on kafka — connect lazy + retry lúc boot
+    # (conventions/09); healthcheck chỉ để `docker compose ps` quan sát.
+    image: apache/kafka:3.9.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # hostname service trong mạng compose
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # single-node
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # demo — consumer nhận event ngay
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms256m # CI runner 7GB — heap nhỏ có chủ đích
+    healthcheck:
+      # full path BẮT BUỘC — image apache/kafka không đặt script kafka-* trên PATH
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
 
   auth-mock:
     build: ./auth-mock
@@ -91,6 +126,9 @@ services:
       GO_SVC_URL: http://go-svc:8082
       CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # PRE-ADD (SF-1 FI-77) — outbox relay + compensation consumer (SF-2) đọc.
+      # Node KHÔNG phụ thuộc kafka lúc boot — lazy-connect (conventions/09).
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
     ports:
       - "${NODE_SVC_PORT:-3001}:3001" # host-side
     depends_on:
@@ -140,6 +178,13 @@ services:
       SPRING_SVC_URL: http://spring-svc:8081
       CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # PRE-ADD (SF-1 FI-77) — task consumer + saga (SF-3) đọc:
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      # service-token login fixture user svc-activity (resolver enrich userName;
+      # login backoff + lazy re-login — conventions/09). Giá trị .env phải khớp
+      # AUTH_MOCK_DEV_PASSWORD (auth-mock so password với dev password chung).
+      AUTH_MOCK_URL: http://auth-mock:8090
+      SVC_ACTIVITY_PASSWORD: ${SVC_ACTIVITY_PASSWORD:?set in .env}
     ports:
       - "${GO_SVC_PORT:-8082}:8082" # host-side
     depends_on:

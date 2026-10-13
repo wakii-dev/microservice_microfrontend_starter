@@ -32,6 +32,15 @@ cp .env.example .env                # điền JWT_SECRET (openssl rand -base64 4
 docker compose down -v              # ⚠️ CHẠY 1 LẦN sau pull nếu máy có pgdata volume TỪ bản cũ:
                                     #    Flyway V2 seed user svc-fail/svc-activity chỉ chạy lúc volume MỚI —
                                     #    volume cũ thiếu 2 user này → saga demo (mục 4b) chết ở auth/validate.
+# Kafka KHÔNG có data volume — topics mất sau mỗi `down` → tạo tường minh
+# TRƯỚC khi boot services (giống CI convergence.yml; tránh 2 race: go consumer
+# kẹt empty-assignment khi subscribe trước topic + DLQ publish Unknown Topic):
+docker compose up -d postgres kafka
+until docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1; do sleep 2; done
+for topic in task-events task-events.dlq; do
+  docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+    --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
+done
 docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
 bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 2 chiều:
                                     #   happy: login→task→feed QUA KAFKA (outbox → topic → go consumer)

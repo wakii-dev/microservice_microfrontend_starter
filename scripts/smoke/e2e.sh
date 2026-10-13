@@ -48,7 +48,9 @@ SAGA_TITLE="$PREFIX-saga-$(date +%s)-$$"
 say() { echo "[smoke] $*"; }
 fail() { echo "[smoke] FAIL bước $1: $*" >&2; exit "$1"; }
 extract() { # extract <json-field> <body-file> — grep thuần, không jq
-  sed -E "s/.*\"$1\"[: ]*\"?([^\",}]+)\"?.*/\1/;t;d" "$2" | head -1
+  # -n + /p (POSIX) thay cho GNU-only "s/.../\1/;t;d" — BSD sed (macOS) đọc
+  # ";d" sau t thành label undefined → fail bước 3 trên máy dev macOS
+  sed -E -n "s/.*\"$1\"[: ]*\"?([^\",}]+)\"?.*/\1/p" "$2" | head -1
 }
 CURL="curl -s --max-time 5" # timeout cụ thể — hung curl = treo CI tới 6h (P1 code-review SF-7)
 

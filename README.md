@@ -78,7 +78,17 @@ Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 c
 ```bash
 cd platform
 cp .env.example .env        # điền JWT_SECRET (openssl rand -base64 48) + passwords
-docker compose up -d --build   # health-gated chain: pg → auth-mock/spring → node → gateway (go-svc started)
+# Bước 1 — kafka + topics TRƯỚC (kafka KHÔNG có data volume: mỗi compose down
+# là mất topics → tạo lại tường minh như CI convergence.yml, tránh 2 race:
+# consumer empty-assignment khi subscribe trước topic + DLQ Unknown Topic):
+docker compose up -d postgres kafka
+until docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1; do sleep 2; done
+for topic in task-events task-events.dlq; do
+  docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+    --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
+done
+# Bước 2 — phần còn lại của stack (health-gated chain: pg → auth-mock/spring → node → gateway)
+docker compose up -d --build
 bash ../scripts/smoke/e2e.sh   # PASS = 2 chiều: happy (login→task→feed qua Kafka) + saga (assign svc-fail → assignment_failed → DLQ assert)
 # shell + remotes: http://localhost:8080/ → login alice@demo.local / demo-password
 # swagger: http://localhost:8080/api/auth/docs (auth-mock; các svc /api/<svc>/docs cần Bearer)

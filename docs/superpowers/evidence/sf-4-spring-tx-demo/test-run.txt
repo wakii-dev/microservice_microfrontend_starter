@@ -1,0 +1,18 @@
+SF-4 spring-svc @Transactional demo (FI-78) — test evidence
+Code commit: 2a520cb (fix attempt 2) · feat commit: 5d40816
+CI: services-spring-svc run 38346613021 — SUCCESS (4/4 jobs)
+URL: https://github.com/wakii-dev/architecture-overview/actions/runs/38346613021
+
+- build + test (mvnw verify — Postgres service container thật): PASS
+  TeamApiTest 6/6 · TeamServiceRollbackTest 3/3 · UserApiTest 13/13 ·
+  JwtAuthFilterTest 7/7 · HealthCheckTest 4/4 · SeedMatch 1/1 · LogShape 1/1 · DevCors 2/2
+- boot-smoke (compose up + health + login + 401): PASS
+- docker build: PASS
+- drift-guard (users.yaml bit-identical): PASS
+
+tdd: skipped-tdd: dev machine không JDK/Docker — RED→GREEN không chạy được local;
+cả 2 vòng CI thật: vòng 1 (run 38346041830) ĐỎ 2 lỗi thật (derived delete ngoài tx
+→ TransactionRequiredException; native-insert không thấy trong entity cached khi
+test tx dùng chung persistence context → memberIds rỗng) → fix → vòng 2 XANH.
+Rule 0: rollback assert QUA REPOSITORY trong TeamServiceRollbackTest
+(existsByName=false + countMembersByTeamName=0 sau request 409).

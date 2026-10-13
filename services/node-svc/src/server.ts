@@ -56,7 +56,13 @@ async function main(): Promise<void> {
       { store: repo, dlq: { send: async (value) => publisher!.send('task-events.dlq', [{ key: null, value }]) } },
       logFn,
     );
-    void consumer.start();
+    // .catch phòng thủ cuối — bất kỳ lỗi nào thoát start() KHÔNG được crash
+    // process (conventions/09 rule 1; CI 38365465140: unhandled rejection)
+    consumer.start().catch((err: unknown) =>
+      logFn('warn', 'compensation consumer stopped with error', {
+        err: err instanceof Error ? err.message : String(err),
+      }),
+    );
   } else {
     logger.warn('KAFKA_BROKERS not set — outbox relay + compensation consumer disabled');
   }

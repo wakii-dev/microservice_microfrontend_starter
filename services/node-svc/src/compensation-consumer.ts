@@ -108,7 +108,8 @@ export class CompensationConsumer {
   }
 
   /** Connect + subscribe + run — lazy/retry (conventions/09 rule 1): broker
-   *  chưa lên = warn + retry, KHÔNG crash. Trả promise chạy dài; caller void. */
+   *  chưa lên HOẶC topic chưa auto-create xong = warn + retry, KHÔNG crash.
+   *  Trả promise chạy dài; caller void (+ .catch phòng thủ ở call site). */
   async start(): Promise<void> {
     const consumer = this.kafka.consumer({ groupId: COMPENSATION_GROUP });
     while (!this.stopped) {
@@ -125,23 +126,38 @@ export class CompensationConsumer {
     if (this.stopped) return;
     this.consumer = consumer;
 
-    await consumer.subscribe({ topic: 'task-events', fromBeginning: true });
-    // auto.offset.reset: earliest tương đương fromBeginning cho group mới —
-    // fixture demo đọc lại từ đầu, idempotency (conditional guard) lo duplicates.
-    await consumer.run({
-      autoCommit: false, // manual commit SAU khi DB op xong (conventions/09 rule 5)
-      eachMessage: async ({ topic, partition, message }) => {
-        await handleMessage(message.value?.toString() ?? '', {
-          ...this.deps,
-          commit: async () => {
-            await consumer.commitOffsets([
-              { topic, partition, offset: (BigInt(message.offset) + 1n).toString() },
-            ]);
+    // subscribe + run PHỦ retry riêng: demo dùng auto-create topic — subscribe
+    // trước khi topic `task-events` được broker tạo xong → kafkajs ném
+    // UNKNOWN_TOPIC_OR_PARTITION (retriable) RA NGOÀI subscribe() thay vì tự
+    // retry (CI run 38365465140: unhandled rejection crash process → readyz
+    // chết). Vòng lặp này biến nó thành warn + retry — không crash.
+    while (!this.stopped) {
+      try {
+        await consumer.subscribe({ topic: 'task-events', fromBeginning: true });
+        // auto.offset.reset: earliest tương đương fromBeginning cho group mới —
+        // fixture demo đọc lại từ đầu, idempotency (conditional guard) lo duplicates.
+        await consumer.run({
+          autoCommit: false, // manual commit SAU khi DB op xong (conventions/09 rule 5)
+          eachMessage: async ({ topic, partition, message }) => {
+            await handleMessage(message.value?.toString() ?? '', {
+              ...this.deps,
+              commit: async () => {
+                await consumer.commitOffsets([
+                  { topic, partition, offset: (BigInt(message.offset) + 1n).toString() },
+                ]);
+              },
+              log: this.log,
+            });
           },
-          log: this.log,
         });
-      },
-    });
+        break; // run trả về bình thường (stopped/disconnect)
+      } catch (err) {
+        this.log('warn', 'kafka consumer subscribe/run failed — retry', {
+          err: err instanceof Error ? err.message : String(err),
+        });
+        await new Promise<void>((r) => setTimeout(r, CONNECT_RETRY_MS));
+      }
+    }
   }
 
   async stop(): Promise<void> {

@@ -1,5 +1,6 @@
 SF-1 Kafka foundation test evidence — 2026-10-13 (story FI-76, Linear FI-77)
-HEAD code commit: 43460a6 (branch wakii-dev/sf-1-kafka-foundation)
+HEAD tip: 6f2920a (branch wakii-dev/sf-1-kafka-foundation — 6f2920a = fix docs P2
+review; HEAD code commit: 43460a6 chứa toàn bộ thay đổi code, 6f2920a chỉ docs).
 tdd: skipped-tdd: SF-1 là infra/contracts (compose + docs + fixtures JSON) — không có
      unit test surface; verify = local static validation + CI (contracts/compose-config
      + convergence boot stack 10 services, kafka entry thật).
@@ -42,3 +43,10 @@ CI RESULTS summary: 5/5 workflows success tại HEAD 43460a6 — gh run list evi
   38345667905 convergence            completed success 43460a6
   38345667845 services-node-svc      completed success 43460a6
   38345667847 contracts              completed success 43460a6
+
+Tip 6f2920a (docs-only — fix 2 P2 review): convergence #38346804160 SUCCESS;
+contracts #38346804269 FAIL 1 lần boot-smoke (Maven wrapper download flake —
+`./mvnw dependency:go-offline` unzip ZipFile lỗi = download truncated; cùng commit
+convergence build spring-svc image SUCCESS → không liên quan diff) → re-run
+`gh run rerun --failed` → SUCCESS (exit 0). Flaky tracker: fail 1 lần, re-run pass
+→ flake ghi nhận, không phải bug; tái diễn ≥2 lần cùng cause mới tính bug.

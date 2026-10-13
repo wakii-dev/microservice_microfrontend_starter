@@ -82,17 +82,27 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
-         * @description Phải khớp CHECK constraint trong contracts/db/tasks-schema.sql.
+         * @description WRITABLE status — query param + PATCH body CHỈ nhận 3 giá trị này
+         *     (khớp CHECK constraint writable trong contracts/db/tasks-schema.sql).
          *     go-svc stats group theo đúng 3 giá trị này.
+         *     `assignment_failed` KHÔNG ở đây — system-owned (compensation ghi,
+         *     không client) — xem TaskStatusExtended.
          * @enum {string}
          */
         TaskStatus: "todo" | "in_progress" | "done";
+        /**
+         * @description READ-ONLY — chỉ `Task.status` response. `assignment_failed` là trạng
+         *     thái hệ thống (saga compensation — ADR-0008): consumer node-svc-compensation
+         *     ghi qua conditional UPDATE; PATCH KHÔNG nhận giá trị này.
+         * @enum {string}
+         */
+        TaskStatusExtended: "todo" | "in_progress" | "done" | "assignment_failed";
         Task: {
             /** Format: uuid */
             id: string;
             title: string;
             description?: string | null;
-            status: components["schemas"]["TaskStatus"];
+            status: components["schemas"]["TaskStatusExtended"];
             /**
              * Format: uuid
              * @description UUID user của spring-svc — KHÔNG FK chéo schema (xem DDL comment)

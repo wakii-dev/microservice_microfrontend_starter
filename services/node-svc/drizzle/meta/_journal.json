@@ -8,6 +8,20 @@
       "when": 1791791902713,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791868128263,
+      "tag": "0001_status-assignment-failed",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791869618318,
+      "tag": "0002_outbox-table",
+      "breakpoints": true
     }
   ]
 }

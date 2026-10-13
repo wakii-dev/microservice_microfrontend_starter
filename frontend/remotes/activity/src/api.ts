@@ -46,7 +46,8 @@ export interface ActivityFeed {
 
 export interface ActivityStats {
   totalTasks: number;
-  tasksByStatus: { todo: number; in_progress: number; done: number };
+  /** 4 giá trị khớp CHECK canonical DDL — assignment_failed do saga compensation ghi (SF-3) */
+  tasksByStatus: { todo: number; in_progress: number; done: number; assignment_failed: number };
   recentEvents?: number;
 }
 

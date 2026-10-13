@@ -22,25 +22,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Boot full stack (10 services, health-gated chain — kafka lazy-connect)
-        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
+      - name: Boot postgres + kafka trước (topic phải tồn tại TRƯỚC consumer subscribe)
+        # Học SF-3 (commit 8de8921 — cùng class bug): kafka-go group reader join
+        # khi topic CHƯA tồn tại → empty assignment → không bao giờ tự refresh
+        # metadata → consumer kẹt im lặng (stable group, 0 fetch, 0 error).
+        # Boot postgres+kafka riêng → tạo topic → MỚI boot consumers.
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build postgres kafka
 
-      - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
-        run: |
-          for i in $(seq 1 60); do
-            curl -sf http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
-            sleep 2
-          done
-          echo "gateway chain chưa ready sau 120s"; exit 1
-
-      - name: Tạo topic tường minh task-events + task-events.dlq (chống auto-create race)
+      - name: Wait kafka healthy + tạo topic tường minh task-events + task-events.dlq
         # Demo dùng auto-create (task-events.md) nhưng auto-create có race: relay
-        # publish lúc broker chưa kịp tạo topic → message fail/thất lạc giữa chừng
-        # (SF-2 hit: consumer subscribe trước topic tồn tại). Tạo --if-not-exists
-        # TRƯỚC e2e — broker đã healthy ở bước trên (wait chain polls qua services
-        # lazy-connect; đây poll broker trực tiếp cho chắc).
+        # publish / consumer subscribe lúc topic chưa kịp tồn tại. Tạo
+        # --if-not-exists TRƯỚC khi boot services (conventions/09: không dùng
+        # depends_on kafka — tạo topic là bước CI, không phải ràng buộc compose).
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 45); do
             docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
               exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && break
             sleep 2
@@ -53,6 +48,17 @@ jobs:
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
+      - name: Boot full stack (10 services, health-gated chain — kafka lazy-connect)
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
+
+      - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
+            sleep 2
+          done
+          echo "gateway chain chưa ready sau 120s"; exit 1
+
       - name: e2e 2 chiều — scripts/smoke/e2e.sh (happy + saga kèm DLQ assert)
         run: bash scripts/smoke/e2e.sh
 
@@ -63,6 +69,13 @@ jobs:
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100
           echo "=== consumer logs (node-svc relay/compensation + go-svc consumer) ==="
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100 node-svc go-svc
+          echo "=== task-events end offset + nội dung (relay đã publish chưa?) ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+            --topic task-events || true
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events --from-beginning --timeout-ms 10000 2>/dev/null | tail -20 || true
           echo "=== task-events.dlq hiện có ==="
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
@@ -81,13 +94,15 @@ jobs:
       - name: Copy node-svc ra tmp + build/test standalone (theo README node-svc)
         run: |
           REPO_ROOT="$PWD"
-          mkdir -p "$RUNNER_TEMP/standalone" "$RUNNER_TEMP/contracts/db"
+          mkdir -p "$RUNNER_TEMP/standalone" "$RUNNER_TEMP/contracts/db" "$RUNNER_TEMP/contracts/events/fixtures"
           cp -r services/node-svc "$RUNNER_TEMP/standalone/node-svc"
-          # schema-diff.test đọc ../../contracts/db/tasks-schema.sql (repo-relative —
-          # resolve từ standalone/node-svc lên $RUNNER_TEMP/contracts/db)
-          # → standalone copy phải kèm canonical DDL (đúng semantics "repo-con + contracts nó cần").
-          # FLAG SF-2: README node-svc mục standalone nên ghi dependency này.
+          # Contracts standalone tests resolve repo-relative từ standalone/node-svc:
+          #   schema-diff.test → ../../contracts/db/tasks-schema.sql (canonical DDL —
+          #   outbox KHÔNG vào canonical, chỉ schema tasks là cross-service contract)
+          #   app/relay/compensation tests (SF-2) → ../../contracts/events/fixtures/*.json
+          #   (golden envelope — load chung 2 đầu node/go, task-events.md)
           cp contracts/db/tasks-schema.sql "$RUNNER_TEMP/contracts/db/"
+          cp contracts/events/fixtures/*.json "$RUNNER_TEMP/contracts/events/fixtures/"
           cd "$RUNNER_TEMP/standalone/node-svc"
           corepack enable
           pnpm install --frozen-lockfile --ignore-workspace

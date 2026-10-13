@@ -4,7 +4,7 @@ Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Modul
 
 **Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (7 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
-## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock)
+## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock + kafka broker)
 
 ```mermaid
 graph TB
@@ -15,11 +15,11 @@ graph TB
             authc["auth/ users.json + token-contract.md"]
         end
         subgraph platform ["platform/"]
-            compose["docker-compose.yml (9 services, health-gated chain)"]
+            compose["docker-compose.yml (10 services — kafka lazy-connect, không chặn chain)"]
             pginit["postgres/init/ (schemas + roles + default privileges)"]
             nginx["gateway/nginx (routing + JWT presence 401)"]
             authmock["auth-mock :8090 (JWT HS256, NOT-FOR-PROD)"]
-            conv["conventions/ (8 docs)"]
+            conv["conventions/ (9 docs)"]
         end
         subgraph services ["services/"]
             node["node-svc :3001 (Fastify+TS) — task CRUD"]
@@ -65,7 +65,7 @@ Chuỗi e2e chứng minh bởi: `scripts/smoke/e2e.sh` (local + CI job `converge
 | shell (MF host) | 3000 | | spring-svc | 8081 |
 | remote tasks | 4001 | | go-svc | 8082 |
 | remote activity | 4002 | | auth-mock | 8090 |
-| postgres | 5432 | | | |
+| postgres | 5432 | | kafka (compose-internal) | 9092 — KHÔNG expose host |
 
 Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 chỗ cùng commit (conventions + .env.example + compose + README).
 
@@ -81,6 +81,12 @@ bash ../scripts/smoke/e2e.sh   # PASS = login → tạo task → đọc feed li�
 # shell + remotes: http://localhost:8080/ → login alice@demo.local / demo-password
 # swagger: http://localhost:8080/api/auth/docs (auth-mock; các svc /api/<svc>/docs cần Bearer)
 ```
+
+> **Kafka lazy-connect** (ADR-0008, conventions/09): kafka compose-internal — 9092
+> không expose host, KHÔNG service nào `depends_on` kafka. Services connect retry
+> lúc boot (env `KAFKA_BROKERS`) — broker chưa lên không chặn health-gated chain.
+> Hợp đồng event: [contracts/events/task-events.md](contracts/events/task-events.md)
+> + golden fixtures `contracts/events/fixtures/`.
 
 ### Native (không Docker — từng service một)
 

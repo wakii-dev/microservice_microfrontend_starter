@@ -1,4 +1,6 @@
 SF-3 go-svc consumer test evidence — 2026-10-13 (FI-80, story FI-76 kafka-outbox-saga)
+HEAD code commit: 1ce6b03 (P1 DLQ-offset fix — code commit cuối); docs sync: df01179 → 1d3dc6c (HEAD~1)
+tdd: skipped-tdd: CI-only — dev machine không Go/Docker (ràng buộc plan), build/test/kafka verify qua CI runs 38389378485 + 38387226127
 HEAD repo lúc sync evidence: df01179; các commit sau 1ce6b03 ĐỀU là
 docs/evidence-only (test-run.txt + story brief) — code cuối cùng = 1ce6b03.
 HEAD CODE commit: 1ce6b03 (branch wakii-dev/sf-3-go-consumer; fork từ dest @8d04e6d —

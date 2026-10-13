@@ -2,7 +2,7 @@
   "name": "@boilerplate/fe-shared",
   "version": "0.1.0",
   "private": true,
-  "description": "fe-shared — repo-con thứ 7, SF-1 sở hữu (SF-5/6 READ-ONLY; đụng = flag coordinator). Standalone-copy: remote/shell copy KÈM package này.",
+  "description": "fe-shared — repo-con thứ 7. Từ story VU-53 SF-1: src/styles/ + src/ui/ do design-system SF sở hữu (SF-2/3/4 consume); 4 file logic (api-client/token-storage/error-envelope/mf-bootstrap) + trường mfToolkit READ-LOCKED. Standalone-copy: remote/shell copy KÈM package này.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

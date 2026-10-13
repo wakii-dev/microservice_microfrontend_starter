@@ -92,10 +92,13 @@ func CompensatingEnvelope(taskID, assigneeID uuid.UUID, reason string, now time.
 
 // DLQMessage — message gốc (raw) + metadata lỗi vào task-events.dlq
 // (task-events.md: "Message GỐC + metadata lỗi"). KHÔNG requeue tự động.
+// OriginalEvent là STRING nguyên văn (không phải RawMessage): poison message
+// vốn KHÔNG phải JSON hợp lệ — RawMessage làm json.Marshal của wrapper fail
+// im lặng → DLQ nhận bytes rỗng (bug đã bắt bằng unit test).
 type DLQMessage struct {
-	SchemaVersion int          `json:"schemaVersion"`
-	OriginalEvent json.RawMessage `json:"originalEvent"`
-	Error         DLQError     `json:"error"`
+	SchemaVersion int      `json:"schemaVersion"`
+	OriginalEvent string   `json:"originalEvent"`
+	Error         DLQError `json:"error"`
 }
 
 // DLQError — metadata lỗi đi kèm event gốc trong DLQ.
@@ -108,7 +111,7 @@ type DLQError struct {
 func NewDLQMessage(original []byte, reason string, retries int, now time.Time) DLQMessage {
 	return DLQMessage{
 		SchemaVersion: SchemaVersion,
-		OriginalEvent: json.RawMessage(original),
+		OriginalEvent: string(original),
 		Error:         DLQError{Reason: reason, Retries: retries, FailedAt: now.UTC()},
 	}
 }

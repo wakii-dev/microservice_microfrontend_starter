@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Boot postgres + auth-mock + kafka trước (apply DDL by node_svc sau đó)
+      - name: Boot postgres + auth-mock + kafka trước + TẠO TOPIC TRƯỚC go-svc boot
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             -f services/go-svc/ci.compose.override.yml up -d --build postgres auth-mock kafka
@@ -91,6 +91,25 @@ jobs:
               exec -T postgres pg_isready -U boilerplate -d boilerplate >/dev/null 2>&1 && break
             sleep 2
           done
+          # Chờ kafka healthy rồi tạo topic TƯỚC KHI go-svc boot — consumer join
+          # group với topic ĐÃ tồn tại (join-trước-topic-sau → assignment stale,
+          # fetch không bao giờ thấy message — bài học run 38366067233)
+          for i in $(seq 1 30); do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && break
+            sleep 2
+          done
+          for TOPIC in task-events task-events.dlq; do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+              --create --if-not-exists --topic "$TOPIC" --partitions 1 --replication-factor 1
+          done
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list \
+            | grep -qx task-events
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list \
+            | grep -qx task-events.dlq
 
       - name: Boot go-svc TRƯỚC khi có tasks table — readyz PHẢI 503 (probe thật, conventions/02 rule 2)
         run: |
@@ -132,27 +151,9 @@ jobs:
           curl -sf http://localhost:8082/readyz | grep -q '"status":"ok"'
 
       # P0 3 điểm chạm (context pack sf-3): kafka console producer publish GOLDEN
-      # FIXTURE thay POST /events (đã thanh lý); topic tạo TƯỜNG MINH (không dựa
-      # auto-create); exec trong container kafka — 9092 internal-only.
-      - name: Tạo topic tường minh (task-events + dlq — không dựa auto-create)
-        run: |
-          for i in $(seq 1 30); do
-            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-              exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && break
-            sleep 2
-          done
-          for TOPIC in task-events task-events.dlq; do
-            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-              exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
-              --create --if-not-exists --topic "$TOPIC" --partitions 1 --replication-factor 1
-          done
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list \
-            | grep -qx task-events
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list \
-            | grep -qx task-events.dlq
-
+      # FIXTURE thay POST /events (đã thanh lý); topic ĐÃ tạo tường minh ở step
+      # boot (trước go-svc — consumer join sạch); exec trong container kafka —
+      # 9092 internal-only.
       - name: Console producer publish golden fixture → consumer → feed có row (proof event→feed)
         run: |
           # Publish task.created fixture — console producer coi MỖI DÒNG là 1

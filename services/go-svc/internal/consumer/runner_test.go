@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log/slog"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -148,7 +149,7 @@ func TestRunner_SvcFailRetry3ThenCompensatingAndDLQ(t *testing.T) {
 		t.Errorf("DLQ retries = %d, want 3", dm.Error.Retries)
 	}
 	var orig Envelope
-	if err := json.Unmarshal(dm.OriginalEvent, &orig); err != nil {
+	if err := json.Unmarshal([]byte(dm.OriginalEvent), &orig); err != nil {
 		t.Fatalf("DLQ phải chứa event GỐC parse được: %v", err)
 	}
 	if orig.Type != model.ActionTaskAssigned {
@@ -188,9 +189,18 @@ func TestRunner_PoisonGoesStraightToDLQ(t *testing.T) {
 		t.Fatalf("DLQ = %d, want 1", len(dlq))
 	} else {
 		var dm DLQMessage
-		_ = json.Unmarshal(dlq[0], &dm)
+		if err := json.Unmarshal(dlq[0], &dm); err != nil {
+			t.Fatalf("DLQ message không parse được (poison phải vẫn vào DLQ nguyên văn): %v — body: %s", err, dlq[0])
+		}
 		if dm.Error.Retries != 3 {
-			t.Errorf("poison retries ghi nhận = %d (retryMax metadata)", dm.Error.Retries)
+			t.Errorf("poison retries ghi nhận = %d, want 3 — body: %s", dm.Error.Retries, dlq[0])
+		}
+		if !strings.Contains(dm.Error.Reason, "poison") {
+			t.Errorf("reason = %q, want chứa 'poison'", dm.Error.Reason)
+		}
+		// Message gốc KHÔNG hợp lệ JSON — vẫn phải nằm nguyên văn trong DLQ
+		if !strings.Contains(dm.OriginalEvent, "not-envelope") {
+			t.Errorf("originalEvent = %q, want nguyên văn poison bytes", dm.OriginalEvent)
 		}
 	}
 }

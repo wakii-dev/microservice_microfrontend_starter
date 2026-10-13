@@ -211,6 +211,11 @@ if [ "$SAGA" = "1" ]; then
     docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
       /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
       --topic task-events.dlq --from-beginning --timeout-ms 10000 > "$DLQ_OUT" 2>/dev/null
+    if [ ! -s "$DLQ_OUT" ]; then
+      # offset > 0 nhưng console-consumer trả output RỖNG = KHÔNG đọc được
+      # (exec/tool fail), khác với "đọc được mà không có taskId" (P2 reviewer)
+      fail 10 "DLQ có message (offset $DLQ_END) nhưng console-consumer trả output RỖNG — không đọc được (kiểm exec/tool)"
+    fi
     if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then
       say "8/8 DLQ: event gốc của task $SAGA_TASK_ID có mặt ở task-events.dlq (end offset $DLQ_END) — acceptance saga đủ 2 nửa (status + DLQ)"
     else

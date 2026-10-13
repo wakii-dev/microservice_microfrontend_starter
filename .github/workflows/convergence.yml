@@ -54,7 +54,7 @@ jobs:
       - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
         run: |
           for i in $(seq 1 60); do
-            curl -sf http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
+            curl -sf --max-time 3 http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
             sleep 2
           done
           echo "gateway chain chưa ready sau 120s"; exit 1

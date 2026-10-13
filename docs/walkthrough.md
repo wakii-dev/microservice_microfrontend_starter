@@ -95,7 +95,7 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers):
      --topic task-events.dlq --from-beginning --timeout-ms 15000
    # mỗi dòng = 1 DLQ message: {"schemaVersion":1,"originalEvent":"{...task.assigned...}","error":{"reason":...,"retries":3,...}}
    ```
-4. Re-assign cho user hợp lệ (bob) → saga chạy lại từ đầu, task về luồng bình thường (writable path).
+4. Re-assign cho user hợp lệ (bob) → saga chạy lại từ đầu, event flow về bình thường (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm).
 
 > CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 

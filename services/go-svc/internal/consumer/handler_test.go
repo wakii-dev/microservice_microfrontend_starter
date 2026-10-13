@@ -42,8 +42,10 @@ func (f fakeTaskTitles) TaskTitle(_ context.Context, id uuid.UUID) (string, erro
 
 func newTestHandler(store *fakeEventStore) *Handler {
 	return &Handler{
-		Store:    store,
-		Tasks:    fakeTaskTitles{titles: map[uuid.UUID]string{"c7c7c7c7-7777-4777-8777-777777777777": "Ship Kafka foundation"}},
+		Store: store,
+		Tasks: fakeTaskTitles{titles: map[uuid.UUID]string{
+			uuid.MustParse("c7c7c7c7-7777-4777-8777-777777777777"): "Ship Kafka foundation",
+		}},
 		Resolver: resolve.New("http://spring-unused"), // không token source → userName "" (degraded)
 		Log:      slog.Default(),
 	}

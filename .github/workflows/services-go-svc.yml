@@ -155,11 +155,13 @@ jobs:
 
       - name: Console producer publish golden fixture → consumer → feed có row (proof event→feed)
         run: |
-          # Publish task.created fixture (stdin — envelope hợp đồng task-events.md)
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+          # Publish task.created fixture — console producer coi MỖI DÒNG là 1
+          # message → flatten JSON về 1 dòng trước khi pipe (fixture gốc
+          # multi-line sẽ bị xé vụn thành message sai envelope)
+          python3 -c 'import json; print(json.dumps(json.load(open("contracts/events/fixtures/task.created.json")), separators=(",", ":")))' \
+          | docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
-            --bootstrap-server localhost:9092 --topic task-events \
-            < contracts/events/fixtures/task.created.json
+            --bootstrap-server localhost:9092 --topic task-events
           # Poll feed (JWT alice) đến khi consumer ghi row — rebalance + earliest có thể mất vài giây
           TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
             -H 'Content-Type: application/json' \
@@ -171,17 +173,17 @@ jobs:
             echo "$FEED" | grep -q '6f1a2b3c-4d5e-4f60-8a71-9b0c1d2e3f40' && FOUND=1 && break
             sleep 2
           done
-          [ "${FOUND:-0}" = "1" ] || { echo "feed chưa thấy event sau 60s — consumer không consume?"; echo "$FEED"; exit 1; }
+          [ "${FOUND:-0}" = "1" ] || { echo "feed chưa thấy event sau 60s — consumer không consume?"; echo "$FEED"; docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail 80 go-svc kafka; exit 1; }
           echo "$FEED" | grep -q '"action":"task.created"'
 
       - name: Idempotency e2e — publish DUPLICATE fixture → feed KHÔNG nhân đôi
         run: |
           TOKEN=$(cat /tmp/jwt)
           BEFORE=$(curl -sf http://localhost:8082/api/activity/feed -H "Authorization: Bearer $TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin)["total"])')
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+          python3 -c 'import json; print(json.dumps(json.load(open("contracts/events/fixtures/task.created.json")), separators=(",", ":")))' \
+          | docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
-            --bootstrap-server localhost:9092 --topic task-events \
-            < contracts/events/fixtures/task.created.json
+            --bootstrap-server localhost:9092 --topic task-events
           sleep 8 # đủ cho consumer poll + redelivery
           AFTER=$(curl -sf http://localhost:8082/api/activity/feed -H "Authorization: Bearer $TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin)["total"])')
           [ "$BEFORE" = "$AFTER" ] || { echo "feed total $BEFORE → $AFTER — duplicate envelope id nhân đôi row (vi phạm idempotency)"; exit 1; }

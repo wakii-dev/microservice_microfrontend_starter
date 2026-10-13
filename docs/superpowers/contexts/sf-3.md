@@ -1,41 +1,42 @@
-# SF-3 Context Pack — spring-svc (user API)
-> Đọc file này THAY VÌ tự tổng hợp từ bracket + epic + comments.
-> Epic spec: `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` (rev 3). Bracket: `docs/superpowers/mindmaps/micro-boilerplate.wakii`.
+# SF-3 Context Pack — go-svc Consumer + Saga + thanh lý ingest
+> Đọc file này THAY VÌ tự tổng hợp. Epic spec: `docs/superpowers/specs/2026-10-13-kafka-outbox-saga.md` (rev 3). Mindmap: `docs/superpowers/mindmaps/kafka-outbox-saga.wakii`.
+> Depends: SF-1 (env pre-add: KAFKA_BROKERS, AUTH_MOCK_URL, SVC_ACTIVITY_PASSWORD; golden fixtures; conventions/09).
 
 ## Spec slice (chỉ phần SF-3 chịu trách nhiệm)
-1. Scaffold `services/spring-svc/`: Spring Boot 3.x Web MVC (KHÔNG reactive), Java 21, **mvnw wrapper đi kèm** (dev machine có thể thiếu JDK — toolchain-in-Docker trong CI, native `mvnw` nếu JDK 21 có).
-2. Codegen models từ `contracts/openapi/users.yaml` (maven plugin types only).
-3. CRUD users + teams theo OpenAPI; service lắng nghe 8081; qua gateway `/api/users/*`.
-4. **Seed migration đọc `contracts/auth/users.json`** (Flyway) — exit: users trong DB có id trùng khớp fixture 100% (assert trong test).
-5. JWT enforcement: service TỰ verify signature + expiry (HS256 secret từ env) trên mọi route trừ healthcheck; sai/hết hạn → 401 TỪ SERVICE.
-6. Postgres schema `users` + Flyway migration.
-7. Healthcheck: actuator liveness + `/readyz` (ready khi DB pass).
-8. Logback JSON shape theo conventions chung; error envelope chung.
-9. CORS dev-profile.
-10. Tests: @SpringBootTest + contract test theo OpenAPI.
-11. Dockerfile multi-stage (mvnw trong builder stage).
-12. **Boot-smoke CI job**: container up + healthz/readyz + Flyway chạy xong.
-13. Compose entry PRE-SEED bởi SF-1 — KHÔNG sửa `platform/docker-compose.yml`.
-14. README.md trong `services/spring-svc/` (chạy native/docker, env, API). Exit: docs đủ (copy-dir proof là SF-7).
+1. **Cụm nguyên tử activity-side cascade**: migration `internal/store/migrations/0002_*.sql` — **`ALTER COLUMN action TYPE varchar(40)`** (`task.assignment_failed` = 22 ký tự > varchar(20) — chỉ sửa CHECK quên width = InsertEvent chết runtime, retry ×3 → DLQ sai nguyên nhân) + CHECK drop/recreate thêm `task.assigned`/`task.assignment_failed`.
+2. **activity.yaml ×2 FILE** (P0 — sửa 1 bỏ 1 = docs endpoint lệch im lặng): canonical `contracts/openapi/activity.yaml` + snapshot nhúng `services/go-svc/internal/api/openapi/activity.yaml` — TRỌN GÓI: xóa `/events` path + `ActivityEventInput` + `EventAccepted`; enum action thêm `task.assigned`/`task.assignment_failed`; description bỏ "fire-and-forget"; stats keys thêm assignment_failed. **Thêm diff-guard 2 file vào `services-go-svc.yml`** (precedent: services-spring-svc.yml diff users.yaml).
+3. `store/tasks.go` byStatus map thêm key `assignment_failed` (stats hiện hard-code 3 keys).
+4. Consumer package `internal/consumer/`: `segmentio/kafka-go` (ADR ghi franz-go = path production), group `go-svc-activity`, manual commit SAU DB tx, **ON CONFLICT DO NOTHING bằng envelope id** (id do node sinh — đổi `store/events.go` InsertEvent nhận id từ envelope, bỏ `uuid.New()`), filter-by-type (bỏ qua `task.assignment_failed`), auto.offset.reset earliest. Test load golden fixture.
+5. Retry ×3 (in-memory) → publish `task.assignment_failed` (envelope id MỚI do go sinh — go là producer lúc này) vào `task-events` → đẩy event gốc vào `task-events.dlq`.
+6. Resolver service-token: boot login `svc-activity` (AUTH_MOCK_URL + SVC_ACTIVITY_PASSWORD env từ SF-1) — **retry backoff, KHÔNG crash nếu auth-mock chưa lên** (go chỉ depends_on postgres); lazy re-login khi 401/expiry; cache JWT cho resolver enrich userName.
+7. Xóa `internal/api/events.go` ingest + route wiring + `events_test.go` cập nhật + integration test cập nhật (không còn POST /events — schemathesis step trong workflow cũng theo).
+8. **`services-go-svc.yml` 3 điểm chạm + diff-guard (P0)**: (a) step event→feed→stats POST /events → thay bằng **kafka console producer publish golden fixture** (script trong image apache/kafka) + kafka vào subset boot + **tạo topic tường minh** (`kafka-topics.sh --create` task-events + dlq, 1 partition — không dựa auto-create); (b) stats assert exact-equality 3 keys → nới thêm assignment_failed; (c) giữ ≥1 proof event→feed (chống thoái hóa).
+9. Simulate fail hook: assigneeId = svc-fail → consumer cố tình fail (deterministic cho e2e saga SF-5).
+10. `internal/config/config.go` +KAFKA_BROKERS/group/DLQ/AUTH_MOCK_URL/SVC_ACTIVITY_PASSWORD; `model` +action constants; go.mod +segmentio.
 
 ## Touch map (files SF-3 tạo/sở hữu)
 ```
-services/spring-svc/**           [SỞ HỮU]
-platform/docker-compose.yml      [READ-ONLY — SF-1]
-platform/conventions/*           [READ-ONLY]
-contracts/openapi/users.yaml     [READ-ONLY — đổi = FLAG]
-contracts/auth/users.json        [READ-ONLY — phải khớp]
-.env.example                     [READ-ONLY]
+services/go-svc/**                    [SỞ HỮU — kể cả xóa ingest, thêm consumer]
+contracts/openapi/activity.yaml       [SỬA — SF-3 sở hữu trọn gói]
+services/go-svc/internal/api/openapi/activity.yaml [SỬA — snapshot ×2]
+frontend/remotes/tasks/** (type + statusLabel + tests)  [SỞ HỮU — badge assignment_failed, P0 plan-critic gán đích danh]
+frontend/remotes/activity/** (action labels + tests)    [SỞ HỮU]
+.github/workflows/services-go-svc.yml [SỞ HỮU — 3 điểm chạm + diff-guard]
+contracts/events/fixtures/*.json      [READ-ONLY — test load, KHÔNG sửa]
+platform/docker-compose.yml           [READ-ONLY — env đã pre-add; kafka đã có; đụng = FLAG]
 ```
 
 ## ACCEPTANCE (user-visible)
-- Swagger spring-svc mở được; GET user fixture id trả đúng; CRUD teams hoạt động.
-- Request thiếu token → 401 từ spring (không phải chỉ gateway); token giả/hết hạn → 401.
-- CI xanh: tests + boot-smoke (up, health, Flyway xong, seed users khớp fixture).
-- mvnw chạy được không cần JDK cài sẵn (wrapper tự tải) — hoặc CI toolchain-in-Docker.
+- CI go-svc xanh: boot-smoke subset có kafka, publish golden fixture qua console producer → feed có row (proof event→feed), stats nới pass, diff-guard pass.
+- Consumer unit: golden fixture → activity row đúng; duplicate envelope id → vẫn 1 row (idempotency).
+- Retry/DLQ: simulate svc-fail → 3 retry → `task.assignment_failed` publish + event gốc vào DLQ (test assert).
+- Resolver: enrich userName bằng service-token; auth-mock down lúc boot → không crash, retry; 401 → lazy re-login.
+- GET /api/activity/events → 404 (ingest đã xóa); docs endpoint khớp contract (diff-guard).
+- FE remote-tasks: task `assignment_failed` render badge đúng; remote-activity action label mới có.
 
 ## Boundary (KHÔNG làm)
-- KHÔNG sửa compose/contracts/conventions (đụng = flag).
-- KHÔNG implement node-svc/go-svc/FE.
-- KHÔNG nối Keycloak thật — chỉ mock JWT theo token contract.
-- KHÔNG thử docker local — CI verify.
+- KHÔNG sửa compose/.env.example, contracts/events/**, conventions/09, contracts/db, tasks.yaml, node-svc, spring-svc (đụng = FLAG).
+- KHÔNG đụng services-node-svc.yml (SF-2).
+- KHÔNG dùng franz-go (segmentio theo spec; franz-go ghi ADR).
+- KHÔNG SASL/SSL — PLAINTEXT compose-internal.
+- KHÔNG thử docker/kafka local — CI verify.

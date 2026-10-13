@@ -59,4 +59,5 @@ TESTER REVIEW ĐỘC LẬP: /tmp/story/fi62/code-reviewer-sf-5-convergence.md
 - V2 @d1681ac: VERDICT: APPROVED — cả 5 finding fix verified, 0 finding mới,
   acceptance 4/4 PASS, CHECKLIST-4Q 4/4 PASS, scope sạch 11/11 files.
 - Evidence hash: test-run.txt ghi HEAD code commit 7f2f3ee + d1681ac (run 7)
-  + commit tick plan 656da36 (commit cuối trước khi đóng SF).
+  + các commit đóng SF: 656da36 (tick T8) · 194dd20 (evidence sync B1) ·
+  ec11247 (improvements-log — commit cuối trước evidence-sync chốt).

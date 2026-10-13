@@ -1,0 +1,67 @@
+{
+  "wakiiMindmap": 1,
+  "meta": {
+    "story": "VU-53",
+    "generator": "story-workflow CREATE",
+    "generatedAt": "2026-10-13T23:05:00+07:00",
+    "dest": "story-vu53-ui-redesign",
+    "worktreeModel": "story-hub"
+  },
+  "nodes": [
+    {
+      "id": "epic",
+      "kind": "epic",
+      "title": "UI/UX Redesign — shell + remotes + fe-shared design system",
+      "summary": "Design lại toàn bộ UI micro-frontend demo: design system fe-shared (tokens + base + primitives) + restyle shell/tasks/activity + đóng UX gaps bằng API hiện có. Spec: docs/superpowers/specs/2026-10-13-ui-redesign.md (rev 3 — spec-critic GO, plan-critic GO). Linear: VU-53."
+    },
+    {
+      "id": "sf-1",
+      "kind": "sf",
+      "title": "Design direction + design-system nền móng",
+      "tier": 0,
+      "design": "mock-prototype",
+      "summary": "Phase 1/3 — shippable: nền móng đứng cạnh UI cũ (không phá hiện trạng). DESIGN GATE ĐÃ XONG ngay lúc CREATE (front-load, kit 8b): user chọn hướng B Linear-referenced dark 2026-10-13 — hand-off docs/superpowers/designs/ui-redesign-direction.md (tokens + component props API đầy đủ), gate record direction-approved.md — SF-1 KHÔNG còn designer phase, implement thẳng theo hand-off. Việc còn lại: fe-shared src/styles (tokens+base @layer) + src/ui primitives (Badge/EmptyState/Skeleton/Spinner theo props API hand-off); rspack css rule ×3 + react/jsx-runtime shared ×3 + spike duplicate-react chạy SỚM (fallback class-only); cssFilename contenthash; standalone :4001/:4002 import base+tokens; tests primitives ở shell/tests. Demo: standalone 2 remote có baseline style + trang demo primitives khớp hand-off. Context pack: docs/superpowers/contexts/ui-redesign/sf-1.md"
+    },
+    {
+      "id": "sf-2",
+      "kind": "sf",
+      "title": "Shell — layout, login, nav, remote fallback",
+      "tier": 1,
+      "summary": "Phase 2/3 — shippable: shell restyle theo hand-off SF-1 (không gate mock riêng — direction đã user-duyệt). Layout container + header; NavBar active state (aria-current) + responsive ≤768px + user chip; HomePage dashboard + quick links + demo hints; LoginPage card (behavior + error messages giữ); RemoteSlot Suspense fallback = Skeleton + error fallback giữ text contract; styles.css rewrite scoped. Demo: login → nav active → dashboard → kill remote thấy fallback đẹp. Context pack: docs/superpowers/contexts/ui-redesign/sf-2.md"
+    },
+    {
+      "id": "sf-3",
+      "kind": "sf",
+      "title": "Remote tasks — TasksPage redesign + UX gaps",
+      "tier": 1,
+      "summary": "Phase 2/3 — shippable: tasks UI mới đầy đủ hành vi API sẵn có. Tách TaskForm/TaskList/TaskItem/StatusSelect; card responsive + StatusBadge primitive (giữ 'Gán thất bại' role=status); per-item busy; edit inline title/description (PATCH); delete + confirm (DELETE); assignee UUID rút gọn + createdAt; 'Tải thêm' (limit+offset) + filter status (?status=); skeleton/empty primitives; api.ts mở rộng đúng tasks.yaml. Demo: CRUD + filter + pagination trên UI mới; saga 4b badge nhận diện. Context pack: docs/superpowers/contexts/ui-redesign/sf-3.md"
+    },
+    {
+      "id": "sf-4",
+      "kind": "sf",
+      "title": "Remote activity — ActivityPage redesign",
+      "tier": 1,
+      "summary": "Phase 2/3 — shippable: activity UI mới. Stats grid responsive (aria-label giữ); feed timeline nhóm ngày + item card (badge action primitive + userName/taskTitle + time vi-VN); refresh busy state; skeleton feed/stats độc lập (giữ Promise.allSettled); EmptyState hướng dẫn sang Tasks; scoped css theo kiến trúc đích. Demo: thao tác ở Tasks → Activity phản ánh đúng badge từng action. Context pack: docs/superpowers/contexts/ui-redesign/sf-4.md"
+    },
+    {
+      "id": "sf-5",
+      "kind": "sf",
+      "title": "Convergence — browser walkthrough + docs + security",
+      "tier": 2,
+      "summary": "Phase 3/3 — shippable: hội tụ + chứng minh. Rule 0 browser walkthrough compose :8080 đủ 8 acceptance epic (login → Tasks CRUD → Activity Kafka → saga 4b badge → re-assign bob → kill remote fallback → standalone có style) + responsive 375px; full suite 3 package test+typecheck+build xanh, lockfile không đổi, e2e smoke vẫn PASS; docs sync (walkthrough 4/4b, READMEs); security pass 0 P0/P1; scaffold sanity verify-only; improvements-log. Demo: NGƯỜI xác nhận walkthrough PASS trên UI mới (human gate cuối). Context pack: docs/superpowers/contexts/ui-redesign/sf-5.md"
+    }
+  ],
+  "edges": [
+    { "from": "epic", "to": "sf-1", "rel": "contains" },
+    { "from": "epic", "to": "sf-2", "rel": "contains" },
+    { "from": "epic", "to": "sf-3", "rel": "contains" },
+    { "from": "epic", "to": "sf-4", "rel": "contains" },
+    { "from": "epic", "to": "sf-5", "rel": "contains" },
+    { "from": "sf-2", "to": "sf-1", "rel": "depends-on" },
+    { "from": "sf-3", "to": "sf-1", "rel": "depends-on" },
+    { "from": "sf-4", "to": "sf-1", "rel": "depends-on" },
+    { "from": "sf-5", "to": "sf-2", "rel": "depends-on" },
+    { "from": "sf-5", "to": "sf-3", "rel": "depends-on" },
+    { "from": "sf-5", "to": "sf-4", "rel": "depends-on" }
+  ]
+}

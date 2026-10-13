@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Boilerplate — Hướng 08 · Cinematic Sound-Viz</title>
+<style>
+:root{
+  --bg:#030304; --bg1:#08080b;
+  --line:#1d1d23; --line2:#2a2a33;
+  --tx:#f3f3f6; --tx2:#b9bac3; --tx3:#9a9ba6; --ph:#6f707a;
+  --blue:#56a8ff; --purple:#9d6bff; --vub:#6fb3ff; --bar:#787884; --red:#ff5b5b;
+  --grad:linear-gradient(135deg,var(--blue),var(--purple));
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1440px;height:900px;overflow:hidden;background:var(--bg)}
+body{font-family:var(--sans);color:var(--tx);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.board{width:1440px;height:900px;display:flex;flex-direction:column}
+
+/* ===== board chrome ===== */
+.board-head{height:50px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line)}
+.bh-l{display:flex;align-items:baseline;gap:14px}
+.bh-brand{font-size:13px;font-weight:800;letter-spacing:.22em}
+.bh-sub{font-size:12px;color:var(--tx3)}
+.bh-r{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--tx3)}
+
+.planes{flex:1;display:flex;min-height:0}
+.cap{flex:none;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--tx3);margin-bottom:10px}
+.cap::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ===== plane 01 · màn Tasks (hero) ===== */
+.plane-hero{width:876px;flex:none;display:flex;flex-direction:column;padding:14px 26px 16px 28px}
+.vdivider{width:1px;background:var(--line);margin:14px 0}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:0 22px 14px}
+
+.appnav{height:52px;flex:none;display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--line)}
+.brand{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.ni{font-size:14px;color:#a6a7b0;position:relative;padding:16px 0}
+.ni.on{color:var(--tx)}
+.ni.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--grad)}
+.nav-r{margin-left:auto;display:flex;align-items:center}
+.uchip{font-family:var(--mono);font-size:12.5px;color:var(--tx2);border:1px solid var(--line2);border-radius:999px;padding:6px 12px}
+.ghost{background:none;border:1px solid var(--line2);border-radius:4px;color:var(--tx2);font-family:inherit}
+.btn-out{margin-left:10px;height:32px;padding:0 12px;font-size:13px}
+
+/* dòng sự kiện 24h — "xung sự kiện" của hệ thống */
+.stream{flex:none;border-bottom:1px solid var(--line);padding:8px 0 11px}
+.s-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--tx3);margin-bottom:6px}
+.s-top b{color:var(--tx2);font-weight:600}
+.peaks{height:26px;position:relative;display:flex;justify-content:space-between;align-items:flex-end}
+.peaks::before{content:"";position:absolute;left:0;right:0;bottom:0;height:9px;background:repeating-linear-gradient(90deg,#1b1b21 0 1px,transparent 1px 9px)}
+.peaks i{width:3px;border-radius:1px;background:var(--bar)}
+.i-red{background:var(--red);border-radius:0}          /* sự kiện gán thất bại — "clipped" */
+.i-new{background:linear-gradient(180deg,var(--blue),var(--purple))} /* sự kiện mới nhất */
+.an{position:absolute;top:-22px;font-family:var(--mono);font-size:12px;color:var(--tx3)}
+.an b{font-weight:600;color:var(--tx2)}
+.an-now{right:0}
+.an-fail{right:34px}
+.an-fail b{color:var(--red)}
+
+.pagehead{flex:none;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:16px 0 14px}
+h1{font-size:52px;font-weight:800;letter-spacing:-.035em;line-height:.92;display:flex;align-items:flex-end;gap:12px}
+.mk{width:13px;height:37px;background:var(--grad);transform:skewX(-16deg);border-radius:2px;margin-bottom:3px}
+.ph-sub{max-width:330px;text-align:right;font-size:14px;line-height:1.45;color:var(--tx3);padding-bottom:4px}
+
+.create{flex:none;display:grid;grid-template-columns:1fr 1.55fr auto;gap:10px;align-items:end;margin-bottom:14px}
+.f label{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.f input{width:100%;height:38px;background:#0c0c10;border:1px solid var(--line2);border-radius:4px;color:var(--tx);font-family:inherit;font-size:14px;padding:0 12px}
+.f input::placeholder{color:var(--ph)}
+.f input.focus{border-color:#dfe0e8;caret-color:var(--blue)}
+.btn-create{height:38px;padding:0 22px;border:none;border-radius:4px;background:var(--grad);color:#0a0a12;font-weight:700;font-size:14px;font-family:inherit;letter-spacing:.01em}
+
+.listhead{flex:none;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:11px 0}
+.chips{display:flex;gap:8px}
+.chip{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--tx2);border:1px solid var(--line2);border-radius:999px;padding:5px 12px}
+.chip b{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tx3)}
+.listmeta{font-family:var(--mono);font-size:12.5px;color:var(--tx3)}
+
+.tasks{flex:1;min-height:0;display:flex;flex-direction:column}
+.row{flex:1;min-height:60px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;border-bottom:1px solid var(--line);padding:6px 2px}
+.row:last-of-type{border-bottom:none}
+.vu{display:flex;align-items:flex-end;gap:3px;height:20px}
+.vu i{width:3px;border-radius:1px;background:var(--bar)}       /* cần làm: tín hiệu chờ */
+.vu.doing i{background:var(--vub)}                              /* đang làm: có năng lượng */
+.vu.fail i{background:var(--red)}                               /* gán thất bại: bị clip */
+.vu .flat{width:30px;height:2px;background:#8b8b96;border-radius:1px;margin-bottom:9px} /* xong: lặng */
+.rt{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.rd{font-size:14px;color:var(--tx2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rmeta{text-align:right}
+.badges{display:flex;gap:6px;justify-content:flex-end}
+.b{font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:3px}
+.b-todo{border:1px solid #3c3c46;color:#c9cad3}
+.b-doing{background:var(--vub);color:#071019}
+.b-done{background:#23232b;color:#aeb0ba}
+.b-fail{border:1px solid rgba(255,91,91,.6);color:var(--red)}
+.mm{font-family:var(--mono);font-size:12.5px;color:var(--tx3);margin-top:7px}
+.mm .dead{color:var(--red);text-decoration:line-through}
+.loadmore{flex:none;margin-top:12px;height:40px;width:100%;font-size:14px}
+.statusbar{flex:none;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:12px;padding-top:9px;font-family:var(--mono);font-size:12px;color:var(--tx3)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--vub);margin-right:7px}
+
+/* ===== plane 02 · màn Activity (cột phụ) ===== */
+.plane-side{flex:1;min-width:0;display:flex;flex-direction:column;padding:14px 26px 14px 22px}
+.activity{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:14px 18px 12px}
+.ahead{flex:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.btn-ref{display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:13px}
+.stats{flex:none;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{padding:10px 0 9px 12px}
+.stat:first-child{padding-left:0}
+.num{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.02em}
+.slab{font-size:12px;color:var(--tx3);margin-top:4px;line-height:1.25}
+.comp{flex:none;margin-top:10px}
+.cbar{height:6px;border-radius:3px;overflow:hidden;display:flex;background:#1a1a20}
+.cbar i{height:100%}
+.clab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--tx3);margin-top:6px}
+.feed{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:6px}
+.ev{flex:1;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding:4px 0}
+.ev:last-of-type{border-bottom:none}
+.g{display:flex;align-items:flex-end;gap:3px;height:18px}
+.g i{width:3px;border-radius:1px}
+.ev p{font-size:14px;color:var(--tx2);line-height:1.4}
+.ev p b{color:var(--tx);font-weight:600}
+.ev .t{font-family:var(--mono);font-size:12.5px;color:var(--tx3)}
+.ev .bad{color:var(--red);font-weight:600}
+.note{flex:none;font-family:var(--mono);font-size:12.5px;color:var(--tx3);padding-top:9px}
+
+/* ===== plane 03 · màn Đăng nhập (title card) ===== */
+.login{flex:none;background:var(--bg1);border:1px solid var(--line);border-radius:10px;padding:18px 24px 16px;margin-top:12px}
+.wordmark{text-align:center;font-size:22px;font-weight:800;letter-spacing:.30em;padding-left:.30em}
+.lsub{text-align:center;font-size:13px;color:var(--tx3);margin-top:5px}
+.lrule{width:44px;height:3px;border-radius:2px;background:var(--grad);margin:11px auto 14px}
+.lfields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lfields input{font-family:var(--mono);letter-spacing:.02em}
+.btn-login{margin-top:12px;width:100%;height:40px;border:none;border-radius:4px;background:var(--grad);color:#0a0a12;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:.01em}
+.hint{text-align:center;font-family:var(--mono);font-size:12px;color:var(--tx3);margin-top:10px}
+.cap.cap3{margin-top:14px}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <header class="board-head">
+    <div class="bh-l">
+      <span class="bh-brand">BOILERPLATE</span>
+      <span class="bh-sub">demo quản lý task · micro-frontend nội bộ</span>
+    </div>
+    <div class="bh-r">HƯỚNG 08 · CINEMATIC SOUND-VIZ — BẢNG 1440 × 900</div>
+  </header>
+
+  <main class="planes">
+
+    <!-- ═══ 01 · MÀN TASKS ═══ -->
+    <section class="plane-hero">
+      <div class="cap">01 · MÀN CHÍNH — TASKS</div>
+      <div class="screen">
+
+        <nav class="appnav">
+          <span class="brand">Boilerplate</span>
+          <span class="ni">Trang chủ</span>
+          <span class="ni on">Tasks</span>
+          <span class="ni">Activity</span>
+          <span class="nav-r">
+            <span class="uchip">alice@demo.local</span>
+            <button class="ghost btn-out">Đăng xuất</button>
+          </span>
+        </nav>
+
+        <!-- baseline 24h: mỗi đỉnh = 1 sự kiện trên topic -->
+        <div class="stream">
+          <div class="s-top">
+            <span>topic <b>tasks.events</b> — 18 sự kiện / 24h qua</span>
+          </div>
+          <div class="peaks">
+            <i style="height:4px"></i><i style="height:3px"></i><i style="height:5px"></i><i style="height:4px"></i>
+            <i style="height:6px"></i><i style="height:5px"></i><i style="height:7px"></i><i style="height:6px"></i>
+            <i style="height:8px"></i><i style="height:7px"></i><i style="height:9px"></i><i style="height:8px"></i>
+            <i style="height:11px"></i><i style="height:9px"></i><i style="height:12px"></i>
+            <i class="i-red" style="height:13px"></i><i style="height:14px"></i><i class="i-new" style="height:19px"></i>
+            <span class="an an-now">mới nhất <b>22:15</b></span>
+            <span class="an an-fail">lỗi gán <b>21:58</b></span>
+          </div>
+        </div>
+
+        <div class="pagehead">
+          <h1>Tasks<span class="mk"></span></h1>
+          <p class="ph-sub">Quản lý task nội bộ — mọi tạo / gán / chuyển trạng thái đều phát một sự kiện Kafka.</p>
+        </div>
+
+        <form class="create">
+          <div class="f">
+            <label for="tt">Tiêu đề</label>
+            <input id="tt" class="focus" type="text" placeholder="VD: Thêm smoke test cho activity feed">
+          </div>
+          <div class="f">
+            <label for="mt">Mô tả</label>
+            <input id="mt" type="text" placeholder="Một dòng mô tả ngắn cho task mới">
+          </div>
+          <button class="btn-create" type="button">Tạo task</button>
+        </form>
+
+        <div class="listhead">
+          <div class="chips">
+            <span class="chip">Cần làm <b>12</b></span>
+            <span class="chip">Đang làm <b>7</b></span>
+            <span class="chip">Xong <b>5</b></span>
+          </div>
+          <span class="listmeta">Danh sách (6/24)</span>
+        </div>
+
+        <div class="tasks">
+          <div class="row">
+            <span class="vu doing"><i style="height:4px"></i><i style="height:9px"></i><i style="height:13px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:6px"></i><i style="height:9px"></i></span>
+            <div>
+              <div class="rt">Chuẩn bị demo khách hàng</div>
+              <div class="rd">Chốt kịch bản walkthrough và bộ dữ liệu mẫu cho demo tuần sau.</div>
+            </div>
+            <div class="rmeta">
+              <div class="badges"><span class="b b-doing">Đang làm</span></div>
+              <div class="mm">55555555-… · 13/10/2026 22:15</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="vu"><i style="height:3px"></i><i style="height:5px"></i><i style="height:4px"></i><i style="height:3px"></i><i style="height:5px"></i><i style="height:4px"></i><i style="height:3px"></i></span>
+            <div>
+              <div class="rt">Viết e2e smoke</div>
+              <div class="rd">Smoke test luồng đăng nhập → tạo task → đọc activity feed.</div>
+            </div>
+            <div class="rmeta">
+              <div class="badges"><span class="b b-todo">Cần làm</span></div>
+              <div class="mm">3f9a2c1e-… · 13/10/2026 22:09</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="vu fail"><i style="height:3px"></i><i style="height:15px;border-radius:0"></i><i style="height:4px"></i><i style="height:3px"></i></span>
+            <div>
+              <div class="rt">Deploy gateway</div>
+              <div class="rd">Rollout gateway v2.3 lên staging, kiểm tra topic tasks.events.</div>
+            </div>
+            <div class="rmeta">
+              <div class="badges"><span class="b b-todo">Cần làm</span><span class="b b-fail">Gán thất bại</span></div>
+              <div class="mm"><span class="dead">55555555-…</span> · 13/10/2026 21:58</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="vu"><span class="flat"></span></span>
+            <div>
+              <div class="rt">Dọn log staging</div>
+              <div class="rd">Xoá log cũ trên staging, chỉ giữ lại 7 ngày gần nhất.</div>
+            </div>
+            <div class="rmeta">
+              <div class="badges"><span class="b b-done">Xong</span></div>
+              <div class="mm">9c1d84b2-… · 13/10/2026 21:40</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="ghost loadmore" type="button">Tải thêm</button>
+
+        <div class="statusbar">
+          <span><span class="dot"></span>kafka · đã kết nối — consumer tasks-ui</span>
+          <span>demo nội bộ · fresh-clone → mở qua browser</span>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="vdivider"></div>
+
+    <!-- ═══ 02 + 03 · CỘT PHỤ ═══ -->
+    <aside class="plane-side">
+      <div class="cap">02 · CỘT PHỤ — ACTIVITY</div>
+
+      <div class="activity">
+        <div class="ahead">
+          <h2>Activity</h2>
+          <button class="ghost btn-ref" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+            Làm mới
+          </button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="num">24</div><div class="slab">Tổng số task</div></div>
+          <div class="stat"><div class="num">12</div><div class="slab">Cần làm</div></div>
+          <div class="stat"><div class="num">7</div><div class="slab">Đang làm</div></div>
+          <div class="stat"><div class="num">5</div><div class="slab">Xong</div></div>
+          <div class="stat"><div class="num">18</div><div class="slab">Sự kiện 24h qua</div></div>
+        </div>
+
+        <div class="comp">
+          <div class="cbar">
+            <i style="width:50%;background:#55555f"></i>
+            <i style="width:29.2%;background:var(--vub)"></i>
+            <i style="width:20.8%;background:#dcdce2"></i>
+          </div>
+          <div class="clab"><span>phân bố trạng thái</span><span>12 / 7 / 5</span></div>
+        </div>
+
+        <div class="feed">
+          <div class="ev">
+            <span class="g"><i style="height:3px;background:#56a8ff"></i><i style="height:9px;background:#79a4ff"></i><i style="height:15px;background:#9d8dff"></i><i style="height:8px;background:#8f7bff"></i><i style="height:2px;background:#9d6bff"></i></span>
+            <p>alice đã tạo task <b>«Chuẩn bị demo khách hàng»</b> <span class="t">· 22:15</span></p>
+          </div>
+          <div class="ev">
+            <span class="g"><i style="height:2px;background:#9fa0ab"></i><i style="height:6px;background:#9fa0ab"></i><i style="height:3px;background:#9fa0ab"></i><i style="height:6px;background:#9fa0ab"></i><i style="height:2px;background:#9fa0ab"></i></span>
+            <p>bob được gán task <b>«Viết e2e smoke»</b> <span class="t">· 22:09</span></p>
+          </div>
+          <div class="ev">
+            <span class="g"><i style="height:2px;background:var(--red)"></i><i style="height:14px;background:var(--red);border-radius:0"></i><i style="height:4px;background:var(--red)"></i><i style="height:2px;background:var(--red)"></i></span>
+            <p>system: task <b>«Deploy gateway»</b> <span class="bad">gán thất bại</span> <span class="t">· 21:58</span></p>
+          </div>
+          <div class="ev">
+            <span class="g"><i style="height:9px;background:#8b8b96"></i><i style="height:5px;background:#8b8b96"></i><i style="height:2px;background:#8b8b96"></i><i style="height:2px;background:#8b8b96"></i></span>
+            <p>carol chuyển trạng thái <b>«Dọn log staging»</b> → Xong <span class="t">· 21:40</span></p>
+          </div>
+          <div class="ev">
+            <span class="g"><i style="height:2px;background:var(--bar)"></i><i style="height:7px;background:var(--bar)"></i><i style="height:11px;background:var(--bar)"></i><i style="height:6px;background:var(--bar)"></i><i style="height:2px;background:var(--bar)"></i></span>
+            <p>alice đã tạo task <b>«Dọn log staging»</b> <span class="t">· 21:12</span></p>
+          </div>
+          <div class="note">Còn 13 sự kiện cũ hơn trong 24h qua →</div>
+        </div>
+      </div>
+
+      <div class="cap cap3">03 · THẺ NHỎ — ĐĂNG NHẬP</div>
+
+      <div class="login">
+        <div class="wordmark">BOILERPLATE</div>
+        <div class="lsub">đăng nhập để tiếp tục</div>
+        <div class="lrule"></div>
+        <div class="lfields">
+          <div class="f">
+            <label for="em">Email</label>
+            <input id="em" type="text" value="alice@demo.local">
+          </div>
+          <div class="f">
+            <label for="pw">Mật khẩu</label>
+            <input id="pw" type="password" value="demopassword" style="letter-spacing:4px">
+          </div>
+        </div>
+        <button class="btn-login" type="button">Đăng nhập</button>
+        <div class="hint">alice@demo.local / demo-password</div>
+      </div>
+    </aside>
+
+  </main>
+</div>
+</body>
+</html>

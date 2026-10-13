@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Boilerplate — design board</title>
+<style>
+  :root{
+    --paper:#EBE7DC;          /* nền board */
+    --surface:#FFFFFF;        /* mặt app */
+    --ink:#23221E;            /* mực chính */
+    --ink2:#565247;           /* mực phụ  6.9:1 trên trắng */
+    --ink3:#6E6A5E;           /* mực cấp 3 5.3:1 trên trắng */
+    --hair:#E7E2D5;           /* hairline trong mặt app */
+    --line:#C9C3B4;           /* viền khung */
+    --red:#B3261E; --red-bg:#FBEAE7;
+    --amber:#8A5A10; --amber-bg:#FAF0DB;
+    --green:#2E6B3C; --green-bg:#E8F1E9;
+    --todo:#4E4A41; --todo-bg:#F1EEE6;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;
+  }
+  .mono{font-family:var(--mono)}
+
+  /* ===== BOARD ===== */
+  .board{width:1440px;height:900px;padding:24px 48px 22px;display:flex;flex-direction:column}
+  .masthead{border-top:2px solid var(--ink);padding-top:8px;display:flex;justify-content:space-between;align-items:baseline}
+  .masthead .story{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--ink2)}
+  .masthead .clock{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .planes{display:grid;grid-template-columns:844px 468px;gap:32px;margin-top:14px;flex:1;min-height:0}
+  .side{display:flex;flex-direction:column;gap:16px}
+  .cap{height:16px;margin-bottom:6px;display:flex;align-items:baseline;gap:8px}
+  .cap .idx{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink)}
+  .cap .lbl{font-size:12px;letter-spacing:.12em;color:var(--ink2)}
+  .window{background:var(--surface);border:1px solid var(--line);border-radius:0}
+
+  /* ===== PLANE 1 · TASKS ===== */
+  .hero{height:774px;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{height:48px;flex:0 0 48px;display:flex;align-items:center;gap:22px;padding:0 18px;border-bottom:1px solid var(--hair)}
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand .wm{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .brand .arch{font-family:var(--mono);font-size:12px;color:var(--ink3);padding-left:10px;border-left:1px solid var(--line)}
+  .nav{display:flex;height:48px;margin-left:6px}
+  .nav a{display:flex;align-items:center;padding:0 12px;font-size:14px;color:var(--ink2);text-decoration:none}
+  .nav a.on{color:var(--ink);font-weight:600;box-shadow:inset 0 -2px 0 var(--ink)}
+  .topbar .spacer{flex:1}
+  .userchip{font-family:var(--mono);font-size:12px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;background:#FBFAF6}
+  .logout{font-size:14px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}
+
+  .page{padding:16px 18px 0;display:flex;flex-direction:column;flex:1;min-height:0}
+  .page-head{display:flex;align-items:baseline;justify-content:space-between}
+  h1{font-size:21px;font-weight:750;letter-spacing:-.01em}
+  .listmeta{font-family:var(--mono);font-size:12.5px;color:var(--ink3)}
+
+  /* form — “phiếu nhập” của sổ cái */
+  .newtask{border:1px solid var(--line);margin-top:12px;padding:12px 14px 13px;background:#FFFDF9}
+  .newtask .ftitle{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--ink3)}
+  .frow{display:flex;gap:12px;margin-top:8px}
+  .field{flex:1;min-width:0}
+  .field.n3{flex:3}.field.n2{flex:2}
+  .field label{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:4px}
+  .field input{width:100%;height:32px;border:1px solid var(--line);border-radius:0;background:#FBFAF6;padding:0 10px;font-size:14px;color:var(--ink);font-family:inherit}
+  .field input.mono-in{font-family:var(--mono);font-size:13px}
+  .frow2{display:flex;justify-content:flex-end;margin-top:10px}
+  .btn-primary{height:32px;padding:0 18px;border:0;border-radius:0;background:var(--ink);color:#FBFAF7;font-size:14px;font-weight:600;font-family:inherit}
+
+  /* filter chips */
+  .filters{display:flex;gap:8px;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;color:var(--todo)}
+  .chip .sq{width:7px;height:7px;flex:0 0 7px}
+  .chip .n{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+
+  /* sổ cái task */
+  .ledger{margin-top:12px;border-top:1px solid var(--line);flex:1;min-height:0;display:flex;flex-direction:column}
+  .thead,.task{display:grid;grid-template-columns:minmax(0,1fr) 128px 150px 128px;align-items:center}
+  .thead{height:26px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink3);border-bottom:1px solid var(--hair)}
+  .thead>div{padding:0 12px 0 14px}
+  .thead>div:first-child{padding-left:2px}
+  .task{padding:9px 0;border-bottom:1px solid var(--hair);flex:1;min-height:56px}
+  .task:last-of-type{border-bottom:0}
+  .t-main{min-width:0;padding-right:10px}
+  .t-title{font-size:14.5px;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t-desc{font-size:14px;color:var(--ink2);line-height:1.35;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cell{border-left:1px solid var(--hair);padding:0 12px 0 14px;min-width:0}
+  .c-name{font-size:12.5px;color:var(--ink2);line-height:1.35}
+  .c-uuid{font-family:var(--mono);font-size:12px;color:var(--ink3);line-height:1.4}
+  .c-uuid.fail{color:var(--red)}
+  .c-time{font-family:var(--mono);font-size:12px;color:var(--ink2);white-space:nowrap}
+  .badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 8px;font-size:12.5px;font-weight:600;border:1px solid;white-space:nowrap}
+  .badge .sq{width:7px;height:7px}
+  .b-todo{color:var(--todo);background:var(--todo-bg);border-color:#B8B2A4}
+  .b-doing{color:var(--amber);background:var(--amber-bg);border-color:#C99A45}
+  .b-done{color:var(--green);background:var(--green-bg);border-color:#7FA98A}
+  .b-fail{color:var(--red);background:var(--red-bg);border-color:#D8938D}
+  .sq-todo{background:#8F887A}.sq-doing{background:#A8740F}.sq-done{background:#3F7A50}.sq-fail{background:var(--red)}
+
+  .loadmore{margin:12px 0 16px}
+  .btn-ghost{width:100%;height:34px;border:1px solid var(--line);border-radius:0;background:var(--surface);color:var(--ink);font-size:14px;font-family:inherit}
+  .btn-ghost .n{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+
+  /* ===== PLANE 2 · ACTIVITY ===== */
+  .act{height:458px;display:flex;flex-direction:column;padding:14px 18px 12px;overflow:hidden}
+  .act-head{display:flex;align-items:center;justify-content:space-between}
+  .act-head h2{font-size:18px;font-weight:750;letter-spacing:-.01em}
+  .btn-refresh{height:26px;padding:0 12px;border:1px solid var(--line);border-radius:0;background:var(--surface);font-size:13px;color:var(--ink2);font-family:inherit}
+
+  .stats{margin-top:8px}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;padding:4.5px 0;border-bottom:1px solid var(--hair)}
+  .stat .k{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink2)}
+  .stat .k .sq{width:7px;height:7px;flex:0 0 7px}
+  .stat .k .sq.none{visibility:hidden}
+  .stat .v{font-size:17px;font-weight:700}
+  .bar{display:flex;gap:2px;height:6px;margin-top:10px}
+  .bar i{height:6px}
+
+  /* SIGNATURE — dải địa chấn sự kiện */
+  .ruler{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+  .ruler-head{display:flex;justify-content:space-between;align-items:baseline}
+  .ruler-head .l{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--ink3)}
+  .ruler-head .r{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+  .strip{position:relative;height:54px;margin-top:2px}
+  .axis{position:absolute;left:0;right:0;bottom:16px;height:1px;background:var(--line)}
+  .tick{position:absolute;bottom:16px;width:1px;height:5px;background:var(--line)}
+  .tlab{position:absolute;bottom:0;font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .ev{position:absolute;bottom:16px;width:0}
+  .ev .stem{position:absolute;bottom:4px;left:-1px;width:2px;background:var(--ink)}
+  .ev .dot{position:absolute;bottom:-4px;left:-4.5px;width:9px;height:9px;border-radius:50%;background:var(--ink)}
+  .ev.bad .stem{background:var(--red)}
+  .ev.bad .dot{background:var(--red)}
+  .legend{display:flex;gap:16px;margin-top:2px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2)}
+  .legend .d{width:7px;height:7px;border-radius:50%}
+
+  /* feed */
+  .feed{margin-top:12px;border-top:1px solid var(--line);padding-top:6px;flex:1}
+  .fi{position:relative;padding:8px 0 8px 20px}
+  .fi::before{content:"";position:absolute;left:3px;top:14px;width:7px;height:7px;border-radius:50%;background:var(--ink)}
+  .fi.bad::before{background:var(--red)}
+  .fi{border-left:1px solid var(--hair);margin-left:3px}
+  .fi p{font-size:14px;line-height:1.45;color:var(--ink)}
+  .fi .who{font-weight:650}
+  .fi .t{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .fi .fail{color:var(--red);font-weight:600}
+
+  /* ===== PLANE 3 · LOGIN ===== */
+  .login{height:288px;padding:20px 22px;display:flex;flex-direction:column}
+  .login .wm{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .login .sub{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-top:2px}
+  .login .field{margin-top:11px}
+  .login .field label{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:4px}
+  .login .field input{width:100%;height:34px;border:1px solid var(--line);border-radius:0;background:#FBFAF6;padding:0 10px;font-size:14px;color:var(--ink);font-family:var(--mono)}
+  .login .btn-primary{width:100%;height:36px;margin-top:14px;font-size:14.5px}
+  .hint{margin-top:12px;padding-top:9px;border-top:1px solid var(--hair);font-family:var(--mono);font-size:12px;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <div class="masthead">
+    <div class="story">BOILERPLATE · CỬA SỔ VÀO MỘT HỆ THỐNG ĐANG SỐNG</div>
+    <div class="clock">13/10/2026 · 22:15 · GMT+7</div>
+  </div>
+
+  <div class="planes">
+
+    <!-- ============ 01 · TASKS ============ -->
+    <section>
+      <div class="cap"><span class="idx">01</span><span class="lbl">TASKS — MÀN CHÍNH</span></div>
+      <div class="window hero">
+
+        <div class="topbar">
+          <div class="brand">
+            <span class="wm">Boilerplate</span>
+            <span class="arch">3 microservices · kafka</span>
+          </div>
+          <nav class="nav">
+            <a href="#">Trang chủ</a>
+            <a href="#" class="on">Tasks</a>
+            <a href="#">Activity</a>
+          </nav>
+          <div class="spacer"></div>
+          <span class="userchip">alice@demo.local</span>
+          <a class="logout" href="#">Đăng xuất</a>
+        </div>
+
+        <div class="page">
+          <div class="page-head">
+            <h1>Tasks</h1>
+            <span class="listmeta">Danh sách (6/24)</span>
+          </div>
+
+          <div class="newtask">
+            <div class="ftitle">TASK MỚI</div>
+            <div class="frow">
+              <div class="field n3">
+                <label for="tt">Tiêu đề</label>
+                <input id="tt" type="text" placeholder="VD: Chuẩn bị demo khách hàng">
+              </div>
+              <div class="field n2">
+                <label for="tm">Mô tả</label>
+                <input id="tm" type="text" placeholder="Ngữ cảnh, tiêu chí nghiệm thu…">
+              </div>
+            </div>
+            <div class="frow2">
+              <button class="btn-primary">Tạo task</button>
+            </div>
+          </div>
+
+          <div class="filters">
+            <span class="chip"><i class="sq sq-todo"></i>Cần làm <span class="n">12</span></span>
+            <span class="chip"><i class="sq sq-doing"></i>Đang làm <span class="n">7</span></span>
+            <span class="chip"><i class="sq sq-done"></i>Xong <span class="n">5</span></span>
+          </div>
+
+          <div class="ledger">
+            <div class="thead">
+              <div>TASK</div><div>NGƯỜI NHẬN</div><div>THỜI GIAN</div><div>TRẠNG THÁI</div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Chuẩn bị demo khách hàng</div>
+                <div class="t-desc">Walkthrough: tạo task → gateway → Kafka → feed</div>
+              </div>
+              <div class="cell"><div class="c-name">alice</div><div class="c-uuid">55555555-…</div></div>
+              <div class="cell c-time">13/10/2026 22:15</div>
+              <div class="cell"><span class="badge b-todo"><i class="sq sq-todo"></i>Cần làm</span></div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Viết e2e smoke</div>
+                <div class="t-desc">Smoke test tạo task qua gateway tới feed</div>
+              </div>
+              <div class="cell"><div class="c-name">bob</div><div class="c-uuid">b0e17c44-…</div></div>
+              <div class="cell c-time">13/10/2026 22:09</div>
+              <div class="cell"><span class="badge b-doing"><i class="sq sq-doing"></i>Đang làm</span></div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Deploy gateway</div>
+                <div class="t-desc">Rollout 1.4.2, gán on-call qua Kafka consumer</div>
+              </div>
+              <div class="cell"><div class="c-name">system</div><div class="c-uuid fail">chưa gán</div></div>
+              <div class="cell c-time">13/10/2026 21:58</div>
+              <div class="cell"><span class="badge b-fail"><i class="sq sq-fail"></i>Gán thất bại</span></div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Viết migration schema</div>
+                <div class="t-desc">Thêm cột assignee_id, index cho activity feed</div>
+              </div>
+              <div class="cell"><div class="c-name">bob</div><div class="c-uuid">3f8a12d6-…</div></div>
+              <div class="cell c-time">13/10/2026 18:12</div>
+              <div class="cell"><span class="badge b-done"><i class="sq sq-done"></i>Xong</span></div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Rà soát log gateway</div>
+                <div class="t-desc">Lọc lỗi 5xx 24h qua, tổng hợp cho retro</div>
+              </div>
+              <div class="cell"><div class="c-name">alice</div><div class="c-uuid">55555555-…</div></div>
+              <div class="cell c-time">13/10/2026 16:40</div>
+              <div class="cell"><span class="badge b-doing"><i class="sq sq-doing"></i>Đang làm</span></div>
+            </div>
+
+            <div class="task">
+              <div class="t-main">
+                <div class="t-title">Đấu nối Kafka consumer</div>
+                <div class="t-desc">Consumer tasks-feed, replay sự kiện gán thất bại</div>
+              </div>
+              <div class="cell"><div class="c-name">bob</div><div class="c-uuid">b0e17c44-…</div></div>
+              <div class="cell c-time">13/10/2026 14:05</div>
+              <div class="cell"><span class="badge b-todo"><i class="sq sq-todo"></i>Cần làm</span></div>
+            </div>
+          </div>
+
+          <div class="loadmore">
+            <button class="btn-ghost">Tải thêm&nbsp;&nbsp;<span class="n">18 task còn lại</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="side">
+
+      <!-- ============ 02 · ACTIVITY ============ -->
+      <section>
+        <div class="cap"><span class="idx">02</span><span class="lbl">ACTIVITY — CỘT PHỤ</span></div>
+        <div class="window act">
+          <div class="act-head">
+            <h2>Activity</h2>
+            <button class="btn-refresh">Làm mới</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><span class="k"><i class="sq none"></i>Tổng số task</span><span class="v">24</span></div>
+            <div class="stat"><span class="k"><i class="sq sq-todo"></i>Cần làm</span><span class="v">12</span></div>
+            <div class="stat"><span class="k"><i class="sq sq-doing"></i>Đang làm</span><span class="v">7</span></div>
+            <div class="stat"><span class="k"><i class="sq sq-done"></i>Xong</span><span class="v">5</span></div>
+            <div class="stat"><span class="k"><i class="sq none"></i>Sự kiện 24h qua</span><span class="v">18</span></div>
+          </div>
+          <div class="bar">
+            <i style="width:50%;background:#8F887A"></i>
+            <i style="width:29.17%;background:#A8740F"></i>
+            <i style="width:20.83%;background:#3F7A50"></i>
+          </div>
+
+          <div class="ruler">
+            <div class="ruler-head">
+              <span class="l">SỰ KIỆN GẦN NHẤT · 21:30 → 22:15</span>
+              <span class="r">18 / 24h qua</span>
+            </div>
+            <div class="strip">
+              <i class="axis"></i>
+              <i class="tick" style="left:0"></i><span class="tlab" style="left:0">21:30</span>
+              <i class="tick" style="left:33.33%"></i><span class="tlab" style="left:33.33%;transform:translateX(-50%)">21:45</span>
+              <i class="tick" style="left:66.67%"></i><span class="tlab" style="left:66.67%;transform:translateX(-50%)">22:00</span>
+              <i class="tick" style="right:0"></i><span class="tlab" style="right:0">22:15</span>
+              <span class="ev bad" style="left:62.2%"><i class="stem" style="height:16px"></i><i class="dot"></i></span>
+              <span class="ev" style="left:86.7%"><i class="stem" style="height:27px"></i><i class="dot"></i></span>
+              <span class="ev" style="left:98.6%"><i class="stem" style="height:21px"></i><i class="dot"></i></span>
+            </div>
+            <div class="legend">
+              <span><i class="d" style="background:#B3261E"></i>gán thất bại</span>
+              <span><i class="d" style="background:#23221E"></i>sự kiện</span>
+            </div>
+          </div>
+
+          <div class="feed">
+            <div class="fi">
+              <p><span class="who">alice</span> đã tạo task «Chuẩn bị demo khách hàng» <span class="t">· 22:15</span></p>
+            </div>
+            <div class="fi">
+              <p><span class="who">bob</span> được gán task «Viết e2e smoke» <span class="t">· 22:09</span></p>
+            </div>
+            <div class="fi bad">
+              <p><span class="who">system:</span> «Deploy gateway» <span class="fail">gán thất bại</span> <span class="t">· 21:58</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 03 · ĐĂNG NHẬP ============ -->
+      <section>
+        <div class="cap"><span class="idx">03</span><span class="lbl">ĐĂNG NHẬP — CARD</span></div>
+        <div class="window login">
+          <div class="wm">Boilerplate</div>
+          <div class="sub">công cụ nội bộ</div>
+          <div class="field">
+            <label for="em">Email</label>
+            <input id="em" type="email" value="alice@demo.local">
+          </div>
+          <div class="field">
+            <label for="pw">Mật khẩu</label>
+            <input id="pw" type="password" value="demo-password">
+          </div>
+          <button class="btn-primary">Đăng nhập</button>
+          <div class="hint">alice@demo.local / demo-password</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

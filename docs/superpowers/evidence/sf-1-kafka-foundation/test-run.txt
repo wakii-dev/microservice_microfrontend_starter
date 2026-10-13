@@ -1,0 +1,44 @@
+SF-1 Kafka foundation test evidence — 2026-10-13 (story FI-76, Linear FI-77)
+HEAD code commit: 43460a6 (branch wakii-dev/sf-1-kafka-foundation)
+tdd: skipped-tdd: SF-1 là infra/contracts (compose + docs + fixtures JSON) — không có
+     unit test surface; verify = local static validation + CI (contracts/compose-config
+     + convergence boot stack 10 services, kafka entry thật).
+
+Local static validation (dev machine KHÔNG Docker — compose/kafka verify BẮT BUỘC qua CI):
+
+1. Golden fixtures — node validator (exit 0):
+   - 5/5 file ENVELOPE OK: keys == [id,occurredAt,payload,schemaVersion,type]
+     (không field lạ ngoài envelope), schemaVersion==1, id UUIDv4 (nibble 4 + variant
+     [89ab]), occurredAt RFC3339 UTC, payload.taskId string.
+   - 5 file = 5 event type ĐỦ (task.created/updated/assigned/deleted/assignment_failed).
+2. users.json — node validator (exit 0):
+   - 5 entries, roles ⊆ enum [admin, user] (users.yaml Role), id UUIDv4, emails unique,
+     svc-activity@demo.local + fail@demo.local present.
+   - Cross-check V2__SeedUsers (read-only): seed đọc USERS_FIXTURE_PATH runtime, yêu cầu
+     id/email/displayName/roles — 2 user mới đủ → SeedMatch (SF-4 branch) giữ assumption.
+3. Compose YAML parse — npx js-yaml platform/docker-compose.yml (exit 0).
+   - grep xác nhận: kafka entry KHÔNG có khối ports (9092 internal-only), KHÔNG
+     depends_on nào trỏ kafka (chain 9 service nguyên vẹn), healthcheck full-path
+     /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092.
+4. Pre-add env render check: node-svc KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092};
+   go-svc KAFKA_BROKERS + AUTH_MOCK_URL + SVC_ACTIVITY_PASSWORD: ${...:?set in .env};
+   platform/.env.example CÓ KAFKA_BROKERS=kafka:9092 + SVC_ACTIVITY_PASSWORD=demo-password
+   → CI `docker compose config -q --env-file .env.example` không đỏ vì required-var missing.
+
+CI (GitHub Actions, run trên HEAD 43460a6 — ALL 5/5 SUCCESS, verify 2026-10-13):
+- contracts #38345667847: SUCCESS — compose config validate (docker compose config -q
+  --env-file .env.example VỚI entry kafka + SVC_ACTIVITY_PASSWORD required — exit 0)
+  + gitleaks + spectral + boot-smoke auth-mock/gateway + schemathesis
+- convergence #38345667905: SUCCESS — e2e smoke `up -d --build` boot ĐẦY ĐỦ stack
+  (giờ gồm kafka entry) → login→task→feed qua gateway xanh; copy-dir + scaffold
+  (scaffold output compose config -q) đều xanh
+  → ACCEPTANCE "convergence không đỏ vì kafka entry": PASS (không service depend kafka)
+- services-node-svc #38345667845 / services-go-svc #38345667842 /
+  services-spring-svc #38345667844: SUCCESS (không bị ảnh hưởng bởi SF-1 files)
+
+CI RESULTS summary: 5/5 workflows success tại HEAD 43460a6 — gh run list evidence:
+  38345667842 services-go-svc        completed success 43460a6
+  38345667844 services-spring-svc    completed success 43460a6
+  38345667905 convergence            completed success 43460a6
+  38345667845 services-node-svc      completed success 43460a6
+  38345667847 contracts              completed success 43460a6

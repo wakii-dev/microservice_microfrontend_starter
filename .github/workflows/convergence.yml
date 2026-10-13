@@ -59,8 +59,47 @@ jobs:
           done
           echo "gateway chain chưa ready sau 120s"; exit 1
 
-      - name: e2e 2 chiều — scripts/smoke/e2e.sh (happy + saga kèm DLQ assert)
-        run: bash scripts/smoke/e2e.sh
+      - name: e2e 2 chiều — scripts/smoke/e2e.sh (happy + saga; DLQ best-effort, marker SAGA_TASK_ID)
+        run: |
+          set -o pipefail
+          bash scripts/smoke/e2e.sh 2>&1 | tee /tmp/e2e.log
+
+      - name: Assert DLQ chính thức — kafka-console-consumer đọc task-events.dlq
+        # Run 3/4 lesson: docker compose exec từ TRONG e2e.sh fail âm thầm
+        # (stderr nuốt) trong khi CÙNG lệnh từ workflow run: block đọc được
+        # message DLQ ở CẢ 3 run (dump step: originalEvent task.assigned +
+        # retries:3, đúng saga taskId). → Assert chính thức nằm ở đây: parse
+        # marker SAGA_TASK_ID= từ e2e log, arrival gate bằng kafka-get-offsets
+        # (in tức thì, không quirk console-consumer trên topic rỗng), rồi
+        # console-consumer đọc nội dung grep taskId (acceptance saga nửa 2).
+        if: success()
+        run: |
+          SAGA_TASK_ID="$(grep -aoE 'SAGA_TASK_ID=[0-9a-f-]{36}' /tmp/e2e.log | tail -1 | cut -d= -f2 || true)"
+          if [ -z "$SAGA_TASK_ID" ]; then
+            echo "Không có SAGA_TASK_ID (SMOKE_SAGA=0 hoặc saga không chạy) — skip DLQ assert"
+            exit 0
+          fi
+          echo "Assert DLQ cho saga task $SAGA_TASK_ID"
+          ARRIVED=0
+          for i in $(seq 1 12); do
+            END_OFF="$(docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+              --topic task-events.dlq | sed -E 's/.*:([0-9]+)$/\1/')"
+            echo "attempt $i: task-events.dlq end offset = ${END_OFF:-<empty>}"
+            case "$END_OFF" in ''|*[!0-9]*) END_OFF=0;; esac
+            [ "$END_OFF" -ge 1 ] && { ARRIVED=1; break; }
+            sleep 5
+          done
+          [ "$ARRIVED" = "1" ] || { echo "DLQ end offset vẫn 0 sau 60s — go chưa publish DLQ"; exit 1; }
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events.dlq --from-beginning --timeout-ms 10000 > /tmp/dlq.log 2>/dev/null
+          if grep -q "$SAGA_TASK_ID" /tmp/dlq.log; then
+            echo "PASS DLQ: event gốc của task $SAGA_TASK_ID nằm ở task-events.dlq — acceptance saga đủ 2 nửa (status + DLQ)"
+            head -c 600 /tmp/dlq.log
+          else
+            echo "FAIL: DLQ có message nhưng không thấy taskId=$SAGA_TASK_ID"; head -c 600 /tmp/dlq.log; exit 1
+          fi
 
       - name: Dump compose state + logs + DLQ khi fail (CÙNG --env-file — interpolation ẩn lỗi thật)
         if: failure()

@@ -162,6 +162,14 @@ jobs:
           | docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
             --bootstrap-server localhost:9092 --topic task-events
+          # Proof produce: đọc lại topic bằng console consumer (group ngẫu nhiên,
+          # KHÔNG đụng go-svc-activity) — message PHẢI nằm trong topic
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh \
+            --bootstrap-server localhost:9092 --topic task-events --from-beginning \
+            --timeout-ms 10000 --max-messages 1 > /tmp/topic-msg.txt || true
+          cat /tmp/topic-msg.txt
+          grep -q 'task.created' /tmp/topic-msg.txt || { echo "produce THẤT BẠI — message không nằm trong topic"; exit 1; }
           # Poll feed (JWT alice) đến khi consumer ghi row — rebalance + earliest có thể mất vài giây
           TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
             -H 'Content-Type: application/json' \
@@ -173,7 +181,17 @@ jobs:
             echo "$FEED" | grep -q '6f1a2b3c-4d5e-4f60-8a71-9b0c1d2e3f40' && FOUND=1 && break
             sleep 2
           done
-          [ "${FOUND:-0}" = "1" ] || { echo "feed chưa thấy event sau 60s — consumer không consume?"; echo "$FEED"; docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail 80 go-svc kafka; exit 1; }
+          if [ "${FOUND:-0}" != "1" ]; then
+            echo "feed chưa thấy event sau 60s — consumer không consume?"; echo "$FEED"
+            echo "=== go-svc consumer-related logs (full window) ==="
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs go-svc 2>&1 | grep -iE "consumed|retry|dlq|duplicate|consumer|compensat|fetch" | tail -50 || true
+            echo "=== DLQ nội dung (nếu consumer poison/DLQ) ==="
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh \
+              --bootstrap-server localhost:9092 --topic task-events.dlq --from-beginning \
+              --timeout-ms 5000 --max-messages 5 || true
+            exit 1
+          fi
           echo "$FEED" | grep -q '"action":"task.created"'
 
       - name: Idempotency e2e — publish DUPLICATE fixture → feed KHÔNG nhân đôi

@@ -14,10 +14,14 @@ import (
 
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/api"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/config"
+	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/consumer"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/logging"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/resolve"
 	"github.com/wakii-dev/architecture-overview/services/go-svc/internal/store"
 )
+
+// svcActivityEmail — fixture service user (users.json SF-1) cho service-token.
+const svcActivityEmail = "svc-activity@demo.local"
 
 func main() {
 	cfg, err := config.Load(os.Getenv)
@@ -44,16 +48,37 @@ func main() {
 		os.Exit(1)
 	}
 
-	resolver := resolve.New(cfg.SpringSvcURL)
+	// Service-token (SF-3): login svc-activity lấy JWT cho resolver enrich
+	// userName lúc consume. Warmup retry backoff — KHÔNG chặn boot, KHÔNG
+	// crash khi auth-mock chưa lên (go chỉ depends_on postgres — conventions/09).
+	tokenSource := resolve.NewTokenSource(cfg.AuthMockURL, svcActivityEmail, cfg.SvcActivityPassword)
+	go tokenSource.Warmup(context.Background(), log)
+
+	resolver := resolve.New(cfg.SpringSvcURL).WithServiceToken(tokenSource)
+
+	// Kafka consumer (SF-3 — ADR-0008): lazy-connect, broker chưa lên chỉ log
+	// warn + retry vòng kế; KHÔNG vào readyz, KHÔNG depends_on.
+	publisher := consumer.NewKafkaPublisher(cfg.KafkaBrokers...)
+	defer publisher.Close()
+	runner := &consumer.Runner{
+		Reader:    consumer.NewReader(cfg.KafkaBrokers, cfg.KafkaGroup, cfg.KafkaTopic),
+		Handler:   &consumer.Handler{Store: st, Tasks: st, Resolver: resolver, Log: log},
+		Publisher: publisher,
+		Topic:     cfg.KafkaTopic,
+		DLQTopic:  cfg.KafkaDLQTopic,
+		Log:       log,
+	}
+	consumerCtx, stopConsumer := context.WithCancel(context.Background())
+	defer stopConsumer()
+	go runner.Run(consumerCtx)
 
 	handler := api.NewRouter(api.Deps{
 		Log:         log,
 		Readiness:   st, // Ready() = migration xong + SELECT probe schema tasks
 		CORSOrigins: cfg.CORSDevOrigins,
 		JWTSecret:   []byte(cfg.JWTSecret),
-		Events: &api.EventsHandler{Store: st, Resolver: resolver, Tasks: st, Log: log},
-		Feed:   &api.FeedHandler{Store: st, Resolver: resolver, Tasks: st, Log: log},
-		Stats:  &api.StatsHandler{Store: st, Tasks: st, Log: log},
+		Feed:        &api.FeedHandler{Store: st, Resolver: resolver, Tasks: st, Log: log},
+		Stats:       &api.StatsHandler{Store: st, Tasks: st, Log: log},
 	})
 
 	srv := &http.Server{

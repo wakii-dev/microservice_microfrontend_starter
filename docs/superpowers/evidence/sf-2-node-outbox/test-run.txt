@@ -1,12 +1,22 @@
 SF-2 (FI-79) — node-svc outbox + producer + compensation consumer — test evidence
-HEAD (code): 923124e7eade96f0664be85a1a8fff09d628ab7e
+HEAD (code): 6bcd3cbb342b56625b0dd5a1fea64add187a7cab
+  = commit "fix(node-svc): consumer subscribe/run retry" (trên 923124e — chuỗi
+  đầy đủ ở `git log --oneline 8d04e6d..6bcd3cb`)
   (commit sau dòng này chỉ docs/evidence — B1 docs-only)
 
 Commands (2026-10-13, worktree sf-2-node-outbox):
   pnpm --filter node-svc test  → Test Files 5 passed (5) / Tests 48 passed (48)
+                                 (chạy lại xanh sau fix commit 6bcd3cb)
   pnpm --filter node-svc build → tsc OK (exit 0)
   drizzle-kit generate         → 0001_status-assignment-failed.sql + 0002_outbox-table.sql
   schema-diff.test             → migration vs canonical DDL diff = 0 (outbox whitelist riêng)
+
+CI (services-node-svc.yml @6bcd3cb): run 38366615385 → success 4/4 jobs
+  (build+test, docker build, boot-smoke postgres, **kafka-boot-smoke MỚI**:
+   outbox row published_at IS NOT NULL trên broker thật — relay THẬT)
+  Run đầu 38365465140 đỏ ở kafka-boot-smoke (root cause + fix: consumer
+  subscribe trước topic auto-create xong → UNKNOWN_TOPIC_OR_PARTITION thoát
+  subscribe() → unhandled rejection crash — fix bằng vòng retry subscribe/run).
 
 Test coverage chính (48, từ 23 baseline):
   - event matrix presence-based: POST→task.created, PATCH có assigneeId→task.assigned

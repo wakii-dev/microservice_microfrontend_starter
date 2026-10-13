@@ -37,6 +37,9 @@ class TeamApiTest {
     @Autowired
     private JwtVerifier verifier;
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
     private String bearer() {
         String token = Jwts.builder()
                 .subject(ALICE_ID)
@@ -76,6 +79,12 @@ class TeamApiTest {
                         .andExpect(status().isCreated())
                         .andReturn().getResponse().getContentAsString())
                 .get("id").asText();
+
+        // Members insert NATIVE (không qua managed collection) — test tx dùng chung
+        // persistence context nên GET sẽ đọc entity cached với collection rỗng.
+        // flush+clear = mô phỏng request mới (persistence context riêng như production).
+        entityManager.flush();
+        entityManager.clear();
 
         mockMvc.perform(get("/api/users/teams/" + teamId).header("Authorization", bearer()))
                 .andExpect(status().isOk())

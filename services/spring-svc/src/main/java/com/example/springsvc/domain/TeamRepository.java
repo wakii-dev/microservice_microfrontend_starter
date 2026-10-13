@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -26,6 +27,8 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
             + "WHERE tm.team_id IN (SELECT id FROM teams WHERE name = :name)", nativeQuery = true)
     long countMembersByTeamName(@Param("name") String name);
 
-    // Test cleanup (test non-transactional commit thật) — DB cascade dọn team_members
+    // Test cleanup (test non-transactional commit thật) — DB cascade dọn team_members.
+    // Derived delete query KHÔNG tự mở tx như CRUD methods → cần @Transactional tường minh.
+    @Transactional
     long deleteByName(String name);
 }

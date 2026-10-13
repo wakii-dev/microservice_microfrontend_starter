@@ -1,10 +1,10 @@
 # Fresh-clone walkthrough — từ clone đến demo chạy được
 
-Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong SF-7 (evidence: `docs/superpowers/evidence/sf-7-convergence/test-run.txt`).
+Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 10 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
 
 ## 0. Toolchain cần có
 
-Đọc [toolchain.md](toolchain.md). Tóm tắt: Node 22 + pnpm 9 (corepack) + JDK 21 + Go 1.24 + bash/curl. Docker TÙY CHỌN (không có vẫn xong được — chọn đường A hoặc B bên dưới).
+Đọc [toolchain.md](toolchain.md). Tóm tắt: Node 22 + pnpm 9 (corepack) + JDK 21 + Go 1.24 + bash/curl. Docker TÙY CHỌN (không có vẫn xong được — chọn đường A hoặc B bên dưới). LƯU Ý: saga demo (mục 4b) + DLQ cần Kafka → đường A (compose); đường B chỉ chạy happy path (`SMOKE_SAGA=0`).
 
 ## 1. Clone + cài đặt
 
@@ -29,8 +29,13 @@ Cần Postgres 16 chạy sẵn với init script của platform (schemas + roles
 ```bash
 cd platform
 cp .env.example .env                # điền JWT_SECRET (openssl rand -base64 48) + passwords
-docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự
-bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root (PASS = chuỗi login→task→feed qua :8080)
+docker compose down -v              # ⚠️ CHẠY 1 LẦN sau pull nếu máy có pgdata volume TỪ bản cũ:
+                                    #    Flyway V2 seed user svc-fail/svc-activity chỉ chạy lúc volume MỚI —
+                                    #    volume cũ thiếu 2 user này → saga demo (mục 4b) chết ở auth/validate.
+docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
+bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 2 chiều:
+                                    #   happy: login→task→feed QUA KAFKA (outbox → topic → go consumer)
+                                    #   saga : assign svc-fail → task assignment_failed + event gốc ở task-events.dlq
 # Mở browser: http://localhost:8080/ → login alice@demo.local / demo-password
 ```
 
@@ -67,8 +72,8 @@ Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conv
 ### Verify chain bằng smoke script (cả hai đường)
 
 Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08):
-- Đường A (từ repo root, không cd platform): `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`).
-- Đường B: không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
+- Đường A (từ repo root, không cd platform): `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`). Mặc định chạy **2 chiều** — happy + saga kèm DLQ assert (cần docker để exec `kafka-console-consumer` trong container kafka).
+- Đường B (native, không Kafka): `SMOKE_SAGA=0 bash scripts/smoke/e2e.sh` — chỉ happy path. Không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
 
 ## 4. Browser walkthrough (human gate — KHÔNG trong CI)
 
@@ -76,10 +81,23 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers):
 
 1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → login `alice@demo.local` / `demo-password`.
 2. Nav → **Tasks**: tạo task mới → hiện trong danh sách (node-svc thật; có assignee thì đi qua spring validate).
-3. Nav → **Activity**: feed/stats phản ánh task vừa tạo (node push event → go-svc).
+3. Nav → **Activity**: feed/stats phản ánh task vừa tạo (outbox → Kafka `task-events` → go consumer).
 4. Kill 1 remote dev server → reload shell → error boundary, remote còn lại vẫn chạy.
 
-> ⚠️ Known bug (SF-7 phát hiện, đã report epic FI-62 — chờ SF-3 fix): route users của spring-svc đang double-prefix (`/api/users/users/*`) → tạo task **kèm assignee** bị 422, userName trong feed rỗng. Task không assignee chạy bình thường.
+### 4b. Saga demo (story FI-76 — cần đường A, có Kafka)
+
+1. Trong **Tasks**, tạo task rồi PATCH/assign cho user fixture fail: **`fail@demo.local`** (hoặc gọi `PATCH /api/tasks/{id}` với `assigneeId=55555555-5555-4555-8555-555555555555`).
+2. Go consumer cố tình fail ×3 (simulate hook — assignee trùng svc-fail) → publish compensating event `task.assignment_failed` vào topic chung → node compensation consumer cập nhật status.
+3. Quan sát: task chuyển sang status **`assignment_failed`** (badge trên remote-tasks — SF-3). Event gốc (task.assigned) nằm ở `task-events.dlq`:
+   ```bash
+   docker compose -f platform/docker-compose.yml --env-file platform/.env.example exec -T kafka \
+     /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+     --topic task-events.dlq --from-beginning --timeout-ms 15000
+   # mỗi dòng = 1 DLQ message: {"schemaVersion":1,"originalEvent":"{...task.assigned...}","error":{"reason":...,"retries":3,...}}
+   ```
+4. Re-assign cho user hợp lệ (bob) → saga chạy lại từ đầu, task về luồng bình thường (writable path).
+
+> CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 
 ## 5. Copy/scaffold project mới
 
@@ -95,5 +113,5 @@ pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.m
 | Workflow | Chạy khi | Bằng chứng |
 |----------|---------|-----------|
 | `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-mock + schemathesis |
-| `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke |
-| `convergence` (SF-7) | mọi push | e2e smoke compose + copy-dir standalone + scaffold output build được |
+| `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
+| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |

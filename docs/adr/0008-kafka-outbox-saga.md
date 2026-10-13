@@ -13,7 +13,7 @@ ADR-0006 chọn fire-and-forget cho event node → go và tự nhận mất-mấ
 5. **Simplifications CÓ CHỦ ĐÍCH** (điểm cần thay khi copy production):
    - **Presence-based trigger**: PATCH body có `assigneeId` = bắn event (kể cả same-value) — không value-compare trong tx; production: value-compare.
    - **In-memory retry count ×3** — không retry topic/state ngoài; production: retry topic + backoff lâu.
-   - **PLAINTEXT**, 1 partition, auto-create topic, segmentio/kafka-go cho go-svc — production: SASL/SSL, partition theo load, tạo topic tường minh, franz-go.
+   - **PLAINTEXT**, 1 partition, auto-create topic (broker-side mặc định — CI convergence tạo sẵn `task-events` + `task-events.dlq` tường minh chỉ để chống auto-create race lúc boot, không phải quản trị topic), segmentio/kafka-go cho go-svc — production: SASL/SSL, partition theo load, tạo topic tường minh, franz-go.
    - Envelope `id` do producer sinh trong tx — là khóa idempotency duy nhất của consumer.
 
 ## Consequences

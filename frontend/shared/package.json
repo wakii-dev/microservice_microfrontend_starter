@@ -1,0 +1,37 @@
+{
+  "name": "@boilerplate/fe-shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "fe-shared — repo-con thứ 7, SF-1 sở hữu (SF-5/6 READ-ONLY; đụng = flag coordinator). Standalone-copy: remote/shell copy KÈM package này.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./api-client": "./src/api-client.ts",
+    "./token-storage": "./src/token-storage.ts",
+    "./error-envelope": "./src/error-envelope.ts",
+    "./mf-bootstrap": "./src/mf-bootstrap.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@module-federation/enhanced": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "mfToolkit": {
+    "$comment": "Kết quả spike SF-1 (frontend/spike) — versions ĐÃ TEST THẬT host :3000 load được remote :4001 trên Rspack + React 19 (evidence: docs/superpowers/evidence/sf-1-mf-spike-host.png). SF-5/6 dùng ĐÚNG matrix này; nâng cấp phải re-spike. Learned trong spike: (1) host entry cần async boundary (import('./bootstrap') — không import shared tĩnh, tránh RUNTIME-006 loadShareSync); (2) JSX dùng automatic runtime (jsc.transform.react.runtime='automatic').",
+    "pinned": {
+      "react": "19.3.0",
+      "react-dom": "19.3.0",
+      "@rspack/core": "1.7.12",
+      "@rspack/cli": "1.7.12",
+      "@module-federation/enhanced": "0.21.6"
+    },
+    "spikePath": "frontend/spike",
+    "validatedDate": "2026-10-12"
+  }
+}

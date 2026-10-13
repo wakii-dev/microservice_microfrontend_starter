@@ -1,0 +1,188 @@
+openapi: 3.0.3
+info:
+  title: Auth API (auth-mock)
+  version: 0.1.0
+  x-disclaimer: NOT FOR PRODUCTION — mock JWT service cho boilerplate; điểm cắm OIDC thật ở lần copy dự án thật.
+  description: |
+    ⚠️ NOT FOR PRODUCTION — auth-mock là mock JWT service (SF-1 sở hữu, chi tiết platform/auth-mock/).
+    Cấp JWT HS256 theo `contracts/auth/token-contract.md`; đọc users fixture từ `contracts/auth/users.json`.
+    Discovery stub OIDC-ready: GET /.well-known/openid-configuration trả metadata tĩnh (không có JWKS — HS256 symmetric).
+    Mọi path được gateway route qua `/api/auth` (pass-through — service mount prefix này).
+    Gateway KHÔNG chặn thiếu-token trên `/api/auth` (đây là entry point login).
+servers:
+  - url: /api/auth
+tags:
+  - name: auth
+paths:
+  /healthz:
+    get:
+      tags: [auth]
+      summary: Liveness probe
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Service sống
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [auth]
+      summary: Readiness probe (users fixture đã load)
+      operationId: getReadyz
+      responses:
+        "200":
+          description: Sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Fixture chưa load
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      tags: [auth]
+      summary: Đăng nhập bằng fixture user → JWT HS256 theo token contract
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: JWT hợp lệ (claims + TTL theo contracts/auth/token-contract.md)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Email không có trong fixture hoặc sai dev password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /users:
+    get:
+      tags: [auth]
+      summary: Danh sách fixture users (demo — FE login screen dùng để pick user)
+      operationId: listFixtureUsers
+      responses:
+        "200":
+          description: Users từ contracts/auth/users.json
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FixtureUserList"
+  /.well-known/openid-configuration:
+    get:
+      tags: [auth]
+      summary: Discovery stub OIDC-ready (metadata tĩnh — không JWKS vì HS256)
+      operationId: getOpenIdConfiguration
+      responses:
+        "200":
+          description: OIDC discovery metadata (stub)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenIdConfiguration"
+components:
+  responses:
+    BadRequest:
+      description: Payload không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          description: Mock-only — dev password chung qua env AUTH_MOCK_DEV_PASSWORD (xem token-contract.md)
+    LoginResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn]
+      properties:
+        accessToken:
+          type: string
+          description: JWT HS256 — claims sub/email/roles, TTL 8h (token-contract.md)
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresIn:
+          type: integer
+          description: TTL tính bằng giây — luôn 28800 (8h) theo token contract
+          enum: [28800]
+    FixtureUser:
+      type: object
+      required: [id, email, roles]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        roles:
+          type: array
+          items:
+            type: string
+    FixtureUserList:
+      type: object
+      required: [users]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/FixtureUser"
+    OpenIdConfiguration:
+      type: object
+      required: [issuer, token_endpoint]
+      properties:
+        issuer:
+          type: string
+        token_endpoint:
+          type: string
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      description: Error envelope chung — shape chuẩn hoá trong platform/conventions/04-error-envelope.md
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+              nullable: true
+            details:
+              nullable: true

@@ -1,0 +1,196 @@
+name: services-go-svc
+
+# SF-4 (FI-72) — CI cho go-svc. Copy từ .github/workflow-templates/services-ci.yml.example.
+# jobs: build-test (go vet + unit + integration vs postgres service), docker-build,
+# boot-smoke (compose up + health + migration + POST event→feed + schemathesis).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/go-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+      - ".github/workflows/services-go-svc.yml"
+  pull_request:
+    paths:
+      - "services/go-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+
+jobs:
+  build-test:
+    name: build + test (go-svc)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: boilerplate
+          POSTGRES_PASSWORD: ci-postgres-password
+          POSTGRES_DB: boilerplate
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U boilerplate -d boilerplate"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      # integration test đọc qua env này (test/integration, build tag `integration`)
+      GO_TEST_ADMIN_URL: postgres://boilerplate:ci-postgres-password@localhost:5432/boilerplate
+      GO_TEST_NODE_URL: postgres://node_svc:ci-node-password@localhost:5432/boilerplate
+      GO_TEST_GO_URL: postgres://go_svc:ci-go-password@localhost:5432/boilerplate
+      GO_TEST_READONLY_URL: postgres://go_readonly:ci-goreadonly-password@localhost:5432/boilerplate
+      GO_TEST_JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+      # KHÔNG mount init script vào service container (mount từ workspace chạy
+      # TRƯỚC checkout → dir root-owned → checkout clean EACCES — run 38226444489).
+      # Chạy init script THẬT của SF-1 qua psql client (TCP + PGHOST) sau checkout.
+      - name: Init schemas + roles (SF-1 init script thật qua psql TCP)
+        run: |
+          PGHOST=localhost PGPORT=5432 PGPASSWORD=ci-postgres-password \
+          POSTGRES_USER=boilerplate POSTGRES_DB=boilerplate \
+          NODE_SVC_DB_PASSWORD=ci-node-password \
+          SPRING_SVC_DB_PASSWORD=ci-spring-password \
+          GO_SVC_DB_PASSWORD=ci-go-password \
+          GO_READONLY_DB_PASSWORD=ci-goreadonly-password \
+          bash platform/postgres/init/01-init.sh
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      # go.sum + indirect deps không commit được (dev machine không có Go) —
+      # tidy sửa in-place mỗi run (deterministic); Dockerfile build stage chạy tidy tương tự
+      - name: go mod tidy
+        run: cd services/go-svc && go mod tidy
+      - name: go vet
+        run: cd services/go-svc && go vet ./...
+      - name: unit tests
+        run: cd services/go-svc && go test ./...
+      - name: integration tests (readonly-exit criterion)
+        run: cd services/go-svc && go test -tags integration -v ./test/integration/...
+
+  boot-smoke:
+    name: boot-smoke (go-svc + postgres + auth-mock)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot postgres trước (apply DDL by node_svc sau đó)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            -f services/go-svc/ci.compose.override.yml up -d --build postgres auth-mock
+          for i in $(seq 1 30); do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T postgres pg_isready -U boilerplate -d boilerplate >/dev/null 2>&1 && break
+            sleep 2
+          done
+
+      - name: Boot go-svc TRƯỚC khi có tasks table — readyz PHẢI 503 (probe thật, conventions/02 rule 2)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            -f services/go-svc/ci.compose.override.yml up -d --build go-svc
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8082/healthz >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:8082/healthz | grep -q '"status":"ok"'
+          CODE=$(curl -s -o /tmp/readyz-503.json -w '%{http_code}' http://localhost:8082/readyz)
+          [ "$CODE" = "503" ] || { echo "readyz = $CODE, want 503 (tasks table chưa tồn tại — probe phải thật)"; cat /tmp/readyz-503.json; exit 1; }
+          grep -q '"code":"DEPENDENCY_DOWN"' /tmp/readyz-503.json
+
+      - name: Apply canonical DDL + seed bằng ROLE node_svc (ALTER DEFAULT PRIVILEGES chỉ hiệu lực với bảng do node_svc tạo)
+        run: |
+          # grep -v CREATE SCHEMA: schema tasks đã có từ init — node_svc không có
+          # CREATE trên DATABASE nên CREATE SCHEMA IF NOT EXISTS vẫn permission-denied
+          grep -v '^CREATE SCHEMA' contracts/db/tasks-schema.sql | \
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T postgres psql -v ON_ERROR_STOP=1 -U node_svc -d boilerplate
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T postgres psql -v ON_ERROR_STOP=1 -U node_svc -d boilerplate -c "
+          INSERT INTO tasks.tasks (id, title, description, status, created_by) VALUES
+            ('aaaaaaaa-1111-4111-8111-111111111101', 'Seed task A', NULL, 'todo',      '11111111-1111-4111-8111-111111111111'),
+            ('aaaaaaaa-1111-4111-8111-111111111102', 'Seed task B', NULL, 'in_progress','11111111-1111-4111-8111-111111111111'),
+            ('aaaaaaaa-1111-4111-8111-111111111103', 'Seed task C', NULL, 'done',      '11111111-1111-4111-8111-111111111111');"
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T postgres psql -U boilerplate -d boilerplate -tAc \
+            "SELECT tableowner FROM pg_tables WHERE schemaname='tasks' AND tablename='tasks'" | grep -qx node_svc
+
+      - name: readyz 200 sau DDL + readonly SELECT hoạt động
+        run: |
+          for i in $(seq 1 15); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8082/readyz)
+            [ "$CODE" = "200" ] && break
+            sleep 2
+          done
+          curl -sf http://localhost:8082/readyz | grep -q '"status":"ok"'
+
+      - name: Login auth-mock (JWT thật, cùng JWT_SECRET) — event → feed → stats roundtrip
+        run: |
+          TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"alice@demo.local","password":"demo-password"}' \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["accessToken"])')
+          echo "$TOKEN" > /tmp/jwt
+          # POST event (fire-and-forget push shape — taskId trùng seed task A)
+          curl -sf -X POST http://localhost:8082/api/activity/events \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+            -d '{"taskId":"aaaaaaaa-1111-4111-8111-111111111101","userId":"11111111-1111-4111-8111-111111111111","action":"task.created","timestamp":"2026-10-12T05:00:00Z"}' \
+            | grep -q '"accepted":true'
+          # GET feed — event hiện trong feed + taskTitle từ seed
+          FEED=$(curl -sf http://localhost:8082/api/activity/feed -H "Authorization: Bearer $TOKEN")
+          echo "$FEED" | grep -q 'aaaaaaaa-1111-4111-8111-111111111101'
+          echo "$FEED" | grep -q '"taskTitle":"Seed task A"'
+          # GET stats — exit criterion: seed bằng owner role → stats đúng
+          STATS=$(curl -sf http://localhost:8082/api/activity/stats -H "Authorization: Bearer $TOKEN")
+          echo "$STATS"
+          echo "$STATS" | python3 -c '
+          import json, sys
+          s = json.load(sys.stdin)
+          assert s["totalTasks"] == 3, "totalTasks=%s want 3" % s["totalTasks"]
+          assert s["tasksByStatus"] == {"todo": 1, "in_progress": 1, "done": 1}, s["tasksByStatus"]
+          assert s["recentEvents"] >= 1, "recentEvents 0 sau khi vua POST event"'
+          # 401 từ service (token sai — enforcement 2 lớp, không phụ thuộc gateway)
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8082/api/activity/stats -H "Authorization: Bearer wrong-token")
+          [ "$CODE" = "401" ] || { echo "stats wrong-token = $CODE, want 401"; exit 1; }
+
+      - name: Swagger docs + openapi.yaml (auth-exempt trên service, direct :8082)
+        run: |
+          curl -sf http://localhost:8082/api/activity/docs -o /dev/null
+          curl -sf http://localhost:8082/api/activity/openapi.yaml | grep -q 'Activity API'
+
+      - name: Gateway presence check — /api/activity không token → 401 envelope
+        run: |
+          # postgres đã có DDL từ step boot-trước (test readonly) → node migration
+          # CREATE TABLE sẽ đụng bảng tồn tại. Reset volume cho chain boot sạch.
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example down -v
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d gateway || {
+              echo "=== dependency failed — dump node-svc logs ===";
+              docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail 60 node-svc;
+              exit 1; }
+          sleep 3
+          CODE=$(curl -s -o /tmp/gw401.json -w '%{http_code}' http://localhost:8080/api/activity/stats)
+          [ "$CODE" = "401" ] || { echo "gateway = $CODE, want 401"; exit 1; }
+          grep -q 'UNAUTHORIZED' /tmp/gw401.json
+
+      - name: Schemathesis contract test (activity.yaml, kèm JWT — 2 bài học SF-1)
+        run: |
+          python3 -m venv /tmp/stenv
+          /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"
+          TOKEN=$(cat /tmp/jwt)
+          # base-url kèm prefix /api/activity — schemathesis 3.x bỏ qua servers.url relative
+          /tmp/stenv/bin/schemathesis run contracts/openapi/activity.yaml \
+            --base-url http://localhost:8082/api/activity \
+            --header "Authorization: Bearer $TOKEN" \
+            --checks all --hypothesis-max-examples 25 --hypothesis-deadline 5000
+
+  docker-build:
+    name: docker build (go-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage distroless — platform/conventions/01)
+        run: docker build -t go-svc:ci services/go-svc

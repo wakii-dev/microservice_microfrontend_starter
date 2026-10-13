@@ -1,0 +1,20 @@
+SF-1 test evidence — 2026-10-12T06:55Z (updated sau review fix round 1)
+HEAD: d69d471 (branch wakii-dev/sf-1-contracts-platform) — updated sau review r2 + verifier
+
+Unit/service tests:
+- platform/auth-mock: node --test → 7/7 pass (login claims+TTL, 401 sai password/email lạ, 400 thiếu field, healthz/readyz, discovery stub, fail-fast JWT_SECRET)
+
+Contract test (schemathesis 3.39, auth.yaml):
+- LOCAL (auth-mock native): 5/5 property groups PASSED, 29/29 checks — not_a_server_error, status_code_conformance, content_type, response_headers, response_schema, negative_data_rejection, ignored_auth
+- CI run 38215904211 (boot-smoke job): schemathesis step XANH — cùng spec, chống auth-mock container + postgres init thật + gateway routing thật
+
+Native runtime verification (dev machine KHÔNG Docker — docker verify qua CI):
+- auth-mock native: healthz/readyz 200 (cả naked lẫn mirror /api/auth/*); login alice@demo.local → JWT HS256 claims sub=11111111-…-111111111111 roles=[admin] iss=auth-mock TTL exp-iat=28800 (đúng token-contract.md)
+- login sai password → 401; CORS preflight 204 + ACAO echo origin (fix review P1#4)
+- MF spike: host :3000 load remote :4001 PASSED (browser-verified, evidence sf-1-mf-spike-host.png)
+
+CI run 38215904211 — 4/4 jobs success:
+- spectral lint (0 error), gitleaks, compose config validate, boot-smoke auth-mock (+gateway +postgres init thật + JWT claims/TTL assert + gateway 401 presence check + schemathesis)
+- URL: https://github.com/wakii-dev/architecture-overview/actions/runs/38215904211
+
+tdd: skipped-tdd: contracts/docs nền móng (spec/DDL/token-contract) — đặc tả hợp đồng, không phải code; auth-mock có tests viết cùng service (không red-first); spike là thí nghiệm pin-version

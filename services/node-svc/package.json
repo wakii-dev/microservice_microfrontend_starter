@@ -1,0 +1,38 @@
+{
+  "name": "node-svc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Task API — Fastify + TS. Epic FI-62 SF-2 (FI-70). Contract: contracts/openapi/tasks.yaml.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "generate:types": "openapi-typescript ../../contracts/openapi/tasks.yaml -o src/types/api.d.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@fastify/swagger": "^9.5.0",
+    "@fastify/swagger-ui": "^6.0.0",
+    "drizzle-orm": "^0.44.0",
+    "fastify": "^5.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.0",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "drizzle-kit": "^0.31.0",
+    "openapi-typescript": "^7.8.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

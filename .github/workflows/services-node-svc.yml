@@ -1,0 +1,106 @@
+name: services-node-svc
+
+# SF-2 (FI-70) — build + test + docker build + boot-smoke (conventions/
+# services-ci.yml.example pattern). Boot-smoke: compose postgres + node-svc
+# (DATABASE_URL từ compose entry — node_svc role, fix ab207d8), migration chạy
+# lúc boot, healthz/readyz 200, task create/list/delete smoke với JWT tự ký.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/node-svc/**"
+      - "platform/docker-compose.yml" # compose entry đổi cũng phải re-test
+      - "contracts/openapi/tasks.yaml" # typegen drift + contract
+      - "contracts/db/tasks-schema.sql" # schema-diff test đọc canonical DDL (review P2)
+      - ".github/workflows/services-node-svc.yml"
+  pull_request:
+    paths:
+      - "services/node-svc/**"
+      - "platform/docker-compose.yml"
+      - "contracts/openapi/tasks.yaml"
+
+jobs:
+  build-test:
+    name: build + test (node-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        # version đọc từ packageManager trong package.json (root) — không khai
+        # trùng ở đây (ERR_PNPM_BAD_PM_VERSION conflict, run 38227939477)
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Install (workspace root, frozen)
+        run: pnpm install --frozen-lockfile
+      - name: Unit + contract tests
+        run: pnpm --filter node-svc test
+      - name: Build (tsc)
+        run: pnpm --filter node-svc build
+      - name: Typegen drift check (contract-first)
+        run: |
+          pnpm --filter node-svc generate:types
+          git diff --exit-code -- services/node-svc/src/types/api.d.ts \
+            || (echo "::error::src/types/api.d.ts lệch contracts/openapi/tasks.yaml — chạy pnpm --filter node-svc generate:types rồi commit" && exit 1)
+
+  docker-build:
+    name: docker build (node-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage — platform/conventions/01)
+        run: docker build -t node-svc:ci services/node-svc
+
+  boot-smoke:
+    name: boot-smoke (node-svc + postgres, migration + CRUD smoke)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+      NODE_SVC_DB_PASSWORD: ci-node-password-not-real
+      POSTGRES_PASSWORD: ci-postgres-password-not-real
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot postgres + node-svc (compose — DATABASE_URL role node_svc)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres node-svc
+      - name: Smoke — healthz/readyz 200 (readyz = migration xong + DB ok)
+        run: |
+          ok=0
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3001/readyz >/dev/null && ok=1 && break
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::readyz không 200 trong 120s — node-svc logs:"
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs node-svc postgres
+            exit 1
+          fi
+          curl -sf http://localhost:3001/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:3001/readyz | grep -q '"status":"ok"'
+      - name: Smoke — CRUD qua JWT tự ký (create KHÔNG assignee → 201 khi go-svc vắng = fire-and-forget)
+        run: |
+          TOKEN=$(node -e '
+            const c = require("crypto");
+            const b = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const h = b({ alg: "HS256", typ: "JWT" });
+            const now = Math.floor(Date.now() / 1000);
+            const p = b({ sub: "11111111-1111-4111-8111-111111111111", email: "alice@demo.local", roles: ["admin"], iss: "auth-mock", iat: now, exp: now + 3600 });
+            const s = c.createHmac("sha256", process.env.JWT_SECRET).update(h + "." + p).digest("base64url");
+            console.log(h + "." + p + "." + s);')
+          BASE=http://localhost:3001/api/tasks
+          CODE=$(curl -s -o /tmp/task.json -w '%{http_code}' -X POST "$BASE" \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+            -d '{"title":"boot-smoke task"}')
+          echo "create → $CODE"
+          [ "$CODE" = "201" ] || (cat /tmp/task.json && exit 1)
+          TASK_ID=$(node -e 'console.log(require("/tmp/task.json").id)')
+          curl -sf "$BASE?limit=10" -H "Authorization: Bearer $TOKEN" | grep -q 'boot-smoke task'
+          curl -sf -X PATCH "$BASE/$TASK_ID" -H "Authorization: Bearer $TOKEN" \
+            -H 'Content-Type: application/json' -d '{"status":"done"}' | grep -q '"status":"done"'
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/$TASK_ID" \
+            -H "Authorization: Bearer $TOKEN")
+          [ "$CODE" = "204" ] || (echo "delete → $CODE (expected 204)" && exit 1)
+      - name: Smoke — 401 khi thiếu token (service tự chặn, không nhờ gateway)
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/api/tasks)
+          [ "$CODE" = "401" ] || (echo "no-token → $CODE (expected 401)" && exit 1)

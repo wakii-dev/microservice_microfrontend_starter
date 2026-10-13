@@ -1,0 +1,19 @@
+packages:
+  # FE workspace — SF-1 sở hữu frontend/shared; SF-5/6 READ-ONLY (đụng = flag coordinator)
+  - "frontend/*"
+  # Spike MF/Rspack (SF-1) — xoá được sau khi pin versions chốt
+  - "frontend/spike/*"
+  # [FLAG coordinator duyệt] SF-6 (FI-74) thêm — remotes phải vào workspace để dùng
+  # workspace:* (fe-shared) + catalog: (singletons); REQUIREMENT-GAP đã comment epic FI-62
+  - "frontend/remotes/*"
+  # node-svc (SF-2 điền impl) — spring-svc/go-svc không thuộc pnpm workspace
+  - "services/node-svc"
+
+# Catalog — single source versions cho MF singletons (SF-5/6 import cùng pin).
+# Nguồn: SF-1 spike + SF-5 re-validation (GAP epic FI-62 2026-10-12). Coordinator sở hữu.
+catalog:
+  react: 19.3.0
+  react-dom: 19.3.0
+  react-router: ^7.9.0
+  "@module-federation/enhanced": 0.21.6
+  "@rspack/core": 1.7.12

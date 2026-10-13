@@ -1,0 +1,111 @@
+name: convergence
+
+# SF-7 (FI-75) — convergence proof: e2e smoke (login→task→feed qua gateway trên
+# compose stack) + copy-dir standalone + scaffold output build được.
+# File RIÊNG của convergence — KHÔNG đụng workflow-templates (SF-1 sở hữu).
+# Browser walkthrough KHÔNG nằm ở đây (human gate tại checkpoint — docs/walkthrough.md).
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — các workflow khác: repo-wide follow-up)
+
+jobs:
+  e2e-smoke:
+    name: "e2e smoke — compose login→task→feed qua gateway"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20 # hung job không treo 6h (P1 code-review SF-7)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot full stack (9 services, health-gated chain)
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
+
+      - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
+            sleep 2
+          done
+          echo "gateway chain chưa ready sau 120s"; exit 1
+
+      - name: e2e smoke — scripts/smoke/e2e.sh
+        run: bash scripts/smoke/e2e.sh
+
+      - name: Dump compose state + logs khi fail (CÙNG --env-file — interpolation ẩn lỗi thật)
+        if: failure()
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example ps -a
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100
+
+  copy-dir-smoke:
+    name: "copy-dir standalone — node-svc + fe-shared ra tmp"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Copy node-svc ra tmp + build/test standalone (theo README node-svc)
+        run: |
+          REPO_ROOT="$PWD"
+          mkdir -p "$RUNNER_TEMP/standalone" "$RUNNER_TEMP/contracts/db"
+          cp -r services/node-svc "$RUNNER_TEMP/standalone/node-svc"
+          # schema-diff.test đọc ../../contracts/db/tasks-schema.sql (repo-relative —
+          # resolve từ standalone/node-svc lên $RUNNER_TEMP/contracts/db)
+          # → standalone copy phải kèm canonical DDL (đúng semantics "repo-con + contracts nó cần").
+          # FLAG SF-2: README node-svc mục standalone nên ghi dependency này.
+          cp contracts/db/tasks-schema.sql "$RUNNER_TEMP/contracts/db/"
+          cd "$RUNNER_TEMP/standalone/node-svc"
+          corepack enable
+          pnpm install --frozen-lockfile --ignore-workspace
+          pnpm test
+          pnpm build
+
+      - name: Copy frontend/shared ra tmp + typecheck standalone
+        # fe-shared KHÔNG có scripts riêng (package consumed qua source) — typecheck
+        # = sanity standalone với flags CLI (không tsconfig trong package). Ghi rõ: fe-shared
+        # inert cho node-svc (backend không import) — proof FE copy-dir mạnh hơn
+        # (remote kèm shared) là follow-up, ngoài scope SF-7 (context pack: "≥1 service + fe-shared").
+        run: |
+          REPO_ROOT="$PWD" # checkout cwd — tmp copy nằm NGOÀI repo, path phải absolute
+          mkdir -p "$RUNNER_TEMP/standalone/fe-shared"
+          cp -r frontend/shared/. "$RUNNER_TEMP/standalone/fe-shared/"
+          cd "$RUNNER_TEMP/standalone/fe-shared"
+          # fe-shared khai "catalog:" → cần workspace catalog khi standalone
+          # (P0 code-review SF-7: thiếu = ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC).
+          # Mini workspace = catalog block trích từ root pnpm-workspace.yaml.
+          # LƯU Ý: KHÔNG dùng --ignore-workspace ở đây — catalog là workspace
+          # feature, ignore-workspace tắt luôn catalog → lại ERR_CATALOG.
+          sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > pnpm-workspace.yaml
+          corepack enable
+          pnpm install --no-frozen-lockfile
+          pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler src/index.ts
+
+  scaffold-verify:
+    name: "scaffold output build được — demo-app"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Chạy scaffold → project mới tên demo-app
+        run: bash scripts/scaffold/scaffold.sh demo-app --out "$RUNNER_TEMP/demo-app"
+
+      - name: Output install + build FE shell + compose config
+        # Narrowing đã duyệt (context pack sf-7 ACCEPTANCE: "CI verify scaffold output
+        # build được") — full e2e trên output = human gate cần Docker (SCAFFOLD.md).
+        run: |
+          cd "$RUNNER_TEMP/demo-app"
+          corepack enable
+          pnpm install --no-frozen-lockfile
+          pnpm --filter "@demo-app/shell" build
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q

@@ -1,0 +1,115 @@
+name: contracts
+
+# SF-1 (FI-64) — contract lint + compose validate + gitleaks + boot-smoke auth-mock
+# (container up + /healthz + /readyz + login qua gateway + schemathesis scaffold)
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "contracts/**"
+      - "platform/**"
+      - ".github/workflows/contracts.yml"
+      - ".spectral.yaml"
+  pull_request:
+    paths:
+      - "contracts/**"
+      - "platform/**"
+      - ".github/workflows/contracts.yml"
+      - ".spectral.yaml"
+
+jobs:
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    # gitleaks-action đọc PR commits qua API — thiếu pull-requests:read thì 403
+    # "Resource not accessible by integration" (run 38300531175)
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  spectral:
+    name: spectral lint (openapi)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint contracts/openapi
+        run: npx --yes @stoplight/spectral-cli@6 lint "contracts/openapi/*.yaml"
+
+  compose-config:
+    name: compose config validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose.yml (KHÔNG build — services khung chưa có impl)
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q
+
+  boot-smoke-auth-mock:
+    name: boot-smoke auth-mock (+gateway) + schemathesis
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot SF-1 trio (postgres + auth-mock + gateway) — chạy postgres init script thật
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres auth-mock gateway
+
+      - name: Wait /healthz + /readyz (auth-mock trực tiếp)
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8090/healthz >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:8090/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8090/readyz  | grep -q '"status":"ok"'
+
+      - name: Gateway routing — swagger UI + login QUA gateway :8080
+        run: |
+          curl -sf http://localhost:8080/api/auth/docs -o /dev/null   # swagger UI qua gateway
+          RES=$(curl -s -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"alice@demo.local","password":"demo-password"}')
+          echo "$RES" | grep -q '"expiresIn":28800'
+          echo "$RES" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/' > /tmp/jwt
+
+      - name: Verify JWT claims theo token contract (sub/email/roles, TTL 8h)
+        run: |
+          # JWT = base64url KHÔNG padding — `base64 -d` fail (learned run 38212318058);
+          # decode qua python3 urlsafe_b64decode + tự bổ sung padding
+          PAYLOAD=$(TOKEN=$(cat /tmp/jwt) python3 -c 'import base64, os; seg = os.environ["TOKEN"].split(".")[1]; seg += "=" * (-len(seg) % 4); print(base64.urlsafe_b64decode(seg).decode())')
+          echo "$PAYLOAD"
+          echo "$PAYLOAD" | grep -q '"sub":"11111111-1111-4111-8111-111111111111"'
+          echo "$PAYLOAD" | grep -q '"email":"alice@demo.local"'
+          echo "$PAYLOAD" | grep -q '"roles":\["admin"\]'
+          echo "$PAYLOAD" | grep -q '"iss":"auth-mock"'
+          TTL=$(echo "$PAYLOAD" | jq '.exp - .iat')
+          [ "$TTL" = "28800" ] || { echo "TTL sai: $TTL (expected 28800)"; exit 1; }
+
+      - name: Gateway chặn thiếu-token 401 trên /api/tasks (presence check)
+        run: |
+          CODE=$(curl -s -o /tmp/401.json -w '%{http_code}' http://localhost:8080/api/tasks)
+          [ "$CODE" = "401" ] || { echo "expected 401, got $CODE"; exit 1; }
+          grep -q '"code":"UNAUTHORIZED"' /tmp/401.json
+          # /api/auth KHÔNG bị chặn (entry login)
+          CODE2=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' -d '{}')
+          [ "$CODE2" != "401" ] || { echo "/api/auth bị presence check — sai routing table"; exit 1; }
+
+      - name: Schemathesis contract test (scaffold — auth.yaml)
+        run: |
+          # venv path deterministic — pipx bin dir trên runner không ổn định (run 38213445973)
+          python3 -m venv /tmp/stenv
+          /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"
+          # base-url kèm path /api/auth — schemathesis 3.x bỏ qua servers.url relative (run 38213876943)
+          /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml \
+            --base-url http://localhost:8090/api/auth \
+            --checks all --hypothesis-max-examples 25 --hypothesis-deadline 5000

@@ -1,0 +1,44 @@
+# SF-6 FE remotes — test run evidence (FI-74)
+Date: 2026-10-12 | HEAD: bd8859d (branch wakii-dev/sf-6-fe-remotes)
+Tác động commit sau lần chạy chính: c81309d (MF runtime fix — browser walkthrough chạy TRÊN build chứa fix này), 5af5659 (evidence docs), bd8859d (review round-1 fixes — comment/README-only, KHÔNG chạm code → kết quả test còn giá trị tại HEAD; reviewer round 2 đã xác nhận "deterministic round 1 còn giá trị tại bd8859d").
+tdd: RED→GREEN — api tests viết trước khi fix lazy-bind fetch (4 RED → fix bind lazy tại call-time → 10 GREEN, remote tasks); activity + shell suites GREEN tại HEAD.
+
+## Suites
+- vitest @boilerplate/remote-tasks: 10/10 PASS (component mocked + api shape + timeout)
+- vitest @boilerplate/remote-activity: 9/9 PASS (feed render userName/taskTitle + stats + allSettled isolation)
+- vitest @boilerplate/shell: 15/15 PASS (không vỡ sau thay đổi fe-shared loadRemoteModule)
+- typecheck cả 2 remote + (shell giữ nguyên): tsc --noEmit PASS
+- rspack build prod cả 2 remote: PASS (remoteEntry.js + chunks, publicPath /remotes/<name>/)
+
+## Rule 0 BROWSER WALKTHROUGH (Orca embedded browser, native e2e — TỰ THẤY bằng screenshot)
+Stack sống native: Postgres portable 16.9 (:5432, init script SF-1) → spring-svc :8081 (mvnw, JDK 21) →
+node-svc :3001 (migration boot OK) → go-svc :8082 (readyz 200) → auth-mock :8090 → shell :3000 →
+remote-tasks :4001 → remote-activity :4002. JWT_SECRET chung 4 service; CORS_DEV_ORIGIN :3000/:4001/:4002.
+
+| # | Bước | Bằng chứng |
+|---|------|-----------|
+| 01 | Login alice@demo.local (auth-mock thật) → nav hiện user | 01-login-home.png |
+| 02 | Route /tasks: remote `tasks` LOAD VÀO SHELL (form + danh sách 1/1 từ node-svc thật) | 02-tasks-remote-loaded.png |
+| 03 | Tạo task qua UI → PATCH chain: node-svc thật + spring validate → list 2/2 | 03-tasks-created.png |
+| 04 | Route /activity: feed (taskTitle từ go-svc thật) + stats phản ánh (Tổng 2) | 04-activity-feed.png |
+| 05 | Sửa status → in_progress: PATCH node-svc thật → select "Đang làm" persist | 05-tasks-status-inprogress.png |
+| 06 | Feed 3/3 có event "đã cập nhật" — node→go event push thật | (snapshot 04 sau update) |
+| 07 | Kill remote-activity :4002 → reload → error boundary fallback, KHÔNG trắng trang | 06-activity-remote-down.png |
+| 08 | /tasks vẫn chạy (retry khôi phục) khi activity down — isolation | 07-tasks-still-ok-when-activity-down.png |
+| 09 | Restart :4002 → reload → activity hồi phục, stats đúng status mới (Cần làm 1/Đang làm 1, 3 events 24h) | 08-activity-recovered.png |
+
+## ACCEPTANCE (context pack sf-6.md) — line-by-line
+1. "Chạy shell + 2 remote dev servers → login → /tasks: tạo task mới → hiện trong danh sách (node-svc THẬT qua gateway); /activity: feed/stats phản ánh (go-svc thật)" → PASS
+   - Ghi chú interpretation (REQUIREMENT-GAP FI-62): native mode KHÔNG có gateway (nginx không chạy native) — FE gọi thẳng service port theo conventions/07 + shell precedent; chân "qua gateway" do CI compose + SF-7 bảo chứng.
+2. "1 remote down → shell vẫn chạy, remote còn lại hoạt động" → PASS (07 + 08; retry button khôi phục cả 2 chiều)
+3. "Vitest pass cho cả 2 remote" → PASS (10 + 9)
+4. "CI xanh: build + tests + boot-smoke per remote" → CI chạy sau push (workflows mirror shell.yml; boot-smoke gồm fetch remoteEntry + grep MF name + publicPath /remotes/<name>/) — xác nhận ở story-level.
+
+## Observations (ngoài scope SF-6 — báo coordinator)
+- userName trong feed item RỖNG (go-svc resolve qua spring trả "") — FE render trung thực những gì response trả; SF-4 check.
+- fe-shared loadRemoteModule bug thật (fix + FLAG, commit c81309d): native import() biến không rewrite được + thiếu './' strip cho runtime API.
+- "catalog:" literal bị mf-enhanced infer thành requiredVersion — đã tắt bằng requiredVersion:false ở 2 remote (singleton dùng bản host).
+
+## Môi trường e2e (reproduce)
+- Portable toolchain ~/Tools/sf6-e2e (JDK 21.0.12 + Go 1.24.6 + Postgres 16.9 — không admin, xoá được).
+- Launcher scripts: ~/Tools/sf6-e2e/start-svc-{spring,go,authmock}.sh (env dummy DEV-only); go-svc chạy từ bản copy /tmp/go-svc-run (go mod tidy không bẩn tree SF-4).

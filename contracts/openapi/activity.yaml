@@ -1,0 +1,241 @@
+openapi: 3.0.3
+info:
+  title: Activity API (go-svc)
+  version: 0.1.0
+  description: |
+    Source of truth cho API activity của go-svc (SF-4, Go 1.24 + chi).
+    go-svc OWNS schema `activity` (tự migrate) và ĐỌC-ONLY schema `tasks` qua postgres role `go_readonly`
+    (grants cấp bởi platform/postgres/init qua ALTER DEFAULT PRIVILEGES — hiệu lực cho bảng sinh sau).
+    node-svc push event fire-and-forget sau khi mutate task — fail chỉ log warn, KHÔNG retry.
+    Mọi path được gateway route qua `/api/activity` (pass-through — service mount prefix này).
+    Auth: JWT Bearer bắt buộc; go-svc TỰ verify signature + expiry.
+servers:
+  - url: /api/activity
+tags:
+  - name: events
+  - name: feed
+  - name: stats
+paths:
+  /healthz:
+    get:
+      tags: [feed]
+      summary: Liveness probe
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Service sống
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [feed]
+      summary: Readiness probe (migrations xong + DB reachable)
+      operationId: getReadyz
+      responses:
+        "200":
+          description: Sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Chưa sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events:
+    post:
+      tags: [events]
+      summary: Nhận activity event (node-svc push fire-and-forget sau khi mutate task)
+      operationId: recordEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityEventInput"
+      responses:
+        "202":
+          description: Event đã nhận (async persist)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventAccepted"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /feed:
+    get:
+      tags: [feed]
+      summary: Activity feed — BẮT BUỘC chứa user-display fields (userName, taskTitle) để FE render trực tiếp, không tự bịa placeholder
+      operationId: getFeed
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Feed (mới nhất trước)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityFeed"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /stats:
+    get:
+      tags: [stats]
+      summary: Thống kê task — query readonly schema `tasks` theo canonical DDL (contracts/db/tasks-schema.sql)
+      operationId: getStats
+      responses:
+        "200":
+          description: Stats theo status của bảng tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityStats"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: Không đọc được schema tasks (permission/DB issue)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  responses:
+    BadRequest:
+      description: Payload không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Thiếu hoặc sai JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    ActivityEventInput:
+      type: object
+      required: [taskId, userId, action, timestamp]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          description: UUID user (khớp sub claim trong JWT / users fixture)
+        action:
+          type: string
+          enum: [task.created, task.updated, task.deleted]
+          description: Bộ enum này là nguồn sự thật — node-svc chỉ push 3 loại action này
+        timestamp:
+          type: string
+          format: date-time
+          description: Thời điểm mutation tại node-svc (ISO 8601 UTC)
+    EventAccepted:
+      type: object
+      required: [accepted]
+      properties:
+        accepted:
+          type: boolean
+          enum: [true]
+    ActivityFeedItem:
+      type: object
+      required: [id, taskId, userId, action, timestamp, userName, taskTitle]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        userName:
+          type: string
+          description: User-display field — resolve tại go-svc (join users qua spring-svc hoặc cache), FE render trực tiếp
+        taskTitle:
+          type: string
+          description: User-display field — resolve từ schema tasks (đọc readonly), FE render trực tiếp
+    ActivityFeed:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityFeedItem"
+        total:
+          type: integer
+    ActivityStats:
+      type: object
+      required: [totalTasks, tasksByStatus]
+      properties:
+        totalTasks:
+          type: integer
+          description: COUNT(*) từ schema tasks (readonly)
+        tasksByStatus:
+          type: object
+          required: [todo, in_progress, done]
+          description: GROUP BY status — 3 giá trị khớp CHECK constraint trong canonical DDL
+          properties:
+            todo:
+              type: integer
+            in_progress:
+              type: integer
+            done:
+              type: integer
+        recentEvents:
+          type: integer
+          description: Số event activity trong 24h qua
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      description: Error envelope chung — shape chuẩn hoá trong platform/conventions/04-error-envelope.md
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+              nullable: true
+            details:
+              nullable: true

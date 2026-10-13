@@ -1,0 +1,61 @@
+SF-5 Convergence — test-run evidence (FI-81, story FI-76)
+=============================================================
+HEAD code commit: 7f2f3ee (fix smoke COMPOSE path ../../platform)
+tdd: skipped-tdd: CI-only — SF-5 là convergence/docs SF: deliverable là CI
+workflow (convergence.yml) + smoke script + docs, KHÔNG có unit test mới;
+verify = CI convergence 10 services e2e 2 chiều chạy THẬT qua compose+Kafka
+(xanh 2 run liên tiếp), services/FE READ-ONLY theo context pack.
+
+CI VERDICT: GREEN — convergence 3/3 jobs, 3 run liên tiếp:
+- Run 5 https://github.com/wakii-dev/architecture-overview/actions/runs/38404949215 @5a9e221 — 3/3 success
+- Run 6 https://github.com/wakii-dev/architecture-overview/actions/runs/38406050023 @7f2f3ee — 3/3 success
+- Run 7 https://github.com/wakii-dev/architecture-overview/actions/runs/38408135481 @d1681ac (HEAD — reviewer fix P1+P2) — 3/3 success
+
+Test output VERBATIM (run 6 — e2e step, job "e2e 2 chiều"):
+[smoke] 1/8 gateway + auth-mock ready
+[smoke] 2/8 login OK (token 272 chars)
+[smoke] 3/8 stats baseline totalTasks=0
+[smoke] 4/8 task tạo OK id=... title=smoke-...
+[smoke] 5/8 feed có task.created + taskTitle=... (qua outbox → Kafka → go-svc)
+[smoke] 5b/8 stats totalTasks: 0 → 1
+[smoke] 6/8 saga: PATCH task ... assigneeId=svc-fail OK — chờ go retry ×3 → compensating
+[smoke] 7/8 saga: task status = assignment_failed (compensation đã chạy)
+[smoke] 8/8 DLQ: event gốc của task 2372b3d6-69c6-468d-8b4d-fb411db6b47a có mặt ở task-events.dlq (end offset 1) — acceptance saga đủ 2 nửa (status + DLQ)
+[smoke] SAGA_TASK_ID=2372b3d6-69c6-468d-8b4d-fb411db6b47a
+[smoke] PASS — chuỗi auth-mock → node-svc (outbox → Kafka) → go-svc liền mạch qua gateway http://localhost:8080 + saga compensation → assignment_failed → DLQ
+
+Test output VERBATIM (run 6 — step "Assert DLQ chính thức", 2 lớp):
+attempt 1: task-events.dlq end offset = 1
+PASS DLQ: event gốc của task 2372b3d6-69c6-468d-8b4d-fb411db6b47a nằm ở task-events.dlq — acceptance saga đủ 2 nửa (status + DLQ)
+DLQ message (in nguyên văn):
+{"schemaVersion":1,"originalEvent":"{\"schemaVersion\":1,\"id\":\"e0b796d4-...\",\"type\":\"task.assigned\",\"occurredAt\":\"...\",\"payload\":{\"taskId\":\"2372b3d6-69c6-468d-8b4d-fb411db6b47a\",\"userId\":\"11111111-...\",\"assigneeId\":\"55555555-5555-4555-8555-555555555555\"}}","error":{"reason":"simulate notify fail (assigneeId=55555555-5555-4555-8555-555555555555 — fixture svc-fail)","retries":3,"failedAt":"..."}}
+
+Jobs xanh run 6: e2e 2 chiều (compose 10 services) · copy-dir standalone (node-svc
++ fe-shared + contracts/db + contracts/events/fixtures) · scaffold output build được.
+
+ACCEPTANCE checklist (context pack sf-5.md):
+1. CI convergence xanh: compose 10 services + e2e 2 chiều + copy-dir standalone — PASS (run 5 + run 6, 3/3 jobs).
+2. Saga e2e: assign svc-fail → task assignment_failed VÀ event gốc trong task-events.dlq (console-consumer assert) — PASS (run 6 log ở trên; run 5 tương tự taskId 3f6f64b5).
+3. Walkthrough fresh-clone + note down -v (volume cũ thiếu svc users — Flyway V2 seed 1 lần) — PASS (docs/walkthrough.md mục 3 đường A + 4b saga demo + CI table).
+4. Security pass 0 P0/P1 — PASS: 9092 không expose host (compose kafka không ports);
+   .env không trong git (git ls-files); envelope/DLQ payload không chứa secret
+   (message DLQ ở trên chỉ chứa taskId/assigneeId/reason — reason không có token).
+
+DEBUG HISTORY (5 run — root cause đã đóng, chi tiết trong comment FI-81):
+- Run 1 (38397706126): topic tạo SAU consumer subscribe → kafka-go group reader
+  kẹt empty assignment không tự refresh metadata (cùng class bug SF-3 commit
+  8de8921) + copy-dir thiếu contracts/events/fixtures (SF-2 tests ENOENT).
+  Fix: boot postgres+kafka riêng → tạo topic → mới boot 10 services; copy-dir
+  thêm fixtures.
+- Run 2-4: DLQ assert race + docker compose exec từ trong e2e.sh fail âm thầm
+  (stderr nuốt). Run 5 stderr surfaced: "couldn't find env file
+  .../scripts/platform/.env.example" — path bug ../platform (thiếu 1 cấp ../).
+  Fix: assert chính thức chuyển sang workflow step "Assert DLQ" (tool proven
+  3/3 run ở dump) + path sửa ../../platform @7f2f3ee.
+
+TESTER REVIEW ĐỘC LẬP: /tmp/story/fi62/code-reviewer-sf-5-convergence.md
+- V1 @7f2f3ee: CHANGES-REQUESTED — 1 P1 (walkthrough 4b bước 4 claim sai:
+  re-assign bob không tự reset status) + 4 P2.
+- V2 @d1681ac: VERDICT: APPROVED — cả 5 finding fix verified, 0 finding mới,
+  acceptance 4/4 PASS, CHECKLIST-4Q 4/4 PASS, scope sạch 11/11 files.
+- Evidence hash: test-run.txt ghi HEAD code commit 7f2f3ee + d1681ac (run 7).

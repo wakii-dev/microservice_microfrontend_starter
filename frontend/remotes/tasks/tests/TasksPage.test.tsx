@@ -88,4 +88,20 @@ describe('TasksPage', () => {
 
     await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_A.id, { status: 'done' }));
   });
+
+  it('status assignment_failed → badge "Gán thất bại", KHÔNG select (PATCH cấm status hệ thống)', async () => {
+    mockList([{ ...TASK_A, status: 'assignment_failed' }]);
+    render(<TasksPage />);
+    const badge = await screen.findByRole('status', { name: 'Trạng thái task Task A' });
+    expect(badge).toHaveTextContent('Gán thất bại');
+    // không combobox nào được render cho task assignment_failed
+    expect(screen.queryByRole('combobox', { name: 'Trạng thái task Task A' })).not.toBeInTheDocument();
+  });
+
+  it('select writable CHỈ 3 giá trị — assignment_failed không nằm trong option', async () => {
+    render(<TasksPage />);
+    const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
+    const options = Array.from(select.querySelectorAll('option')).map((o) => o.value);
+    expect(options).toEqual(['todo', 'in_progress', 'done']);
+  });
 });

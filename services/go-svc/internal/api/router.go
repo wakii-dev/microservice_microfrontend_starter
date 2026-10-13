@@ -16,7 +16,6 @@ type Deps struct {
 	Readiness   ReadinessChecker
 	CORSOrigins []string
 	JWTSecret   []byte
-	Events      *EventsHandler
 	Feed        *FeedHandler
 	Stats       *StatsHandler
 }
@@ -25,7 +24,9 @@ type Deps struct {
 //   - naked /healthz + /readyz (ngoài prefix — conventions/02 rule 5)
 //   - /api/activity/* — business routes (gateway pass-through, conventions/08)
 //       - /docs + /openapi.yaml — auth-exempt (tiền lệ auth-mock /api/auth/docs)
-//       - /events, /feed, /stats — JWT bắt buộc (token contract §4)
+//       - /feed, /stats — JWT bắt buộc (token contract §4)
+//   - KHÔNG còn /events (story FI-76 SF-3 thanh lý REST ingest — event đi qua
+//     Kafka consumer internal/consumer; POST /events → 404 NotFound mặc định)
 func NewRouter(d Deps) http.Handler {
 	r := chi.NewRouter()
 
@@ -72,7 +73,6 @@ func NewRouter(d Deps) http.Handler {
 		// business routes — JWT bắt buộc
 		ar.Group(func(g chi.Router) {
 			g.Use(JWTMiddleware(d.JWTSecret))
-			g.Post("/events", d.Events.Ingest)
 			g.Get("/feed", d.Feed.List)
 			g.Get("/stats", d.Stats.Get)
 		})

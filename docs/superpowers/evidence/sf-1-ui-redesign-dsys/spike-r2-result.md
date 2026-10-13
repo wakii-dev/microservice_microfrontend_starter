@@ -39,3 +39,13 @@
 4. Primitives TDD sẽ chạy vitest từ shell — cùng cơ chế resolve react nếu cần (xét khi RED).
 
 **Verdict: PASS — JSX + hooks fe-shared qua MF boundary sạch duplicate-react. Primitives đi tiếp (không fallback class-only).**
+
+## Addendum (2026-10-14, sau khi primitives vào chỗ — fix c3ae8d6)
+
+Browser-verify ACCEPTANCE standalone phát hiện thêm: standalone :4001/:4002 KHÔNG chỉ
+"trơ trụi" mà **crash trắng từ trước** (docker build cũ cũng root-rỗng) — entry remote
+import JSX tĩnh → consume `react/jsx-runtime` shared TRƯỚC share init →
+`Invalid loadShareSync (RUNTIME-006)` (đúng bệnh mfToolkit ghi cho host, tái ở remote).
+Fix: entry remote chỉ còn `import('./standalone')` (async boundary như shell bootstrap);
+render + import tokens/base dời sang `standalone.tsx`. Re-run flow :3100 sau fix vẫn sạch
+console []; standalone :4101/:4102 render styled dark (screenshots cùng thư mục).

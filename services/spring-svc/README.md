@@ -76,9 +76,46 @@ entry đã pre-seed bởi SF-1 (SF-3 KHÔNG sửa compose).
 6. **Codegen `interfaceOnly`** — supersét của "types only" trong context pack: models + API interface,
    controllers implement interface → compile-error nếu lệch contract (contract-sync compile-time).
 
+## @Transactional demo — Situation A (SF-4, FI-78)
+
+`service/TeamService.createTeam` tạo team + members qua **N lệnh ghi riêng biệt** trong MỘT
+transaction (`@Transactional`):
+
+```
+step 1  teams.saveAndFlush(team)            — INSERT teams row
+step 2  teams.insertMember(teamId, bob)     — INSERT team_members từng dòng qua repository
+step 3  teams.insertMember(teamId, memberX) ← fail giữa chừng?
+        → ROLLBACK TOÀN BỘ: team + members đã insert trước đó cùng biến mất
+```
+
+**Rollback trigger deterministic** (fixture CÓ SẴN, không cần user mới): member có email
+`alice@demo.local` (`TeamService.ROLLBACK_TRIGGER_EMAIL`) → service throw `ApiException.conflict`
+→ client nhận error envelope **409 CONFLICT** (conventions/04) → DB không còn dấu vết gì.
+Test chứng minh bằng **repository assert** (`TeamServiceRollbackTest`): `existsByName=false` +
+`countMembersByTeamName=0` sau request fail — không chỉ nhìn response code.
+
+### Situation A vs Situation B
+
+| | Situation A (file này) | Situation B (cross-service) |
+|---|---|---|
+| Phạm vi | Nhiều step **CÙNG 1 DB** | Nhiều **service**, nhiều DB |
+| Giải pháp | **1 transaction là đủ** (`@Transactional`) | 1 tx KHÔNG phủ được service khác → **Saga + Transactional Outbox** |
+| Fail giữa chừng | Rollback tự động toàn bộ | Compensating action (event-driven) |
+| Tham chiếu | `service/TeamService` | node-svc outbox relay + go-svc saga —
+`docs/superpowers/specs/2026-10-13-kafka-outbox-saga.md` |
+
+Quy tắc chọn: nếu mọi lệnh ghi đều qua cùng một datasource → bọc trong `@Transactional`
+(Situation A); chỉ khi ghi vượt ra ngoài DB (Kafka, HTTP, email…) mới cần pattern Situation B.
+
+Lưu ý API: contract teams **không đổi** (path/shape giữ nguyên) — member UUID không tồn tại
+trong `users` vẫn được chấp nhận như trước (không FK); trigger chỉ kích hoạt khi user tồn tại
+và email trùng.
+
 ## Tests
 
 `mvnw verify` — @SpringBootTest trên **Postgres thật** (CI service container, KHÔNG H2):
 seed-id-match 100% (đọc cùng `contracts/auth/users.json`), JWT filter 6 case, users/teams API,
 health shape, log shape conventions/03, CORS dev/default. CRUD tests `@Transactional` (rollback) —
-seed test độc lập.
+seed test độc lập. @Transactional demo tests (`TeamServiceRollbackTest`) **KHÔNG** `@Transactional`
+ở test — request chạy trong transaction của server để commit/rollback thật, assert DB qua
+repository (happy + rollback + trigger-ở-vị-trí-đầu).

@@ -5,14 +5,13 @@ import com.example.springsvc.api.model.CreateTeamRequest;
 import com.example.springsvc.api.model.Team;
 import com.example.springsvc.api.model.TeamList;
 import com.example.springsvc.domain.TeamRepository;
+import com.example.springsvc.service.TeamService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,16 +20,20 @@ import java.util.UUID;
  * /api/users/teams, /api/users/teams/{teamId}. interfaceOnly KHÔNG gắn base path
  * → class-level @RequestMapping như UserController. memberIds dedupe trước insert
  * (team_members PK (team_id, user_id) — tránh 500 vi phạm PK).
+ * SF-4 (FI-78): createTeam DELEGATE sang TeamService — @Transactional N-step
+ * rollback demo nằm ở service layer (không ở controller).
  */
 @RestController
 @RequestMapping("${openapi.usersAPI.base-path:/api/users}")
 public class TeamController implements TeamsApi {
 
     private final TeamRepository teams;
+    private final TeamService teamService;
     private final Validator validator;
 
-    public TeamController(TeamRepository teams, Validator validator) {
+    public TeamController(TeamRepository teams, TeamService teamService, Validator validator) {
         this.teams = teams;
+        this.teamService = teamService;
         this.validator = validator;
     }
 
@@ -44,19 +47,19 @@ public class TeamController implements TeamsApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Team> createTeam(CreateTeamRequest createTeamRequest) {
         var violations = validator.validate(createTeamRequest);
         if (!violations.isEmpty()) {
             ConstraintViolation<CreateTeamRequest> first = violations.iterator().next();
             throw ApiException.badRequest(first.getPropertyPath() + " " + first.getMessage());
         }
-        com.example.springsvc.domain.Team team = new com.example.springsvc.domain.Team(createTeamRequest.getName());
-        if (createTeamRequest.getMemberIds() != null) {
-            team.setMemberIds(new LinkedHashSet<>(createTeamRequest.getMemberIds()));
-        }
-        teams.save(team);
-        return ResponseEntity.status(201).body(toApi(team));
+        TeamService.CreatedTeam created = teamService.createTeam(
+                createTeamRequest.getName(), createTeamRequest.getMemberIds());
+        Team team = new Team();
+        team.setId(created.team().getId());
+        team.setName(created.team().getName());
+        team.setMemberIds(created.memberIds());
+        return ResponseEntity.status(201).body(team);
     }
 
     @Override

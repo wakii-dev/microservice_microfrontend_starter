@@ -29,6 +29,7 @@ class TeamApiTest {
 
     private static final String ALICE_ID = "11111111-1111-4111-8111-111111111111";
     private static final String BOB_ID = "22222222-2222-4222-8222-222222222222";
+    private static final String CAROL_ID = "33333333-3333-4333-8333-333333333333";
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,9 +50,11 @@ class TeamApiTest {
         return "Bearer " + token;
     }
 
+    // SF-4: alice@demo.local (ALICE_ID) là ROLLBACK TRIGGER của TeamService —
+    // happy-path tests dùng bob/carol, trigger test riêng ở dưới + TeamServiceRollbackTest.
     @Test
     void createTeamDedupesMemberIds() throws Exception {
-        String body = "{\"name\":\"Platform\",\"memberIds\":[\"" + ALICE_ID + "\",\"" + BOB_ID + "\",\"" + ALICE_ID + "\"]}";
+        String body = "{\"name\":\"Platform\",\"memberIds\":[\"" + BOB_ID + "\",\"" + CAROL_ID + "\",\"" + BOB_ID + "\"]}";
         mockMvc.perform(post("/api/users/teams")
                         .header("Authorization", bearer())
                         .contentType("application/json")
@@ -64,7 +67,7 @@ class TeamApiTest {
 
     @Test
     void getTeamEchoesMemberIds() throws Exception {
-        String createBody = "{\"name\":\"Core\",\"memberIds\":[\"" + ALICE_ID + "\"]}";
+        String createBody = "{\"name\":\"Core\",\"memberIds\":[\"" + BOB_ID + "\"]}";
         String teamId = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(mockMvc.perform(post("/api/users/teams")
                                 .header("Authorization", bearer())
@@ -77,7 +80,20 @@ class TeamApiTest {
         mockMvc.perform(get("/api/users/teams/" + teamId).header("Authorization", bearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(teamId))
-                .andExpect(jsonPath("$.memberIds[0]").value(ALICE_ID));
+                .andExpect(jsonPath("$.memberIds[0]").value(BOB_ID));
+    }
+
+    @Test
+    void createTeamWithTriggerMemberIs409Envelope() throws Exception {
+        // Member trùng alice@demo.local (fixture CÓ SẴN) ở vị trí giữa → TeamService
+        // throw giữa chừng → rollback toàn bộ (DB assert qua TeamServiceRollbackTest)
+        String body = "{\"name\":\"Triggered\",\"memberIds\":[\"" + BOB_ID + "\",\"" + ALICE_ID + "\"]}";
+        mockMvc.perform(post("/api/users/teams")
+                        .header("Authorization", bearer())
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("CONFLICT"));
     }
 
     @Test

@@ -12,7 +12,7 @@
 - [x] T5 — ADR-0008 consistency rà vs code thật (segmentio, envelope, presence-based, retry in-memory ×3, DLQ shape) — sửa ADR nếu lệch.
 - [x] T6 — Security pass cuối: 9092 không expose host; JWT_SECRET/passwords không vào envelope/event payload/DLQ; `.env` không trong git.
 - [x] T7 — CI convergence xanh 3/3 jobs (e2e 2 chiều + copy-dir + scaffold) — push + `gh run watch`.
-- [ ] T8 — Evidence `docs/superpowers/evidence/sf-5-convergence/test-run.txt` (HEAD code commit + `tdd: skipped-tdd: CI-only`), tester review độc lập, comment FI-81, story-verify.
+- [x] T8 — Evidence `docs/superpowers/evidence/sf-5-convergence/test-run.txt` (HEAD code commit + `tdd: skipped-tdd: CI-only`), tester review độc lập, comment FI-81, story-verify.
 
 ## Boundary
 

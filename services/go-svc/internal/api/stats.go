@@ -49,8 +49,9 @@ func (h *StatsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3 giá trị khớp CHECK constraint canonical DDL — luôn đủ key.
-	byStatus := map[string]int{"todo": 0, "in_progress": 0, "done": 0}
+	// 4 giá trị khớp CHECK constraint canonical DDL (SF-2 cascade thêm
+	// assignment_failed) — luôn đủ key kể cả khi GROUP BY trả ít hơn.
+	byStatus := map[string]int{"todo": 0, "in_progress": 0, "done": 0, "assignment_failed": 0}
 	for k, v := range ts.ByStatus {
 		byStatus[k] = v
 	}

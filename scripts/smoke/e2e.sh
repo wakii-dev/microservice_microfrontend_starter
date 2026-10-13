@@ -61,9 +61,11 @@ SAGA_TASK_BODY=""; SAGA_GET_BODY=""; DLQ_OUT=""; DLQ_ERR=""
 trap 'rm -f "$LOGIN_BODY" "$STATS_BEFORE" "$TASK_BODY" "$FEED_BODY" "$STATS_AFTER" "$SAGA_TASK_BODY" "$SAGA_GET_BODY" "$DLQ_OUT" "$DLQ_ERR"' EXIT 2>/dev/null || true
 
 # compose file resolve từ vị trí script — e2e.sh chạy được từ repo root lẫn platform/
+# (script nằm ở scripts/smoke/ → lên 2 cấp mới tới platform/ — bug `../platform`
+# = scripts/platform từng làm mọi docker exec trong script fail âm thầm run 1-4)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-COMPOSE_FILE="$SCRIPT_DIR/../platform/docker-compose.yml"
-COMPOSE_ENV="$SCRIPT_DIR/../platform/.env.example"
+COMPOSE_FILE="$SCRIPT_DIR/../../platform/docker-compose.yml"
+COMPOSE_ENV="$SCRIPT_DIR/../../platform/.env.example"
 
 # --- Bước 1: gateway + auth-mock ready (poll — gateway không có /readyz riêng,
 #            conventions/02 rule 3; /api/auth/readyz = auth-mock qua gateway) ---

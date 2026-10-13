@@ -21,6 +21,11 @@ jobs:
   gitleaks:
     name: gitleaks (secret scan)
     runs-on: ubuntu-latest
+    # gitleaks-action đọc PR commits qua API — thiếu pull-requests:read thì 403
+    # "Resource not accessible by integration" (run 38300531175)
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:

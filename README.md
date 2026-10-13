@@ -2,7 +2,7 @@
 
 Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Module Federation FE, demo e2e task management qua nginx gateway, Docker Compose + CI. Epic FI-62 — spec: `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` (rev 3).
 
-**Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (7 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
+**Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
 ## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock + kafka broker)
 
@@ -122,7 +122,7 @@ scripts/
   workflows/        # contracts + per-service + convergence (e2e smoke, copy-dir, scaffold)
   workflow-templates/ # services-ci.yml.example — template cho service mới (prune khi scaffold)
 docs/
-  adr/              # 7 quyết định kiến trúc
+  adr/              # 8 quyết định kiến trúc
   walkthrough.md    # fresh-clone → demo checklist
   toolchain.md      # tool cần ở đâu (dev/CI/copy-user)
 docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)

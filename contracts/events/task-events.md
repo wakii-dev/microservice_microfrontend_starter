@@ -21,7 +21,7 @@ Quyết định kiến trúc: [docs/adr/0008-kafka-outbox-saga.md](../../docs/ad
 
 | Field | Kiểu | Quy tắc |
 |---|---|---|
-| `schemaVersion` | integer | Cố định `1`.Thêm field payload không breaking (consumer bỏ qua field lạ); đổi shape breaking = tăng version |
+| `schemaVersion` | integer | Cố định `1`. Thêm field payload không breaking (consumer bỏ qua field lạ); đổi shape breaking = tăng version |
 | `id` | UUIDv4 | Producer sinh MỖI event (trong cùng DB tx với mutation — outbox). Consumer dùng làm khóa idempotency — KHÔNG dùng taskId |
 | `type` | string enum | 5 giá trị ở trên. KHÔNG bịa type mới ngoài enum |
 | `occurredAt` | RFC3339 UTC | Thời điểm mutation (không phải lúc publish) |

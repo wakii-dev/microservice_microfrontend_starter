@@ -55,11 +55,11 @@
       "Bash(curl http://localhost*)",
       "Bash(sleep *)",
       "Bash(echo *)",
-      "~/.claude/bin/linear-rate-limit run *",
-      "orca orchestration run-list *",
-      "orca orchestration run-show *",
-      "orca orchestration run-current *",
-      "orca orchestration inbox *"
+      "Bash(~/.claude/bin/linear-rate-limit run *)",
+      "Bash(orca orchestration run-list *)",
+      "Bash(orca orchestration run-show *)",
+      "Bash(orca orchestration run-current *)",
+      "Bash(orca orchestration inbox *)"
     ]
   }
 }

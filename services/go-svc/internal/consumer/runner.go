@@ -4,12 +4,16 @@ package consumer
 // → hết lượt: compensating `task.assignment_failed` (chỉ cho task.assigned —
 // saga semantics; DB down sai rét compensating = mark nhầm task) + DLQ message
 // gốc → CommitMessages CUỐI CÙNG (manual commit SAU khi xử lý xong/đưa DLQ —
-// conventions/09 rule 5: commit trước = crash mất event).
+// conventions/09 rule 5: commit trước = crash mất event). Publish DLQ/
+// compensating FAIL → KHÔNG commit (message còn nguyên ở topic chính — commit
+// lúc này = mất vĩnh viễn, không còn đâu re-consume; at-least-once + DB
+// idempotency lo redelivery an toàn).
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -94,11 +98,21 @@ func (r *Runner) Run(ctx context.Context) {
 
 		procErr := r.processWithRetry(ctx, msg, retryMax, backoff)
 		if procErr != nil {
-			r.toDLQ(ctx, msg, procErr, retryMax)
+			// Publish DLQ/compensating fail → SKIP commit: message gốc chỉ còn
+			// ở topic chính — commit giờ = mất vĩnh viễn cả gốc lẫn compensating
+			// (P1 code-review SF-3). Giữ offset chưa commit → redelivery sau
+			// restart/rebalance; DB idempotency (ON CONFLICT envelope id) lo
+			// insert trùng. KHÔNG block partition in-session — vòng kế vẫn fetch
+			// message sau.
+			if dlqErr := r.toDLQ(ctx, msg, procErr, retryMax); dlqErr != nil {
+				r.Log.Error("đưa DLQ thất bại — KHÔNG commit, giữ message chờ redelivery",
+					"eventId", string(msg.Key), "err", dlqErr.Error())
+				continue
+			}
 		}
 
-		// Manual commit SAU khi xử lý xong (DB insert đã commit) hoặc đã đưa
-		// DLQ — at-least-once; idempotency (ON CONFLICT envelope id) lo redelivery.
+		// Manual commit SAU khi xử lý xong (DB insert đã commit) hoặc message
+		// gốc đã an toàn ở DLQ — at-least-once; idempotency lo redelivery.
 		if err := r.Reader.CommitMessages(ctx, msg); err != nil {
 			r.Log.Error("commit offset failed — message sẽ re-consume sau restart",
 				"eventId", string(msg.Key), "err", err.Error())
@@ -138,9 +152,11 @@ type poisonError struct{ reason string }
 func (e *poisonError) Error() string { return "poison message: " + e.reason }
 
 // toDLQ — saga fail: publish compensating (nếu nguồn là task.assigned) rồi
-// đẩy message gốc + metadata vào DLQ. Lỗi publish chỉ LOG — KHÔNG block
-// partition, KHÔNG crash (conventions/09 rule 7).
-func (r *Runner) toDLQ(ctx context.Context, msg kafka.Message, procErr error, retryMax int) {
+// đẩy message gốc + metadata vào DLQ. Return nil CHỈ KHI mọi publish cần
+// thiết thành công → caller được phép commit offset. Return error (broker
+// fail / marshal fail) → caller SKIP commit — KHÔNG crash, KHÔNG block
+// partition (conventions/09 rule 7), message được redelivery thay vì mất.
+func (r *Runner) toDLQ(ctx context.Context, msg kafka.Message, procErr error, retryMax int) error {
 	reason := procErr.Error()
 
 	// Compensating CHỈ cho task.assigned fail (saga choreography — node
@@ -157,21 +173,22 @@ func (r *Runner) toDLQ(ctx context.Context, msg kafka.Message, procErr error, re
 		var p taskUserPayload
 		if json.Unmarshal(env.Payload, &p) == nil && p.TaskID != uuid.Nil {
 			comp := CompensatingEnvelope(p.TaskID, p.AssigneeID, reason, time.Now())
-			if raw, err := comp.Marshal(); err == nil {
-				if err := r.Publisher.Publish(ctx, r.Topic, msg.Key, raw); err != nil {
-					r.Log.Error("publish compensating failed", "eventId", comp.ID.String(), "err", err.Error())
-				} else {
-					r.Log.Warn("compensating event published",
-						"eventId", comp.ID.String(), "taskId", p.TaskID.String())
-				}
+			raw, err := comp.Marshal()
+			if err != nil {
+				return fmt.Errorf("marshal compensating: %w", err)
 			}
+			if err := r.Publisher.Publish(ctx, r.Topic, msg.Key, raw); err != nil {
+				return fmt.Errorf("publish compensating: %w", err)
+			}
+			r.Log.Warn("compensating event published",
+				"eventId", comp.ID.String(), "taskId", p.TaskID.String())
 		}
 	}
 
 	dlq, _ := json.Marshal(NewDLQMessage(msg.Value, reason, retryMax, time.Now()))
 	if err := r.Publisher.Publish(ctx, r.DLQTopic, msg.Key, dlq); err != nil {
-		r.Log.Error("publish DLQ failed — message gốc sẽ re-consume", "err", err.Error())
-	} else {
-		r.Log.Warn("message gốc đưa DLQ", "reason", reason)
+		return fmt.Errorf("publish DLQ: %w", err)
 	}
+	r.Log.Warn("message gốc đưa DLQ", "reason", reason)
+	return nil
 }

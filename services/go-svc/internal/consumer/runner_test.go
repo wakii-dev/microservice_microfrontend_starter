@@ -272,6 +272,66 @@ func TestRunner_FilteredTypeStillCommits(t *testing.T) {
 	}
 }
 
+// TestRunner_DLQPublishFailSkipsCommit — P1 code-review SF-3: publish DLQ
+// fail (broker down) → KHÔNG được commit offset — message gốc chỉ còn ở topic
+// chính, commit = mất vĩnh viễn. Skip commit → redelivery sau restart
+// (idempotency DB lo trùng); compensating (publish TRƯỚC DLQ) vẫn ra khỏi
+// runner vì publish topic chính OK.
+func TestRunner_DLQPublishFailSkipsCommit(t *testing.T) {
+	store := &fakeEventStore{}
+	pub := newFakePublisher()
+	pub.failOn["task-events.dlq"] = true
+	src := &fakeSource{msgs: []kafka.Message{assignedMsg(FailUserID.String())}, fetchErr: context.Canceled}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go newTestRunner(store, src, pub).Run(ctx)
+
+	// Đợi tới khi compensating publish xong (bước ngay trước DLQ-fail).
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if len(pub.topicValues("task-events")) == 1 {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	time.Sleep(50 * time.Millisecond) // grace — commit sai nếu có cũng kịp xảy ra
+
+	if dlq := pub.topicValues("task-events.dlq"); len(dlq) != 0 {
+		t.Errorf("DLQ = %d, want 0 (publish fail — KHÔNG được giả vờ đã đưa DLQ)", len(dlq))
+	}
+	if len(src.committed()) != 0 {
+		t.Errorf("commits = %d, want 0 — commit khi DLQ publish fail = MẤT message vĩnh viễn", len(src.committed()))
+	}
+}
+
+// TestRunner_CompensatingPublishFailSkipsCommit — publish compensating fail
+// → toDLQ trả error TRƯỚC khi DLQ publish → skip commit (at-least-once cho
+// cả compensating: redelivery → Handle fail lại (svc-fail deterministic) →
+// thử compensating lần nữa).
+func TestRunner_CompensatingPublishFailSkipsCommit(t *testing.T) {
+	store := &fakeEventStore{}
+	pub := newFakePublisher()
+	pub.failOn["task-events"] = true
+	src := &fakeSource{msgs: []kafka.Message{assignedMsg(FailUserID.String())}, fetchErr: context.Canceled}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go newTestRunner(store, src, pub).Run(ctx)
+
+	time.Sleep(100 * time.Millisecond) // retry ×3 (backoff 1ms) + toDLQ fail — đủ xong
+
+	if comp := pub.topicValues("task-events"); len(comp) != 0 {
+		t.Errorf("task-events = %d, want 0 (publish luôn fail — fake không ghi)", len(comp))
+	}
+	if dlq := pub.topicValues("task-events.dlq"); len(dlq) != 0 {
+		t.Errorf("DLQ = %d, want 0 — compensating fail phải chặn TRƯỚC DLQ (thứ tự: compensating rồi DLQ)", len(dlq))
+	}
+	if len(src.committed()) != 0 {
+		t.Errorf("commits = %d, want 0 — compensating mất mà commit = task kẹt assigned mãi", len(src.committed()))
+	}
+}
+
 // --- helpers ---
 
 func (f *fakeEventStore) snapshot() []model.Event {

@@ -1,0 +1,75 @@
+SF-3 go-svc consumer test evidence — 2026-10-13 (FI-80, story FI-76 kafka-outbox-saga)
+HEAD code commit: 1ce6b03 (branch wakii-dev/sf-3-go-consumer; fork từ dest @8d04e6d — SF-1 kafka-foundation đã merge)
+CI xanh: https://github.com/wakii-dev/architecture-overview/actions/runs/38389378485 (4/4 SUCCESS)
+Run xanh trước đó: 38387226127 @ 8536c98 (4/4) — trước fix P1 review.
+Dev machine KHÔNG Go/Docker (ràng buộc plan) — toàn bộ build/test/kafka verify QUA CI.
+
+Reviewer độc lập (tester review): /tmp/story/fi62/code-reviewer-sf-3-go-consumer.md —
+VERDICT ban đầu CHANGES-REQUESTED với 1 P1 (publish DLQ/compensating fail → offset
+vẫn commit → mất message vĩnh viễn) + 4 P2, KHÔNG P0. P1 ĐÃ FIX @ 1ce6b03
+(toDLQ trả error → runner SKIP commit khi publish fail; +2 test seam failOn);
+4 P2 ghi nhận, không chặn, không fix ở SF-3 (surgical scope). CI xanh 4/4 tại
+commit fix (run 38389378485).
+
+CI services-go-svc run 38389378485 @ 1ce6b03 — 4/4 SUCCESS:
+- build + test (go-svc): SUCCESS — go mod tidy, go vet, unit tests
+  (config/resolver/consumer/handler/envelope/store, kể cả 2 test P1 mới:
+  TestRunner_DLQPublishFailSkipsCommit + TestRunner_CompensatingPublishFailSkipsCommit),
+  integration tests trên postgres service container + init script thật
+  (schemas + roles + ALTER DEFAULT PRIVILEGES node_svc): TestReadonlyExitCriterion,
+  TestAPIRoundtrip (POST /events → 404 — ingest đã thanh lý; consumer golden
+  fixture → feed + display fields), TestConsumerIdempotencyRealPG (duplicate
+  envelope id → VẪN 1 row; action 22 ký tự insert được — migration 0002
+  varchar(40)), TestReadyz503WhenTasksUnreadable
+- boot-smoke (go-svc + postgres + auth-mock + kafka): SUCCESS — compose up
+  subset +kafka; kafka-topics.sh --create task-events + task-events.dlq
+  TƯỜNG MINH TRƯỚC go-svc boot; console producer publish golden fixture
+  (mỗi dòng 1 message); poll feed CÓ row (proof event→feed — acceptance #1);
+  stats assert 4 keys exact (totalTasks, tasksByStatus incl.
+  assignment_failed, recentEvents)
+- drift-guard: SUCCESS — services/go-svc/internal/api/openapi/activity.yaml
+  bit-identical contracts/openapi/activity.yaml (docs endpoint không lệch
+  contract im lặng)
+- docker build (go-svc): SUCCESS — multi-stage image (conventions/01)
+
+Lịch sử đỏ đã xử lý (transparency):
+- 7cfd7e0: 2 compile error (kafka.FirstOffset, RowsAffected 2 giá trị) — fix
+- 352c48d: console producer phải flatten fixture JSON 1 dòng (mỗi dòng = 1
+  message) + vet fix test map key — fix
+- 0ff5699/8de8921: TestConsumerIdempotencyRealPG đỏ total=2 want=1 — ROOT
+  CAUSE: test isolation, KHÔNG phải bug idempotency. DB boilerplate dùng chung
+  giữa các integration test; TestAPIRoundtrip chạy trước để lại 1 row
+  (6f1a2b3c…) trong activity.events trong khi setupTasksAsNodeSvc chỉ dọn
+  tasks.tasks. Log CI chứng minh dedupe DB hoạt động đúng ("event duplicate
+  skipped (idempotency)"). FIX 8536c98: TRUNCATE activity.events đầu test
+  (go_svc là owner schema activity qua migration owner conn → TRUNCATE hợp lệ).
+
+Convergence đỏ cấu trúc — ĐỘNG ĐÃ BIẾT (spec rev 3, mục Phase 1 checkpoint-1):
+run 38387225847 @ 8536c98: chỉ e2e smoke fail (copy-dir + scaffold PASS).
+Bằng chứng root cause (log job e2e): node-svc "event push failed status=404"
+và go-svc nhận "POST /api/activity/events → 404" — node-svc VẪN push REST
+ingest mà SF-3 đã thanh lý, còn outbox/producer node-side là việc SF-2 (chưa
+merge). Feed không có task.created → e2e exit 6. Spec rev 3 ghi rõ: "giữa lúc
+SF-2 merged mà SF-3 chưa, convergence đỏ cấu trúc là ĐỘNG đã biết, KHÔNG tính
+verify-fail; tiêu chí checkpoint 1 = services workflows xanh". Convergence
+chỉ xanh lại khi SF-2 (node publish Kafka) + SF-5 (e2e sửa: happy path kafka +
+saga path + DLQ assert) merge. KHÔNG fix ở SF-3 = tôn trọng boundary (sửa
+node-svc/compose = FLAG theo plan).
+
+Acceptance SF-3 (context pack sf-3.md) — mapping:
+1. CI go-svc xanh: boot-smoke +kafka, console producer → feed có row, stats
+   nới pass, diff-guard pass → ĐẠT (run 38387226127, 4/4)
+2. Consumer unit golden fixture → activity row; duplicate envelope id → 1 row
+   → ĐẠT (handler_test/envelope_test unit + TestConsumerIdempotencyRealPG PG thật)
+3. Retry/DLQ: svc-fail → 3 retry → publish task.assignment_failed + DLQ gốc
+   → ĐẠT unit (runner_test fake producer; e2e 2 chiều DLQ assert thuộc SF-5)
+4. Resolver service-token: login svc-activity backoff, auth-mock down không
+   crash, 401 lazy re-login → ĐẠT unit (resolve_test fake auth server);
+   boot-smoke thật chứng minh go-svc boot khi auth-mock có mặt
+5. GET/POST /api/activity/events → 404 + docs khớp contract → ĐẠT
+   (TestAPIRoundtrip assert 404; drift-guard bit-identical)
+6. FE remote-tasks badge assignment_failed + remote-activity action labels
+   → ĐẠT (0e63a6e; FE tests trong build+test job của các workflow tương ứng)
+
+Reviewer độc lập: /tmp/story/fi62/code-reviewer-sf-3-go-consumer.md (xem status
+ở report DONE orchestration).

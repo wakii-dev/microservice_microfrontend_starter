@@ -68,7 +68,7 @@ jobs:
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example ps -a
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100
           echo "=== consumer logs (node-svc relay/compensation + go-svc consumer) ==="
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100 node-svc go-svc
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=200 node-svc go-svc
           echo "=== task-events end offset + nội dung (relay đã publish chưa?) ==="
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \

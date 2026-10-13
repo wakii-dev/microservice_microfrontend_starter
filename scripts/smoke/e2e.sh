@@ -186,16 +186,25 @@ if [ "$SAGA" = "1" ]; then
   #            ở task-events.dlq (kafka-console-consumer trong container kafka).
   #            DLQ message shape (producer.go): {"schemaVersion":1,
   #            "originalEvent":"{...\"taskId\":\"<uuid>\"...}","error":{...}} —
-  #            grep taskId đủ chứng minh event gốc present. ---
+  #            grep taskId đủ chứng minh event gốc present.
+  #            POLL 4×10s (không single-shot): at-least-once — go publish DLQ
+  #            SAU khi retry ×3 + compensating (writer DLQ lần đầu + metadata
+  #            discovery có thể chậm hơn status UPDATE ở node); run 2 thấy
+  #            compensating 12:58:32.9 nhưng DLQ chưa đến lúc đọc 12:58:33. ---
   command -v docker >/dev/null || fail 10 "docker không có trong PATH — không assert DLQ được (set SMOKE_SAGA=0 nếu môi trường không có Kafka)"
   DLQ_OUT="$(mktemp)"
-  docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
-    /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-    --topic task-events.dlq --from-beginning --timeout-ms 15000 > "$DLQ_OUT" 2>/dev/null
-  if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then
+  DLQ_FOUND=0
+  for attempt in 1 2 3 4; do
+    docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
+      /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+      --topic task-events.dlq --from-beginning --timeout-ms 10000 > "$DLQ_OUT" 2>/dev/null
+    if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then DLQ_FOUND=1; break; fi
+    say "8/8 DLQ chưa thấy taskId=$SAGA_TASK_ID (lần $attempt/4) — đọc lại sau 10s idle"
+  done
+  if [ "$DLQ_FOUND" = "1" ]; then
     say "8/8 DLQ: event gốc của task $SAGA_TASK_ID có mặt ở task-events.dlq — acceptance saga đủ 2 nửa (status + DLQ)"
   else
-    fail 10 "task-events.dlq không thấy event gốc taskId=$SAGA_TASK_ID (dlq output $(wc -l < "$DLQ_OUT") dòng — kiểm go consumer publish DLQ sau retry ×3)"
+    fail 10 "task-events.dlq không thấy event gốc taskId=$SAGA_TASK_ID sau 4 lần đọc (dlq output $(wc -l < "$DLQ_OUT") dòng — kiểm go consumer: log 'message gốc đưa DLQ' / 'đưa DLQ thất bại' / redelivery loop?)"
   fi
 else
   say "SMOKE_SAGA=0 — bỏ qua saga path + DLQ assert (chạy happy only)"

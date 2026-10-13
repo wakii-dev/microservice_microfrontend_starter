@@ -19,47 +19,92 @@
       "kind": "sf",
       "title": "Kafka foundation + async contracts",
       "tier": 0,
-      "summary": "Phase 1/2 — shippable: nền tảng. Compose kafka KRaft (apache/kafka, heap 512m, healthcheck full-path, internal-only, không depend_on); PRE-ADD env consumers (KAFKA_BROKERS node+go, AUTH_MOCK_URL + SVC_ACTIVITY_PASSWORD go) đúng 1 lần sửa compose; contracts/events/task-events.md (envelope + payload shapes + filter-by-type) + golden fixtures/*.json (2 đầu test load chung); conventions/09; fixtures svc-fail + svc-activity users.json; ADR-0008 supersede 0006. KHÔNG đụng DDL/tasks.yaml/activity.yaml. Context pack: docs/superpowers/contexts/sf-1.md"
+      "summary": "Phase 1/2 — shippable: nền tảng. Compose kafka KRaft (apache/kafka, heap 512m, healthcheck full-path, internal-only, không depend_on); PRE-ADD env consumers (KAFKA_BROKERS node+go, AUTH_MOCK_URL + SVC_ACTIVITY_PASSWORD go) đúng 1 lần sửa compose; contracts/events/task-events.md (envelope + payload shapes + filter-by-type) + golden fixtures/*.json (2 đầu test load chung); conventions/09; fixtures svc-fail + svc-activity users.json; ADR-0008 supersede 0006. KHÔNG đụng DDL/tasks.yaml/activity.yaml. Context pack: docs/superpowers/contexts/sf-1.md",
+      "linear": "FI-77"
     },
     {
       "id": "sf-4",
       "kind": "sf",
       "title": "spring-svc @Transactional demo",
       "tier": 0,
-      "summary": "Phase 1/2 — shippable độc lập (false dep đã cắt — dùng alice@demo.local có sẵn, không dính Kafka). TeamService service layer: tạo team + members N step, fail giữa chừng (email trùng alice) → rollback toàn bộ; tests happy + rollback assert; README Situation A vs B. Context pack: docs/superpowers/contexts/sf-4.md"
+      "summary": "Phase 1/2 — shippable độc lập (false dep đã cắt — dùng alice@demo.local có sẵn, không dính Kafka). TeamService service layer: tạo team + members N step, fail giữa chừng (email trùng alice) → rollback toàn bộ; tests happy + rollback assert; README Situation A vs B. Context pack: docs/superpowers/contexts/sf-4.md",
+      "linear": "FI-78"
     },
     {
       "id": "sf-2",
       "kind": "sf",
       "title": "node-svc Outbox + Producer + compensation consumer",
       "tier": 1,
-      "summary": "Phase 1/2 — shippable: node publish qua Kafka thật. Cụm nguyên tử node-side cascade (canonical DDL CHECK + schema.ts + migration + tasks.yaml TaskStatus split writable/extended); outbox table (envelope id trong repo, presence-based event matrix); relay 500ms kafkajs đúng golden fixture; xóa clients/activity.ts; compensation consumer conditional UPDATE; services-node-svc.yml kafka boot-smoke (assert published_at NOT NULL); pin schema-diff.test whitelist outbox. Context pack: docs/superpowers/contexts/sf-2.md"
+      "summary": "Phase 1/2 — shippable: node publish qua Kafka thật. Cụm nguyên tử node-side cascade (canonical DDL CHECK + schema.ts + migration + tasks.yaml TaskStatus split writable/extended); outbox table (envelope id trong repo, presence-based event matrix); relay 500ms kafkajs đúng golden fixture; xóa clients/activity.ts; compensation consumer conditional UPDATE; services-node-svc.yml kafka boot-smoke (assert published_at NOT NULL); pin schema-diff.test whitelist outbox. Context pack: docs/superpowers/contexts/sf-2.md",
+      "linear": "FI-79"
     },
     {
       "id": "sf-3",
       "kind": "sf",
       "title": "go-svc Consumer + Saga + thanh lý ingest",
       "tier": 1,
-      "summary": "Phase 1/2 — shippable: go consume Kafka thật. Cụm nguyên tử activity-side cascade (migration 0002 varchar(40)+CHECK; activity.yaml ×2 file trọn gói + diff-guard; store/tasks.go map; FE remote-tasks badge + remote-activity labels); consumer segmentio manual-commit ON CONFLICT filter-by-type; retry×3 → compensating → DLQ; resolver svc-activity backoff + lazy re-login; xóa ingest; services-go-svc.yml 3 điểm chạm (console producer golden fixture + kafka subset + topics tường minh + stats nới). Context pack: docs/superpowers/contexts/sf-3.md"
+      "summary": "Phase 1/2 — shippable: go consume Kafka thật. Cụm nguyên tử activity-side cascade (migration 0002 varchar(40)+CHECK; activity.yaml ×2 file trọn gói + diff-guard; store/tasks.go map; FE remote-tasks badge + remote-activity labels); consumer segmentio manual-commit ON CONFLICT filter-by-type; retry×3 → compensating → DLQ; resolver svc-activity backoff + lazy re-login; xóa ingest; services-go-svc.yml 3 điểm chạm (console producer golden fixture + kafka subset + topics tường minh + stats nới). Context pack: docs/superpowers/contexts/sf-3.md",
+      "linear": "FI-80"
     },
     {
       "id": "sf-5",
       "kind": "sf",
       "title": "Convergence + ADR sync + docs",
       "tier": 2,
-      "summary": "Phase 2/2 — shippable: STORY-COMPLETE candidates. convergence.yml 10 services + poll nới; e2e 2 chiều: happy (tạo task → feed) + saga (assign svc-fail → status assignment_failed + assert DLQ kafka-console-consumer); FE verify tổng thể; walkthrough + down -v note; security pass (9092 internal, secrets không vào envelope); scaffold probe. Context pack: docs/superpowers/contexts/sf-5.md"
+      "summary": "Phase 2/2 — shippable: STORY-COMPLETE candidates. convergence.yml 10 services + poll nới; e2e 2 chiều: happy (tạo task → feed) + saga (assign svc-fail → status assignment_failed + assert DLQ kafka-console-consumer); FE verify tổng thể; walkthrough + down -v note; security pass (9092 internal, secrets không vào envelope); scaffold probe. Context pack: docs/superpowers/contexts/sf-5.md",
+      "linear": "FI-81"
     }
   ],
   "edges": [
-    { "from": "epic", "to": "sf-1", "rel": "contains" },
-    { "from": "epic", "to": "sf-4", "rel": "contains" },
-    { "from": "epic", "to": "sf-2", "rel": "contains" },
-    { "from": "epic", "to": "sf-3", "rel": "contains" },
-    { "from": "epic", "to": "sf-5", "rel": "contains" },
-    { "from": "sf-2", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-3", "to": "sf-1", "rel": "depends-on" },
-    { "from": "sf-5", "to": "sf-2", "rel": "depends-on" },
-    { "from": "sf-5", "to": "sf-3", "rel": "depends-on" },
-    { "from": "sf-5", "to": "sf-4", "rel": "depends-on" }
+    {
+      "from": "epic",
+      "to": "sf-1",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-4",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-2",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-3",
+      "rel": "contains"
+    },
+    {
+      "from": "epic",
+      "to": "sf-5",
+      "rel": "contains"
+    },
+    {
+      "from": "sf-2",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-3",
+      "to": "sf-1",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-5",
+      "to": "sf-2",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-5",
+      "to": "sf-3",
+      "rel": "depends-on"
+    },
+    {
+      "from": "sf-5",
+      "to": "sf-4",
+      "rel": "depends-on"
+    }
   ]
 }

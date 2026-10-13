@@ -183,28 +183,37 @@ if [ "$SAGA" = "1" ]; then
   say "7/8 saga: task status = assignment_failed (compensation đã chạy)"
 
   # --- Bước 8: assert DLQ — event gốc (task.assigned cho task saga) phải nằm
-  #            ở task-events.dlq (kafka-console-consumer trong container kafka).
-  #            DLQ message shape (producer.go): {"schemaVersion":1,
-  #            "originalEvent":"{...\"taskId\":\"<uuid>\"...}","error":{...}} —
-  #            grep taskId đủ chứng minh event gốc present.
-  #            POLL 4×10s (không single-shot): at-least-once — go publish DLQ
-  #            SAU khi retry ×3 + compensating (writer DLQ lần đầu + metadata
-  #            discovery có thể chậm hơn status UPDATE ở node); run 2 thấy
-  #            compensating 12:58:32.9 nhưng DLQ chưa đến lúc đọc 12:58:33. ---
+  #            ở task-events.dlq. DLQ message shape (producer.go):
+  #            {"schemaVersion":1,"originalEvent":"{...\"taskId\":\"<uuid>\"...}",
+  #            "error":{...}} — grep taskId đủ chứng minh event gốc present.
+  #            2 LỚP (học run 2/3 — cả 2 tool đều đã chứng minh trong CI):
+  #            (1) kafka-get-offsets.sh làm arrival gate — end offset > 0 tức
+  #                message đã LẤN topic (get-offsets in tức thì, không có quirk
+  #                console-consumer thoát ngay trên topic rỗng — run 3 miss vì
+  #                DLQ đến 13:08:51.9, poll kết thúc 13:08:51.8);
+  #            (2) console-consumer đọc nội dung trên topic ĐÃ có message
+  #                (chạy ngay khi có — dump run 3 đọc được message ngay lập tức). ---
   command -v docker >/dev/null || fail 10 "docker không có trong PATH — không assert DLQ được (set SMOKE_SAGA=0 nếu môi trường không có Kafka)"
   DLQ_OUT="$(mktemp)"
-  DLQ_FOUND=0
-  for attempt in 1 2 3 4; do
-    docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
-      /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
-      --topic task-events.dlq --from-beginning --timeout-ms 10000 > "$DLQ_OUT" 2>/dev/null
-    if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then DLQ_FOUND=1; break; fi
-    say "8/8 DLQ chưa thấy taskId=$SAGA_TASK_ID (lần $attempt/4) — đọc lại sau 10s idle"
+  DLQ_ARRIVED=0
+  for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    DLQ_END="$(docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
+      /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+      --topic task-events.dlq 2>/dev/null | sed -E 's/.*:([0-9]+)$/\1/')"
+    case "$DLQ_END" in ''|*[!0-9]*) DLQ_END=0;; esac
+    if [ "$DLQ_END" -ge 1 ]; then DLQ_ARRIVED=1; break; fi
+    [ "$attempt" -lt 12 ] && sleep 5
   done
-  if [ "$DLQ_FOUND" = "1" ]; then
-    say "8/8 DLQ: event gốc của task $SAGA_TASK_ID có mặt ở task-events.dlq — acceptance saga đủ 2 nửa (status + DLQ)"
+  if [ "$DLQ_ARRIVED" != "1" ]; then
+    fail 10 "task-events.dlq end offset vẫn 0 sau 60s — go chưa publish DLQ (kiểm log 'message gốc đưa DLQ' / 'đưa DLQ thất bại' / redelivery loop)"
+  fi
+  docker compose -f "$COMPOSE_FILE" --env-file "$COMPOSE_ENV" exec -T kafka \
+    /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+    --topic task-events.dlq --from-beginning --timeout-ms 10000 > "$DLQ_OUT" 2>/dev/null
+  if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then
+    say "8/8 DLQ: event gốc của task $SAGA_TASK_ID có mặt ở task-events.dlq (end offset $DLQ_END) — acceptance saga đủ 2 nửa (status + DLQ)"
   else
-    fail 10 "task-events.dlq không thấy event gốc taskId=$SAGA_TASK_ID sau 4 lần đọc (dlq output $(wc -l < "$DLQ_OUT") dòng — kiểm go consumer: log 'message gốc đưa DLQ' / 'đưa DLQ thất bại' / redelivery loop?)"
+    fail 10 "DLQ có message (offset $DLQ_END) nhưng không thấy taskId=$SAGA_TASK_ID — dlq output: $(head -c 400 "$DLQ_OUT")"
   fi
 else
   say "SMOKE_SAGA=0 — bỏ qua saga path + DLQ assert (chạy happy only)"

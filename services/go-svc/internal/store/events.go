@@ -25,7 +25,7 @@ func (s *Store) InsertEvent(ctx context.Context, e *model.Event) error {
 	if err != nil {
 		return fmt.Errorf("insert event: %w", err)
 	}
-	if tag.RowsAffected() == 0 {
+	if n, raErr := tag.RowsAffected(); raErr == nil && n == 0 {
 		s.log.Info("event duplicate skipped (idempotency)", "eventId", e.ID.String())
 	}
 	return nil

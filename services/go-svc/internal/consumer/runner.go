@@ -56,7 +56,7 @@ func NewReader(brokers []string, group, topic string) *kafka.Reader {
 		GroupTopics: []string{topic},
 		// auto.offset.reset earliest — consumer mới đọc lại từ đầu (idempotency
 		// lo duplicates — task-events.md delivery semantics).
-		StartOffset: kafka.First,
+		StartOffset: kafka.FirstOffset,
 		MinBytes:    1,
 		MaxBytes:    1 << 20, // 1MB — envelope nhỏ, không cần lớn hơn
 	})

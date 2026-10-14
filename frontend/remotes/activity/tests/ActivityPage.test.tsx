@@ -245,6 +245,12 @@ describe('time helpers (SF-4)', () => {
     expect(formatDayHeading('2026-10-12T10:00:00Z', NOW)).toMatch(/2026/);
   });
 
+  it('formatTime — vi-VN đầy đủ giờ:ngày (TZ pin trong vitest config)', () => {
+    // TZ pinned Asia/Ho_Chi_Minh → 10:00Z = 17:00 local
+    expect(formatTime('2026-10-12T10:00:00Z')).toMatch(/^\d{2}:\d{2}:\d{2}/);
+    expect(formatTime('2026-10-12T10:00:00Z')).toContain('12/10/2026');
+  });
+
   it('dayKey theo ngày LOCAL (không phải UTC)', () => {
     expect(dayKey('2026-10-14T17:30:00+07:00')).toBe(dayKey(NOW.toISOString()));
     expect(dayKey('2026-10-13T17:30:00+07:00')).not.toBe(dayKey(NOW.toISOString()));

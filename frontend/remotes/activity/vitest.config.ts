@@ -29,5 +29,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    // Pin TZ cho toàn bộ test run — tests timeline nhóm ngày + vi-VN pin theo giờ
+    // Việt Nam (review P1: không pin = fail deterministic trên máy TZ ≤ UTC-3, vì
+    // mốc "Hôm qua"/ngày khác lệch ranh giới ngày local). Node re-read TZ per Date
+    // call nên có hiệu lực ngay với worker process.
+    env: { TZ: 'Asia/Ho_Chi_Minh' },
   },
 });

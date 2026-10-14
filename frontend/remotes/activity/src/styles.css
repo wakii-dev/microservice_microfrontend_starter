@@ -66,7 +66,8 @@
 }
 .act-stat__value {
   color: var(--ink);
-  font-size: 18px;
+  /* = 18px theo hand-off §4 — dùng token type scale để theo scale khi đổi */
+  font-size: var(--fs-h1);
   font-weight: 600;
   line-height: 1.2;
 }
@@ -118,7 +119,9 @@
   position: relative;
 }
 /* Rail dọc — đi qua tâm dot của badge (entry cách trái --sp-4, dot ở ~11px vào
- * trong badge): first-entry padding-top đã tính trong top offset. */
+ * trong badge): first-entry padding-top đã tính trong top offset.
+ * ⚠ 11px + sp-4 = hình học dot Badge fe-shared (padding 8px + dot 6/2) — KHI SF-1
+ * đổi padding/kích thước bp-badge thì CẬP NHẬT 2 chỗ này (đây + media query dưới). */
 .act-timeline__group::before {
   background: var(--line);
   bottom: var(--sp-3);

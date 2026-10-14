@@ -20,13 +20,13 @@
 
 ## Tasks
 
-- [ ] T1 — Full suite: `pnpm -r test` + `pnpm -r typecheck` + `pnpm -r build` (3 FE package xanh) + `git diff pnpm-lock.yaml` rỗng → ghi `docs/superpowers/evidence/sf-5-ui-redesign-conv/test-run.txt` (hash + tdd line)
-- [ ] T2 — e2e smoke PASS 1 lần chứng minh: `bash scripts/smoke/e2e.sh` (2 chiều happy+saga) → output vào evidence
-- [ ] T3 — Rule 0 browser walkthrough 8/8 trên compose :8080 (3 tầng DOM/VISUAL/FLOW): login → nav active → Tasks CRUD (tạo/sửa inline/đổi status/xoá confirm/filter/Tải thêm + x/total) → Activity phản ánh (stats + feed vi-VN) → saga 4b (assign fail@demo.local → badge "Gán thất bại" → re-assign bob + PATCH todo → về luồng thường) → kill remote-tasks → shell còn nguyên + fallback "Thử lại" + retry OK → activity vẫn chạy → standalone :4001/:4002 có style. Screenshots → `docs/superpowers/evidence/ui-redesign/conv-*.png`
-- [ ] T4 — Responsive 375px: 3 màn chính (Tasks/Activity/Home sau login) không overflow ngang — headless Chrome cùng build :8080, screenshots + DOM check `scrollWidth<=innerWidth` vào evidence
-- [ ] T5 — Docs sync: `docs/walkthrough.md` mục 4/4b đối chiếu UI mới (nhãn/badge thật) + compose kill-remote; `README.md` repo-map (fe-shared design tokens + UI primitives); `frontend/shell/README.md` + `frontend/remotes/{tasks,activity}/README.md` import tokens/primitives
-- [ ] T6 — Security pass: scan diff toàn story (secrets pattern, .env không track, exec-bit mới, asset ngoài/CSP untouched) + scaffold sanity verify-only (output có `frontend/shared/src/{styles,ui}` + build shell OK + xoá) → kết quả vào evidence
-- [ ] T7 — `docs/superpowers/improvements-log.md`: patterns hội tụ của SF-5
+- [x] T1 — Full suite: `pnpm -r test` + `pnpm -r typecheck` + `pnpm -r build` (3 FE package xanh) + `git diff pnpm-lock.yaml` rỗng → ghi `docs/superpowers/evidence/sf-5-ui-redesign-conv/test-run.txt` (hash + tdd line)
+- [x] T2 — e2e smoke PASS 1 lần chứng minh: `bash scripts/smoke/e2e.sh` (2 chiều happy+saga) → output vào evidence
+- [x] T3 — Rule 0 browser walkthrough 8/8 trên compose :8080 (3 tầng DOM/VISUAL/FLOW): login → nav active → Tasks CRUD (tạo/sửa inline/đổi status/xoá confirm/filter/Tải thêm + x/total) → Activity phản ánh (stats + feed vi-VN) → saga 4b (assign fail@demo.local → badge "Gán thất bại" → re-assign bob + PATCH todo → về luồng thường) → kill remote-tasks → shell còn nguyên + fallback "Thử lại" + retry OK → activity vẫn chạy → standalone :4001/:4002 có style. Screenshots → `docs/superpowers/evidence/ui-redesign/conv-*.png`
+- [x] T4 — Responsive 375px: 3 màn chính (Tasks/Activity/Home sau login) không overflow ngang — headless Chrome cùng build :8080, screenshots + DOM check `scrollWidth<=innerWidth` vào evidence
+- [x] T5 — Docs sync: `docs/walkthrough.md` mục 4/4b đối chiếu UI mới (nhãn/badge thật) + compose kill-remote; `README.md` repo-map (fe-shared design tokens + UI primitives); `frontend/shell/README.md` + `frontend/remotes/{tasks,activity}/README.md` import tokens/primitives
+- [x] T6 — Security pass: scan diff toàn story (secrets pattern, .env không track, exec-bit mới, asset ngoài/CSP untouched) + scaffold sanity verify-only (output có `frontend/shared/src/{styles,ui}` + build shell OK + xoá) → kết quả vào evidence
+- [x] T7 — `docs/superpowers/improvements-log.md`: patterns hội tụ của SF-5
 - [ ] T8 — Code-reviewer độc lập (cyan) trên diff SF (docs/evidence) → APPROVED + CHECKLIST-4Q post VU-58; CHANGES-REQUESTED → fix → re-review
 - [ ] T9 — Commit cuối + push `-u origin wakii-dev/sf-5-ui-redesign-conv` + `~/.claude/bin/story-verify sf-5` (B1/B2/B2b/B3 sạch; B4 pending merge = đúng story-hub) + worktree comment hướng dẫn walkthrough human gate + audit log VU-58. KHÔNG set Done Linear.
 

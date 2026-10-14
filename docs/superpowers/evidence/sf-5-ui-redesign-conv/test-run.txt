@@ -1,0 +1,71 @@
+SF-5 convergence — full suite + e2e smoke (chạy trên tree @ b2b05f4, plan commit)
+Date: 2026-10-14
+Worktree: sf-5-ui-redesign-conv · branch wakii-dev/sf-5-ui-redesign-conv · base wakii-dev/story-vu53-ui-redesign @1a6a7aa
+
+tdd: skipped-tdd: SF-5 docs/verify-only — không có unit mới để viết RED; bằng chứng = full suite + e2e smoke + browser walkthrough 3 tầng (screenshot evidence/ui-redesign/conv-*.png)
+
+── pnpm -r test (3 FE package) ──
+frontend/shell       Test Files 7 passed · Tests 38 passed
+frontend/remotes/tasks    Test Files 2 passed · Tests 32 passed
+frontend/remotes/activity Test Files 2 passed · Tests 22 passed
+→ TẤT CẢ XANH (92 tests)
+
+── pnpm -r typecheck ──
+frontend/shell typecheck: Done · frontend/remotes/tasks: Done · frontend/remotes/activity: Done
+
+── pnpm -r build (prod) ──
+shell: Rspack compiled successfully · tasks: compiled + MF DTS ok · activity: compiled + MF DTS ok
+
+── git diff pnpm-lock.yaml ──
+0 lines (lockfile KHÔNG đổi — 0 deps mới)
+
+── bash scripts/smoke/e2e.sh (chạy 1 lần chứng minh UI redesign không đụng CI) ──
+[smoke] 1/8 gateway + auth-mock ready
+[smoke] 2/8 login OK (token 272 chars)
+[smoke] 3/8 stats baseline totalTasks=12
+[smoke] 4/8 task tạo OK id=83def1f8… title=smoke-1791958008-23776
+[smoke] 5/8 feed có task.created + taskTitle=smoke-1791958008-23776 (qua outbox → Kafka → go-svc)
+[smoke] 5b/8 stats totalTasks: 12 → 13
+[smoke] 6/8 saga: PATCH assigneeId=svc-fail OK — chờ go retry ×3 → compensating
+[smoke] 7/8 saga: task status = assignment_failed
+[smoke] 8/8 DLQ: event gốc có mặt ở task-events.dlq (end offset 4)
+[smoke] PASS — chuỗi auth-mock → node-svc (outbox → Kafka) → go-svc liền mạch qua gateway :8080
+EXIT=0
+
+── T4 · Responsive 375px (headless Chromium — cùng build compose :8080, pixel thật) ──
+conv-24-375-tasks.png · conv-25-375-activity.png · conv-26-375-home.png
+DOM check: /tasks {scrollWidth:375, innerWidth:375, overflow:false} · /activity {…false} · / {…false} → 3/3 KHÔNG overflow ngang
+
+── T6 · Security pass (diff toàn story 4478937..HEAD, 109 files +5529/−391) ──
+✓ secret pattern scan: 0 match (ngoài fixture demo-password/.env.example placeholder có sẵn)
+✓ .env KHÔNG được track (chỉ .env.example); exec-bit mới: 0 mode change
+✓ asset ngoài/CDN mới trong frontend/: 0 (https:// chỉ localhost/w3.org svg ns)
+✓ dangerouslySetInnerHTML/eval/innerHTML mới: 0 · target=_blank thiếu rel: 0
+✓ pnpm-lock.yaml không đổi trong story; contracts/ không đổi
+⚠ nginx.conf + e2e.sh khác vs origin/main = commit c3b1499 (13/10 23:24 — fix infra coordinator
+  lúc story launch: /remotes/* map lazy-eval + BSD-sed portability). CSP/security headers KHÔNG đổi.
+
+── T6 · Scaffold sanity (verify-only, macOS) ──
+⚠ scripts/scaffold/scaffold.sh pre-existing macOS portability (SF-7): `realpath -m` (line 40) +
+  `sed -i` GNU syntax (rename step) — chạy được với realpath shim, nhưng RENAME @boilerplate→<name>
+  chết sớm trên macOS (BSD sed). CI Linux (GNU) không ảnh hưởng. → REPORT coordinator (không fix).
+KẾT QUẢ verify: output /tmp có frontend/shared/src/styles/{tokens,base}.css + src/ui/{Badge,
+EmptyState,Skeleton,Spinner,index} ✓ · pnpm install --no-frozen-lockfile OK (reconcile 694 pkgs) ✓ ·
+pnpm --filter …/shell build → "Rspack compiled successfully" ✓ · output đã xoá.
+
+── BUGS REPORT (KHÔNG fix — boundary frontend/** services/**) ──
+BUG-1 (P1, acceptance #6): standalone PROD build :4001/:4002 (compose) treo trang trắng.
+  Root cause: share-scope factory react-dom trong main.js tham chiếu chunk không tồn tại
+  (docker build: `Promise.all([e("237"),e("221")])` — 237 không nằm trong chunk map {159,221,477,
+  535,602,885,993}; local build cùng class thiếu "46"). import('./standalone') pending vô hạn,
+  không fetch thêm gì. In-shell KHÔNG apparent (shell cung cấp react → factory không chạy).
+  Standalone trên dev server (đường B) OK (evidence SF-1/3/4 :4101/:4102).
+  Owner: SF-1 (rspack/MF config) — evidence: conv-22/conv-23 + đo chunk map trong container.
+BUG-2 (P2, acceptance #5): "Thử lại" re-attempt nhưng in-place recovery KHÔNG thành khi remote
+  sống lại — skeleton flash (import thử lại chạy) rồi fallback ngay, KHÔNG có network request mới
+  (sticky rejection trong MF runtime layer; raw import() cùng URL cùng page FETCH thành công →
+  layer nằm trên module map, phía shell/MF runtime). Recovery người dùng = reload trang (OK).
+  SF-2 test contract mock loader → không thấy được lớp này. Owner: SF-2 (RemoteSlot).
+Ghi chú tool (không phải bug app): Orca browser trusted-input (mouse/keypress) + element-click
+  theo snapshot-coords miss khi element dưới fold/sau re-render — nút Tải thêm/Thử lại được
+  chứng minh bằng JS activation + elementFromPoint + suite (không overlay, handler đúng).

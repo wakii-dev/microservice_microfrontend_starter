@@ -42,6 +42,21 @@ describe('NavBar active state', () => {
     );
     expect(screen.getByText('Boilerplate')).toBeInTheDocument();
   });
+
+  it('token thiếu email claim → nav KHÔNG crash, avatar hiện "?" (review P2)', () => {
+    const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '');
+    window.localStorage.setItem(
+      'bp.jwt',
+      `${b64({ alg: 'HS256' })}.${b64({ sub: 'u1', exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`,
+    );
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByTestId('nav-user')).toBeInTheDocument();
+    expect(screen.getByTestId('nav-user')).toHaveTextContent('?');
+  });
 });
 
 describe('HomePage dashboard', () => {

@@ -49,8 +49,9 @@ export function NavBar() {
         {claims ? (
           <>
             <span className="sh-user" data-testid="nav-user">
+              {/* token hiếm khi thiếu email (readClaims chỉ validate sub) — guard tránh trắng nav */}
               <span aria-hidden="true" className="sh-user__avatar">
-                {claims.email.charAt(0).toUpperCase()}
+                {claims.email?.charAt(0)?.toUpperCase() ?? '?'}
               </span>
               <span className="sh-user__email">{claims.email}</span>
             </span>

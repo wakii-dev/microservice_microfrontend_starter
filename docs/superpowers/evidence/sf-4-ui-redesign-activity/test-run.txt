@@ -1,5 +1,6 @@
 # SF-4 test-run evidence — Remote activity ActivityPage redesign (VU-57, story VU-53)
 # Code commit: ed4e277 (feat(sf-4): activity redesign — stats grid + timeline feed theo direction B)
+# Review-fix commit: 9fcee39 (pin TZ tests P1 + token fs-h1 + comment rail) — HEAD sync
 # Ngày: 2026-10-14
 
 ## 1. Unit tests (pnpm test — package frontend/remotes/activity)
@@ -14,6 +15,27 @@ output RED: "Failed to resolve import ../src/components/time"; sau khi implement
  Test Files  2 passed (2)
       Tests  21 passed (21)
 ```
+
+## 1b. Sau review round 1 (CHANGES-REQUESTED → fix 9fcee39 → re-review APPROVED)
+
+Reviewer độc lập round 1: 2 P1 — 3 tests phụ thuộc timezone (fail deterministic trên máy
+TZ ≤ UTC-3: mốc "Hôm qua"/"ngày khác" lệch ranh giới ngày local) + 3 P2. Fix: pin
+`env: { TZ: 'Asia/Ho_Chi_Minh' }` trong vitest.config.ts + var(--fs-h1) + test formatTime trực tiếp.
+
+Meta-test (OLD-RED / NEW-GREEN, reviewer tự verify lại độc lập):
+```
+$ TZ=America/New_York pnpm test   # OLD config (không pin) → RED đúng 3 test TZ-dependent
+  Tests  3 failed | 18 passed (21)
+$ TZ=America/New_York pnpm test   # NEW config (pin)     → GREEN
+  Test Files  2 passed (2)
+      Tests  22 passed (22)
+$ pnpm test                        # run thường            → GREEN
+      Tests  22 passed (22)
+$ pnpm typecheck                   # exit 0
+```
+
+Verdict round 2: `VERDICT: APPROVED — P1×2 đóng với meta-test OLD-RED/NEW-GREEN tự verify,
+P2 đã xử lý, fix scope sạch 3/3 file, không regression (22/22 cả TZ Mỹ lẫn thường), typecheck exit 0.`
 
 Case mới SF-4: badge variant class theo 5 action (bp-badge--created/updated/assigned/deleted/
 assignmentFailed); timeline nhóm ngày Hôm nay/Hôm qua/ngày khác đúng thứ tự feed; time vi-VN +

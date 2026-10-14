@@ -1,5 +1,11 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
-import { type RemoteName, loadRemoteModule, resolveRemoteUrl, Skeleton } from '@boilerplate/fe-shared';
+import {
+  type LoadRemoteModuleOptions,
+  type RemoteName,
+  loadRemoteModule,
+  resolveRemoteUrl,
+  Skeleton,
+} from '@boilerplate/fe-shared';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.
@@ -37,9 +43,9 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
   }
 }
 
-function loadRemote(name: RemoteName, exposedModule: string) {
+function loadRemote(name: RemoteName, exposedModule: string, options?: LoadRemoteModuleOptions) {
   const remote = { name, url: resolveRemoteUrl(name) };
-  return loadRemoteModule<{ default: ComponentType }>(remote, exposedModule);
+  return loadRemoteModule<{ default: ComponentType }>(remote, exposedModule, options);
 }
 
 export function RemoteSlot({
@@ -53,9 +59,12 @@ export function RemoteSlot({
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
 
   // lazy cache theo (module, attempt) — re-render KHÔNG tạo component type mới (tránh remount
-  // + Suspense flash khi click lại nav link đang đứng); retry đổi attempt → lazy mới → import lại
+  // + Suspense flash khi click lại nav link đang đứng); retry đổi attempt → lazy mới → import lại.
+  // attempt > 0 = lần retry (BUG-2, sf-5b): mang cờ retry để fe-shared bust sticky rejection
+  // trong MF runtime (registerRemotes force) — nếu không, runtime trả lại rejection cũ tức thì
+  // dù remote đã sống lại (0 network request mới), "Thử lại" không bao giờ ăn.
   const LazyRemote = useMemo(
-    () => lazy(() => loadRemote(name, exposedModule)),
+    () => lazy(() => loadRemote(name, exposedModule, attempt > 0 ? { retry: true } : undefined)),
     [name, exposedModule, attempt],
   );
 

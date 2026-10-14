@@ -1,10 +1,11 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@boilerplate/fe-shared';
 
 /**
- * Nav tối giản: links + user email (decode từ JWT, KHÔNG verify — verify là việc BE) + logout.
- * Đọc token MỖI render (không useState cache) — login/logout navigate là re-render trigger,
- * nav cập nhật email ngay.
+ * App chrome (hand-off §4): brand + nav + user chip/logout.
+ * Active state: NavLink tự set aria-current="page" — visual = gạch --accent 2px dưới
+ * (styles.css, selector [aria-current='page']). Đọc token MỖI render (không useState
+ * cache) — login/logout navigate là re-render trigger, nav cập nhật email ngay.
  */
 export function NavBar() {
   const navigate = useNavigate();
@@ -17,20 +18,52 @@ export function NavBar() {
   }
 
   return (
-    <nav aria-label="Điều hướng chính">
-      <Link to="/">Trang chủ</Link>
-      <Link to="/tasks">Tasks</Link>
-      <Link to="/activity">Activity</Link>
-      {claims ? (
-        <>
-          <span data-testid="nav-user">{claims.email}</span>
-          <button type="button" onClick={logout}>
-            Đăng xuất
-          </button>
-        </>
-      ) : (
-        <Link to="/login">Đăng nhập</Link>
-      )}
-    </nav>
+    <header className="sh-topbar">
+      <span className="sh-brand">
+        <span aria-hidden="true" className="sh-brand__mark">
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="#fff"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          >
+            <path d="M3 4.5h7M3 8h10M3 11.5h5" />
+          </svg>
+        </span>
+        Boilerplate
+      </span>
+      <span aria-hidden="true" className="sh-topbar__sep" />
+      <nav aria-label="Điều hướng chính" className="sh-nav">
+        <NavLink className="sh-nav__link" end to="/">
+          Trang chủ
+        </NavLink>
+        <NavLink className="sh-nav__link" to="/tasks">
+          Tasks
+        </NavLink>
+        <NavLink className="sh-nav__link" to="/activity">
+          Activity
+        </NavLink>
+      </nav>
+      <div className="sh-topbar__right">
+        {claims ? (
+          <>
+            <span className="sh-user" data-testid="nav-user">
+              <span aria-hidden="true" className="sh-user__avatar">
+                {claims.email.charAt(0).toUpperCase()}
+              </span>
+              <span className="sh-user__email">{claims.email}</span>
+            </span>
+            <button className="sh-btn sh-btn--ghost" type="button" onClick={logout}>
+              Đăng xuất
+            </button>
+          </>
+        ) : (
+          <Link className="sh-btn sh-btn--ghost" to="/login">
+            Đăng nhập
+          </Link>
+        )}
+      </div>
+    </header>
   );
 }

@@ -1,5 +1,5 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
-import { type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@boilerplate/fe-shared';
+import { type RemoteName, loadRemoteModule, resolveRemoteUrl, Skeleton } from '@boilerplate/fe-shared';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.
@@ -22,12 +22,12 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
   render() {
     if (this.state.error) {
       return (
-        <div role="alert" className="remote-fallback">
+        <div className="sh-remote-fallback" role="alert">
           <p>
             Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
             xuống). Vui lòng thử lại.
           </p>
-          <button type="button" onClick={this.props.onRetry}>
+          <button className="sh-btn sh-btn--ghost" type="button" onClick={this.props.onRetry}>
             Thử lại
           </button>
         </div>
@@ -61,7 +61,13 @@ export function RemoteSlot({
 
   return (
     <RemoteErrorBoundary onRetry={retry} remoteName={name} key={attempt}>
-      <Suspense fallback={<p>Đang tải {name}…</p>}>
+      <Suspense
+        fallback={
+          <div className="sh-slot-loading">
+            <Skeleton variant="card" count={2} />
+          </div>
+        }
+      >
         <LazyRemote />
       </Suspense>
     </RemoteErrorBoundary>

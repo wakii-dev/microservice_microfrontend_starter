@@ -50,6 +50,14 @@ describe('RemoteSlot (error boundary remote-down)', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
+  it('đang tải → Suspense fallback là Skeleton (aria-busy), KHÔNG còn text "Đang tải…" (SF-2)', () => {
+    loadRemoteModuleMock.mockReturnValue(new Promise(() => {})); // never resolves
+    const { container } = render(<RemoteSlot name="tasks" exposedModule="./TasksPage" />);
+
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
+    expect(screen.queryByText('Đang tải tasks…')).not.toBeInTheDocument();
+  });
+
   it('re-render (click lại nav link đang đứng) KHÔNG load lại remote (lazy cache — P2 review fix)', async () => {
     loadRemoteModuleMock.mockResolvedValue({ default: () => <div>STABLE</div> });
     const { rerender } = render(

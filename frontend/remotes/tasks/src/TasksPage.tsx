@@ -3,7 +3,7 @@
 // SF-3 (VU-56) redesign: tách TaskForm/TaskList/TaskItem/StatusSelect (src/components/),
 // đủ hành vi API sẵn có — filter status, pagination "Tải thêm", edit inline, delete
 // confirm, per-item busy, skeleton/empty primitives. Export default + named GIỮ (MF contract).
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EmptyState, Skeleton } from '@boilerplate/fe-shared';
 import {
   ApiError,
@@ -35,18 +35,24 @@ export function TasksPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
+  // Sequence guard chống race stale-response: load-more in-flight + user đổi filter →
+  // response cũ về sau phải bị bỏ (không append vào list đã filter, không ghi đè total).
+  const reqSeq = useRef(0);
 
   const load = useCallback(async () => {
+    const seq = ++reqSeq.current;
     setError(null);
     setLoading(true);
     try {
       const res = await fetchTasks(statusFilter ? { status: statusFilter } : {});
+      if (seq !== reqSeq.current) return;
       setTasks(res.items);
       setTotal(res.total);
     } catch (err) {
+      if (seq !== reqSeq.current) return;
       setError(describeError(err));
     } finally {
-      setLoading(false);
+      if (seq === reqSeq.current) setLoading(false);
     }
   }, [statusFilter]);
 
@@ -56,28 +62,34 @@ export function TasksPage() {
 
   async function loadMore() {
     if (loadingMore) return;
+    const seq = ++reqSeq.current;
     setError(null);
     setLoadingMore(true);
     try {
       const params: { offset: number; status?: TaskStatus } = { offset: tasks.length };
       if (statusFilter) params.status = statusFilter;
       const res = await fetchTasks(params);
+      if (seq !== reqSeq.current) return;
       setTasks((prev) => [...prev, ...res.items]);
       setTotal(res.total);
     } catch (err) {
+      if (seq !== reqSeq.current) return;
       setError(describeError(err));
     } finally {
-      setLoadingMore(false);
+      if (seq === reqSeq.current) setLoadingMore(false);
     }
   }
 
-  async function handleCreate(input: { title: string; description?: string }) {
+  /** true = tạo + reload OK — form chỉ xoá input khi true (lỗi → giữ draft user). */
+  async function handleCreate(input: { title: string; description?: string }): Promise<boolean> {
     setError(null);
     try {
       await createTask(input);
       await load();
+      return true;
     } catch (err) {
       setError(describeError(err));
+      return false;
     }
   }
 
@@ -92,16 +104,19 @@ export function TasksPage() {
     }
   }
 
+  /** true = PATCH + reload OK — item chỉ thoát edit khi true (lỗi → giữ form + draft). */
   async function handleSave(
     task: Task,
     patch: { title?: string; description?: string },
-  ) {
+  ): Promise<boolean> {
     setError(null);
     try {
       await updateTask(task.id, patch);
       await load();
+      return true;
     } catch (err) {
       setError(describeError(err));
+      return false;
     }
   }
 

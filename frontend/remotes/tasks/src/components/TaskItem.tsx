@@ -11,7 +11,8 @@ import { StatusSelect } from './StatusSelect';
 interface TaskItemProps {
   task: Task;
   onStatusChange: (task: Task, status: TaskStatus) => Promise<void>;
-  onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<void>;
+  /** true = lưu OK — chỉ khi đó thoát edit (lỗi → banner ở page + giữ form + draft). */
+  onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<boolean>;
   onDelete: (task: Task) => Promise<void>;
 }
 
@@ -70,8 +71,8 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
       return;
     }
     void run(async () => {
-      await onSave(task, patch);
-      setEditing(false);
+      const ok = await onSave(task, patch);
+      if (ok) setEditing(false);
     });
   }
 

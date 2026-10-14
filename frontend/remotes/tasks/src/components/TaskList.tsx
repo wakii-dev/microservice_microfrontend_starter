@@ -9,7 +9,7 @@ interface TaskListProps {
   total: number;
   loadingMore: boolean;
   onStatusChange: (task: Task, status: TaskStatus) => Promise<void>;
-  onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<void>;
+  onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<boolean>;
   onDelete: (task: Task) => Promise<void>;
   onLoadMore: () => void;
 }

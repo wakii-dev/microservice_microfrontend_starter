@@ -73,6 +73,21 @@ describe('TasksPage', () => {
     expect(screen.getByLabelText('Tiêu đề')).toHaveValue('');
   });
 
+  it('tạo task THẤT BẠI — banner hiện, input GIỮ NGUYÊN cho user sửa (không xoá draft)', async () => {
+    const user = userEvent.setup();
+    mockedApi.createTask.mockRejectedValue(new api.ApiError(503, {
+      error: { code: 'SPRING_UNREACHABLE', message: 'spring-svc down', requestId: 'r1', details: null },
+    }));
+    render(<TasksPage />);
+
+    await screen.findByText('Task A');
+    await user.type(screen.getByLabelText('Tiêu đề'), 'Task sẽ fail');
+    await user.click(screen.getByRole('button', { name: 'Tạo task' }));
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tiêu đề')).toHaveValue('Task sẽ fail');
+  });
+
   it('load fail với error envelope → banner role=alert hiện message', async () => {
     mockedApi.fetchTasks.mockRejectedValue(
       new api.ApiError(503, {
@@ -180,6 +195,23 @@ describe('TasksPage', () => {
     expect(screen.queryByLabelText('Sửa tiêu đề task Task A')).not.toBeInTheDocument();
   });
 
+  it('sửa inline LƯU THẤT BẠI — form vẫn mở giữ draft (không đóng mất sửa đổi)', async () => {
+    const user = userEvent.setup();
+    mockedApi.updateTask.mockRejectedValue(new api.ApiError(400, {
+      error: { code: 'VALIDATION_ERROR', message: 'Title không được rỗng', requestId: 'r2', details: null },
+    }));
+    render(<TasksPage />);
+
+    await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
+    const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Đổi rồi fail');
+    await user.click(screen.getByRole('button', { name: 'Lưu' }));
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Đổi rồi fail');
+  });
+
   it('xoá — confirm 2 bước rồi gọi deleteTask + reload', async () => {
     const user = userEvent.setup();
     mockedApi.deleteTask.mockResolvedValue(undefined);
@@ -225,6 +257,27 @@ describe('TasksPage', () => {
     render(<TasksPage />);
     await screen.findByText('Task A');
     expect(screen.queryByRole('button', { name: 'Tải thêm' })).not.toBeInTheDocument();
+  });
+
+  it('race load-more ↔ filter — response load-more stale KHÔNG contaminating list đã filter', async () => {
+    const user = userEvent.setup();
+    let resolveLoadMore: (v: api.TaskList) => void = () => {};
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A], total: 2 }) // load đầu
+      .mockReturnValueOnce(new Promise<api.TaskList>((resolve) => { resolveLoadMore = resolve; })) // load-more treo
+      .mockResolvedValueOnce({ items: [TASK_B], total: 1 }); // filter in_progress
+    render(<TasksPage />);
+
+    await screen.findByText('Task A');
+    await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
+    await user.click(screen.getByRole('button', { name: 'Đang làm' }));
+    await screen.findByText('Task B'); // list đã filter xong
+    expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument();
+
+    // response load-more (filter cũ) về SAU — phải bị bỏ, không append
+    resolveLoadMore({ items: [TASK_A], total: 2 });
+    await waitFor(() => expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument());
+    expect(screen.queryByText('Task A')).not.toBeInTheDocument();
   });
 
   it('filter status — chip "Đang làm" gọi fetchTasks({ status: "in_progress" })', async () => {

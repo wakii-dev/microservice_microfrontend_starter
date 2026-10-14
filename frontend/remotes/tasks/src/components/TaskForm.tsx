@@ -4,7 +4,8 @@ import { FormEvent, useState } from 'react';
 import type { CreateTaskInput } from '../api';
 
 interface TaskFormProps {
-  onCreate: (input: CreateTaskInput) => Promise<void>;
+  /** true = tạo OK — chỉ khi đó xoá input (lỗi → banner ở page + giữ draft user). */
+  onCreate: (input: CreateTaskInput) => Promise<boolean>;
 }
 
 export function TaskForm({ onCreate }: TaskFormProps) {
@@ -17,9 +18,11 @@ export function TaskForm({ onCreate }: TaskFormProps) {
     if (!title.trim() || submitting) return;
     setSubmitting(true);
     try {
-      await onCreate({ title: title.trim(), description: description.trim() || undefined });
-      setTitle('');
-      setDescription('');
+      const ok = await onCreate({ title: title.trim(), description: description.trim() || undefined });
+      if (ok) {
+        setTitle('');
+        setDescription('');
+      }
     } finally {
       setSubmitting(false);
     }

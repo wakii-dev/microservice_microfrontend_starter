@@ -16,7 +16,7 @@
 - [x] T7 — Demo primitives sống: `docs/superpowers/designs/ui-redesign/ds-demo.html` (link CSS thật của fe-shared, markup = đúng DOM components render)
 - [x] T8 — Verify: `pnpm build` ×3 + `pnpm test` (shell) + `typecheck` ×3 xanh; evidence `evidence/sf-1-ui-redesign-dsys/test-run.txt` (HEAD hash + `tdd: RED→GREEN`)
 - [x] T9 — Browser verify 3 tầng (DOM / VISUAL so `b-reference.png` / FLOW shell→remote mount→đổi status) + ACCEPTANCE từng dòng; screenshots evidence
-- [ ] T10 — Code-reviewer độc lập trên diff SF → verdict post Linear VU-54 (VERDICT + CHECKLIST-4Q)
+- [x] T10 — Code-reviewer độc lập trên diff SF → verdict post Linear VU-54 (VERDICT + CHECKLIST-4Q)
 - [ ] T11 — Commit atomic + push nhánh `wakii-dev/sf-1-ui-redesign-dsys` + `story-verify sf-1` sạch (B4 merge là phần coordinator) — KHÔNG set Done
 
 ## Exit criteria (ACCEPTANCE pack)

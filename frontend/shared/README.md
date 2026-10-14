@@ -37,3 +37,5 @@ import '@boilerplate/fe-shared/styles/base.css';
 ```
 
 Quy tắc: depth = surface ladder (`--c-s1..s3`) + viền 1px `--line`, KHÔNG box-shadow; accent `--accent` dùng có kỷ luật (nút chính, nav-active, focus ring, dot); `--ink3` chỉ cho meta ≥12px; animation bọc `prefers-reduced-motion`.
+
+**Contract resolution react (SP spike R2)**: fe-shared KHÔNG khai báo react dep (giữ `pnpm-lock.yaml`) — **consumer cung cấp**: rspack `resolve.modules` (×3 config), vitest `resolve.alias` + `esbuild.jsx: 'automatic'` (shell vitest.config.ts), tsconfig `paths` ×3. Consumer mới (SF-5/6+) phải thiết lập đủ 3 lớp trước khi import JSX từ package này — không thì "Failed to resolve import react" / "React is not defined".

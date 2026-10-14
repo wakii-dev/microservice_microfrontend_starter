@@ -163,6 +163,9 @@
     color: var(--ink2);
     margin: 0 0 var(--sp-4);
   }
+  .bp-empty__action {
+    margin-top: var(--sp-2);
+  }
 
   /* Skeleton — khối nền --line pulse (shimmer opacity .5→1); wrapper aria-busy */
   .bp-skeleton {

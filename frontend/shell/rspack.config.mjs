@@ -100,15 +100,24 @@ export default {
     historyApiFallback: true,
     hot: true,
     headers: { 'Access-Control-Allow-Origin': '*' },
-    // DEV-ONLY proxy — topology gateway dev thu nhỏ: shell là host, REMOTE chạy trong
-    // page context của shell nên /api/<svc> của remote cũng về đây. Route theo prefix
-    // (đúng conventions/08): /api/tasks → node-svc, /api/auth → auth-mock.
-    // Origin dev khác cổng docker compose đã set CORS_DEV_ORIGIN (vd SHELL_PORT=3100)
-    // → cùng-origin qua proxy thay vì đụng stack compose. Prod không đi đây (gateway).
+    // DEV-ONLY proxy — topology gateway dev thu nhỏ (đủ 4 route như gateway
+    // conventions/08): /api/tasks → node-svc, /api/activity → go-svc, /api/users →
+    // spring-svc, /api/auth → auth-mock. Shell là host, REMOTE chạy trong page
+    // context của shell nên /api/<svc> của remote cũng về đây. Origin dev khác cổng
+    // docker compose đã set CORS_DEV_ORIGIN (vd SHELL_PORT=3100) → cùng-origin qua
+    // proxy thay vì đụng stack compose. Prod không đi đây (gateway).
     proxy: [
       {
         context: ['/api/tasks'],
         target: `http://localhost:${process.env.NODE_SVC_PORT || 3001}`,
+      },
+      {
+        context: ['/api/activity'],
+        target: `http://localhost:${process.env.GO_SVC_PORT || 8082}`,
+      },
+      {
+        context: ['/api/users'],
+        target: `http://localhost:${process.env.SPRING_SVC_PORT || 8081}`,
       },
       {
         context: ['/api/auth'],

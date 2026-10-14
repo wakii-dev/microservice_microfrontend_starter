@@ -280,6 +280,30 @@ describe('TasksPage', () => {
     expect(screen.queryByText('Task A')).not.toBeInTheDocument();
   });
 
+  it('race load-more ↔ filter — nút Tải thêm KHÔNG kẹt disabled khi load-more bị supersede', async () => {
+    const user = userEvent.setup();
+    const page = Array.from({ length: 10 }, (_, i) => ({ ...TASK_A, id: `page1-${i}`, title: `P1-${i}` }));
+    let resolveLoadMore: (v: api.TaskList) => void = () => {};
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: page, total: 25 }) // load đầu: 10/25
+      .mockReturnValueOnce(new Promise<api.TaskList>((resolve) => { resolveLoadMore = resolve; })) // load-more treo
+      .mockResolvedValueOnce({ items: [TASK_B], total: 25 }); // filter
+    render(<TasksPage />);
+
+    await screen.findByText('P1-0');
+    await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
+    expect(screen.getByRole('button', { name: 'Đang tải thêm…' })).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Đang làm' }));
+    // load() mới supersede load-more → nút phải enable lại (không kẹt "Đang tải thêm…")
+    const btn = await screen.findByRole('button', { name: 'Tải thêm' });
+    expect(btn).toBeEnabled();
+
+    // response load-more stale về sau — nút vẫn enable, không kẹt vĩnh viễn
+    resolveLoadMore({ items: [], total: 25 });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Tải thêm' })).toBeEnabled());
+  });
+
   it('filter status — chip "Đang làm" gọi fetchTasks({ status: "in_progress" })', async () => {
     const user = userEvent.setup();
     mockedApi.fetchTasks

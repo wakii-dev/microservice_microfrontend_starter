@@ -41,6 +41,8 @@ export function TasksPage() {
 
   const load = useCallback(async () => {
     const seq = ++reqSeq.current;
+    // load mới supersede mọi load-more in-flight — nút "Tải thêm" không được kẹt disabled
+    setLoadingMore(false);
     setError(null);
     setLoading(true);
     try {

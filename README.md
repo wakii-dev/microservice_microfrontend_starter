@@ -127,7 +127,7 @@ contracts/          # source of truth API/DB/auth — spectral lint trong CI
 platform/           # compose (health-gated), postgres init, nginx, auth-mock, conventions/
 services/           # node-svc / spring-svc / go-svc — impl hoàn chỉnh, README standalone từng svc
 frontend/
-  shared/           # fe-shared — api client, token storage, MF bootstrap helper
+  shared/           # fe-shared — api client, token storage, MF bootstrap helper + design system (src/styles tokens+base, src/ui primitives Badge/EmptyState/Skeleton/Spinner)
   shell/            # MF host (Rspack) — login, nav, remote slots
   remotes/          # tasks + activity — 2 MF remote
   spike/            # MF pin versions — đã test (prune khi scaffold)

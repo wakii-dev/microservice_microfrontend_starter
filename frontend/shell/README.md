@@ -36,7 +36,7 @@ REMOTE_TASKS_URL=http://localhost:4001/remoteEntry.js pnpm --filter @boilerplate
 ## Tests + build
 
 ```bash
-pnpm --filter @boilerplate/shell test        # vitest + testing-library (15 tests: a11y, login, remote-down, api-timeout, integration)
+pnpm --filter @boilerplate/shell test        # vitest + testing-library (38 tests: a11y, login, remote-down, api-timeout, integration, primitives)
 pnpm --filter @boilerplate/shell typecheck
 pnpm --filter @boilerplate/shell build       # rspack production build → dist/
 ```
@@ -64,7 +64,16 @@ Copy thư mục này **KÈM `frontend/shared/`** (workspace dep `@boilerplate/fe
 ## Kiến trúc nhanh
 
 - `src/index.tsx` → async boundary `import('./bootstrap')` (bắt buộc MF — tránh loadShareSync)
+- `src/bootstrap.tsx` — import global `@boilerplate/fe-shared/styles/tokens.css` + `base.css` (shell LÀM CHỦ global base — remotes KHÔNG import lại base khi chạy trong shell)
 - `src/App.tsx` — routes `/`, `/tasks`, `/activity` (remote slots), `/login`
-- `src/components/RemoteSlot.tsx` — lazy remote + error boundary + retry
+- `src/components/RemoteSlot.tsx` — lazy remote + error boundary + retry (Suspense fallback = Skeleton primitive)
 - `src/api.ts` — ApiClient từ fe-shared, base `__API_BASE_URL__`
 - Login dùng `tokenStorage` + `ApiClient` từ `@boilerplate/fe-shared` (READ-ONLY — SF-1 sở hữu)
+- `src/styles.css` — scoped classes shell (`sh-*`), chỉ ăn tokens CSS vars từ fe-shared
+
+## Design system (từ `@boilerplate/fe-shared` — story VU-53)
+
+- **Tokens**: `import '@boilerplate/fe-shared/styles/tokens.css'` — CSS vars `--c-*` (surface ladder `#010102→#18191a`), `--ink*`, `--line*`, `--accent*`, `--st-*`, `--sp-*`, `--fs-*`, `--r-*`. Depth = surface + viền 1px, KHÔNG box-shadow.
+- **Base**: `import '@boilerplate/fe-shared/styles/base.css'` — reset mỏng + element defaults (`@layer reset,base`) — CHỈ shell import làm global.
+- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared'` — `Badge variant: todo|doing|done|failed|created|updated|assigned|deleted|assignmentFailed` (role="status"), Skeleton (aria-busy + prefers-reduced-motion), Spinner (label bắt buộc), EmptyState (title/description/action).
+- Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B, user đã duyệt).

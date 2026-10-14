@@ -1,0 +1,105 @@
+SF-5b fix round — BUG-1 (standalone prod trắng) + BUG-2 (retry sticky) từ bug report SF-5
+Date: 2026-10-14
+Worktree: sf-5b-ui-redesign-fix · branch wakii-dev/sf-5b-ui-redesign-fix · base wakii-dev/story-vu53-ui-redesign
+Code hash khi chạy suite + browser walkthrough: 57a5f5c (evidence commit ngay sau).
+Lưu ý trung thực: container images dùng trong walkthrough build từ working tree TRƯỚC 2
+P2-fix của reviewer (comment + test assertion, 0 dòng runtime-src) — code chức năng trong
+image == 57a5f5c.
+
+tdd: RED→GREEN — BUG-2: 2 test mới RED trước fix (mf-retry.test.ts fetchCount dính 1;
+remote-slot sticky-model vẫn fallback sau "Thử lại"), GREEN sau (8 files / 41 tests shell).
+BUG-1: không unit được (lỗi toolchain-class trong rspack/mf build output) — bằng chứng =
+phantom-grep prod dist TRƯỚC (refs có id ngoài chunk map) vs SAU fix (refs=[]) + browser
+standalone prod render (không thể "trắng" nếu render) — chỉ rõ bên dưới.
+
+── Fixes (8 files sửa + 1 file mới, +150/−17, pnpm-lock.yaml 0 lines) ──
+BUG-1 — 2 lớp:
+  (1) rspack.config.mjs ×2 remote: shared {react, react-dom, react/jsx-runtime} eager:true
+      + tách 2 entry: `index` (async boundary — giữ làm anchor MF container, RUNTIME-006)
+      + `standalone` (STATIC — graph tự chứa trong 1 chunk, không sinh async chunk cho
+      shared → phantom chunk không thể tồn tại); HtmlRspackPlugin chunks:['standalone'].
+      Root cause lớp (1): prod build sinh data blocks (initializeSharingData /
+      consumesLoadingData) trỏ chunk id STALE (phantom "237" docker / "103" local) và
+      KHÔNG emit runtime machinery (__webpack_require__.I/.f.consumes là stub throw) —
+      wrapper module 706/43/418 không được emit ở bất kỳ file nào. Pin matrix không được
+      bump (re-spike — ngoài scope fix round).
+  (2) nginx.conf ×2 remote: location /remotes/<name>/ alias về root — index.html script
+      src + runtime chunk fetch dùng publicPath gateway-shaped (compile-time, bắt buộc
+      cho in-shell) nên standalone :4001/:4002 cần map prefix đó. Cùng 1 dist phục vụ
+      cả 2 đường, không đổi publicPath.
+BUG-2 — frontend/shared/src/mf-bootstrap.ts loadRemoteModule + shell RemoteSlot:
+  Root cause (đọc từ source @module-federation/runtime-core 0.21.6 cài đặt):
+  getRemoteEntry() memoize load-promise remoteEntry trong `globalLoading`
+  (window.__GLOBAL_LOADING_REMOTE_ENTRY__, key name+entry) — promise REJECTED không
+  bao giờ được clear → loadRemote sau trả rejection cũ TỨC THÌ, 0 fetch mới (khớp
+  evidence bug report; raw import() cùng URL thành công vì không đi layer này).
+  Fix: loadRemoteModule nhận {retry} — retry bắn registerRemotes([{name, entry,
+  type:'global', shareScope:'default'}], {force:true}) TRƯỚC loadRemote → registerRemote
+  force → removeRemote xoá globalLoading + manifestCache + moduleCache + container
+  global (đường sanctioned duy nhất trong runtime). RemoteSlot truyền {retry:true} khi
+  attempt>0. type PHẢI 'global' (khớp registration gốc của webpack runtime — def
+  'module' gây RUNTIME_002 ngay sau fetch, bắt được ở browser E2E lần 1).
+
+── pnpm -r test (3 FE package) ──
+frontend/shell       Test Files 8 passed · Tests 41 passed (7 cũ + mf-retry mới + 1 test
+                     mới trong remote-slot.test.tsx)
+frontend/remotes/tasks    Test Files 2 passed · Tests 32 passed
+frontend/remotes/activity Test Files 2 passed · Tests 22 passed
+→ 95/95 XANH · pnpm -r typecheck: Done ×3 · build prod ×3 OK (2 warnings size
+  standalone ~299KB — kỳ vọng, bundle react inline cho trang debug)
+
+── Phantom grep (chẩn đoán giống bug report — TRƯỚC vs SAU) ──
+TRƯỚC (local prod build): main.js refs có "103" KHÔNG nằm trong chunk map
+  {159,221,477,602,823,885,993}; module consumer 706/43/418 không được emit ở đâu;
+  __webpack_require__.I/.f.consumes là stub `throw Error("should have …")`.
+SAU fix (trong container mới build): standalone.*.js refs=[] ở CẢ 2 remote
+  (self-contained). tasks remoteEntry refs {808,885} resolve được (808 = named expose
+  chunk qua .u). Residual đã chấp nhận: activity remoteEntry/index (container path)
+  còn refs stale {103,467} — CÙNG class build CŨ đang chạy OK in-shell (old build
+  remoteEntry expose cũng await phantom "237" — verify bằng docker cp từ container cũ),
+  browser chứng minh in-shell KHÔNG chạy qua path đó (mf runtime host-side drive).
+
+── Browser walkthrough — Rule 0 3 tầng (Orca browser, compose stack rebuild từ
+   worktree này; screenshots cùng thư mục) ──
+ACCEPTANCE #6 — standalone prod :4001/:4002 (BUG-1):
+  DOM: :4001 root children=2 (banner+page), body bg rgb(1,1,2) = token #010102 ✓;
+       :4002 tương tự ✓; console errors: 0.
+  VISUAL: sf5b-01-tasks-standalone-4001.png (banner styled + form + filter chips +
+       EmptyState + error box 401 đúng behavior) · sf5b-02-activity-standalone-4002.png
+       (Activity header + Làm mới + stats/feed). TỰ NHÌN bằng mắt — KHÔNG trắng.
+  FLOW: chuỗi standalone prod thật: index.html → /remotes/<name>/standalone.*.js
+       (nginx alias) → render trọn vẹn. Đây là chuỗi đã chết ở round 1.
+ACCEPTANCE #5 — retry recovery in-place (BUG-2), shell :8080 login alice@demo.local:
+  1) baseline /tasks: h1 Tasks, form, 10 rows thật (sf5b-03).
+  2) docker stop remote-tasks → vào /tasks: fallback alert + nút "Thử lại" (sf5b-04).
+  3) docker start remote-tasks (remoteEntry 200) → set window marker __sf5b_noReload=42
+     + đếm resource entries → CLICK "Thử lại" (trusted click @ref, KHÔNG JS activation).
+  4) t+2s: marker=42 CÒN NGUYÊN (KHÔNG reload — in-place ✓) · h1 Tasks · form ✓ ·
+     10 rows thật trở lại · alert biến mất · +1 remoteEntry fetch MỚI (đối xứng với
+     signature bug "0 request mới" — force-reset đã khiến runtime fetch lại) (sf5b-05).
+REGRESSION (không phải acceptance nhưng chặn hồi quy):
+  tasks in-shell baseline trước kill ✓ · activity in-shell sau fix (h1 Activity, Feed,
+  Làm mới) ✓ (sf5b-06) · home (Trang chủ + nav 3 link + token bg) ✓ · 10/10 containers
+  healthy/up sau rebuild. Note công cụ: lần click retry dùng element-ref click của Orca
+  (element tại chỗ, không dưới fold) — khác với note tool của SF-5 (JS activation chỉ
+  cần khi element miss coords).
+
+── Lộ trình chẩn đoán đáng nhớ (cho improvements-log) ──
+1. BUG-1 không phải 1 bug: phantom-chunk (build output) + alias-nginx (serve path) —
+   fix lớp (1) xong trang vẫn trắng nếu chỉ nhìn "có fetch" mà không để ý MIME.
+2. Retry def registerRemotes phải khớp registration gốc (type 'global') — def sai type
+   → fetch 200 xong vẫn chết RUNTIME_002; đọc rejection từ chính globalLoading promise
+   (attach .catch qua eval) là cách định vị 5 phút.
+3. Old-build-so-sánh (docker cp remoteEntry từ container cũ) là mấu chốt phân loại
+   "residual vô hại" vs "regression của fix": old expose map cũng await phantom "237".
+
+── Code-reviewer độc lập (bước 2c — dispatch riêng, không tự duyệt) ──
+Đã đọc 9/9 files diff + tự chạy lại tests (41+32+22 pass, typecheck ×3) + verify toàn bộ
+claims runtime-core 0.21.6 với source cài đặt (kể cả crux: moduleCache.set xảy ra trong
+beforeRequest TRƯỚC fetch → lần load fail vẫn có module trong cache → removeRemote cleanup
+chạy được). Edge cases săn sạch: retry 2 lần, retry khi remote vẫn down, load song song
+cross-remote (scoped theo name), nav away/back sau recovery, nginx traversal + add_header
+inheritance. CHECKLIST-4Q: 4/4 PASS. 2 P2 (không chặn) — ĐÃ ÁP: (1) pin assertion
+"attempt 0 không mang cờ" trong remote-slot test; (2) comment sync-per-pin cho void
+registerRemotes. Coverage pass: 9/9 files có verdict.
+VERDICT: APPROVED (0 P0 / 0 P1)

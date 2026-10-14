@@ -20,12 +20,12 @@
 
 ## Tasks
 
-- [ ] T1 — `api.ts` mở rộng: `FetchTasksParams` (limit clamp 1..100 default 10 / offset ≥ 0 / status), `buildTasksPath`, `deleteTask` (DELETE 204); RED→GREEN `api.test.ts` (URL mới + params + clamp + delete + 404 envelope)
-- [ ] T2 — Components RED: viết `TasksPage.test.tsx` mới đủ ~17 case theo component tree (sửa inline PATCH payload, xoá confirm DELETE, Tải thêm offset, filter ?status=, per-item busy, assignee/createdAt, skeleton) — chạy ĐỎ
-- [ ] T3 — Components GREEN: `components/status.ts` (labels/variants/writable) + `StatusBadge` + `StatusSelect` + `TaskForm` + `TaskItem` + `TaskList` + `TasksPage` rewrite (state owner, filter chips, skeleton/empty/load-more, error banner 503 giữ) — chạy XANH
-- [ ] T4 — `styles.css` scoped (`.tsk-*`, tokens, media ≤768px) + standalone banner debug đẹp (standalone.tsx, giữ import tokens+base SF-1)
-- [ ] T5 — Full verify package: `pnpm test` + `pnpm typecheck` + `pnpm build` tasks — 3 lệnh xanh; ghi `docs/superpowers/evidence/sf-3-ui-redesign-tasks/test-run.txt` (HEAD hash + tdd line)
-- [ ] T6 — Rule 0 browser verify 3 tầng: DOM eval + screenshot so direction + flow login→CRUD→filter→load-more→saga 4b badge→logout trên dev stack isolate (:3100 shell + :4101 tasks dev, backend compose) + standalone :4101
+- [x] T1 — `api.ts` mở rộng: `FetchTasksParams` (limit clamp 1..100 default 10 / offset ≥ 0 / status), `buildTasksPath`, `deleteTask` (DELETE 204); RED→GREEN `api.test.ts` (URL mới + params + clamp + delete + 404 envelope)
+- [x] T2 — Components RED: viết `TasksPage.test.tsx` mới đủ ~17 case theo component tree (sửa inline PATCH payload, xoá confirm DELETE, Tải thêm offset, filter ?status=, per-item busy, assignee/createdAt, skeleton) — chạy ĐỎ
+- [x] T3 — Components GREEN: `components/status.ts` (labels/variants/writable) + `StatusBadge` + `StatusSelect` + `TaskForm` + `TaskItem` + `TaskList` + `TasksPage` rewrite (state owner, filter chips, skeleton/empty/load-more, error banner 503 giữ) — chạy XANH
+- [x] T4 — `styles.css` scoped (`.tsk-*`, tokens, media ≤768px) + standalone banner debug đẹp (standalone.tsx, giữ import tokens+base SF-1)
+- [x] T5 — Full verify package: `pnpm test` + `pnpm typecheck` + `pnpm build` tasks — 3 lệnh xanh; ghi `docs/superpowers/evidence/sf-3-ui-redesign-tasks/test-run.txt` (HEAD hash + tdd line)
+- [x] T6 — Rule 0 browser verify 3 tầng: DOM eval + screenshot so direction + flow login→CRUD→filter→load-more→saga 4b badge→logout trên dev stack isolate (:3100 shell + :4101 tasks dev, backend compose) + standalone :4101
 - [ ] T7 — Code-reviewer độc lập (cyan) trên diff SF → verdict APPROVED + CHECKLIST-4Q post lên VU-56; CHANGES-REQUESTED → fix → re-review
 - [ ] T8 — Commit cuối: evidence hash sync (HEAD~1) + improvements-log + plan tick; push `-u origin wakii-dev/sf-3-ui-redesign-tasks`; chạy `~/.claude/bin/story-verify sf-3` — B1/B2/B2b/B3 phải PASS (B4 pending merge là trạng thái đúng của story-hub — coordinator merge)
 

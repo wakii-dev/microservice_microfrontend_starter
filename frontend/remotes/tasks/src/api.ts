@@ -63,9 +63,35 @@ export interface UpdateTaskInput {
   status?: TaskStatus;
 }
 
-// Path giữ nguyên prefix /api/tasks — node-svc tự mount prefix (gateway pass-through, không rewrite)
-export function fetchTasks(): Promise<TaskList> {
-  return api.get<TaskList>('/api/tasks?limit=50');
+// Path giữ nguyên prefix /api/tasks — node-svc tự mount prefix (gateway pass-through, không rewrite).
+// SF-3 (VU-56): params limit/offset/status theo contract tasks.yaml — listTasks query
+// (limit min 1 max 100, offset min 0, status CHỈ writable TaskStatus). Clamp tại đây
+// để UI không bao giờ gửi query vi phạm contract dù state có lệch.
+
+/** Kích thước trang "Tải thêm" — chọn 10 để pagination thấy được ngay trong demo. */
+export const TASKS_PAGE_SIZE = 10;
+
+export interface FetchTasksParams {
+  limit?: number;
+  offset?: number;
+  status?: TaskStatus;
+}
+
+function buildTasksPath(params: FetchTasksParams = {}): string {
+  const limit = Math.min(Math.max(params.limit ?? TASKS_PAGE_SIZE, 1), 100);
+  const offset = Math.max(params.offset ?? 0, 0);
+  const query = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  if (params.status) {
+    query.set('status', params.status);
+  }
+  return `/api/tasks?${query.toString()}`;
+}
+
+export function fetchTasks(params: FetchTasksParams = {}): Promise<TaskList> {
+  return api.get<TaskList>(buildTasksPath(params));
 }
 
 export function createTask(input: CreateTaskInput): Promise<Task> {
@@ -74,6 +100,10 @@ export function createTask(input: CreateTaskInput): Promise<Task> {
 
 export function updateTask(taskId: string, patch: UpdateTaskInput): Promise<Task> {
   return api.patch<Task>(`/api/tasks/${taskId}`, patch);
+}
+
+export function deleteTask(taskId: string): Promise<void> {
+  return api.delete(`/api/tasks/${taskId}`);
 }
 
 export { ApiError };

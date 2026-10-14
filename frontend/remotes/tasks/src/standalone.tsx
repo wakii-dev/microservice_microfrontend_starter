@@ -14,10 +14,13 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <p>
-      <small>Standalone debug mode — remote chạy thật trong shell (:3000). Token không có ở
-        origin này nên API sẽ báo 401 — đúng hành vi (gateway/service chặn thiếu-token).</small>
-    </p>
+    <aside className="tsk-standalone">
+      <strong>Standalone debug — remote `tasks`</strong>
+      <p>
+        UI thật chạy trong shell (compose :8080, dev :3000). Origin này không có token JWT
+        nên API trả 401 — đúng hành vi (gateway/service chặn thiếu-token).
+      </p>
+    </aside>
     <TasksPage />
   </StrictMode>,
 );

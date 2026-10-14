@@ -27,8 +27,8 @@
 - [x] T5 — Docs sync: `docs/walkthrough.md` mục 4/4b đối chiếu UI mới (nhãn/badge thật) + compose kill-remote; `README.md` repo-map (fe-shared design tokens + UI primitives); `frontend/shell/README.md` + `frontend/remotes/{tasks,activity}/README.md` import tokens/primitives
 - [x] T6 — Security pass: scan diff toàn story (secrets pattern, .env không track, exec-bit mới, asset ngoài/CSP untouched) + scaffold sanity verify-only (output có `frontend/shared/src/{styles,ui}` + build shell OK + xoá) → kết quả vào evidence
 - [x] T7 — `docs/superpowers/improvements-log.md`: patterns hội tụ của SF-5
-- [ ] T8 — Code-reviewer độc lập (cyan) trên diff SF (docs/evidence) → APPROVED + CHECKLIST-4Q post VU-58; CHANGES-REQUESTED → fix → re-review
-- [ ] T9 — Commit cuối + push `-u origin wakii-dev/sf-5-ui-redesign-conv` + `~/.claude/bin/story-verify sf-5` (B1/B2/B2b/B3 sạch; B4 pending merge = đúng story-hub) + worktree comment hướng dẫn walkthrough human gate + audit log VU-58. KHÔNG set Done Linear.
+- [x] T8 — Code-reviewer độc lập (cyan) trên diff SF (docs/evidence) → APPROVED + CHECKLIST-4Q post VU-58; CHANGES-REQUESTED → fix → re-review
+- [x] T9 — Commit cuối + push `-u origin wakii-dev/sf-5-ui-redesign-conv` + `~/.claude/bin/story-verify sf-5` (B1/B2/B2b/B3 sạch; B4 pending merge = đúng story-hub) + worktree comment hướng dẫn walkthrough human gate + audit log VU-58. KHÔNG set Done Linear.
 
 ## Exit criteria
 

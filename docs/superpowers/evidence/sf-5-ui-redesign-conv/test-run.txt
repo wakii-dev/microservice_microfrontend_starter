@@ -66,6 +66,19 @@ BUG-2 (P2, acceptance #5): "Thử lại" re-attempt nhưng in-place recovery KH�
   (sticky rejection trong MF runtime layer; raw import() cùng URL cùng page FETCH thành công →
   layer nằm trên module map, phía shell/MF runtime). Recovery người dùng = reload trang (OK).
   SF-2 test contract mock loader → không thấy được lớp này. Owner: SF-2 (RemoteSlot).
+Ghi chú evidence: conv-18 = screenshot hành động trang hoang lúc Orca runtime hiccup (activity
+slot lỗi tạm thời trong khi container activity vẫn healthy — tái tạo sạch ở conv-19 xác nhận
+activity vẫn chạy khi tasks down: stats + feed render đủ). conv-18 giữ lại làm audit trail.
 Ghi chú tool (không phải bug app): Orca browser trusted-input (mouse/keypress) + element-click
   theo snapshot-coords miss khi element dưới fold/sau re-render — nút Tải thêm/Thử lại được
   chứng minh bằng JS activation + elementFromPoint + suite (không overlay, handler đúng).
+
+── T8 · Code-reviewer độc lập (không tự duyệt) ──
+Diff 1a6a7aa..dcfc637: 0 P0 · 1 P1 escalated (api-client.ts không timeout — pre-existing SF-1,
+report-only) · 2 P2 (P2-b đã fix commit 9e131c0 — liệt kê đủ nhóm test shell). 12/27 PNG đối
+chiếu trực tiếp khớp docs 100%. CHECKLIST-4Q đã post VU-58.
+VERDICT: APPROVED
+
+── Hash sync cuối (evidence commit ngay sau commit 9e131c0) ──
+HEAD khi chạy suite + smoke + walkthrough: 9e131c0 (tree cuối = b2b05f4 plan + e5adcef docs +
+dcfc637 evidence + 9e131c0 review-fix — toàn bộ docs/evidence, không đụng code sản phẩm)

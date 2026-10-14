@@ -59,3 +59,5 @@ fresh" (badge demo), "post-fix sanity" — tương tự residue các lần smoke
 
 tdd: RED→GREEN — 4 chu kỳ (T1 api, T2/T3 components, review-fix P1-1/P1-2/P1-3, review-fix
 P1-4); tests viết trước code, RED được xác nhận trong output trước mỗi lần implement
+
+evidence-sync: commit cuối của run là docs tick/evidence; code commit cuối = 3296bc2 (HEAD~2); hash commit ngay trước evidence-sync này = f893399

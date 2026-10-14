@@ -1,36 +1,42 @@
 // TasksPage — expose `./TasksPage` (registry conventions/08), shell mount vào route /tasks
 // (RequireAuth đã lo redirect login; trang này giả định có token, 401 → error banner).
-import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { ApiError, createTask, fetchTasks, Task, TaskStatus, TaskStatusExtended, updateTask } from './api';
-
-// Labels đủ 4 giá trị (SF-3 cascade) — nhưng select CHỈ 3 writable:
-// `assignment_failed` là status hệ thống (saga compensation), PATCH CẤM.
-const STATUS_LABELS: Record<TaskStatusExtended, string> = {
-  todo: 'Cần làm',
-  in_progress: 'Đang làm',
-  done: 'Xong',
-  assignment_failed: 'Gán thất bại',
-};
-const STATUSES: TaskStatus[] = ['todo', 'in_progress', 'done'];
+// SF-3 (VU-56) redesign: tách TaskForm/TaskList/TaskItem/StatusSelect (src/components/),
+// đủ hành vi API sẵn có — filter status, pagination "Tải thêm", edit inline, delete
+// confirm, per-item busy, skeleton/empty primitives. Export default + named GIỮ (MF contract).
+import { useCallback, useEffect, useState } from 'react';
+import { EmptyState, Skeleton } from '@boilerplate/fe-shared';
+import {
+  ApiError,
+  createTask,
+  deleteTask,
+  fetchTasks,
+  Task,
+  TaskStatus,
+  updateTask,
+} from './api';
+import { STATUS_LABELS, WRITABLE_STATUSES } from './components/status';
+import { TaskForm } from './components/TaskForm';
+import { TaskList } from './components/TaskList';
+import './styles.css';
 
 /**
- * CRUD tối giản theo spec slice mục 3: danh sách + tạo + sửa (đổi status).
- * Error envelope decode → inline banner (conventions/04); KHÔNG toast phức tạp (boilerplate).
+ * CRUD đầy đủ theo context pack SF-3: danh sách + tạo + sửa (status/inline) + xoá +
+ * filter + pagination. Error envelope decode → inline banner (conventions/04); KHÔNG
+ * toast phức tạp (boilerplate). Per-item busy là state cục bộ của TaskItem.
  */
 export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetchTasks();
+      const res = await fetchTasks(statusFilter ? { status: statusFilter } : {});
       setTasks(res.items);
       setTotal(res.total);
     } catch (err) {
@@ -38,26 +44,36 @@ export function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  async function handleCreate(e: FormEvent) {
-    e.preventDefault();
-    if (!title.trim()) return;
+  async function loadMore() {
+    if (loadingMore) return;
     setError(null);
-    setSubmitting(true);
+    setLoadingMore(true);
     try {
-      await createTask({ title: title.trim(), description: description.trim() || undefined });
-      setTitle('');
-      setDescription('');
-      await load();
+      const params: { offset: number; status?: TaskStatus } = { offset: tasks.length };
+      if (statusFilter) params.status = statusFilter;
+      const res = await fetchTasks(params);
+      setTasks((prev) => [...prev, ...res.items]);
+      setTotal(res.total);
     } catch (err) {
       setError(describeError(err));
     } finally {
-      setSubmitting(false);
+      setLoadingMore(false);
+    }
+  }
+
+  async function handleCreate(input: { title: string; description?: string }) {
+    setError(null);
+    try {
+      await createTask(input);
+      await load();
+    } catch (err) {
+      setError(describeError(err));
     }
   }
 
@@ -66,6 +82,29 @@ export function TasksPage() {
     setError(null);
     try {
       await updateTask(task.id, { status });
+      await load();
+    } catch (err) {
+      setError(describeError(err));
+    }
+  }
+
+  async function handleSave(
+    task: Task,
+    patch: { title?: string; description?: string },
+  ) {
+    setError(null);
+    try {
+      await updateTask(task.id, patch);
+      await load();
+    } catch (err) {
+      setError(describeError(err));
+    }
+  }
+
+  async function handleDelete(task: Task) {
+    setError(null);
+    try {
+      await deleteTask(task.id);
       await load();
     } catch (err) {
       setError(describeError(err));
@@ -84,8 +123,8 @@ export function TasksPage() {
   }
 
   return (
-    <section aria-label="Quản lý tasks">
-      <h1>Tasks</h1>
+    <section className="tsk-page" aria-label="Quản lý tasks">
+      <h1 className="tsk-page__title">Tasks</h1>
 
       {error && (
         <p role="alert" className="error-banner">
@@ -93,87 +132,51 @@ export function TasksPage() {
         </p>
       )}
 
-      <form onSubmit={handleCreate} aria-label="Form tạo task">
-        <label>
-          Tiêu đề
-          <input
-            type="text"
-            name="title"
-            required
-            maxLength={200}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </label>
-        <label>
-          Mô tả
-          <input
-            type="text"
-            name="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </label>
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Đang tạo…' : 'Tạo task'}
+      <TaskForm onCreate={handleCreate} />
+
+      <div className="tsk-toolbar" role="group" aria-label="Lọc theo trạng thái">
+        <button
+          type="button"
+          className={`tsk-chip${statusFilter === null ? ' tsk-chip--active' : ''}`}
+          aria-pressed={statusFilter === null}
+          onClick={() => setStatusFilter(null)}
+        >
+          Tất cả
         </button>
-      </form>
+        {WRITABLE_STATUSES.map((status) => (
+          <button
+            key={status}
+            type="button"
+            className={`tsk-chip${statusFilter === status ? ' tsk-chip--active' : ''}`}
+            aria-pressed={statusFilter === status}
+            onClick={() => setStatusFilter(status)}
+          >
+            {STATUS_LABELS[status]}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
-        <p>Đang tải tasks…</p>
+        <Skeleton variant="row" count={4} />
       ) : tasks.length === 0 ? (
-        <p>Chưa có task nào — tạo task đầu tiên ở form trên.</p>
+        <EmptyState
+          title="Chưa có task nào"
+          description={
+            statusFilter
+              ? 'Thử bỏ bộ lọc để xem tất cả task.'
+              : 'Tạo task đầu tiên ở form trên.'
+          }
+        />
       ) : (
-        <>
-          <h2>
-            Danh sách ({tasks.length}/{total})
-          </h2>
-          <ul aria-label="Danh sách tasks" style={{ listStyle: 'none', padding: 0 }}>
-            {tasks.map((task) => (
-              <li
-                key={task.id}
-                style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.4rem 0' }}
-              >
-                <strong>{task.title}</strong>
-                {task.description && <span>— {task.description}</span>}
-                {task.status === 'assignment_failed' ? (
-                  // Status hệ thống — badge, KHÔNG select (PATCH cấm assignment_failed)
-                  <span
-                    role="status"
-                    aria-label={`Trạng thái task ${task.title}`}
-                    style={{
-                      marginLeft: 'auto',
-                      padding: '0.15rem 0.6rem',
-                      borderRadius: 999,
-                      background: '#fde8e8',
-                      color: '#c53030',
-                      fontSize: '0.85rem',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {STATUS_LABELS[task.status]}
-                  </span>
-                ) : (
-                  <label style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
-                    {' '}
-                    Trạng thái
-                    <select
-                      aria-label={`Trạng thái task ${task.title}`}
-                      value={task.status}
-                      onChange={(e) => void handleStatusChange(task, e.target.value as TaskStatus)}
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-              </li>
-            ))}
-          </ul>
-        </>
+        <TaskList
+          tasks={tasks}
+          total={total}
+          loadingMore={loadingMore}
+          onStatusChange={handleStatusChange}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onLoadMore={() => void loadMore()}
+        />
       )}
     </section>
   );

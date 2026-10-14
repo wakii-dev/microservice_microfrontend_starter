@@ -1,7 +1,7 @@
 SF-1 test evidence — story VU-53 UI redesign (Design-system nền móng, VU-54)
 HEAD: c3ae8d6 (branch wakii-dev/sf-1-ui-redesign-dsys) — 2026-10-14
 Code commits: 9271558 (spike R2 + config ×3) · 3c33ed3 (primitives + tests) · c3ae8d6 (standalone boundary fix)
-Post-evidence commits: 7784d39 (docs) · 7cf8e4e (review APPROVED round 2 — P1 proxy 4 route + P2 fix; tests 30/30 + typecheck ×3 + curl 4/4 JSON re-verified SAU commit)
+Post-evidence commits: 7784d39 (docs) · 7cf8e4e (review APPROVED round 2 — P1 proxy 4 route + P2 fix; tests 30/30 + typecheck ×3 + curl 4/4 JSON re-verified SAU commit) · 8c64f6b (plan tick T11 + evidence hash sync — docs-only, 0 code thay đổi sau 7cf8e4e; improvements-log docs-only tiếp theo eaabb53)
 
 tdd: RED→GREEN — tests/primitives.test.tsx viết TRƯỚC implementation:
   RED  (chưa có primitives): 15 test primitives FAIL — "Failed to resolve import react"

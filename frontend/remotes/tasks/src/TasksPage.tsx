@@ -17,6 +17,10 @@ import {
 import { STATUS_LABELS, WRITABLE_STATUSES } from './components/status';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
+// Tokens idempotent (quyết định #5 epic): remote import tokens trong page entry —
+// shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
+// base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
+import '@boilerplate/fe-shared/styles/tokens.css';
 import './styles.css';
 
 /**

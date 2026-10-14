@@ -21,14 +21,19 @@
 /* ── Form tạo task ─────────────────────────────────────────────────────── */
 
 .tsk-form {
+  /* flex-direction + max-width explicit: shell css CŨ (pre-SF-2) có `form{column,max-width:20rem}`
+   * toàn cục lấp default — SF-2 merge xoá rule đó, khai báo tường minh vẫn đúng sau merge */
   align-items: end;
   background: var(--c-s2);
   border: 1px solid var(--line);
   border-radius: var(--r-3);
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   gap: var(--sp-3);
+  max-width: none;
   padding: var(--sp-4);
+  width: 100%;
 }
 
 .tsk-form__field {
@@ -188,8 +193,10 @@
 
 .tsk-item__edit {
   display: flex;
+  flex-direction: row; /* explicit — chống `form{column}` toàn cục của shell css cũ (pre-SF-2) */
   flex-wrap: wrap;
   gap: var(--sp-2);
+  width: 100%;
 }
 
 .tsk-item__edit input {

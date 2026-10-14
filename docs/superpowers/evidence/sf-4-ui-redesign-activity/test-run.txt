@@ -1,0 +1,59 @@
+# SF-4 test-run evidence — Remote activity ActivityPage redesign (VU-57, story VU-53)
+# Code commit: ed4e277 (feat(sf-4): activity redesign — stats grid + timeline feed theo direction B)
+# Ngày: 2026-10-14
+
+## 1. Unit tests (pnpm test — package frontend/remotes/activity)
+
+tdd: RED→GREEN (tests viết TRƯỚC: 14 case ActivityPage RED vì thiếu components/time — chi tiết
+output RED: "Failed to resolve import ../src/components/time"; sau khi implement components/
++ styles.css + ActivityPage rewrite → GREEN 21/21)
+
+```
+ ✓ tests/api.test.ts (3 tests) 4ms
+ ✓ tests/ActivityPage.test.tsx (18 tests) 287ms
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+```
+
+Case mới SF-4: badge variant class theo 5 action (bp-badge--created/updated/assigned/deleted/
+assignmentFailed); timeline nhóm ngày Hôm nay/Hôm qua/ngày khác đúng thứ tự feed; time vi-VN +
+dateTime ISO giữ; skeleton stats/feed ĐỘC LẬP (Promise.allSettled — mỗi khu aria-busy riêng,
+khu còn lại render bình thường); nút Làm mới busy (disabled + Spinner role=status) tắt khi xong;
+unknown action nguyên văn KHÔNG badge; EmptyState link /tasks; giữ nguyên contract cũ
+(stats aria-label bộ đầy đủ, stats-fail không che feed, feed-fail alert).
+
+## 2. Typecheck (pnpm typecheck — tsc --noEmit): sạch, 0 error
+
+## 3. Build prod (pnpm build): "Rspack compiled successfully in 2.55 s" — css rule SF-1 ăn
+import '@boilerplate/fe-shared/styles/tokens.css' + './styles.css' (css experiment, cssFilename contenthash)
+
+## 4. Browser verify Rule 0 — 3 tầng (Orca browser, pages thật)
+
+Stack verify: shell dev :3103 (nhánh này, pre-SF-2 — old shell UI) + remote tasks dev :4103
+(pre-SF-3) + remote activity dev :4102 (CHÍNH NHÁNH SF-4, API_BASE_URL='' same-origin qua
+dev proxy SF-1) + compose backend (gateway :8080, auth-mock :8090, node-svc :3001, go-svc :8082,
+Kafka).
+
+- Tầng 1 DOM (eval): stats tiles giá trị đúng cập nhật sau tạo task (8→7 sau xoá) + 5 aria-label
+  nguyên văn; timeline groups ['Hôm nay','Hôm qua']; firstItem event vừa tạo qua UI (07:52:55);
+  badge className 'bp-badge bp-badge--created'; dateTime giữ ISO gốc; body bg #010102 (canvas).
+- Tầng 2 VISUAL (screenshot — pixel thật từ trang, file cạnh file này):
+  standalone-4102-styled-debug-banner.png (dark canvas + banner debug scoped viền accent + error
+  banner styled khi 401 đúng contract);
+  activity-in-shell-3103-timeline-badges.png (stats grid 5 tile, timeline HÔM NAY/HÔM QUÀ,
+  rail dọc, badge created/updated/deleted, time mono phải vi-VN).
+  Ghi nhận trung thực (FI-464 style): (a) badge pill/dot styled CHỈ khi base.css có mặt — shell
+  nhánh base (pre-SF-2) chưa import base.css (SF-2 đang chạy song song sẽ wire) — đã verify
+  end-state bằng cách INJECT base.css vào trang: dot #5e6ad2, nền 12% alpha, radius pill ✓;
+  đây là visual transient expected theo spec epic Phase 2, tự hết khi SF-2 merge. (b) userName
+  RỖNG ("") cho MỌI event — từ RAW API go-svc (data-level, UI cũ cũng vậy) — KHÔNG phải
+  regression SF-4; FE render TRỰC TIẾP từ response đúng spec (không bịa placeholder) — cần BÁO
+  coordinator (services READ-ONLY).
+- Tầng 3 FLOW (chuỗi liền mạch trên :3103): login alice@demo.local → nav Tasks → tạo task
+  "SF-4 activity check 0747" (8/8) → mở Activity → event xuất hiện badge "đã tạo" + stats
+  cập nhật → xoá 1 task qua API DELETE (204) → reload Activity → badge "đã xoá" (+ updated/
+  created vẫn đúng) → Đăng xuất → về /login, user chip biến mất. PASS.
+
+## 5. Diff-hygiene (story-diff-review): 5 warnings (comment-explainer + files-ngoài-plan-file —
+đều nằm trong touch map context pack; không secrets, không exec-bit mới, không deps mới —
+pnpm-lock.yaml KHÔNG đổi)

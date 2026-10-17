@@ -21,25 +21,27 @@ describe('pageList', () => {
 });
 
 describe('Pagination', () => {
-  it('active → bg-accent + text-white + font-medium; item thường → hover:bg-s3, không bg-accent', () => {
+  it('active → bg-accent + text-white + font-medium, không viền; item thường → outline border-line + hover:bg-s3', () => {
     render(<Pagination current={2} pageSize={10} total={100} onChange={vi.fn()} />);
     const active = screen.getByRole('button', { name: 'Trang 2' });
     expect(active).toHaveClass('bg-accent', 'text-white', 'font-medium');
     expect(active).toHaveAttribute('aria-current', 'page');
+    expect(active).not.toHaveClass('border-line');
     const normal = screen.getByRole('button', { name: 'Trang 1' });
-    expect(normal).toHaveClass('hover:bg-s3', 'bg-transparent');
+    expect(normal).toHaveClass('border', 'border-line', 'hover:bg-s3', 'bg-transparent');
     expect(normal).not.toHaveClass('bg-accent');
   });
 
-  it('prev disabled ở trang 1 → text-ink3 cursor-not-allowed, không hover bg; next enabled', () => {
+  it('prev disabled ở trang 1 → text-ink3 cursor-not-allowed, không hover bg không viền; next enabled có viền', () => {
     render(<Pagination current={1} pageSize={10} total={100} onChange={vi.fn()} />);
     const prev = screen.getByRole('button', { name: 'Trang trước' });
     expect(prev).toBeDisabled();
     expect(prev).toHaveClass('text-ink3', 'cursor-not-allowed');
     expect(prev).not.toHaveClass('hover:bg-s3');
+    expect(prev).not.toHaveClass('border-line');
     const next = screen.getByRole('button', { name: 'Trang sau' });
     expect(next).toBeEnabled();
-    expect(next).toHaveClass('hover:bg-s3');
+    expect(next).toHaveClass('border-line', 'hover:bg-s3');
     expect(next).not.toHaveClass('cursor-not-allowed');
   });
 

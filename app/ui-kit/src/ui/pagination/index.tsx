@@ -1,7 +1,8 @@
-// Pagination — antd look: item ô vuông 32px (h-8 min-w-8) rounded-lg KHÔNG viền,
-// active = nền accent đặc + chữ trắng font-medium (fontWeightStrong), hover item
-// thường/prev/next = bg-s3 (colorBgTextHover), prev/next SVG chevron, ellipsis ···
-// (jump ±5 — antd quick), disabled = text-ink3 cursor-not-allowed không hover bg.
+// Pagination — antd look: item ô vuông 32px (h-8 min-w-8) rounded-lg, KHÔNG chọn
+// = viền outline (border-line) để nút đọc rõ; active = nền accent đặc + chữ trắng
+// font-medium (fontWeightStrong) không viền; hover item thường/prev/next = bg-s3
+// (colorBgTextHover); prev/next SVG chevron, ellipsis ··· (jump ±5 — antd quick);
+// disabled = text-ink3 cursor-not-allowed, không hover bg, không viền.
 // Contract note: TasksPage giữ "Tải thêm"/"x/total" — component này stories-only
 // cho đến khi có page-based list.
 import { useMemo } from 'react';
@@ -35,7 +36,7 @@ function ChevronRightIcon() {
 }
 
 const ITEM =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent px-2 text-body text-ink transition-colors hover:bg-s3';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink transition-colors hover:bg-s3';
 const ITEM_ACTIVE =
   'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white';
 const ITEM_DISABLED =

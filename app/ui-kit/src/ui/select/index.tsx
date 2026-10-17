@@ -79,10 +79,10 @@ export function Select({ ariaLabel, value, onChange, options, placeholder, disab
         onClick={() => (open ? setOpen(false) : (setOpen(true), setActive(Math.max(0, options.findIndex((o) => o.value === value)))))}
         onKeyDown={onKeyDown}
         className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
-          open ? 'border-accent' : 'border-line hover:border-accent'
-        } ${disabled ? 'cursor-not-allowed bg-s3 text-ink3' : 'text-ink'}`}
+          open ? 'border-accent-hi' : 'border-line hover:border-accent'
+        } ${disabled ? 'cursor-not-allowed bg-[rgba(0,0,0,0.04)] text-ink4' : 'text-ink'}`}
       >
-        <span className={selected ? '' : 'text-ink3'}>{selected?.label ?? placeholder ?? 'Chọn…'}</span>
+        <span className={selected ? '' : 'text-ink4'}>{selected?.label ?? placeholder ?? 'Chọn…'}</span>
         <span aria-hidden="true" className={`text-ink3 transition-transform ${open ? 'rotate-180' : ''}`}>
           ▾
         </span>

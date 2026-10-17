@@ -90,3 +90,35 @@ describe('Select — branch phụ', () => {
     expect(options[0]).toHaveAttribute('aria-selected', 'false');
   });
 });
+
+describe('Select — keyboard branch phụ', () => {
+  it('ArrowDown khi đóng → mở + active 0; ArrowUp tại 0 giữ 0', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="KB" options={OPTIONS} />);
+    const trigger = screen.getByRole('combobox', { name: 'KB' });
+    await user.click(trigger);
+    await user.keyboard('{ArrowUp}');
+    await user.keyboard('{Enter}');
+    // active giữ 0 → chọn option đầu (todo)
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('Enter trên option disabled → không commit, listbox vẫn mở', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Select
+        ariaLabel="KD"
+        options={[...OPTIONS, { label: 'Khoá', value: 'locked', disabled: true }]}
+        value="todo"
+        onChange={onChange}
+      />,
+    );
+    await user.click(screen.getByRole('combobox', { name: 'KD' }));
+    // ArrowDown ×3 → active = Khoá (disabled); Enter không commit
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}');
+    await user.keyboard('{Enter}');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+});

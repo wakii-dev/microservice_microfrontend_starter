@@ -25,7 +25,7 @@ export interface CheckableTagProps {
 function TagBase({ children, icon, closable = false, onClose, className }: TagProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-2 border border-line bg-s3 px-2 py-0.5 text-meta text-ink2${className ? ` ${className}` : ''}`}
+      className={`inline-flex items-center gap-1 rounded-1 border border-line bg-s3 px-2 py-0.5 text-meta text-ink2${className ? ` ${className}` : ''}`}
     >
       {icon && <span aria-hidden="true">{icon}</span>}
       {children}
@@ -49,7 +49,7 @@ function Checkable({ checked, onChange, icon, children, className }: CheckableTa
       type="button"
       aria-pressed={checked}
       onClick={() => onChange?.(!checked)}
-      className={`inline-flex cursor-pointer items-center gap-1 rounded-pill border px-3 py-1 text-label transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+      className={`inline-flex cursor-pointer items-center gap-1 rounded-1 border px-3 py-1 text-label transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
         checked
           ? 'border-accent bg-accent text-white hover:border-accent-hi hover:bg-accent-hi'
           : 'border-line bg-transparent text-ink3 hover:border-line2 hover:text-ink2'

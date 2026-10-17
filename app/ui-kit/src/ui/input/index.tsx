@@ -5,8 +5,8 @@
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const FIELD_BASE =
-  'w-full rounded-2 border bg-s2 text-body text-ink placeholder:text-ink3 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:text-ink3';
-const FIELD_OK = 'border-line focus:border-accent';
+  'w-full rounded-2 border bg-s2 text-body text-ink placeholder:text-ink4 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-[rgba(0,0,0,0.04)] disabled:text-ink4';
+const FIELD_OK = 'border-line focus:border-accent-hi';
 const FIELD_INVALID = 'border-st-fail focus:border-st-fail';
 const RING_OK = 'focus:ring-2 focus:ring-accent/10';
 const RING_INVALID = 'focus:ring-2 focus:ring-st-fail/10';

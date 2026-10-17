@@ -1,56 +1,96 @@
-# Token Contract — JWT HS256 (mock auth)
+# Token Contract — auth-svc (HS256 + refresh rotation) — v2
 
-> SF-1 (FI-64) sở hữu. ⚠️ **NOT FOR PRODUCTION** — mock JWT cho boilerplate demo; dự án thật copy boilerplate sẽ cắm OIDC provider thật (Keycloak/Auth0) tại auth-mock boundary.
+> SF-1 (VU-60) sở hữu. Hiệp ước của epic auth-real (VU-59): mọi SF sau (SF-2 auth-svc,
+> SF-3 RBAC, SF-4 FE refresh-client, SF-5 convergence) code THEO file này + `contracts/openapi/auth.yaml` v2.
+> Chuyển tiếp: auth-mock chạy song song đến SF-5 decommission với hành vi v1 của nó —
+> từ SF-2 mọi implementation/test bám target dưới đây.
 
-## 1. Token format
+## 1. Access token — JWT HS256, TTL 30m
 
-- **Algorithm**: HS256 (HMAC-SHA256) — symmetric, một secret chung.
+- **Algorithm**: HS256 (HMAC-SHA256) — symmetric, một secret chung (`JWT_SECRET`, §5).
 - **Header**:
 
 ```json
 { "alg": "HS256", "typ": "JWT" }
 ```
 
-- **Payload (claims)**:
+- **Payload (claims)** — shape giữ nguyên so với v1:
 
 | Claim  | Kiểu      | Bắt buộc | Ý nghĩa |
 |--------|-----------|----------|---------|
-| `sub`  | string    | ✓        | **User id = UUID trong `contracts/auth/users.json`** = primary key user của spring-svc (SF-3 seed cùng fixture). node-svc lấy đây làm `created_by`/`assignee_id`. |
-| `email`| string    | ✓        | Email fixture user |
-| `roles`| string[]  | ✓        | Vd `["admin"]`, `["user"]` — mirror trường roles trong fixture |
-| `iss`  | string    | ✓        | Luôn `"auth-mock"` |
+| `sub`  | string    | ✓        | **User id (UUID)** — primary key `auth.users` của auth-svc; seeded users giữ nguyên UUID fixture `contracts/auth/users.json`. node-svc lấy đây làm `created_by`/`assignee_id`. |
+| `email`| string    | ✓        | Email (lowercase-normalized) |
+| `roles`| string[]  | ✓        | Vd `["admin"]`, `["user"]` — mirror `auth.users.roles`; source-of-truth cho RBAC (SF-3) |
+| `iss`  | string    | ✓        | **PINNED `"auth-mock"`** — ⚠️ giá trị lịch sử CỐ Ý giữ nguyên: node-svc + spring-svc + go-svc verify và 2 CI workflow hardcode chuỗi này; đổi chuỗi = follow-up nhỏ RIÊNG (ngoài epic này), KHÔNG đổi trong auth-svc |
 | `iat`  | int (epoch giây) | ✓ | Thời điểm cấp |
-| `exp`  | int (epoch giây) | ✓ | `iat + 28800` |
+| `exp`  | int (epoch giây) | ✓ | `iat + 1800` |
 
-- **TTL: 8 giờ = 28800 giây**. Không refresh token (mock).
+- **TTL: 30 phút = 1800 giây** — cấu hình env `ACCESS_TOKEN_TTL=30m` (auth-svc đọc; token hết hạn → FE auto-refresh, §4).
 
-## 2. Secret phân phối
+## 2. Refresh token — opaque 256-bit, TTL 7d
 
-- Secret nằm trong env var `JWT_SECRET` — **không commit** (chỉ có trong `.env`, đã gitignore; `.env.example` chứa placeholder).
-- Compose inject **cùng một giá trị** cho: `auth-mock` (ký), `node-svc`, `spring-svc`, `go-svc` (verify).
-- **Gateway nginx KHÔNG giữ secret** — gateway chỉ kiểm tra *presence* của header (xem §4).
-- Dev generation: `openssl rand -base64 48` hoặc bất kỳ chuỗi ≥ 32 ký tự.
+- **Opaque, không phải JWT**: `crypto.randomBytes(32)` (256-bit entropy) → base64url. Client nhận raw, không parse được gì.
+- **Server chỉ lưu hash `sha256(refresh_token)`** — DB không bao giờ chứa raw; leak DB không dựng lại token được. So khớp bằng hash lookup.
+- **TTL: 7 ngày** — `expires_at = created_at + 7d`; hết hạn → 401 ở `/refresh`.
+- **FE storage: `localStorage['bp.rt']`** (key mới, tách khỏi `token-storage.ts` READ-LOCKED).
+  **Rationale — accepted-for-demo**: localStorage đọc được qua XSS = rủi ro đã cân nhắc và CHẤP NHẬN cho scope demo của boilerplate (security pass epic ghi nhận ở acceptance #7). httpOnly-cookie + CSRF protection = **upgrade path** ghi ở §8; không mở lại tranh luận trong epic này.
 
-## 3. Login flow (mock)
+## 3. Rotation CAS atomic + reuse-detect (strict)
 
+Mỗi `POST /api/auth/refresh`: sinh refresh token mới TRƯỚC, rồi CAS (compare-and-set) atomic trên row cũ:
+
+```sql
+UPDATE auth.refresh_tokens
+SET revoked_at = now(), replaced_by = $new_id
+WHERE id = $old_id AND revoked_at IS NULL
+RETURNING id;
 ```
-POST /api/auth/login  { "email": "alice@demo.local", "password": "<AUTH_MOCK_DEV_PASSWORD>" }
-→ 200 { accessToken, tokenType: "Bearer", expiresIn: 28800 }
-```
 
-- Email phải có trong `contracts/auth/users.json` — claims sinh từ đúng entry fixture đó.
-- **Password mock-only**: một dev password chung, cấu hình qua env `AUTH_MOCK_DEV_PASSWORD` (default `demo-password`, có thể override trong `.env`). Đây là lý do service này là mock — không có hash, không có user credential thật.
+- **RETURNING ≥ 1 row** → thắng CAS: trả cặp mới (accessToken 30m + refreshToken mới 7d). Token cũ đã revoked, `replaced_by` trỏ token mới.
+- **RETURNING 0 rows** → **reuse-detect** (token đã dùng / đã revoke / không tồn tại):
+  revoke **TẤT CẢ** refresh token của user + trả **401** envelope `UNAUTHORIZED`:
 
-## 4. Enforcement 2 lớp (bắt buộc với MỌI service)
+  ```sql
+  UPDATE auth.refresh_tokens
+  SET revoked_at = now()
+  WHERE user_id = $sub AND revoked_at IS NULL;
+  ```
+
+  **Strict by design** — token bị replay = kẻ tấn công chiếm được → mất toàn bộ session của user đó an toàn hơn cho phép token cũ còn dùng (chain-only revoke). User chỉ cần login lại.
+- **2 tab refresh đồng thời**: request thua CAS bị coi reuse → 401. Chấp nhận strict; FE dùng **single-flight promise lock** (SF-4) giảm xác suất — documented, không claim cross-tab realtime.
+
+## 4. Flows + endpoints (shape v2)
+
+| Endpoint | Request | Response |
+|---|---|---|
+| `POST /api/auth/register` | `{email, password(8–72), displayName}` | **201** `AuthSession {user, accessToken, refreshToken}`; 409 `CONFLICT` email trùng |
+| `POST /api/auth/login` | `{email, password}` | **200** `AuthSession` như trên; 401 `UNAUTHORIZED` |
+| `POST /api/auth/refresh` | `{refreshToken}` | **200** `TokenPair {accessToken, refreshToken}` (rotation CAS §3); 401 khi reuse/hết hạn |
+| `POST /api/auth/logout` | `{refreshToken}` | **204** — **idempotent**: token lạ/đã revoke vẫn 204 (không leak tồn tại) |
+| `POST /api/auth/logout-all` | Bearer (không body) | **204** — revoke tất cả refresh của `sub`; access còn hạn tự chết ở lần refresh kế |
+| `GET /api/auth/users` | — | **200** danh sách user demo — auth-svc serve từ schema `auth` (giữ endpoint v1) |
+
+- **Register**: roles gán `["user"]`; email normalize lowercase trước lưu/lookup; password 8–72 ký tự (argon2 input limit), hash **argon2id**.
+- **FE flow (SF-4)**: login/register → lưu cặp (access → `tokenStorage`, refresh → `localStorage['bp.rt']`); 401 từ API → refresh **đúng một lần** (single-flight) → retry; logout → gọi endpoint + clear cả 2 key.
+- **Lỗi**: envelope conventions/04 — `VALIDATION_ERROR` 400 · `UNAUTHORIZED` 401 · `CONFLICT` 409.
+
+## 5. Secrets + env phân phối
+
+- `JWT_SECRET` — auth-svc **ký**, node-svc/spring-svc/go-svc **verify**. Compose inject cùng một giá trị; không commit (`.env` gitignored).
+- `AUTH_DEV_PASSWORD` *(rename từ `AUTH_MOCK_DEV_PASSWORD` — compose tham chiếu swap ở SF-5, gap-answer ⑦)* — dev password của **seeded fixture users**: seed tạo `password_hash = argon2id(AUTH_DEV_PASSWORD)`. Default **`demo-password` KHÔNG ĐỔI** — e2e + go-svc (`svc-activity` login) + seed cùng một nguồn. `users.json` KHÔNG thêm password — chỉ `$comment` mapping.
+- `ACCESS_TOKEN_TTL=30m` — auth-svc đọc (§1).
+- Seed idempotent `ON CONFLICT (id) DO NOTHING` — UUID fixture giữ nguyên.
+
+## 6. Enforcement 2 lớp (bất biến — giữ nguyên v1)
 
 | Lớp | Ai | Kiểm tra gì | Fail |
 |-----|----|-------------|------|
 | 1 — Presence | nginx gateway | Header `Authorization: Bearer ...` có tồn tại trên `/api/tasks`, `/api/users`, `/api/activity` | `401` ngay tại gateway. `/api/auth`, `/`, `/remotes/*` KHÔNG bị chặn |
-| 2 — Verify | Từng service (node/spring/go) | Tự verify **signature (HS256 với JWT_SECRET) + expiry (`exp`) + `iss`**. KHÔNG tin kết luận của gateway | `401` error envelope `{code: "UNAUTHORIZED"}` |
+| 2 — Verify | Từng service (node/spring/go) | Tự verify **signature (HS256 với JWT_SECRET) + expiry (`exp`) + `iss`** (giá trị pinned §1). KHÔNG tin kết luận của gateway | `401` error envelope `{code: "UNAUTHORIZED"}` |
 
-Nguyên tắc: gateway là tiện ích giảm noise, **không phải biên bảo mật**. Service nào thấy token sai signature / hết hạn → tự từ chối 401, không phụ thuộc gateway.
+Nguyên tắc: gateway là tiện ích giảm noise, **không phải biên bảo mật**. RBAC (roles) là việc của service — SF-3 demo qua node-svc `DELETE` admin-only; gateway chỉ presence-check.
 
-## 5. Ví dụ payload
+## 7. Ví dụ payload
 
 ```json
 {
@@ -59,11 +99,12 @@ Nguyên tắc: gateway là tiện ích giảm noise, **không phải biên bảo
   "roles": ["admin"],
   "iss": "auth-mock",
   "iat": 1728700000,
-  "exp": 1728728800
+  "exp": 1728701800
 }
 ```
 
-## 6. Điểm cắm OIDC (cho lần copy thật)
+## 8. Upgrade paths (ngoài scope epic này)
 
-- auth-mock expose `GET /api/auth/.well-known/openid-configuration` — discovery stub tĩnh (issuer + token_endpoint). Không có JWKS vì HS256 symmetric.
-- Khi thay bằng OIDC thật: đổi discovery metadata trỏ tới provider thật, chuyển service verify sang RS256/JWKS — token contract claims (sub/email/roles) giữ nguyên để FE/services không đổi.
+- **RS256/JWKS + OIDC thật**: chuyển sign/verify sang asymmetric + expose `/.well-known/openid-configuration` thật (v2 DROP discovery stub v1 — không ai consume). Claims `sub/email/roles` giữ nguyên để FE/services không đổi.
+- **httpOnly-cookie** cho refresh token (thay `localStorage['bp.rt']`) + CSRF protection.
+- **Đổi chuỗi `iss`** thành `"auth-svc"` — follow-up nhỏ riêng: 3 constants service + 2 CI workflows, làm khi có SF chạm cả 3 vùng.

@@ -6,6 +6,10 @@
  * Idempotent theo thiết kế: import nhiều lần cùng giá trị vô hại.
  * KHÔNG tự chế token mới (thiếu = flag coordinator, không thêm ỳ).
  */
+/* Dark theme — @import BẮT BUỘC đầu file (spec CSS: @import sau rule bị drop —
+ * bug dark không ăn 2026-10-17). Chỉ override dưới [data-bp-theme="dark"]. */
+@import "./themes/dark.css";
+
 :root {
   /* Bậc bề mặt (antd: layout gray + container white; depth bằng bậc, không shadow mặc định) */
   --c-canvas: #f5f5f5; /* colorBgLayout — nền ngoài cùng */
@@ -74,6 +78,3 @@
   --fs-h2: 16px;
   --fs-h1: 18px;
 }
-
-/* Dark theme — shipped mặc định: chỉ override dưới [data-bp-theme="dark"], light không tốn gì */
-@import "./themes/dark.css";

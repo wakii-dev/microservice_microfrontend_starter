@@ -1,14 +1,14 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// PARITY: PrimeReact Paginator (item 32, current accent fill, ellipsis jump).
+// PARITY: antd Pagination (item ô vuông 32 không viền, active accent fill + fontWeightStrong,
+// hover colorBgTextHover, SVG chevron, ellipsis ··· jump ±5).
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Pagination } from './index';
 
 const meta = {
   title: 'Primitives/Pagination',
-  component: Pagination,
   tags: ['autodocs'],
-} satisfies Meta<typeof Pagination>;
+} satisfies Meta;
 export default meta;
 
 type Story = StoryObj<typeof meta>;

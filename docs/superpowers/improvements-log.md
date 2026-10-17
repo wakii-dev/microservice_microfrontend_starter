@@ -103,3 +103,32 @@ MINI-RITUAL SF-5B-VU58: 4 patterns → logged ở trên (kit MF spike checklist:
 - **Reproduce CI bug ở local phải pin ĐÚNG version tool**: copy-dir fail 22s trên CI nhưng local PASS — vì local pnpm 12.8.1 chịu mini-workspace catalog-only, còn CI pnpm 9.15.9 chết ngay `ERROR packages field missing or empty`. 3 iteration fix sai lớp (corepack pin, $REPO_ROOT) vì tín hiệu local sai. Quy tắc: trước khi tuyên bố "reproduced", chạy tool đúng version CI (`npx pnpm@<ver>`); fix thật = `packages: ['.']` + `add -Dw` — run 39014478754 PASS 37s. (learned-date 2026-10-17)
 - **Mutation orca từ pane ngoài = consumer_fenced (by design)**: task-update/gate-resolve trên run của coordinator-pane khác bị fence. Với state stale (SF-5 'ready' dù story đã merge): chuẩn bị sẵn lệnh + result-text trỏ evidence cho pane gốc chạy; nhớ `--run run_xxx` tường minh không có là run_required. (learned-date 2026-10-17)
 - **Shared-worktree multi-session: commit pathspec + kiểm tra trước mỗi lệnh git**: nhánh đổi dưới chân liên tục (5 nhánh/1 ngày, session khác commit/xóa/rebase song song) — `git commit -- <paths>` chặn nuốt staged của người khác (đã xảy ra 1 lần, tách lại được); bắt đầu mỗi thao tác bằng `git log --oneline -3 && git status`. (learned-date 2026-10-17)
+
+## 2026-10-17 — SWEEP toàn bộ flags (đợt đầu tiên; tiêu chí lọc từ wakii-playbook §6: lặp ≥2 → conventions, một-lần → đóng khi đã fix)
+
+**ĐÓNG — đã materialize ở nơi khác (verify bằng grep ngày sweep):**
+
+| Flag gốc | Đã ở đâu |
+|---|---|
+| conventions/01 thiếu variant standalone lockfile | conventions/01 dòng 76 (Local standalone lockfile) |
+| schemathesis mirror rule healthz/readyz | conventions/02 rule 6 |
+| requiredVersion: false cho singleton remote | conventions/08 rule 4 |
+| README node-svc thiếu dep contracts/db | node-svc README dòng 5 + 152 |
+| fe-shared loadRemoteModule defect | fix c81309d + test mf-retry shell |
+| kafkajs subscribe() crash trước topic | fix 6bcd3cb + pattern tạo-topic-trước (convergence + playbook NS) |
+| consumer-provides-react 3 lớp đối xứng | fe-shared README |
+| B1 evidence hash loop (HEAD~1) | story-verify có accommodation HEAD~1; playbook anti-patterns |
+| catalog + standalone mini workspace | convergence.yml (nâng cấp 2026-10-17: + packages:['.'] cho pnpm 9.15.9) + playbook IN |
+| schema-diff normalizer đi trước migration | skill sync-contracts (quy tắc đồng bộ cặp) |
+| orca id-capture .result.* / B4 executor-view / sed BSD | playbook anti-patterns (flag kit-helper vẫn mở — xem dưới) |
+| story-guard WAKII_GUARD_OFF | hook message giờ tự ghi hướng dẫn override |
+| MF manifest poison / REMOTE_PUBLIC_PATH | fix sf-5b (retry bust) + comment config + playbook |
+
+**MỞ — owner ngoài repo này (kit `~/.claude/bin` / orca CLI / skill repo), giữ nguyên:**
+- pino/FastifyBaseLogger cast + quyết `additionalProperties` chung 3 service (P2 kiến trúc — cần coordinator)
+- story-plan-validate + story-verify: cp1252/python3 fallback (dup 2 mục) · B4 `--executor-view`
+- orca CLI: helper capture `.result.*` id · pacing task-create · PATH MSYS/class · python shim Windows
+- workflow-templates: note action-setup `version:` · note `--env-file` cho log-dump · YAML block-scalar gotchas
+- bash-down playbook → rollback-ritual.md · reviewer brief "pre-existing commits" · task-update vocabulary vào SKILL.md
+
+**Kết luận:** không có lesson nào đủ điều kiện lên conventions mới — 9 conventions hiện tại phủ hết các pattern lặp. Nợ duy nhất mang tính quyết định: `additionalProperties` P2 (C-hàng, cần 1 quyết định coordinator ghi vào conventions/04).

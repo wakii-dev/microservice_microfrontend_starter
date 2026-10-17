@@ -42,6 +42,8 @@ jobs:
         run: pnpm --filter @wakii/shell typecheck
       - name: Tests (vitest + testing-library)
         run: pnpm --filter @wakii/shell test
+      - name: coverage gate (ngưỡng trong vitest.config — chống rơi tự do)
+        run: pnpm --filter @wakii/shell exec vitest run --coverage
       - name: Build (rspack production)
         run: pnpm --filter @wakii/shell build
       - uses: actions/upload-artifact@v4

@@ -32,5 +32,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**'], // config/stories ngoài scope test
+      // ngưỡng = hiện trạng −headroom — chống coverage rơi tự do (chỉ tiêu duyệt 2026-10-17)
+      thresholds: { lines: 90, statements: 90, functions: 80, branches: 90 },
+    },
   },
 });

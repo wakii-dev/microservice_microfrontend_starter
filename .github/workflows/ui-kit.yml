@@ -40,6 +40,8 @@ jobs:
         run: pnpm --filter @wakii/ui-kit typecheck
       - name: Tests (vitest + testing-library)
         run: pnpm --filter @wakii/ui-kit test
+      - name: coverage gate (ngưỡng trong vitest.config — chống rơi tự do)
+        run: pnpm --filter @wakii/ui-kit exec vitest run --coverage
       - name: Storybook build (gate "build được" — không publish)
         run: pnpm --filter @wakii/ui-kit build-storybook
       - uses: actions/upload-artifact@v4

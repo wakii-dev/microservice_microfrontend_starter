@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@wakii/fe-shared": "workspace:*",
+    "@wakii/ui-kit": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-router": "catalog:"

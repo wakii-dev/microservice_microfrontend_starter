@@ -3,7 +3,7 @@
 // Busy per-item: Spinner THAY badge + disable select/actions khi PATCH/DELETE đang bay.
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { FormEvent, useState } from 'react';
-import { Spinner } from '@wakii/fe-shared';
+import { Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';

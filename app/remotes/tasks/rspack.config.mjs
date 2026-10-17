@@ -67,7 +67,7 @@ export default {
       {
         test: /\.tsx?$/,
         // fe-shared là package TS raw (main: ./src/index.ts) — bundler phải compile luôn
-        include: [path.resolve(rootDir, 'src'), /[\\/]app[\\/]shared[\\/]src/],
+        include: [path.resolve(rootDir, 'src'), /[\\/]app[\\/](shared|ui-kit)[\\/]src/],
         use: {
           loader: 'builtin:swc-loader',
           options: {

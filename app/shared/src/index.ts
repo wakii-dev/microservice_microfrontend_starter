@@ -1,4 +1,5 @@
-// fe-shared — barrel export
+// fe-shared — barrel export (LOGIC ONLY — design system đã tách sang @wakii/ui-kit,
+// ADR-0009 2026-10-17: primitives + tokens/base css sống ở ui-kit, imports UI đổi thẳng)
 export { ApiClient, ApiError, type ApiClientOptions } from './api-client.js';
 export { decodeErrorEnvelope, type ErrorEnvelope } from './error-envelope.js';
 export { tokenStorage, readClaims, isExpired, type TokenStorage } from './token-storage.js';
@@ -10,16 +11,3 @@ export {
   type RemoteEntry,
   type LoadRemoteModuleOptions,
 } from './mf-bootstrap.js';
-// Design-system primitives (SF-1, story VU-53) — CSS đi kèm: styles/base.css section
-// Primitives (bp-*). Import styles qua subpath '@wakii/fe-shared/styles/*.css'.
-export {
-  Badge,
-  EmptyState,
-  Skeleton,
-  Spinner,
-  type BadgeVariant,
-  type BadgeProps,
-  type EmptyStateProps,
-  type SkeletonProps,
-  type SpinnerProps,
-} from './ui/index.js';

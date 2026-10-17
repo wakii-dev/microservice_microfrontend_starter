@@ -1,9 +1,9 @@
 // Tests primitives design-system (SF-1, story VU-53) — ĐÚNG props API hand-off
-// docs/superpowers/designs/ui-redesign-direction.md §3. Chạy ở shell vì fe-shared
-// KHÔNG có vitest (thêm = đụng pnpm-lock.yaml — success criteria cấm).
+// docs/superpowers/designs/ui-redesign-direction.md §3. Sống ở ui-kit từ 2026-10-17
+// (tách khỏi fe-shared — ADR-0009): test đứng cạnh package nó test.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared/ui';
+import { Badge, EmptyState, Skeleton, Spinner } from '../src/ui/index.js';
 
 afterEach(() => {
   cleanup();

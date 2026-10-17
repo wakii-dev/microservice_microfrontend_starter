@@ -43,7 +43,7 @@ docker run -p 4002:4002 boilerplate-remote-activity   # http://localhost:4002/re
 
 ## Standalone-copy
 
-Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@wakii/fe-shared` qua `workspace:*`.
+Copy thư mục này **KÈM `app/shared/` + `app/ui-kit/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@wakii/fe-shared` qua `workspace:*`.
 
 ## API contract
 
@@ -51,9 +51,9 @@ Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-
 
 > Lưu ý: override `REMOTE_ACTIVITY_PORT` KHÔNG tự đổi publicPath (default vẫn :4002) — đặt kèm `REMOTE_PUBLIC_PATH` nếu đổi port dev.
 
-## Design system (từ `@wakii/fe-shared` — story VU-53)
+## Design system (từ `@wakii/ui-kit` — story VU-53, tách khỏi fe-shared ADR-0009)
 
 - **Trong shell**: KHÔNG import lại `base.css` — shell import global làm chủ; remote chỉ ăn **tokens** CSS vars (`--c-* --ink* --line* --accent* --st-* --sp-* --fs-* --r-*`) + scoped classes riêng (`act-*`), không element selector toàn cục.
 - **Standalone** (`src/standalone.tsx`): tự import `tokens.css` + `base.css` để trang debug có style đầy đủ.
-- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared'` — badge action feed = `Badge variant created|updated|assigned|deleted|assignmentFailed` (mỗi action một màu chấm); loading stats/feed skeleton ĐỘC LẬP (giữ `Promise.allSettled`); empty = `EmptyState` hướng dẫn sang Tasks; nút *Làm mới* busy = `Spinner`.
+- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit'` — badge action feed = `Badge variant created|updated|assigned|deleted|assignmentFailed` (mỗi action một màu chấm); loading stats/feed skeleton ĐỘC LẬP (giữ `Promise.allSettled`); empty = `EmptyState` hướng dẫn sang Tasks; nút *Làm mới* busy = `Spinner`.
 - Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B "Linear-referenced dark").

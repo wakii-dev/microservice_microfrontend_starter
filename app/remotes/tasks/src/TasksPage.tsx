@@ -4,7 +4,7 @@
 // đủ hành vi API sẵn có — filter status, pagination "Tải thêm", edit inline, delete
 // confirm, per-item busy, skeleton/empty primitives. Export default + named GIỮ (MF contract).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { EmptyState, Skeleton } from '@wakii/fe-shared';
+import { EmptyState, Skeleton } from '@wakii/ui-kit';
 import {
   ApiError,
   createTask,
@@ -20,7 +20,7 @@ import { TaskList } from './components/TaskList';
 // Tokens idempotent (quyết định #5 epic): remote import tokens trong page entry —
 // shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
 // base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
-import '@wakii/fe-shared/styles/tokens.css';
+import '@wakii/ui-kit/styles/tokens.css';
 import './styles.css';
 
 /**

@@ -20,6 +20,9 @@ on:
       - "platform/docker-compose.yml"
       - "contracts/openapi/tasks.yaml"
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide)
+
 jobs:
   build-test:
     name: build + test (node-svc)

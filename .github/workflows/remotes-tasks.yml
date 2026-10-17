@@ -21,6 +21,9 @@ on:
       - "pnpm-lock.yaml"
       - ".github/workflows/remotes-tasks.yml"
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide)
+
 jobs:
   build-test:
     name: typecheck + vitest + build

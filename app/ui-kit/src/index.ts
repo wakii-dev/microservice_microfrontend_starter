@@ -72,3 +72,21 @@ export { Menubar, type MenubarProps, type MenubarItem } from './ui/menubar/index
 export { PanelMenu, type PanelMenuProps, type PanelMenuItem } from './ui/panel-menu/index.js';
 export { TabMenu, type TabMenuProps, type TabMenuItem } from './ui/tab-menu/index.js';
 export { SplitButton, type SplitButtonProps, type SplitButtonItem } from './ui/split-button/index.js';
+
+// ── Hooks (native, spec usehooks.com — batch ④ 2026-10-17) ──
+export { useLocalStorage } from './hooks/useLocalStorage.js';
+export { useSessionStorage } from './hooks/useSessionStorage.js';
+export { useToggle } from './hooks/useToggle.js';
+export { usePrevious } from './hooks/usePrevious.js';
+export { useDefault } from './hooks/useDefault.js';
+export { useDebounce } from './hooks/useDebounce.js';
+export { useThrottle } from './hooks/useThrottle.js';
+export { useTimeout } from './hooks/useTimeout.js';
+export { useCountdown } from './hooks/useCountdown.js';
+export { useClickAway } from './hooks/useClickAway.js';
+export { useHover } from './hooks/useHover.js';
+export { useKeyPress } from './hooks/useKeyPress.js';
+export { useMediaQuery } from './hooks/useMediaQuery.js';
+export { useLockBodyScroll } from './hooks/useLockBodyScroll.js';
+export { useWindowSize } from './hooks/useWindowSize.js';
+export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';

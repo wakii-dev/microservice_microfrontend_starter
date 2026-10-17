@@ -7,6 +7,9 @@ import { TaskItem } from './TaskItem';
 interface TaskListProps {
   tasks: Task[];
   total: number;
+  /** F2 (review VU-53): page đã tải < total CHƯA chắc còn data — server có thể trả
+   * trang rỗng (row chưa tải đã bị xoá). hasMore do page tính (kèm cờ exhausted). */
+  hasMore: boolean;
   loadingMore: boolean;
   onStatusChange: (task: Task, status: TaskStatus) => Promise<void>;
   onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<boolean>;
@@ -17,6 +20,7 @@ interface TaskListProps {
 export function TaskList({
   tasks,
   total,
+  hasMore,
   loadingMore,
   onStatusChange,
   onSave,
@@ -39,7 +43,7 @@ export function TaskList({
           />
         ))}
       </ul>
-      {tasks.length < total && (
+      {hasMore && (
         <button
           type="button"
           className="tsk-btn tsk-btn--ghost tsk-load"

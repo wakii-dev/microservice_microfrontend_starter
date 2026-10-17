@@ -5,6 +5,10 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, vi } from 'vitest';
 import { TasksPage } from '../src/TasksPage';
 import * as api from '../src/api';
+// LƯU Ý: resetAllMocks (không clearAllMocks) — test F3 status dùng mockReturnValueOnce
+// promise treo mà post-fix KHÔNG còn được consume (mutation không refetch nữa);
+// clearAllMocks chỉ xoá call history, once-implementation queue còn nguyên → leak
+// promise treo sang test kế tiếp (initial load treo). resetAllMocks xoá cả queue.
 
 vi.mock('../src/api', async () => {
   const actual = await vi.importActual<typeof api>('../src/api');
@@ -46,7 +50,7 @@ function mockList(items: api.Task[] = [TASK_A], total = items.length) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   mockList();
 });
 
@@ -58,9 +62,10 @@ describe('TasksPage', () => {
     expect(mockedApi.fetchTasks).toHaveBeenCalledWith({});
   });
 
-  it('tạo task — submit form gọi createTask rồi reload list', async () => {
+  it('tạo task — submit form gọi createTask, prepend đầu list (F3: không refetch full)', async () => {
     const user = userEvent.setup();
-    mockedApi.createTask.mockResolvedValue(TASK_A);
+    const TASK_NEW: api.Task = { ...TASK_A, id: '99999999-9999-9999-9999-999999999999', title: 'Task mới' };
+    mockedApi.createTask.mockResolvedValue(TASK_NEW);
     render(<TasksPage />);
 
     await screen.findByText('Task A');
@@ -69,8 +74,10 @@ describe('TasksPage', () => {
     await user.click(screen.getByRole('button', { name: 'Tạo task' }));
 
     await waitFor(() => expect(mockedApi.createTask).toHaveBeenCalledWith({ title: 'Task mới', description: 'mô tả ngắn' }));
-    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(2));
+    expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(1); // F3: chỉ load đầu, không refetch
     expect(screen.getByLabelText('Tiêu đề')).toHaveValue('');
+    const firstItem = screen.getByRole('list', { name: 'Danh sách tasks' }).querySelector('li:first-child h3');
+    expect(firstItem).toHaveTextContent('Task mới');
   });
 
   it('tạo task THẤT BẠI — banner hiện, input GIỮ NGUYÊN cho user sửa (không xoá draft)', async () => {
@@ -212,7 +219,7 @@ describe('TasksPage', () => {
     expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Đổi rồi fail');
   });
 
-  it('xoá — confirm 2 bước rồi gọi deleteTask + reload', async () => {
+  it('xoá — confirm 2 bước rồi deleteTask, item biến mất in-place (F3: không refetch full)', async () => {
     const user = userEvent.setup();
     mockedApi.deleteTask.mockResolvedValue(undefined);
     render(<TasksPage />);
@@ -224,7 +231,9 @@ describe('TasksPage', () => {
     await user.click(screen.getByRole('button', { name: 'Xác nhận xoá' }));
 
     await waitFor(() => expect(mockedApi.deleteTask).toHaveBeenCalledWith(TASK_A.id));
-    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(2));
+    expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(1); // F3: chỉ load đầu, không refetch
+    expect(screen.queryByText('Task A')).not.toBeInTheDocument();
+    expect(screen.getByText('Chưa có task nào')).toBeInTheDocument(); // list rỗng → EmptyState
   });
 
   it('xoá — Huỷ ở bước confirm KHÔNG gọi deleteTask', async () => {
@@ -332,5 +341,99 @@ describe('TasksPage', () => {
   it('chưa gán assignee → hiện "Chưa gán"', async () => {
     render(<TasksPage />);
     expect(await screen.findByText('Chưa gán')).toBeInTheDocument();
+  });
+
+  // ── F3 (review VU-53 follow-up): mutation KHÔNG full-reload — skeleton thay cả list
+  // unmount mọi TaskItem → mất draft edit inline / confirm xoá đang mở ở dòng KHÁC.
+
+  it('F3: đổi status task B KHÔNG xoá edit draft đang mở của task A', async () => {
+    const user = userEvent.setup();
+    // reload sau PATCH là promise TREO: pre-fix load() full → skeleton commit chắc chắn
+    // (không bị batching nuốt); post-fix load() không được gọi → list đứng yên
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A, TASK_B], total: 2 })
+      .mockReturnValueOnce(new Promise(() => {}));
+    mockedApi.updateTask.mockResolvedValue({ ...TASK_B, status: 'done' });
+    render(<TasksPage />);
+
+    await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
+    const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Draft đang soạn');
+
+    // can thiệp song song trên task B (select status) — settle: PATCH gọi + select B
+    // enable lại (post-fix mutation xong ngay; pre-fix load() treo trên deferred fetch
+    // → select kẹt disabled → test RED ở waitFor enable)
+    const selectB = screen.getByRole('combobox', { name: 'Trạng thái task Task B' });
+    await user.selectOptions(selectB, 'done');
+    await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_B.id, { status: 'done' }));
+    await waitFor(() => expect(selectB).toBeEnabled());
+
+    // draft của A PHẢI còn nguyên (pre-fix: load() full → skeleton unmount edit form)
+    expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Draft đang soạn');
+  });
+
+  it('F3: xoá task B KHÔNG xoá edit draft đang mở của task A — B biến mất + total giảm', async () => {
+    const user = userEvent.setup();
+    mockList([TASK_A, TASK_B]);
+    mockedApi.deleteTask.mockResolvedValue(undefined);
+    render(<TasksPage />);
+
+    await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
+    const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Draft giữ sau xoá');
+
+    await user.click(screen.getByRole('button', { name: 'Xoá task Task B' }));
+    await user.click(screen.getByRole('button', { name: 'Xác nhận xoá' }));
+    await waitFor(() => expect(mockedApi.deleteTask).toHaveBeenCalledWith(TASK_B.id));
+
+    expect(screen.queryByText('Task B')).not.toBeInTheDocument();
+    expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Draft giữ sau xoá');
+  });
+
+  it('F3: tạo task — prepend đầu list + total+1, KHÔNG refetch, edit draft còn nguyên', async () => {
+    const user = userEvent.setup();
+    mockList([TASK_A, TASK_B]);
+    const TASK_NEW: api.Task = { ...TASK_A, id: '99999999-9999-9999-9999-999999999999', title: 'Task mới vừa tạo' };
+    mockedApi.createTask.mockResolvedValue(TASK_NEW);
+    render(<TasksPage />);
+
+    await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
+    const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
+    await user.clear(titleInput);
+    await user.type(titleInput, 'Draft qua lần tạo');
+
+    await user.type(screen.getByLabelText('Tiêu đề'), 'Task mới vừa tạo');
+    await user.click(screen.getByRole('button', { name: 'Tạo task' }));
+    await waitFor(() => expect(mockedApi.createTask).toHaveBeenCalledWith({ title: 'Task mới vừa tạo' }));
+
+    // KHÔNG full-reload — fetchTasks vẫn chỉ 1 lần (load đầu)
+    expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(1);
+    // task mới đứng ĐẦU list
+    const firstItem = screen.getByRole('list', { name: 'Danh sách tasks' }).querySelector('li:first-child h3');
+    expect(firstItem).toHaveTextContent('Task mới vừa tạo');
+    expect(screen.getByText('Danh sách (3/3)')).toBeInTheDocument();
+    // draft của A còn nguyên
+    expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Draft qua lần tạo');
+  });
+
+  // ── F2 (review VU-53 follow-up): load-more offset trên list mutable — trang rỗng
+  // (hết data thật phía server dù tasks.length < total) khiến nút "Tải thêm" kẹt vĩnh viễn.
+
+  it('F2: load-more trả trang RỖNG → nút Tải thêm biến mất (không click vô hạn)', async () => {
+    const user = userEvent.setup();
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A], total: 2 })
+      .mockResolvedValueOnce({ items: [], total: 2 }); // server hết row chưa tải (đã bị xoá hết)
+    render(<TasksPage />);
+
+    await screen.findByText('Danh sách (1/2)');
+    await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Tải thêm' })).not.toBeInTheDocument(),
+    );
   });
 });

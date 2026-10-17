@@ -300,12 +300,18 @@ importers:
       '@types/react':
         specifier: 19.2.2
         version: 19.2.2
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.2)
       '@vitest/coverage-v8':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@22.20.5)(jiti@2.7.0)(jsdom@27.0.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
       jsdom:
         specifier: 27.0.0
         version: 27.0.0
+      motion:
+        specifier: ^12
+        version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: 'catalog:'
         version: 19.3.0

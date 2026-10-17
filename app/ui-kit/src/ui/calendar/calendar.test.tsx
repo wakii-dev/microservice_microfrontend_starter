@@ -55,3 +55,22 @@ describe('Calendar — states ngôn ngữ nút Pagination', () => {
     expect(screen.getByLabelText('Tháng sau').querySelector('svg')).not.toBeNull();
   });
 });
+
+describe('Calendar — locale (batch ⑧ worker C)', () => {
+  const now = new Date(2026, 9, 15);
+
+  it('default vi — label tuần T2 đầu tuần + tháng tiếng Việt', () => {
+    render(<Calendar now={now} />);
+    expect(screen.getByText(/Tháng 10/)).toBeInTheDocument();
+    expect(screen.getByText('T2')).toBeInTheDocument();
+  });
+
+  it('locale="en" — tháng + label tuần tiếng Anh, firstDayOfWeek = Chủ nhật', () => {
+    render(<Calendar now={now} locale="en" />);
+    expect(screen.getByText(/October 2026/)).toBeInTheDocument();
+    expect(screen.getByText('Su')).toBeInTheDocument();
+    expect(screen.getByLabelText('Previous month')).toBeInTheDocument();
+    // 01/10/2026 = thứ 5 → Sun-first có 4 ô trống trước → grid bắt đầu bằng 1 ô CN (27/9)
+    expect(screen.getByLabelText(new Date(2026, 8, 27).toDateString())).toBeInTheDocument();
+  });
+});

@@ -107,4 +107,8 @@ export { Field, type FieldProps } from './ui/field/index.js';
 // ── Data display mới (batch ⑨ 2026-10-18) ──
 export { List, type ListProps } from './ui/list/index.js';
 export { AvatarGroup, type AvatarGroupProps } from './ui/avatar-group/index.js';
-export { TreeSelect, type TreeSelectProps, type TreeSelectNode } from './ui/tree-select/index.js';
+export { TreeSelect, type TreeSelectProps, type TreeNode } from './ui/tree-select/index.js';
+
+// ── Date/Time (batch ⑧ 2026-10-18) ──
+export { TimePicker, type TimePickerProps } from './ui/time-picker/index.js';
+export type { DateLocale } from './ui/date-picker/locale.js';

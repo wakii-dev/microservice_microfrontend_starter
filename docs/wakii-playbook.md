@@ -1,7 +1,8 @@
 # Wakii Playbook — tổ chức story cho boilerplate
 
 Cách dùng story-workflow (Wakii) khi phát triển **chính repo này** và project scaffold từ nó
-(`scripts/scaffold/scaffold.sh` copy nguyên `docs/` nên playbook đi theo project mới).
+(`scripts/scaffold/scaffold.sh` copy `docs/` — trừ `docs/superpowers/` — nên playbook ở `docs/`
+đi theo project mới).
 
 **Đọc khi nào:** sắp có việc lớn hơn 1 task, cần quyết chia story hay làm lẻ — và khi chia
 rồi, tra công thức slice theo loại epic. **Không lặp** nội dung skill (`story-workflow`,
@@ -9,7 +10,8 @@ rồi, tra công thức slice theo loại epic. **Không lặp** nội dung skil
 thứ tự đụng file theo conventions, gates nào đỏ vì gì. Quy tắc vàng ở [CLAUDE.md](../CLAUDE.md);
 kiến trúc ở [walkthrough.md](walkthrough.md); "vì sao" ở `docs/adr/`.
 
-> Bài học chung của 3 story đã qua (FI-76 boilerplate · kafka-outbox-saga · VU-53 ui-redesign):
+> Bài học chung của 3 story đã qua (FI-62 micro-boilerplate · FI-76 kafka-outbox-saga ·
+> VU-53 ui-redesign):
 > chi phí lớn nhất không phải code — là **slice sai**: SF quá to (review không kịp), quá nhỏ
 > (overhead gate > giá trị), hoặc phụ thuộc ngầm (2 SF đụng cùng file → worker chặn nhau ở Phase 4).
 
@@ -19,7 +21,7 @@ kiến trúc ở [walkthrough.md](walkthrough.md); "vì sao" ở `docs/adr/`.
 
 | Việc | Dùng | Ví dụ thật trong repo |
 |---|---|---|
-| >3 sub-feature **hoặc** >10 tasks, nhiều người/agent làm song song | **Story mode** — epic Linear + mindmap `.wakii` + SF sub-issues, bracket theo tier | FI-76 (7 SF), VU-53 (5 SF tier bracket) |
+| >3 sub-feature **hoặc** >10 tasks, nhiều người/agent làm song song | **Story mode** — epic Linear + mindmap `.wakii` + SF sub-issues, bracket theo tier | FI-62 (7 SF), FI-76 (5 SF), VU-53 (5 SF tier bracket) |
 | 1 sub-feature hoàn chỉnh, 3–10 tasks | **Single workflow** — `orca-superpowers-workflow` trên 1 Linear issue, đủ Phase 0–5 | từng SF FI-64..FI-75 chạy đơn lẻ giai đoạn đầu FI-62 |
 | Fix 1 điểm rõ gốc rễ, không đụng contract/port | Fix trực tiếp + test, không story | `fix(auth-mock): assert user count theo fixture` (ee0117c) |
 | Đổi behavior có MainPage động | 1 story nhỏ 2–3 SF vẫn ổn — đừng ép story mode chỉ vì "to" | — |
@@ -46,7 +48,7 @@ Rồi tra archetype:
 
 - **Slice theo tầng, không theo service:** SF-1 contracts + gateway route → tier 1 services thích ứng (song song) → tier 1 FE → tier 2 convergence + decommission cái cũ.
 - **SF-1 là hiệp ước:** code sau phải theo spec rev đó; đổi spec giữa chừng = rollback SF-1, không vá lẻ.
-- **Gates:** drift-guard go-svc (`internal/api/openapi/` bit-identical), schemathesis contracts CI, human walkthrough ở convergence.
+- **Gates:** drift-guard CI (snapshot `activity.yaml` nhúng trong go-svc phải bit-identical `contracts/openapi/activity.yaml`), schemathesis contracts CI, human walkthrough ở convergence.
 - **Rủi ro đặc trưng:** CI convergence đỏ liên hồi trong giai đoạn chuyển (2 nửa đổi không cùng lúc) → SF-1 phải giữ **tương thích ngược có kiểm soát** (token cũ còn verify, event cũ còn consume) hoặc đổi đồng loạt trong 1 SF duy nhất — chọn một, ghi rõ trong epic summary.
 - Mẫu sống: chương 4 (epic auth thật).
 
@@ -97,9 +99,10 @@ Rồi tra archetype:
 > ⚠️ Đây là **ví dụ minh hoạ công thức chia SF** — không phải spec auth. Khi epic được duyệt thật:
 > brainstorm + spec riêng (câu 1–5 chương 2 + quyết định mở bên dưới), rồi mới CREATE story.
 
-**Mục tiêu (draft):** thay auth-mock bằng service auth thật — register/login/refresh, role
-`user|admin`, JWT giữ HS256-qua-secret hoặc nâng RS256 (quyết định mở). Non-goals: OAuth/social,
-multi-tenant, rate-limit distributed.
+**Mục tiêu (draft):** thay auth-mock bằng service auth thật — register/login/refresh + enforcement
+RBAC. `roles` (`user|admin`) đã có sẵn trong users.json + token contract (claims `sub/email/roles`,
+Alice đã `admin`) — việc thật là **enforcement ở services + register/refresh**, không phải thêm
+roles. Non-goals: OAuth/social, multi-tenant, rate-limit distributed.
 
 **Decision points phải chốt ở Phase 0 (mỗi cái đổi hình dạng DAG):**
 
@@ -107,15 +110,16 @@ multi-tenant, rate-limit distributed.
 |---|---|---|
 | Port + path | auth-svc thật **đón luôn :8090 + giữ `/api/auth/*`** | gateway, conventions/05, .env, README **không đổi** — quy tắc 4 chỗ không kích hoạt (khuyến nghị) |
 | Users schema | spring-svc đang owns users — auth-svc đọc qua API spring vs owns schema riêng | Nếu owns riêng: SF-2 thêm migration + role DB; nếu qua spring: SF-2/SF-3 ghép chặt → gộp 1 SF |
-| Token shape | giữ shape cũ (chỉ thêm `roles`) vs đổi cấu trúc | Giữ: node/go middleware sửa riêng từng SF khả thi; Đổi: buộc đồng loạt 1 SF |
+| Token contract | giữ claims `sub/email/roles` + thêm refresh/rotation (token-contract.md dòng 69 đã chốt: nâng OIDC thì claims giữ nguyên) vs đổi cấu trúc | Giữ: node/go sửa riêng từng SF khả thi; Đổi: buộc đồng loạt 1 SF |
 | `token-storage.ts` READ-LOCKED | wrapper mới không đụng file locked vs epic duyệt sửa | Wrapper: SF FE gọn; Sửa: cần approval epic + re-spike |
 
 **Slice SF đề xuất (bracket tier):**
 
 - **SF-1 · tier 0 — Contracts + hiệp ước:** mở rộng `contracts/openapi/auth.yaml`
-  (register/refresh/roles), `contracts/auth/users.json` thêm roles **giữ nguyên UUID cũ**
-  (saga fail-user `svc-fail` và seed spring phải còn khớp), `contracts/auth/token-contract.md` v2,
-  env mới vào `.env.example`. Gate: spectral + schemathesis xanh; KHÔNG đụng code runtime.
+  (register/refresh), `contracts/auth/token-contract.md` v2 (refresh/rotation — claims
+  `sub/email/roles` giữ nguyên), users.json **KHÔNG đổi** (UUID + roles đã chuẩn — saga fail-user
+  `svc-fail` và seed spring còn khớp), env mới vào `.env.example`. Gate: spectral + schemathesis
+  xanh; KHÔNG đụng code runtime.
 - **SF-2 · tier 1 — auth-svc:** impl register/login/refresh (+ quyết định users-schema ở trên),
   auth-mock chuyển chế độ legacy-flag tạm. Gate: unit + integration token thật; compose boot xanh.
 - **SF-3 · tier 1 — Services thích ứng (song song SF-2 nếu token shape giữ):** node-svc + go-svc

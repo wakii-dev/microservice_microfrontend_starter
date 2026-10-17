@@ -18,18 +18,18 @@ export const ACTION_BADGE: Record<string, { label: string; variant: BadgeVariant
 export function FeedItem({ item }: { item: ActivityFeedItem }) {
   const action = ACTION_BADGE[item.action];
   return (
-    <li className="act-feed-item">
-      <span className="act-feed-item__main">
-        <strong className="act-feed-item__actor">{item.userName}</strong>{' '}
+    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 py-2 pl-4 max-md:pl-3">
+      <span className="act-feed-item__main min-w-0">
+        <strong className="font-semibold text-ink">{item.userName}</strong>{' '}
         {action ? (
           <Badge variant={action.variant}>{action.label}</Badge>
         ) : (
           // Unknown action: fallback nguyên văn (giữ hành vi hiện tại — spec slice mục 3)
-          <span className="act-feed-item__raw-action">{item.action}</span>
+          <span className="text-ink2">{item.action}</span>
         )}{' '}
-        <strong className="act-feed-item__task">{item.taskTitle}</strong>
+        <strong className="font-semibold text-ink">{item.taskTitle}</strong>
       </span>
-      <time className="act-feed-item__time" dateTime={item.timestamp}>
+      <time className="whitespace-nowrap font-mono text-meta text-ink3" dateTime={item.timestamp}>
         {formatTime(item.timestamp)}
       </time>
     </li>

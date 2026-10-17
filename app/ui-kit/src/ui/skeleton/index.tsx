@@ -3,11 +3,13 @@
 export interface SkeletonProps {
   variant: 'text' | 'row' | 'card';
   count?: number;
+  /** Append vào wrapper aria-busy (styling từ consumer — vd grid stat-skeleton). */
+  className?: string;
 }
 
-export function Skeleton({ variant, count = 1 }: SkeletonProps) {
+export function Skeleton({ variant, count = 1, className }: SkeletonProps) {
   return (
-    <div aria-busy="true">
+    <div aria-busy="true" className={className}>
       {Array.from({ length: count }, (_, i) => (
         <div
           key={i}

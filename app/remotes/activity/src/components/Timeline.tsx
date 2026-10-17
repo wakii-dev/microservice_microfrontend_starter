@@ -31,7 +31,7 @@ export function groupByDay(items: ActivityFeedItem[], now: Date): DayGroup[] {
 
 export function Timeline({ items, now = new Date() }: { items: ActivityFeedItem[]; now?: Date }) {
   return (
-    <ol aria-label="Danh sách hoạt động" className="act-timeline">
+    <ol aria-label="Danh sách hoạt động" className="m-0 grid list-none gap-6 p-0">
       {groupByDay(items, now).map((group, dayIndex) => (
         <motion.li
           key={group.key}
@@ -40,8 +40,8 @@ export function Timeline({ items, now = new Date() }: { items: ActivityFeedItem[
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: dayIndex * 0.08, ease: 'easeOut' }}
         >
-          <h3 className="act-timeline__day-heading">{group.heading}</h3>
-          <ul className="act-timeline__group">
+          <h3 className="mb-2 text-meta font-semibold uppercase tracking-[0.04em] text-ink3">{group.heading}</h3>
+          <ul className="relative m-0 list-none p-0 before:absolute before:bottom-3 before:left-[calc(var(--sp-4)+11px)] before:top-3 before:w-px before:bg-line before:content-[''] max-md:before:left-[calc(var(--sp-3)+11px)]">
             {group.items.map((item) => (
               <FeedItem key={item.id} item={item} />
             ))}

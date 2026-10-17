@@ -33,8 +33,12 @@ export function TaskForm({ onCreate }: TaskFormProps) {
   });
 
   return (
-    <form className="tsk-form" onSubmit={submit} aria-label="Form tạo task">
-      <label className="tsk-form__field">
+    <form
+      className="flex w-full flex-row flex-wrap items-end gap-3 rounded-3 border border-line bg-s2 p-4"
+      onSubmit={submit}
+      aria-label="Form tạo task"
+    >
+      <label className="flex flex-col gap-1 text-label text-ink2 [flex:1_1_200px]">
         Tiêu đề
         <Input
           {...register('title', { required: true, maxLength: 200 })}
@@ -42,7 +46,7 @@ export function TaskForm({ onCreate }: TaskFormProps) {
           maxLength={200}
         />
       </label>
-      <label className="tsk-form__field">
+      <label className="flex flex-col gap-1 text-label text-ink2 [flex:1_1_200px]">
         Mô tả
         <Textarea {...register('description')} rows={2} />
       </label>

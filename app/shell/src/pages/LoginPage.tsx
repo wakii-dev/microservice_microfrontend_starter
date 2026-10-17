@@ -53,10 +53,10 @@ export function LoginPage() {
   });
 
   return (
-    <section className="sh-login">
-      <div className="sh-login__card">
-        <div className="sh-login__brand">
-          <span aria-hidden="true" className="sh-login__mark">
+    <section className="flex min-h-[calc(100vh-52px-48px)] items-center justify-center max-md:min-h-0 max-md:py-8">
+      <div className="w-[min(340px,100%)] rounded-3 border border-line bg-s2 p-8">
+        <div className="mb-4 flex items-center gap-2.5">
+          <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent">
             <svg
               viewBox="0 0 16 16"
               fill="none"
@@ -67,11 +67,11 @@ export function LoginPage() {
               <path d="M3 4.5h7M3 8h10M3 11.5h5" />
             </svg>
           </span>
-          <span className="sh-login__wordmark">Boilerplate</span>
+          <span className="text-h1 font-semibold tracking-[-0.01em]">Boilerplate</span>
         </div>
-        <h1 className="sh-login__title">Đăng nhập</h1>
-        <form aria-label="Form đăng nhập" className="sh-login__form" onSubmit={onSubmit}>
-          <label className="sh-field">
+        <h1 className="m-0 mb-4 text-h2 font-semibold text-ink2">Đăng nhập</h1>
+        <form aria-label="Form đăng nhập" className="flex flex-col gap-3" onSubmit={onSubmit}>
+          <label className="flex flex-col gap-1 text-meta text-ink2">
             Email
             <Input
               type="email"
@@ -80,7 +80,7 @@ export function LoginPage() {
               {...register('email')}
             />
           </label>
-          <label className="sh-field">
+          <label className="flex flex-col gap-1 text-meta text-ink2">
             Mật khẩu
             <Input
               type="password"
@@ -90,17 +90,12 @@ export function LoginPage() {
             />
           </label>
           {errors.root && <Alert type="error" message={errors.root.message} />}
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="sh-login__submit"
-            disabled={isSubmitting}
-          >
+          <Button type="primary" htmlType="submit" className="mt-1 w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </Button>
         </form>
-        <p className="sh-login__hint">
-          Demo: <code>alice@demo.local</code> / <code>demo-password</code> (mock — dev password
+        <p className="m-0 mt-4 text-center text-meta text-ink3">
+          Demo: <code className="font-mono text-meta text-ink">alice@demo.local</code> / <code className="font-mono text-meta text-ink">demo-password</code> (mock — dev password
           chung)
         </p>
       </div>

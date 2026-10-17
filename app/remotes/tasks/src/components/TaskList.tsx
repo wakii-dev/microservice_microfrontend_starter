@@ -30,7 +30,7 @@ export function TaskList({
 }: TaskListProps) {
   return (
     <>
-      <h2 className="tsk-list__heading">
+      <h2 className="m-0 text-h2 text-ink2">
         Danh sách ({tasks.length}/{total})
       </h2>
       <ul className="tsk-list" aria-label="Danh sách tasks">
@@ -47,7 +47,7 @@ export function TaskList({
       {hasMore && (
         <Button
           type="text"
-          className="tsk-load"
+          className="self-start"
           onClick={onLoadMore}
           disabled={loadingMore}
         >

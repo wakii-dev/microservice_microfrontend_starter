@@ -60,7 +60,7 @@ export function Calendar({ value, onChange, now = new Date(), className }: Calen
               type="button"
               onClick={() => isCurrentMonth && select(date)}
               disabled={!isCurrentMonth}
-              className={`size-9 cursor-pointer rounded-2 border-none text-body transition-colors ${
+              className={`h-10 w-full cursor-pointer rounded-md border-none text-body transition-colors ${
                 isSelected ? 'bg-accent font-semibold text-white' :
                 isToday ? 'border border-accent font-semibold text-accent' :
                 isCurrentMonth ? 'text-ink hover:bg-s3' : 'text-ink4'

@@ -10,7 +10,8 @@
     ".": "./src/index.ts",
     "./styles/tokens.css": "./src/styles/tokens.css",
     "./styles/base.css": "./src/styles/base.css",
-    "./styles/tailwind.css": "./src/styles/tailwind.css"
+    "./styles/tailwind.css": "./src/styles/tailwind.css",
+    "./styles/themes/dark.css": "./src/styles/themes/dark.css"
   },
   "scripts": {
     "test": "vitest run",

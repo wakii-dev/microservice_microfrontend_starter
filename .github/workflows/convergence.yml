@@ -169,7 +169,8 @@ jobs:
           for DIR in shared ui-kit; do
             echo "=== standalone typecheck: app/$DIR ==="
             mkdir -p "$RUNNER_TEMP/standalone/$DIR"
-            cp -r "app/$DIR/." "$RUNNER_TEMP/standalone/$DIR/"
+            # $REPO_ROOT tuyệt đối BẮT BUỘC: vòng 1 cd vào tmp — path tương đối app/* mất
+            cp -r "$REPO_ROOT/app/$DIR/." "$RUNNER_TEMP/standalone/$DIR/"
             cd "$RUNNER_TEMP/standalone/$DIR"
             cp "$RUNNER_TEMP/catalog.yaml" pnpm-workspace.yaml
             pnpm install --no-frozen-lockfile

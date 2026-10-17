@@ -10,7 +10,7 @@ import './app.css'; // tailwind utilities (spec tailwind-migration)
 import './styles.css';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -67,9 +67,7 @@ export function ActivityPage() {
 
       <div aria-label="Thống kê tasks" className="act-stats">
         {statsError && (
-          <p role="alert" className="error-banner act-stats__error">
-            Stats: {statsError}
-          </p>
+          <Alert className="act-stats__error" type="error" message={`Stats: ${statsError}`} />
         )}
         {loadingStats ? (
           <div className="act-stats-skeleton">
@@ -99,11 +97,7 @@ export function ActivityPage() {
         )}
       </div>
 
-      {feedError && (
-        <p role="alert" className="error-banner">
-          {feedError}
-        </p>
-      )}
+      {feedError && <Alert type="error" message={feedError} />}
 
       <section aria-busy={loadingFeed} className="act-feed">
         <h2 className="act-feed__head">

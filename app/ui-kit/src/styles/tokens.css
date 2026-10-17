@@ -43,6 +43,15 @@
   --sp-4: 16px;
   --sp-5: 24px;
   --sp-6: 32px;
+  /* Alert tints — antd colorBg/Border theo type (light) */
+  --alert-error-bg: #fff2f0;
+  --alert-error-border: #ffccc7;
+  --alert-warning-bg: #fffbe6;
+  --alert-warning-border: #ffe58f;
+  --alert-info-bg: #e6f4ff;
+  --alert-info-border: #91caff;
+  --alert-success-bg: #f6ffed;
+  --alert-success-border: #b7eb8f;
   /* Type scale (antd base 14) */
   --fs-meta: 12px;
   --fs-label: 13px;

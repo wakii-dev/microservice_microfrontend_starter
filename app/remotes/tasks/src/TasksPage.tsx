@@ -13,7 +13,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { EmptyState, Skeleton, Tag } from '@wakii/ui-kit';
+import { Alert, EmptyState, message, Skeleton, Tag } from '@wakii/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
@@ -108,6 +108,7 @@ export function TasksPage() {
         }
       });
       invalidateActivity();
+      message.success('Đã tạo task');
     },
     onError: (err) => setError(describeError(err)),
   });
@@ -174,6 +175,7 @@ export function TasksPage() {
         }
       });
       invalidateActivity();
+      message.success('Đã xoá task');
     },
     onError: (err) => setError(describeError(err)),
   });
@@ -220,10 +222,12 @@ export function TasksPage() {
     >
       <h1 className="tsk-page__title">Tasks</h1>
 
-      {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) && (
-        <p role="alert" className="error-banner">
-          {error ?? describeError(listQuery.error)}
-        </p>
+      {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
+        <Alert
+          className="mb-4"
+          type="error"
+          message={error ?? describeError(listQuery.error)}
+        />
       )}
 
       <TaskForm onCreate={handleCreate} />

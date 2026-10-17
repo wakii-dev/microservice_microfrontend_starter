@@ -12,3 +12,6 @@ export { Spinner, type SpinnerProps } from './ui/spinner/index.js';
 export { Button, type ButtonProps, type ButtonType } from './ui/button/index.js';
 export { Input, Textarea, type InputProps, type TextareaProps } from './ui/input/index.js';
 export { Tag, type TagProps, type CheckableTagProps } from './ui/tag/index.js';
+export { Alert, type AlertProps, type AlertType } from './ui/alert/index.js';
+export { Modal, type ModalProps } from './ui/modal/index.js';
+export { message, type MessageType } from './ui/message/index.js';

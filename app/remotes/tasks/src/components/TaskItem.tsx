@@ -4,7 +4,7 @@
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Input, Spinner } from '@wakii/ui-kit';
+import { Button, Input, Modal, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -145,22 +145,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
           />
         )}
 
-        {editing ? null : confirming ? (
-          <div className="tsk-item__confirm">
-            <span className="tsk-item__confirm-text">Xoá task này?</span>
-            <Button
-              type="primary"
-              danger
-              disabled={busy}
-              onClick={() => void run(() => onDelete(task))}
-            >
-              Xác nhận xoá
-            </Button>
-            <Button type="text" disabled={busy} onClick={() => setConfirming(false)}>
-              Huỷ
-            </Button>
-          </div>
-        ) : (
+        {editing ? null : (
           <div className="tsk-item__actions">
             <Button
               type="text"
@@ -181,6 +166,18 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
             </Button>
           </div>
         )}
+        {/* Modal xoá — portal body; busy = confirmLoading (nút Đang xử lý…) */}
+        <Modal
+          open={confirming}
+          title="Xoá task này?"
+          danger
+          okText="Xác nhận xoá"
+          confirmLoading={busy}
+          onOk={() => void run(() => onDelete(task))}
+          onCancel={() => setConfirming(false)}
+        >
+          Hành động không thể hoàn tác.
+        </Modal>
       </div>
     </li>
   );

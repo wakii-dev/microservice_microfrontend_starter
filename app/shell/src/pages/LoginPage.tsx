@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
-import { Button, Input } from '@wakii/ui-kit';
+import { Alert, Button, Input } from '@wakii/ui-kit';
 import { api } from '../api';
 
 interface LoginResponse {
@@ -89,11 +89,7 @@ export function LoginPage() {
               {...register('password')}
             />
           </label>
-          {errors.root && (
-            <p className="error-banner" role="alert">
-              {errors.root.message}
-            </p>
-          )}
+          {errors.root && <Alert type="error" message={errors.root.message} />}
           <Button
             type="primary"
             htmlType="submit"

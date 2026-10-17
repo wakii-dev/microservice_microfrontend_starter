@@ -5,9 +5,11 @@ import { App } from './App';
 // kể cả dev-native (REMOTE_TASKS_URL env ≠ fallback /remotes/*). Chi tiết: remote-urls.ts
 import { registerBuildtimeRemoteUrls } from './remote-urls';
 // Shell LÀM CHỦ global (kiến trúc SF-1, base.css header): tokens + base import ở entry
-// — styles.css (scoped sh-*, unlayered) import SAU để thắng base khi cùng specificity.
+// — app.css (tailwind utilities, layered) + styles.css (scoped sh-*, unlayered) import
+// SAU để thắng base khi cùng specificity.
 import '@wakii/ui-kit/styles/tokens.css';
 import '@wakii/ui-kit/styles/base.css';
+import './app.css';
 import './styles.css';
 
 registerBuildtimeRemoteUrls();

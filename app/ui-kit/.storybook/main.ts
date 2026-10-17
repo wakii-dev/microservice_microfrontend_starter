@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
@@ -9,5 +10,12 @@ const config: StorybookConfig = {
   },
   addons: ['@storybook/addon-docs'],
   docs: {},
+  async viteFinal(config) {
+    // Tailwind v4 — utilities của primitives (spec tailwind-migration P0)
+    return {
+      ...config,
+      plugins: [...(config.plugins ?? []), tailwindcss()],
+    };
+  },
 };
 export default config;

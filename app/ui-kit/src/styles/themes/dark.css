@@ -1,0 +1,26 @@
+/* Dark theme — GIÁ TRỊ = direction B "Linear-referenced dark" cũ của VU-53 (archive
+ * thành theme phụ sau decision antd-look 2026-10-17). Bật: đặt data-bp-theme="dark"
+ * trên <html>/<body> scope (switching do UiKitProvider — phase theming).
+ * Chỉ override giá trị — var names KHÔNG đổi. */
+[data-bp-theme='dark'] {
+  /* Bậc bề mặt (depth bằng surface, KHÔNG box-shadow) */
+  --c-canvas: #010102;
+  --c-s1: #0f1011;
+  --c-s2: #141516;
+  --c-s3: #18191a;
+  /* Mực */
+  --ink: #f7f8f8;
+  --ink2: #d0d6e0;
+  --ink3: #8a8f98;
+  /* Viền */
+  --line: #23252a;
+  --line2: #2b2d33;
+  /* Accent — Florentine indigo */
+  --accent: #5e6ad2;
+  --accent-hi: #828fff;
+  /* Trạng thái task */
+  --st-todo: #8a8f98;
+  --st-doing: #f2c94c;
+  --st-done: #3fb950;
+  --st-fail: #f06a6a;
+}

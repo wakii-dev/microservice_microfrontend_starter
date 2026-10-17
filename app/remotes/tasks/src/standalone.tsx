@@ -3,6 +3,7 @@
 // shell import global base LÀM CHỦ — remote không import lại (kiến trúc hand-off §2).
 import '@wakii/ui-kit/styles/tokens.css';
 import '@wakii/ui-kit/styles/base.css';
+import './app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { TasksPage } from './TasksPage';

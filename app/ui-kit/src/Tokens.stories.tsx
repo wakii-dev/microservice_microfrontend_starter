@@ -1,6 +1,7 @@
-// Docs sống cho design tokens (nguồn sự thật: src/styles/tokens.css — direction B
-// "Linear-referenced dark"). Swatch đọc var(--*) TRỰC TIẾP — đổi token là trang này
-// đổi theo, không có bản copy để drift.
+// Docs sống cho design tokens — LIGHT DEFAULT theo visual language antd (decision
+// 2026-10-17: docs/superpowers/specs/2026-10-17-antd-look-tokens.md). Swatch đọc
+// var(--*) TRỰC TIẾP — đổi token là trang này đổi theo, không có bản copy để drift.
+// Story "Dark (direction B)" wrap data-bp-theme='dark' — xem palette archive.
 import type { CSSProperties } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
@@ -36,7 +37,15 @@ function Swatches({ title, items }: { title: string; items: Array<[string, strin
   );
 }
 
-function Scales({ title, items, style }: { title: string; items: Array<[string, string]>; style: (v: string) => CSSProperties }) {
+function Scales({
+  title,
+  items,
+  style,
+}: {
+  title: string;
+  items: Array<[string, string]>;
+  style: (v: string) => CSSProperties;
+}) {
   return (
     <section style={{ marginBottom: 32 }}>
       <h2 style={{ fontSize: 'var(--fs-h1)', color: 'var(--ink)', margin: '0 0 12px' }}>{title}</h2>
@@ -52,51 +61,53 @@ function Scales({ title, items, style }: { title: string; items: Array<[string, 
   );
 }
 
-export const BềMặt: Story = {
-  name: 'Bề mặt + mực + viền',
+const LIGHT = 'antd default (light)';
+
+export const SángMặcĐịnh: Story = {
+  name: `Light — ${LIGHT}`,
   render: () => (
     <div style={{ padding: 24, background: 'var(--c-canvas)', minHeight: '100vh' }}>
       <Swatches
-        title="Surface (depth bằng bậc bề mặt — KHÔNG box-shadow)"
+        title="Surface (antd: layout gray + container white)"
         items={[
-          ['--c-canvas', '#010102'],
-          ['--c-s1', '#0f1011'],
-          ['--c-s2', '#141516'],
-          ['--c-s3', '#18191a'],
+          ['--c-canvas', '#f5f5f5'],
+          ['--c-s1', '#ffffff'],
+          ['--c-s2', '#ffffff'],
+          ['--c-s3', '#fafafa'],
         ]}
       />
       <Swatches
-        title="Mực (text)"
+        title="Mực (colorText .88/.65/.45)"
         items={[
-          ['--ink', '#f7f8f8'],
-          ['--ink2', '#d0d6e0'],
-          ['--ink3', '#8a8f98 — chỉ meta ≥12px'],
+          ['--ink', 'rgba(0,0,0,.88)'],
+          ['--ink2', 'rgba(0,0,0,.65)'],
+          ['--ink3', 'rgba(0,0,0,.45) — chỉ meta ≥12px'],
         ]}
       />
       <Swatches
-        title="Viền + accent duy nhất"
+        title="Viền + accent (colorPrimary)"
         items={[
-          ['--line', '#23252a'],
-          ['--line2', '#2b2d33'],
-          ['--accent', '#5e6ad2'],
-          ['--accent-hi', '#828fff'],
+          ['--line', '#d9d9d9'],
+          ['--line2', '#f0f0f0'],
+          ['--accent', '#1677ff'],
+          ['--accent-hi', '#4096ff'],
         ]}
       />
       <Swatches
-        title="Trạng thái task"
+        title="Trạng thái task (map antd palette)"
         items={[
-          ['--st-todo', '#8a8f98'],
-          ['--st-doing', '#f2c94c'],
-          ['--st-done', '#3fb950'],
-          ['--st-fail', '#f06a6a'],
+          ['--st-todo', '#bfbfbf'],
+          ['--st-doing', '#faad14'],
+          ['--st-done', '#52c41a'],
+          ['--st-fail', '#ff4d4f'],
         ]}
       />
       <Scales
         title="Radius"
         items={[
           ['--r-1', '4px'],
-          ['--r-2', '6px'],
-          ['--r-3', '8px'],
+          ['--r-2', '6px (antd default)'],
+          ['--r-3', '8px (LG)'],
           ['--r-pill', '9999px'],
         ]}
         style={(v) => ({ width: 56, height: 32, background: 'var(--c-s3)', border: '1px solid var(--line)', borderRadius: v })}
@@ -114,7 +125,7 @@ export const BềMặt: Story = {
         style={(v) => ({ width: v, height: 16, background: 'var(--accent)' })}
       />
       <Scales
-        title="Type scale"
+        title="Type scale (antd base 14)"
         items={[
           ['--fs-meta', '12px'],
           ['--fs-label', '13px'],
@@ -123,6 +134,39 @@ export const BềMặt: Story = {
           ['--fs-h1', '18px'],
         ]}
         style={(v) => ({ fontSize: v, color: 'var(--ink)', fontFamily: 'var(--f)' })}
+      />
+    </div>
+  ),
+};
+
+export const TốiDirectionB: Story = {
+  name: 'Dark — direction B (theme phụ, archive VU-53)',
+  render: () => (
+    <div data-bp-theme="dark" style={{ padding: 24, background: 'var(--c-canvas)', minHeight: '100vh' }}>
+      <Swatches
+        title="Surface — Linear-referenced dark"
+        items={[
+          ['--c-canvas', '#010102'],
+          ['--c-s1', '#0f1011'],
+          ['--c-s2', '#141516'],
+          ['--c-s3', '#18191a'],
+        ]}
+      />
+      <Swatches
+        title="Accent — Florentine indigo"
+        items={[
+          ['--accent', '#5e6ad2'],
+          ['--accent-hi', '#828fff'],
+        ]}
+      />
+      <Swatches
+        title="Trạng thái task"
+        items={[
+          ['--st-todo', '#8a8f98'],
+          ['--st-doing', '#f2c94c'],
+          ['--st-done', '#3fb950'],
+          ['--st-fail', '#f06a6a'],
+        ]}
       />
     </div>
   ),

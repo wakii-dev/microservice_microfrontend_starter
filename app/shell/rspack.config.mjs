@@ -48,7 +48,19 @@ export default {
     rules: [
       {
         test: /\.css$/,
+        // Tailwind v4 qua postcss — @tailwindcss/postcss xử lý @import + @theme +
+        // sinh utilities (spec tailwind-migration P0). Builtin css module nhận output.
         type: 'css',
+        use: [
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: { '@tailwindcss/postcss': {} },
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.tsx?$/,

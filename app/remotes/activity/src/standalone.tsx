@@ -4,6 +4,7 @@
 // SF-4: banner debug scoped (styles.css qua ActivityPage import) thay banner text trần.
 import '@wakii/ui-kit/styles/tokens.css';
 import '@wakii/ui-kit/styles/base.css';
+import './app.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ActivityPage } from './ActivityPage';

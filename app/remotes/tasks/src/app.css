@@ -1,0 +1,7 @@
+/* Tailwind v4 entry của remote tasks — mirror app/shell/src/app.css (spec
+ * tailwind-migration): import ui-kit theme/utilities + @source qua node_modules
+ * symlink (path repo-relative bị ignore — xem comment shell). */
+@import '@wakii/ui-kit/styles/tailwind.css';
+
+@source './';
+@source '../node_modules/@wakii/ui-kit/src';

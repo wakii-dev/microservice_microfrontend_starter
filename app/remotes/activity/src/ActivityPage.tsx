@@ -6,6 +6,7 @@
 // Tokens import idempotent (:root custom props cùng giá trị — trong shell shell đã import,
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
 import '@wakii/ui-kit/styles/tokens.css';
+import './app.css'; // tailwind utilities (spec tailwind-migration)
 import './styles.css';
 import { useCallback, useEffect, useState } from 'react';
 import { EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';

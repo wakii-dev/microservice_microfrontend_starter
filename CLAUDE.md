@@ -64,12 +64,13 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 |---|---|
 | Onboard / chạy demo lần đầu | `docs/walkthrough.md` + `docs/toolchain.md` |
 | Code bất kỳ service nào | `platform/conventions/01–09` (+ README service đó) |
-| Sửa API/contract | `contracts/openapi/*.yaml` + `platform/conventions/04` (envelope) |
+| Sửa API/contract | `contracts/openapi/*.yaml` + `platform/conventions/04` (envelope) + skill `sync-contracts` |
 | Đụng Kafka/outbox/saga/DLQ | `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md` |
 | Đụng FE/MF/design system | `docs/adr/0002` + `docs/adr/0009` + `app/ui-kit/README.md` + `app/shared/README.md` |
-| Vì sao kiến trúc vậy | `docs/adr/0001–0008` |
+| Vì sao kiến trúc vậy | `docs/adr/0001–0009` |
 | Tổ chức epic/story với Wakii | `docs/wakii-playbook.md` (4 archetype chia SF + gates) |
 | Tạo service mới | skill `add-service` (`.claude/skills/`) — thủ tục 4 SF + lệnh verify |
+| Mở PR / merge / branch | `docs/git-flow.md` — mọi thay đổi vào `main` qua PR (template `.github/pull_request_template.md`) |
 
 ## CI (`.github/workflows/` — chạy mỗi push theo thư mục đổi)
 

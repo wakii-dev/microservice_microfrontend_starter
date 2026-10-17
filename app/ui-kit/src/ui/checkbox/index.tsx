@@ -19,11 +19,11 @@ export function Checkbox({ checked = false, onChange, disabled = false, children
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.checked)}
         {...rest}
-        className="peer size-4 cursor-pointer appearance-none rounded-[4px] border border-line bg-s2 transition-colors checked:border-accent checked:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-s3 disabled:checked:bg-ink3"
+        className="peer size-4 cursor-pointer appearance-none rounded-[4px] border border-line bg-s2 transition-[background-color,border-color,transform] duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] checked:border-accent checked:bg-accent checked:scale-[1.15] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-s3 disabled:checked:bg-ink3 disabled:checked:scale-100"
       />
       <span
         aria-hidden="true"
-        className="-ml-5 hidden size-4 place-items-center text-[10px] font-bold text-white peer-checked:grid"
+        className="-ml-5 hidden size-4 place-items-center text-[10px] font-bold text-white peer-checked:grid peer-checked:animate-[bp-check-pop_160ms_cubic-bezier(0.34,1.56,0.64,1)]"
       >
         ✓
       </span>

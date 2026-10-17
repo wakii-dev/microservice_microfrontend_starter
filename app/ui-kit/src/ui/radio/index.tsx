@@ -18,7 +18,7 @@ export function Radio({ checked = false, onChange, disabled = false, children, c
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.checked)}
-        className="peer size-4 cursor-pointer appearance-none rounded-pill border border-line bg-s2 transition-colors checked:border-[5px] checked:border-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-s3"
+        className="peer size-4 cursor-pointer appearance-none rounded-pill border border-line bg-s2 transition-[border-color,border-width,transform] duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] checked:border-[5px] checked:border-accent checked:scale-[1.1] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-s3"
       />
       {children}
     </label>

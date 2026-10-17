@@ -162,7 +162,7 @@ jobs:
           # Publish task.created fixture — console producer coi MỖI DÒNG là 1
           # message → flatten JSON về 1 dòng trước khi pipe (fixture gốc
           # multi-line sẽ bị xé vụn thành message sai envelope)
-          python3 -c 'import json; print(json.dumps(json.load(open("contracts/events/fixtures/task.created.json")), separators=(",", ":")))' \
+          python3 -c 'import json,datetime; d=json.load(open("contracts/events/fixtures/task.created.json")); d["occurredAt"]=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"); print(json.dumps(d, separators=(",", ":")))' \
           | docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
             --bootstrap-server localhost:9092 --topic task-events
@@ -202,7 +202,7 @@ jobs:
         run: |
           TOKEN=$(cat /tmp/jwt)
           BEFORE=$(curl -sf http://localhost:8082/api/activity/feed -H "Authorization: Bearer $TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin)["total"])')
-          python3 -c 'import json; print(json.dumps(json.load(open("contracts/events/fixtures/task.created.json")), separators=(",", ":")))' \
+          python3 -c 'import json,datetime; d=json.load(open("contracts/events/fixtures/task.created.json")); d["occurredAt"]=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"); print(json.dumps(d, separators=(",", ":")))' \
           | docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-console-producer.sh \
             --bootstrap-server localhost:9092 --topic task-events

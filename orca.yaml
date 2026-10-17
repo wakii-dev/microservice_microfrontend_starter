@@ -73,13 +73,17 @@ app:
   shared:
     path: app/shared
     scope: "@wakii/fe-shared"
-    role: consumed QUA SOURCE (main/types trỏ thẳng src/) — không build riêng, KHÔNG có scripts
+    role: LOGIC (api-client/token-storage/error-envelope/mf-bootstrap) — consumed QUA SOURCE, không build
     read_locked:   # cấm sửa ngoài story/epic được duyệt — versions + contracts đã test thật
       - src/api-client.ts
       - src/token-storage.ts
       - src/error-envelope.ts
       - src/mf-bootstrap.ts
       - package.json#mfToolkit
+  ui-kit:
+    path: app/ui-kit
+    scope: "@wakii/ui-kit"
+    role: DESIGN SYSTEM (tokens + base css + primitives + Storybook 9 dev-only) — consumed QUA SOURCE; KHÔNG read-locked (đổi qua story thường, evidence = build-storybook) — ADR-0009
   shell:
     path: app/shell
     port: 3000

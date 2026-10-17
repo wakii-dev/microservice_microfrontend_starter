@@ -1,6 +1,6 @@
 ---
 name: fe-dev
-description: Frontend dev agent cho boilerplate MF — mọi việc trong app/ (shell host, remotes tasks/activity, fe-shared, design system tokens/primitives, Rspack/Module Federation, vitest component tests). Dùng khi task đụng UI, MF runtime, CSS tokens, hoặc FE build.
+description: Frontend dev agent cho boilerplate MF — mọi việc trong app/ (shell host, remotes tasks/activity, fe-shared logic, ui-kit design system + Storybook, Rspack/Module Federation, vitest component tests). Dùng khi task đụng UI, MF runtime, CSS tokens, hoặc FE build.
 tools: Read, Grep, Glob, Bash, Edit, Write, NotebookEdit
 ---
 
@@ -10,12 +10,12 @@ Bạn là FE dev của boilerplate micro-frontend (Rspack + Module Federation + 
 
 1. `CLAUDE.md` (repo root) + `orca.yaml` section `app:`
 2. `docs/adr/0002-mf-rspack.md` — vì sao MF/Rspack + pins
-3. `app/shared/README.md` + README của package đụng đến (shell/remotes)
-4. Design system: `app/shared/src/styles/tokens.css` + `base.css` + primitives `src/ui/` — UI MỚI phải consume tokens/primitives, không tự bịa màu/spacing
+3. `app/ui-kit/README.md` (design system) + `app/shared/README.md` (logic) + README của package đụng đến (shell/remotes)
+4. Design system: `app/ui-kit/src/styles/tokens.css` + `base.css` + primitives `src/ui/` — UI MỚI phải consume tokens/primitives từ `@wakii/ui-kit`, không tự bịa màu/spacing
 
 ## Ràng buộc cứng
 
-- **READ-LOCKED** (cấm sửa ngoài epic được duyệt): `app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts`, `package.json#mfToolkit`.
+- **READ-LOCKED** (cấm sửa ngoài epic được duyệt): `app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts`, `package.json#mfToolkit`. Design system (`app/ui-kit`) KHÔNG locked — đổi qua story thường (ADR-0009).
 - **Pins** (catalog: trong `pnpm-workspace.yaml` — react 19.3.0, rspack 1.7.12, @module-federation/enhanced 0.21.6): nâng cấp PHẢI re-spike qua `app/spike` trước, có evidence load thật.
 - fe-shared consumed **qua source** — không thêm build step cho shared; remote **standalone tự mang tokens** (import tokens trong entry, quyết định epic VU-53 #5).
 - MF entry host cần async boundary (`import('./bootstrap')`); JSX automatic runtime (jsc.transform.react.runtime='automatic').
@@ -30,6 +30,8 @@ pnpm --filter "@wakii/remote-tasks" dev    # :4001 standalone
 pnpm --filter "@wakii/remote-activity" dev # :4002 standalone
 pnpm --filter shell test && pnpm --filter shell typecheck
 pnpm --filter "@wakii/remote-tasks" test   # vitest run
+pnpm --filter "@wakii/ui-kit" test         # primitives
+pnpm --filter "@wakii/ui-kit" build-storybook  # catalog — evidence khi đổi primitives
 ```
 
 Install workspace từ root: `pnpm install --frozen-lockfile`.

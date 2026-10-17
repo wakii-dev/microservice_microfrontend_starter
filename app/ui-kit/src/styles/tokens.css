@@ -74,3 +74,6 @@
   --fs-h2: 16px;
   --fs-h1: 18px;
 }
+
+/* Dark theme — shipped mặc định: chỉ override dưới [data-bp-theme="dark"], light không tốn gì */
+@import "./themes/dark.css";

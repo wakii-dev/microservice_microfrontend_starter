@@ -28,3 +28,45 @@ describe('message (static toast)', () => {
     vi.useRealTimers();
   });
 });
+
+describe('message — đầy đủ types + WAAPI path (prod có Element.animate)', () => {
+  it('warning + info → toast riêng từng cái', () => {
+    message.warning('Token sắp hết hạn');
+    message.info('Đã đồng bộ feed');
+    const toasts = document.body.querySelectorAll('[role="status"]');
+    expect(toasts.length).toBe(2);
+    expect(toasts[0].textContent).toContain('Token sắp hết hạn');
+    expect(toasts[1].textContent).toContain('Đã đồng bộ feed');
+  });
+
+  it('có Element.animate (prod) → enter + exit animation + onfinish remove', () => {
+    vi.useFakeTimers();
+    // polyfill WAAPI — jsdom thiếu; cover branch animate CÓ MẶT (prod thật)
+    const animate = vi.fn((_keyframes?: unknown) => ({ onfinish: () => undefined }));
+    // jsdom không có animate — defineProperty (spyOn yêu cầu method tồn tại)
+    Object.defineProperty(globalThis.HTMLElement.prototype, 'animate', {
+      value: animate,
+      configurable: true,
+      writable: true,
+    });
+
+    message.success('ok');
+    // enter animation — keyframes translateY(-12px) → 0
+    expect(animate).toHaveBeenCalledTimes(1);
+    expect(animate.mock.calls[0][0]).toEqual([
+      { opacity: 0, transform: 'translateY(-12px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ]);
+
+    // auto-dismiss 3s → exit animation fade-out + onfinish → remove
+    vi.advanceTimersByTime(3000);
+    expect(animate).toHaveBeenCalledTimes(2);
+    expect(animate.mock.calls[1][0]).toEqual([{ opacity: 1 }, { opacity: 0 }]);
+    // onfinish → el.remove() (thật — toast biến khỏi DOM, không phải mock remove)
+    (animate.mock.results[1].value as { onfinish: () => void }).onfinish();
+    expect(document.body.querySelector('[role="status"]')).toBeNull();
+
+    vi.useRealTimers();
+    delete (globalThis.HTMLElement.prototype as { animate?: unknown }).animate;
+  });
+});

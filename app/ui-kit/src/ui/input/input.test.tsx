@@ -45,3 +45,37 @@ describe('Textarea', () => {
     expect(screen.getByLabelText('D').className).toContain('border-st-fail');
   });
 });
+
+describe('Input — affix + allowClear (Tier 1.5)', () => {
+  it('prefix/suffix → affix wrapper; input trần bên trong', () => {
+    render(<Input aria-label="Giá" prefix="https://" suffix=".vn" value="wakii" readOnly />);
+    const el = screen.getByLabelText('Giá');
+    expect(el.closest('span')).toHaveClass('inline-flex');
+    expect(screen.getByText('https://')).toBeInTheDocument();
+    expect(screen.getByText('.vn')).toBeInTheDocument();
+  });
+
+  it('allowClear controlled — có value → nút ×; click → onChange được gọi', async () => {
+    const onChange = vi.fn();
+    render(<Input aria-label="Tìm" allowClear value="giá trị" onChange={onChange} />);
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Xoá' }));
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('size small → class h-6', () => {
+    render(<Input aria-label="S" size="small" />);
+    expect(screen.getByLabelText('S')).toHaveClass('h-6');
+  });
+});
+
+describe('Input — branch phụ (Tier 1.5)', () => {
+  it('allowClear + value rỗng → KHÔNG nút × (showClear false)', () => {
+    render(<Input aria-label="Q" allowClear value="" onChange={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Xoá' })).toBeNull();
+  });
+
+  it('prefix-only (không suffix/clear) → vẫn affix wrapper', () => {
+    render(<Input aria-label="P" prefix="$" value="1" readOnly />);
+    expect(screen.getByText('$')).toBeInTheDocument();
+  });
+});

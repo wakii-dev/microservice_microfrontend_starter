@@ -1,39 +1,120 @@
 // Input + Textarea — antd look (decision 2026-10-17): h-8, border line, focus ring
-// accent (0 0 0 2px ~10%), invalid viền đỏ. Native props passthrough (value/onChange/
-// id/aria…) → label htmlFor hoạt động như thường; className append sau structural.
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+// accent, invalid viền đỏ. Completeness audit (Tier 1.5): size + prefix/suffix
+// (affix pattern antd — wrapper mang viền, input trần bên trong) + allowClear
+// (controlled: cần value + onChange) + passthrough native props.
+import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const FIELD_BASE =
-  'w-full rounded-2 border bg-s2 px-3 text-body text-ink placeholder:text-ink3 transition-colors focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-s3 disabled:text-ink3';
-const FIELD_OK = 'border-line focus:border-accent focus:ring-accent/10';
-const FIELD_INVALID = 'border-st-fail focus:border-st-fail focus:ring-st-fail/10';
+  'w-full rounded-2 border bg-s2 text-body text-ink placeholder:text-ink3 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:text-ink3';
+const FIELD_OK = 'border-line focus:border-accent';
+const FIELD_INVALID = 'border-st-fail focus:border-st-fail';
+const RING_OK = 'focus:ring-2 focus:ring-accent/10';
+const RING_INVALID = 'focus:ring-2 focus:ring-st-fail/10';
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  /** Error state — viền + ring đỏ. */
+const SIZE_CLS = {
+  small: 'h-6 px-2 text-label',
+  middle: 'h-8 px-3 text-body',
+  large: 'h-10 px-3 text-body',
+} as const;
+
+export type InputSize = keyof typeof SIZE_CLS;
+
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix' | 'suffix'> {
+  /** Error state — viền + ring đỏ (antd status="error"). */
   invalid?: boolean;
+  size?: InputSize;
+  /** Node trước input (antd prefix) — kích hoạt affix wrapper. */
+  prefix?: ReactNode;
+  /** Node sau input (antd suffix) — kích hoạt affix wrapper. */
+  suffix?: ReactNode;
+  /** Nút × xoá giá trị — controlled (value + onChange) mới hiển thị. */
+  allowClear?: boolean;
   className?: string;
 }
 
-export function Input({ invalid = false, className, ...rest }: InputProps) {
+export function Input({
+  invalid = false,
+  size = 'middle',
+  prefix,
+  suffix,
+  allowClear = false,
+  className,
+  value,
+  onChange,
+  ...rest
+}: InputProps) {
+  const ringCls = invalid ? `${FIELD_INVALID} ${RING_INVALID}` : `${FIELD_OK} ${RING_OK}`;
+  const showClear = allowClear && value !== undefined && value !== null && String(value) !== '';
+  const hasAffix = prefix !== undefined || suffix !== undefined || allowClear;
+
+  if (!hasAffix) {
+    return (
+      <input
+        value={value}
+        onChange={onChange}
+        className={`${FIELD_BASE} ${SIZE_CLS[size]} ${ringCls}${className ? ` ${className}` : ''}`}
+        {...rest}
+      />
+    );
+  }
+
+  // Affix pattern antd: wrapper mang viền/ring, input trần flex-1 bên trong
   return (
-    <input
-      className={`${FIELD_BASE} h-8 ${invalid ? FIELD_INVALID : FIELD_OK}${className ? ` ${className}` : ''}`}
-      {...rest}
-    />
+    <span
+      className={`inline-flex w-full items-center gap-1 rounded-2 border bg-s2 px-2 transition-colors focus-within:outline-none ${ringCls}${className ? ` ${className}` : ''}`}
+    >
+      {prefix && <span className="shrink-0 text-ink3">{prefix}</span>}
+      <input
+        value={value}
+        onChange={onChange}
+        className={`min-w-0 flex-1 border-none bg-transparent outline-none ${SIZE_CLS[size]} text-ink placeholder:text-ink3`}
+        {...rest}
+      />
+      {showClear && (
+        <button
+          type="button"
+          aria-label="Xoá"
+          className="cursor-pointer border-none bg-transparent text-ink3 transition-colors hover:text-ink2"
+          onClick={() => onChange?.({ target: { value: '' } } as unknown as ChangeEvent<HTMLInputElement>)}
+        >
+          ×
+        </button>
+      )}
+      {suffix && <span className="shrink-0 text-ink3">{suffix}</span>}
+    </span>
   );
 }
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   invalid?: boolean;
+  /** Hiện đếm ký tự (cần maxLength) — antd showCount. */
+  showCount?: boolean;
   className?: string;
 }
 
-export function Textarea({ invalid = false, className, rows = 3, ...rest }: TextareaProps) {
+export function Textarea({
+  invalid = false,
+  showCount = false,
+  className,
+  value,
+  maxLength,
+  ...rest
+}: TextareaProps) {
+  const count = showCount && maxLength ? String(value ?? '').length : null;
+  const ringCls = invalid ? RING_INVALID : RING_OK;
   return (
-    <textarea
-      rows={rows}
-      className={`${FIELD_BASE} py-2 ${invalid ? FIELD_INVALID : FIELD_OK}${className ? ` ${className}` : ''}`}
-      {...rest}
-    />
+    <div className="w-full">
+      <textarea
+        value={value}
+        maxLength={maxLength}
+        className={`${FIELD_BASE} py-2 ${invalid ? FIELD_INVALID : FIELD_OK} ${ringCls}${className ? ` ${className}` : ''}`}
+        {...rest}
+      />
+      {count !== null && (
+        <div className="mt-1 text-right text-meta text-ink3">
+          {count}/{maxLength}
+        </div>
+      )}
+    </div>
   );
 }

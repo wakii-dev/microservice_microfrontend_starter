@@ -55,6 +55,14 @@ Rồi tra archetype:
 ### NS — Service mới
 *Thêm service vào demo (vd notification-svc consume task-events).*
 
+- **Câu hỏi làm rõ TRƯỚC khi tính slice** (mỗi câu đổi hình dạng SF-1):
+  | Câu hỏi | Hệ quả kỹ thuật |
+  |---|---|
+  | Sync hay async? | Có Kafka → conventions/09 + topic tạo tường minh trước consumer |
+  | Ngôn ngữ nào? | Node ngoài workspace → standalone lockfile (variant conventions/01); Go → drift-guard snapshot + distroless không healthcheck shell (conventions/02) |
+  | Có DB riêng? | DDL vào `contracts/db/` + role schema-only trong postgres init + migration pattern (drizzle/Flyway/auto) |
+  | Port mấy? | Quy tắc 4 chỗ cùng commit (conventions/05 + .env.example + compose + README) |
+  | FE có hiển thị? | Có → tách SF riêng cho remote/page, không gộp vào SF impl |
 - **Công thức 4 SF:** SF-1 khung (contracts OpenAPI + DDL + entry compose + CI workflow — impl rỗng nhưng boot + healthcheck xanh) → SF-2 impl API → SF-3 consumer/producer + FE hiển thị → SF-4 convergence e2e mở rộng.
 - **Đừng đóng SF-1 trước khi** `docker compose up` riêng service boot được với role DB schema-only (bài học drizzle `CREATE SCHEMA` permission — improvements-log 2026-10-12).
 - **Gates:** boot-smoke CI + drift-guard snapshot; conventions mới (nếu có) phải thuộc SF-1, không nhét SF cuối.

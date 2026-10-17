@@ -121,13 +121,14 @@ describe('TasksPage', () => {
     expect(screen.queryByRole('list', { name: 'Danh sách tasks' })).not.toBeInTheDocument();
   });
 
-  it('đổi status qua select → updateTask(task.id, { status })', async () => {
+  it('đổi status qua Select ui-kit → updateTask(task.id, { status })', async () => {
     const user = userEvent.setup();
     mockedApi.updateTask.mockResolvedValue({ ...TASK_A, status: 'done' });
     render(<TasksPage />, { wrapper: createWrapper() });
 
-    const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    await user.selectOptions(select, 'done');
+    // Select mới: combobox → mở listbox → chọn option (ui-kit Tier 3)
+    await user.click(await screen.findByRole('combobox', { name: 'Trạng thái task Task A' }));
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
 
     await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_A.id, { status: 'done' }));
   });
@@ -139,7 +140,8 @@ describe('TasksPage', () => {
     render(<TasksPage />, { wrapper: createWrapper() });
 
     const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    await user.selectOptions(select, 'done');
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
 
     await waitFor(() => expect(select).toBeDisabled());
     expect(screen.getByRole('status', { name: 'Đang xử lý task Task A' })).toBeInTheDocument();
@@ -158,10 +160,11 @@ describe('TasksPage', () => {
   });
 
   it('select writable CHỈ 3 giá trị — assignment_failed không nằm trong option', async () => {
+    const user = userEvent.setup();
     render(<TasksPage />, { wrapper: createWrapper() });
-    const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    const options = Array.from(select.querySelectorAll('option')).map((o) => o.value);
-    expect(options).toEqual(['todo', 'in_progress', 'done']);
+    await user.click(await screen.findByRole('combobox', { name: 'Trạng thái task Task A' }));
+    const optionLabels = screen.getAllByRole('option').map((o) => o.textContent);
+    expect(optionLabels).toEqual(['Cần làm', 'Đang làm', 'Xong']);
   });
 
   it('sửa inline — Lưu gọi PATCH đúng payload chỉ field đổi rồi thoát edit', async () => {
@@ -362,11 +365,10 @@ describe('TasksPage', () => {
     await user.clear(titleInput);
     await user.type(titleInput, 'Draft đang soạn');
 
-    // can thiệp song song trên task B (select status) — settle: PATCH gọi + select B
-    // enable lại (post-fix mutation xong ngay; pre-fix load() treo trên deferred fetch
-    // → select kẹt disabled → test RED ở waitFor enable)
+    // can thiệp song song trên task B (Select ui-kit — click flow)
     const selectB = screen.getByRole('combobox', { name: 'Trạng thái task Task B' });
-    await user.selectOptions(selectB, 'done');
+    await user.click(selectB);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
     await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_B.id, { status: 'done' }));
     await waitFor(() => expect(selectB).toBeEnabled());
 

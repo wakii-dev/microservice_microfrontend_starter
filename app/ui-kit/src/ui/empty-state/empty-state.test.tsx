@@ -41,3 +41,8 @@ describe('EmptyState — image slot (Tier 1.5)', () => {
     expect(screen.queryByTestId('img')).toBeNull();
   });
 });
+
+it('EmptyState — className passthrough (branch)', () => {
+  render(<EmptyState title="t" className="marker-es" />);
+  expect(document.querySelector('.marker-es')).not.toBeNull();
+});

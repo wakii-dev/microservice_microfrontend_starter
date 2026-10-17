@@ -114,3 +114,24 @@ describe('Button — completeness (Tier 1.5)', () => {
     expect(screen.getByRole('button', { name: 'Xoá mặc định' }).className).not.toContain('bg-st-fail');
   });
 });
+
+describe('Button — branch phụ (parity)', () => {
+  it('danger + default → fallback variant không nền đỏ (?? branch)', () => {
+    render(
+      <Button danger>
+        d
+      </Button>,
+    );
+    expect(screen.getByRole('button', { name: 'd' }).className).toContain('bg-s2');
+  });
+
+  it('htmlType reset + middle mặc định', () => {
+    render(
+      <Button htmlType="reset">
+        r
+      </Button>,
+    );
+    expect(screen.getByRole('button', { name: 'r' })).toHaveAttribute('type', 'reset');
+    expect(screen.getByRole('button', { name: 'r' })).toHaveClass('h-8');
+  });
+});

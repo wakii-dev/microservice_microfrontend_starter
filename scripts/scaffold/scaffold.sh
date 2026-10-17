@@ -63,7 +63,7 @@ tar -C "$SRC" -cf - \
   . | tar -C "$OUT" -xf -
 
 echo "[scaffold] rename @wakii/* → @$NAME/* (package.json + source imports + Dockerfile + yml + md + lockfile)"
-find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
+find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.css' -o -name '*.mjs' \
   -o -name 'Dockerfile*' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) \
   -not -path '*/node_modules/*' -not -path '*/target/*' -not -path '*/dist/*' \
   -exec "${SED_I[@]}" "s/@wakii\//@$NAME\//g" {} +

@@ -97,7 +97,7 @@ Rồi tra archetype:
 - [ ] **Evidence** — `docs/superpowers/evidence/<sf>/` + `test-run.txt` ghi HEAD **tại lúc code commit cuối** (docs commit sau làm B1 flip FAIL — loop nổi tiếng của SF-3).
 - [ ] **Gate SF** — `story-verify` B1–B3 sạch; executor KHÔNG merge, KHÔNG set Linear Done — coordinator làm cả hai.
 - [ ] **Convergence (tier 2)** — full suite xanh + e2e 2 chiều PASS + browser walkthrough human gate + docs sync (walkthrough/README/orca.yaml cùng commit).
-- [ ] **Merge + đóng** — coordinator merge về dest, epic Linear Done, xoá state run/task lệch (như case SF-5 `ready` còn treo sau khi main đã merge).
+- [ ] **Merge + đóng** — coordinator merge SF về dest (story model); **dest → main qua PR** theo [git-flow.md](git-flow.md) (CI xanh + `--no-ff`, từ 2026-10-17 — không push thẳng main); epic Linear Done; xoá state run/task lệch (như case SF-5 `ready` còn treo sau khi main đã merge).
 - [ ] **Post-task-ritual** — improvements-log.md ghi bài học (flag, KHÔNG tự sửa skill); archetype mới → cập nhật playbook này **cùng commit merge**.
 
 ---

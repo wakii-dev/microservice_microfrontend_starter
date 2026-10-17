@@ -15,3 +15,4 @@ export { Tag, type TagProps, type CheckableTagProps } from './ui/tag/index.js';
 export { Alert, type AlertProps, type AlertType } from './ui/alert/index.js';
 export { Modal, type ModalProps } from './ui/modal/index.js';
 export { message, type MessageType } from './ui/message/index.js';
+export { UiKitProvider, type UiKitProviderProps } from './provider/index.js';

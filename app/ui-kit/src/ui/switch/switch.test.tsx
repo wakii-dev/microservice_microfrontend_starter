@@ -26,3 +26,10 @@ describe('Switch', () => {
     expect(screen.getByRole('switch', { name: 's' })).toBeDisabled();
   });
 });
+
+describe('Switch — branch phụ (knob children unchecked)', () => {
+  it('unchecked hiển thị unCheckedChildren', () => {
+    render(<Switch checked={false} unCheckedChildren="Tắt" />);
+    expect(screen.getByText('Tắt')).toBeInTheDocument();
+  });
+});

@@ -79,3 +79,19 @@ describe('Input — branch phụ (Tier 1.5)', () => {
     expect(screen.getByText('$')).toBeInTheDocument();
   });
 });
+
+describe('Input — branch phụ (Tier 1.5)', () => {
+  it('size large → h-10; affix + invalid → wrapper ring đỏ', () => {
+    render(<Input aria-label="L" size="large" invalid prefix="$" value="5" readOnly />);
+    const el = screen.getByLabelText('L');
+    expect(el).toHaveClass('h-10');
+    expect(el.closest('span')).toHaveClass('border-st-fail');
+  });
+});
+
+describe('Textarea — showCount (Tier 1.5)', () => {
+  it('showCount + maxLength → đếm ký tự', () => {
+    render(<Textarea aria-label="Đếm" showCount maxLength={10} value="abc" readOnly />);
+    expect(screen.getByText('3/10')).toBeInTheDocument();
+  });
+});

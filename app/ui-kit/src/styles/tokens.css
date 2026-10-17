@@ -16,6 +16,8 @@
   --ink: rgba(0, 0, 0, 0.88); /* chính */
   --ink2: rgba(0, 0, 0, 0.65); /* phụ (desc) */
   --ink3: rgba(0, 0, 0, 0.45); /* meta (uuid, time) — chỉ meta phụ ≥12px */
+  --ink4: rgba(0, 0, 0, 0.25); /* disabled text + placeholder — antd colorTextQuaternary */
+  --bg-disabled: rgba(0, 0, 0, 0.04); /* antd colorBgContainerDisabled */
   /* Viền — antd colorBorder / colorBorderSecondary */
   --line: #d9d9d9; /* 1px mặc định */
   --line2: #f0f0f0; /* split/hover nền */

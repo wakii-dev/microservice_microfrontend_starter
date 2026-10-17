@@ -25,7 +25,7 @@ export function pageList(current: number, pageCount: number): Array<number | 'el
 }
 
 const ITEM =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-2 border border-transparent px-2 text-body text-ink transition-colors hover:border-accent hover:text-accent';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-2 border border-transparent px-2 text-body text-ink transition-colors hover:text-accent';
 
 export function Pagination({ current, pageSize, total, onChange, className }: PaginationProps) {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));

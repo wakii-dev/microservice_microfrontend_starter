@@ -49,7 +49,7 @@ export function Alert({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-2 rounded-2 border px-3 py-2 text-body ${TYPE_STYLE[type]}${className ? ` ${className}` : ''}`}
+      className={`flex items-start gap-2 rounded-3 border px-3 py-2 text-body ${TYPE_STYLE[type]}${className ? ` ${className}` : ''}`}
     >
       <span aria-hidden="true" className={`text-label leading-5 ${TYPE_ICON_COLOR[type]}`}>
         {TYPE_ICON[type]}

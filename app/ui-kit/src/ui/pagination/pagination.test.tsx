@@ -61,3 +61,21 @@ describe('Pagination — branch phụ', () => {
     expect(screen.getByRole('button', { name: 'Trang sau' })).toBeDisabled();
   });
 });
+
+describe('Pagination — guard branch', () => {
+  it('click trang hiện tại (Trang 1 ở current=1) → guard không gọi onChange', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Pagination current={1} pageSize={10} total={50} onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: 'Trang 1' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Pagination — branch phụ 2', () => {
+  it('pageCount ≤ 7 → không có ellipsis', () => {
+    render(<Pagination current={4} pageSize={10} total={70} onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Trang 1' })).toBeInTheDocument();
+    expect(screen.queryByText('•••')).toBeNull();
+  });
+});

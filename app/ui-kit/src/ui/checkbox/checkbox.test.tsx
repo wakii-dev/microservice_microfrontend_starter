@@ -26,3 +26,16 @@ describe('Checkbox', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe('Checkbox — branch phụ', () => {
+  it('checked ban đầu + onChange undefined → click không crash', async () => {
+    render(<Checkbox checked>ro</Checkbox>);
+    await userEvent.setup().click(screen.getByRole('checkbox'));
+    expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+
+  it('className passthrough (label wrapper)', () => {
+    render(<Checkbox className="marker">x</Checkbox>);
+    expect(screen.getByText('x')).toHaveClass('marker');
+  });
+});

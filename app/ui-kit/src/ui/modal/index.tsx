@@ -60,13 +60,13 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
-        className="w-full max-w-[416px] rounded-3 border border-line bg-s2 p-4 shadow-lg"
+        className="w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]"
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.18, ease: 'easeOut' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-2 text-h2 font-medium text-ink">{title}</div>
+        <div className="mb-2 text-h2 font-semibold text-ink">{title}</div>
         {children && <div className="text-body text-ink2">{children}</div>}
         <div className="mt-4 flex justify-end gap-2">
           <Button type="default" onClick={() => onCancel?.()} disabled={confirmLoading}>

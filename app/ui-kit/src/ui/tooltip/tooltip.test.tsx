@@ -39,3 +39,15 @@ describe('Tooltip', () => {
     expect(screen.getByRole('tooltip').className).toContain('top-[calc(100%+8px)]');
   });
 });
+
+describe('Tooltip — branch phụ', () => {
+  it('placement top (mặc định) → bubble đáy trigger', () => {
+    render(
+      <Tooltip title="top">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    expect(screen.getByRole('tooltip').className).toContain('bottom-[calc(100%+8px)]');
+  });
+});

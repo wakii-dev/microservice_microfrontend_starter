@@ -25,3 +25,16 @@ describe('Avatar', () => {
     expect(screen.getByRole('img')).toHaveAttribute('src', '/a.png');
   });
 });
+
+describe('Avatar — branch phụ', () => {
+  it('không children/src → chỉ khung rỗng; className passthrough', () => {
+    const { container } = render(<Avatar className="marker" />);
+    expect(container.firstElementChild).toHaveClass('marker');
+    expect(container.firstElementChild?.textContent).toBe('');
+  });
+
+  it('icon node (ReactNode bất kỳ) render thay chữ', () => {
+    render(<Avatar><span data-testid="ic">★</span></Avatar>);
+    expect(screen.getByTestId('ic')).toBeInTheDocument();
+  });
+});

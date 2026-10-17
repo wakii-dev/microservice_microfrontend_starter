@@ -1,0 +1,33 @@
+// TabMenu — tab-style navigation menu (antd Menu mode horizontal, links not panels).
+import type { ReactNode } from 'react';
+
+export interface TabMenuItem { key: string; label: ReactNode; href?: string }
+
+export interface TabMenuProps {
+  model: TabMenuItem[];
+  activeKey?: string;
+  onTabChange?: (key: string) => void;
+  className?: string;
+}
+
+export function TabMenu({ model, activeKey, onTabChange, className }: TabMenuProps) {
+  return (
+    <nav className={`flex gap-1 border-b border-line2${className ? ` ${className}` : ''}`}>
+      {model.map((item) => {
+        const isActive = item.key === activeKey;
+        if (item.href) {
+          return <a key={item.key} href={item.href}
+            className={`px-4 py-2.5 text-body no-underline transition-colors ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'text-ink2 hover:text-accent'}`}>
+            {item.label}
+          </a>;
+        }
+        return (
+          <button key={item.key} type="button" onClick={() => onTabChange?.(item.key)}
+            className={`cursor-pointer border-none bg-transparent px-4 py-2.5 text-body transition-colors ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'text-ink2 hover:text-accent'}`}>
+            {item.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}

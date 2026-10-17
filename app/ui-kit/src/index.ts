@@ -60,3 +60,9 @@ export { Listbox, type ListboxProps, type ListboxOption } from './ui/listbox/ind
 export { Carousel, type CarouselProps } from './ui/carousel/index.js';
 export { ColorPicker, type ColorPickerProps } from './ui/color-picker/index.js';
 export { SpeedDial, type SpeedDialProps, type SpeedDialAction } from './ui/speed-dial/index.js';
+export { Galleria, type GalleriaProps, type GalleriaImage } from './ui/galleria/index.js';
+export { Tree, type TreeProps, type TreeNodeData } from './ui/tree/index.js';
+export { Splitter, type SplitterProps } from './ui/splitter/index.js';
+export { Chart, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
+export { Schedule, type ScheduleProps, type ScheduleEvent } from './ui/schedule/index.js';
+export { Editor, type EditorProps } from './ui/editor/index.js';

@@ -103,3 +103,8 @@ export type { UploadItem, UploadProps, UploadStatus } from './ui/upload/upload-c
 // ── Icon system + Field (batch ⑥⑩ 2026-10-18) ──
 export { Icon, type IconName } from './ui/icons/index.js';
 export { Field, type FieldProps } from './ui/field/index.js';
+
+// ── Data display mới (batch ⑨ 2026-10-18) ──
+export { List, type ListProps } from './ui/list/index.js';
+export { AvatarGroup, type AvatarGroupProps } from './ui/avatar-group/index.js';
+export { TreeSelect, type TreeSelectProps, type TreeSelectNode } from './ui/tree-select/index.js';

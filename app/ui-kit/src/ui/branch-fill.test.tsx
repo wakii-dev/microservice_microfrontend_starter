@@ -217,7 +217,7 @@ describe('behavior path sweep', () => {
         selectionMode="checkbox"
       />,
     );
-    expect(container.querySelectorAll('.bp-skeleton--text, .h-4')).length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.h-4').length).toBeGreaterThan(0); // text skeleton (Table dùng variant text)
   });
 
   it('Radio đơn không children — vẫn render input', () => {

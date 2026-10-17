@@ -49,5 +49,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "swiper": "^14.3.0"
   }
 }

@@ -68,3 +68,49 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'full' })).toHaveClass('w-full');
   });
 });
+
+describe('Button — completeness (Tier 1.5)', () => {
+  it('size small/middle/large → class height riêng', () => {
+    for (const [size, cls] of [
+      ['small', 'h-6'],
+      ['middle', 'h-8'],
+      ['large', 'h-10'],
+    ] as const) {
+      render(<Button size={size}>{size}</Button>);
+      expect(screen.getByRole('button', { name: size })).toHaveClass(cls);
+      cleanup();
+    }
+  });
+
+  it('loading → Spinner thay icon + disable bất kể disabled prop', () => {
+    render(
+      <Button type="primary" loading icon={<span data-testid="ic" />}>
+        Lưu
+      </Button>,
+    );
+    const btn = screen.getByRole('button', { name: /Lưu/ });
+    expect(btn).toBeDisabled();
+    expect(btn.querySelector('[role="status"]')).not.toBeNull();
+    expect(screen.queryByTestId('ic')).toBeNull();
+  });
+
+  it('block → w-full; icon hiển thị khi không loading', () => {
+    render(
+      <Button block icon={<span data-testid="ic2" />}>
+        full
+      </Button>,
+    );
+    const btn = screen.getByRole('button', { name: /full/ });
+    expect(btn).toHaveClass('w-full');
+    expect(screen.getByTestId('ic2')).toBeInTheDocument();
+  });
+
+  it('danger + type default → rơi về variant default (không nền đỏ)', () => {
+    render(
+      <Button danger>
+        Xoá mặc định
+      </Button>,
+    );
+    expect(screen.getByRole('button', { name: 'Xoá mặc định' }).className).not.toContain('bg-st-fail');
+  });
+});

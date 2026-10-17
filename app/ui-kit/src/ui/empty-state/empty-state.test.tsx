@@ -32,3 +32,12 @@ describe('EmptyState (hand-off §3)', () => {
     expect(document.querySelector('.bp-empty__action')).toBeNull();
   });
 });
+
+describe('EmptyState — image slot (Tier 1.5)', () => {
+  it('image truyền → render slot; không truyền → không slot', () => {
+    const { rerender } = render(<EmptyState title="t" image={<span data-testid="img" />} />);
+    expect(screen.getByTestId('img')).toBeInTheDocument();
+    rerender(<EmptyState title="t" />);
+    expect(screen.queryByTestId('img')).toBeNull();
+  });
+});

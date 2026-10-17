@@ -49,3 +49,25 @@ describe('Modal', () => {
     expect(ok).toBeDisabled();
   });
 });
+
+describe('Modal — branch phụ (Tier 2)', () => {
+  it('title ReactNode (không string) → không aria-label, vẫn render node', () => {
+    render(
+      <Modal
+        open
+        title={
+          <strong>
+            <span data-testid="node-title">Xoá?</span>
+          </strong>
+        }
+      />,
+    );
+    expect(screen.getByTestId('node-title')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-label');
+  });
+
+  it('không children → chỉ title + actions', () => {
+    render(<Modal open title="Chỉ title" />);
+    expect(screen.getByText('Chỉ title')).toBeInTheDocument();
+  });
+});

@@ -37,3 +37,11 @@ describe('Alert', () => {
     expect(screen.getByText('Chi tiết kỹ thuật')).toBeInTheDocument();
   });
 });
+
+describe('Alert — branch phụ (Tier 2)', () => {
+  it('className passthrough + description omitted branch', () => {
+    render(<Alert type="info" message="m" className="mb-2" />);
+    expect(screen.getByRole('alert')).toHaveClass('mb-2');
+    expect(screen.queryByText(/Chi tiết/)).toBeNull();
+  });
+});

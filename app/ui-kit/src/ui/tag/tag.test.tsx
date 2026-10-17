@@ -48,3 +48,36 @@ describe('Tag.Checkable', () => {
     expect(screen.getByRole('button', { name: 'X' })).toHaveClass('extra');
   });
 });
+
+describe('Tag — completeness (Tier 1.5)', () => {
+  it('closable → nút × gọi onClose (KHÔNG tự remove)', () => {
+    const onClose = vi.fn();
+    render(
+      <Tag closable onClose={onClose}>
+        đã tạo
+      </Tag>,
+    );
+    expect(screen.getByText('đã tạo')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument();
+  });
+
+  it('Checkable + icon → icon trước nhãn', () => {
+    render(
+      <Tag.Checkable checked icon={<span data-testid="tic" />}>
+        Đang làm
+      </Tag.Checkable>,
+    );
+    expect(screen.getByTestId('tic')).toBeInTheDocument();
+  });
+});
+
+it('closable × click → onClose được gọi', async () => {
+  const onClose = vi.fn();
+  render(
+    <Tag closable onClose={onClose}>
+      x
+    </Tag>,
+  );
+  await userEvent.setup().click(screen.getByRole('button', { name: 'Đóng' }));
+  expect(onClose).toHaveBeenCalledTimes(1);
+});

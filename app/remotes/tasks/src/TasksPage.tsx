@@ -4,7 +4,7 @@
 // đủ hành vi API sẵn có — filter status, pagination "Tải thêm", edit inline, delete
 // confirm, per-item busy, skeleton/empty primitives. Export default + named GIỮ (MF contract).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { EmptyState, Skeleton } from '@wakii/ui-kit';
+import { EmptyState, Skeleton, Tag } from '@wakii/ui-kit';
 import {
   ApiError,
   createTask,
@@ -182,24 +182,17 @@ export function TasksPage() {
       <TaskForm onCreate={handleCreate} />
 
       <div className="tsk-toolbar" role="group" aria-label="Lọc theo trạng thái">
-        <button
-          type="button"
-          className={`tsk-chip${statusFilter === null ? ' tsk-chip--active' : ''}`}
-          aria-pressed={statusFilter === null}
-          onClick={() => setStatusFilter(null)}
-        >
+        <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
           Tất cả
-        </button>
+        </Tag.Checkable>
         {WRITABLE_STATUSES.map((status) => (
-          <button
+          <Tag.Checkable
             key={status}
-            type="button"
-            className={`tsk-chip${statusFilter === status ? ' tsk-chip--active' : ''}`}
-            aria-pressed={statusFilter === status}
-            onClick={() => setStatusFilter(status)}
+            checked={statusFilter === status}
+            onChange={() => setStatusFilter(status)}
           >
             {STATUS_LABELS[status]}
-          </button>
+          </Tag.Checkable>
         ))}
       </div>
 

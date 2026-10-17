@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
+import { Button, Input } from '@wakii/ui-kit';
 import { api } from '../api';
 
 interface LoginResponse {
@@ -69,7 +70,7 @@ export function LoginPage() {
         <form aria-label="Form đăng nhập" className="sh-login__form" onSubmit={handleSubmit}>
           <label className="sh-field">
             Email
-            <input
+            <Input
               type="email"
               name="email"
               autoComplete="username"
@@ -80,7 +81,7 @@ export function LoginPage() {
           </label>
           <label className="sh-field">
             Mật khẩu
-            <input
+            <Input
               type="password"
               name="password"
               autoComplete="current-password"
@@ -94,9 +95,14 @@ export function LoginPage() {
               {error}
             </p>
           )}
-          <button className="sh-btn sh-btn--primary sh-login__submit" type="submit" disabled={submitting}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="sh-login__submit"
+            disabled={submitting}
+          >
             {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
-          </button>
+          </Button>
         </form>
         <p className="sh-login__hint">
           Demo: <code>alice@demo.local</code> / <code>demo-password</code> (mock — dev password

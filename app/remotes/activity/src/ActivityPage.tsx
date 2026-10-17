@@ -9,7 +9,7 @@ import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import './styles.css';
 import { useCallback, useEffect, useState } from 'react';
-import { EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -82,10 +82,10 @@ export function ActivityPage() {
     <section aria-label="Activity feed và thống kê" className="act-page">
       <header className="act-header">
         <h1>Activity</h1>
-        <button type="button" className="act-refresh" disabled={loading} onClick={() => void load()}>
+        <Button type="default" className="act-refresh" disabled={loading} onClick={() => void load()}>
           {loading && <Spinner label="Đang tải activity" />}
           Làm mới
-        </button>
+        </Button>
       </header>
 
       <div aria-label="Thống kê tasks" className="act-stats">

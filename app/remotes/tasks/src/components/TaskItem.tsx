@@ -3,7 +3,7 @@
 // Busy per-item: Spinner THAY badge + disable select/actions khi PATCH/DELETE đang bay.
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { FormEvent, useState } from 'react';
-import { Spinner } from '@wakii/ui-kit';
+import { Button, Input, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -89,33 +89,26 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
       <div className="tsk-item__main">
         {editing ? (
           <form className="tsk-item__edit" onSubmit={saveEdit}>
-            <input
-              type="text"
-              className="tsk-item__edit-title"
+            <Input
+              className="min-w-0 flex-1"
               aria-label={`Sửa tiêu đề task ${task.title}`}
               required
               maxLength={200}
               value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
             />
-            <input
-              type="text"
-              className="tsk-item__edit-desc"
+            <Input
+              className="min-w-0 flex-1"
               aria-label={`Sửa mô tả task ${task.title}`}
               value={draftDescription}
               onChange={(e) => setDraftDescription(e.target.value)}
             />
-            <button type="submit" className="tsk-btn tsk-btn--primary" disabled={busy}>
+            <Button type="primary" htmlType="submit" disabled={busy}>
               Lưu
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
-              disabled={busy}
-              onClick={() => setEditing(false)}
-            >
+            </Button>
+            <Button type="text" disabled={busy} onClick={() => setEditing(false)}>
               Huỷ
-            </button>
+            </Button>
           </form>
         ) : (
           <>
@@ -154,43 +147,37 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
         {editing ? null : confirming ? (
           <div className="tsk-item__confirm">
             <span className="tsk-item__confirm-text">Xoá task này?</span>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--danger"
+            <Button
+              type="primary"
+              danger
               disabled={busy}
               onClick={() => void run(() => onDelete(task))}
             >
               Xác nhận xoá
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
-              disabled={busy}
-              onClick={() => setConfirming(false)}
-            >
+            </Button>
+            <Button type="text" disabled={busy} onClick={() => setConfirming(false)}>
               Huỷ
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="tsk-item__actions">
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
+            <Button
+              type="text"
               aria-label={`Sửa task ${task.title}`}
               disabled={busy}
               onClick={startEdit}
             >
               Sửa
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--danger-ghost"
+            </Button>
+            <Button
+              type="text"
+              danger
               aria-label={`Xoá task ${task.title}`}
               disabled={busy}
               onClick={() => setConfirming(true)}
             >
               Xoá
-            </button>
+            </Button>
           </div>
         )}
       </div>

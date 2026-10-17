@@ -53,10 +53,10 @@ jobs:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
     steps:
       - uses: actions/checkout@v4
-      - name: Boot service + postgres (+ auth-mock nếu cần JWT)
+      - name: Boot service + postgres (+ auth-svc nếu cần JWT)
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            up -d --build postgres auth-mock <svc>
+            up -d --build postgres auth-svc <svc>
       - name: Smoke — /healthz + /readyz + migration xong
         run: |
           # wait rồi grep '"status":"ok"' — pattern giống workflows/contracts.yml

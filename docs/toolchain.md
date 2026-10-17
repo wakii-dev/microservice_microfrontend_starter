@@ -4,7 +4,7 @@ Bảng đối chiếu tool × môi trường. Nguyên tắc: **máy dev không c
 
 | Tool | Version | Dev native | Dev compose | CI | Ai cần |
 |------|---------|-----------|-------------|-----|--------|
-| Node.js | 22 LTS (engines >=22) | ✓ | — | ✓ setup-node 22 | node-svc, auth-mock, toàn FE, scaffold output |
+| Node.js | 22 LTS (engines >=22) | ✓ | — | ✓ setup-node 22 | node-svc, auth-svc, toàn FE, scaffold output |
 | pnpm | 9 (corepack) | ✓ | — | ✓ corepack | cùng Node ở trên |
 | JDK | 21 (Temurin) | ✓ | — | ✓ setup-java 21 | spring-svc (mvnw tự tải deps — không cần Maven cài sẵn) |
 | Go | 1.24.x | ✓ (hoặc skip — CI build) | — | ✓ setup-go 1.24 | go-svc (`go.sum` không commit — `go mod tidy` sinh) |
@@ -17,7 +17,7 @@ Bảng đối chiếu tool × môi trường. Nguyên tắc: **máy dev không c
 
 | Task cần làm | Tool cần ở máy |
 |--------------|----------------|
-| Sửa node-svc / auth-mock / FE | Node 22 + pnpm + Postgres 16 (test) |
+| Sửa node-svc / auth-svc / FE | Node 22 + pnpm + Postgres 16 (test) |
 | Sửa spring-svc | JDK 21 (mvnw lo phần còn lại) |
 | Sửa go-svc | Go 1.24 (hoặc để CI build — dev chỉ đọc code) |
 | e2e smoke local | bash + curl + stack sống (compose HOẶC native — walkthrough.md) |

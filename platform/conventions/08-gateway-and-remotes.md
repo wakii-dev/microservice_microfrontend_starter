@@ -7,13 +7,13 @@
 | `/api/tasks/*` | `node-svc:3001` | ✓ thiếu `Authorization` → 401 | pass-through, KHÔNG rewrite — service mount `/api/tasks` prefix |
 | `/api/users/*` | `spring-svc:8081` | ✓ 401 | |
 | `/api/activity/*` | `go-svc:8082` | ✓ 401 | |
-| `/api/auth/*` | `auth-mock:8090` | ✗ mở | entry login + swagger UI `/api/auth/docs` |
+| `/api/auth/*` | `auth-svc:8090` | ✗ mở | entry login + register + refresh (auth.yaml v2) |
 | `/` | `shell:3000` | ✗ | MF host (SF-5) — 502 đến khi shell tồn tại |
 | `/remotes/<name>/*` | remote `<name>` | ✗ | remote static (SF-6) — 502 đến khi tồn tại |
 
 Quy tắc kỹ thuật:
 1. **Pass-through**: `proxy_pass` không có URI part → original path giữ nguyên. OpenAPI `servers.url` = `/api/<svc>` khớp chính xác.
-2. **Lazy DNS**: mọi upstream set qua biến + `resolver 127.0.0.11` (Docker DNS) — gateway KHÔNG crash-loop khi một upstream chưa tồn tại (SF-1 chỉ có postgres + auth-mock + gateway chạy được; shell/services vào sau).
+2. **Lazy DNS**: mọi upstream set qua biến + `resolver 127.0.0.11` (Docker DNS) — gateway KHÔNG crash-loop khi một upstream chưa tồn tại (stage đầu chỉ có postgres + auth-svc + gateway chạy được; shell/services vào sau).
 3. Gateway sinh `X-Request-Id` nếu client thiếu (mirror vào response) — trace xuyên service, xem [03-logging.md](03-logging.md).
 4. Gateway chỉ làm **presence check** JWT — KHÔNG verify signature (không giữ secret). Verify thật ở từng service, xem `contracts/auth/token-contract.md` §4.
 

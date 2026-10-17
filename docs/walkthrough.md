@@ -12,7 +12,7 @@ Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là nh
 git clone <repo> && cd <repo>
 pnpm install --frozen-lockfile     # FE workspace (app/*)
 cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace && cd ../..   # node-svc standalone lockfile
-cd platform/auth-mock && pnpm install --ignore-workspace && cd ../..                     # auth-mock standalone
+cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace && cd ../..   # auth-svc standalone lockfile
 ```
 
 ## 2. Postgres + seed
@@ -20,7 +20,7 @@ cd platform/auth-mock && pnpm install --ignore-workspace && cd ../..            
 Cần Postgres 16 chạy sẵn với init script của platform (schemas + roles + readonly grants):
 
 - **Có Docker (dễ nhất):** `cd platform && cp .env.example .env` (điền mật khẩu) → `docker compose up -d postgres` — init script `platform/postgres/init/01-init.sh` tự chạy lần đầu.
-- **Không Docker:** cài/portable Postgres 16, `initdb` một data dir rồi chạy nội dung `platform/postgres/init/01-init.sh` tay (tạo db `boilerplate`, roles `node_svc`/`spring_svc`/`go_svc`/`go_readonly` với mật khẩu khớp .env, schemas + default privileges).
+- **Không Docker:** cài/portable Postgres 16, `initdb` một data dir rồi chạy nội dung `platform/postgres/init/01-init.sh` tay (tạo db `boilerplate`, roles `node_svc`/`spring_svc`/`go_svc`/`go_readonly`/`auth_svc` với mật khẩu khớp .env, schemas + default privileges).
 
 ## 3. Chọn đường chạy demo
 
@@ -30,8 +30,11 @@ Cần Postgres 16 chạy sẵn với init script của platform (schemas + roles
 cd platform
 cp .env.example .env                # điền JWT_SECRET (openssl rand -base64 48) + passwords
 docker compose down -v              # ⚠️ CHẠY 1 LẦN sau pull nếu máy có pgdata volume TỪ bản cũ:
-                                    #    Flyway V2 seed user svc-fail/svc-activity chỉ chạy lúc volume MỚI —
-                                    #    volume cũ thiếu 2 user này → saga demo (mục 4b) chết ở auth/validate.
+                                    #    (1) Flyway V2 seed user svc-fail/svc-activity + (2) init script tạo
+                                    #    schema `auth` + role `auth_svc` (auth-real SF-5) CHỈ chạy lúc volume
+                                    #    MỚI — volume cũ thiếu → saga chết ở auth/validate, auth-svc chết ở
+                                    #    DATABASE auth (healthcheck /readyz đỏ, gateway không lên được).
+                                    # ⚠️ `.env` tạo từ bản cũ: thêm `AUTH_SVC_DB_PASSWORD` (cp từ .env.example).
 # Kafka KHÔNG có data volume — topics mất sau mỗi `down` → tạo tường minh
 # TRƯỚC khi boot services (giống CI convergence.yml; tránh 2 race: go consumer
 # kẹt empty-assignment khi subscribe trước topic + DLQ publish Unknown Topic):
@@ -42,19 +45,22 @@ for topic in task-events task-events.dlq; do
     --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
 done
 docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
-bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 2 chiều:
-                                    #   happy: login→task→feed QUA KAFKA (outbox → topic → go consumer)
-                                    #   saga : assign svc-fail → task assignment_failed + event gốc ở task-events.dlq
+bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 15 bước, 3 luồng:
+                                    #   happy     : login→task→feed QUA KAFKA (outbox → topic → go consumer)
+                                    #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 200)
+                                    #   saga      : assign svc-fail → task assignment_failed + event gốc ở task-events.dlq
 # Mở browser: http://localhost:8080/ → login alice@demo.local / demo-password
+#             (hoặc tự register account mới — tab Register, mục 4a)
 ```
 
 ### Đường B — Native (không Docker — từng service một)
 
 ```bash
 # 4 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
-cd platform/auth-mock && JWT_SECRET=<dev-secret> PORT=8090 \
+cd services/auth-svc && JWT_SECRET=<dev-secret> PORT=8090 \
+  DATABASE_URL="postgres://auth_svc:<pw>@localhost:5432/boilerplate" \
   USERS_FIXTURE_PATH=$(pwd)/../../contracts/auth/users.json \
-  AUTH_MOCK_DEV_PASSWORD=demo-password node src/server.js
+  AUTH_DEV_PASSWORD=demo-password pnpm dev
 
 cd services/spring-svc && SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/boilerplate" \
   SPRING_DATASOURCE_USERNAME=spring_svc SPRING_DATASOURCE_PASSWORD=<pw> \
@@ -82,7 +88,7 @@ Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conv
 
 Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08):
 - Đường A (từ repo root, không cd platform): `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`). Mặc định chạy **2 chiều** — happy + saga kèm DLQ assert (cần docker để exec `kafka-console-consumer` trong container kafka).
-- Đường B (native, không Kafka): `SMOKE_SAGA=0 bash scripts/smoke/e2e.sh` — chỉ happy path. Không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
+- Đường B (native, không Kafka): `SMOKE_SAGA=0 bash scripts/smoke/e2e.sh` — happy + auth-real (bỏ saga + DLQ). Không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
 
 ## 4. Browser walkthrough (human gate — KHÔNG trong CI)
 
@@ -98,6 +104,17 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
    - Mỗi card hiển thị assignee (UUID rút gọn monospace, hover thấy đủ), "Chưa gán" nếu trống, + createdAt vi-VN.
 3. Nav → **Activity**: **stats cards** (Tổng task / Cần làm / Đang làm / Xong / Sự kiện 24h qua) + **feed timeline nhóm theo ngày** phản ánh mọi thao tác ở bước 2 qua Kafka (outbox → `task-events` → go consumer): badge "đã tạo / đã cập nhật / đã giao / đã xoá" từng màu, tên task, time vi-VN. Nút *Làm mới* load lại.
 4. **Remote-down fallback**: dừng 1 remote rồi reload shell — đường A: `docker stop boilerplate-remote-tasks-1`; đường B: Ctrl-C dev server `:4001`. Shell vẫn nguyên (nav + user chip), slot Tasks hiện fallback "Không tải được phần **tasks**…" + nút **Thử lại**; **Activity vẫn chạy bình thường**. Khôi phục: khởi động lại remote (`docker start` / chạy lại `pnpm dev`) rồi nút *Thử lại* tải lại remote; nếu nút chưa ăn (MF runtime giữ rejection cũ) thì **reload trang** — remote sống lại mount bình thường.
+
+### 4a. Auth thật — register / refresh / logout-all 2 tab (epic auth-real)
+
+1. **Register**: mở `http://localhost:8080/` → tab **Register** trên login screen → email mới + password (8–72 ký tự) + tên hiển thị → tạo xong là đăng nhập luôn (roles `["user"]`). Đăng xuất → đăng nhập lại bằng account vừa tạo ✓.
+2. **Refresh rotation (2 tab)**: đăng nhập cùng account ở 2 tab. Tab 1 đứng yên đến khi access token hết hạn (30m) — request kế tab 1 tự refresh (rotate) rồi retry, KHÔNG bị văng về login. (Nhạy hơn: `POST /api/auth/refresh` tay bằng refreshToken trong `localStorage['bp.rt']` — response trả cặp mới, token cũ không dùng lại được.)
+3. **Logout-all (chuẩn acceptance — 1 tab chết, 1 tab còn)**: tab 2 bấm **Đăng xuất** (chỉ revoke refresh của tab đó — tab 1 VẪN sống vì access token 30m còn hạn). Để chết HẾT tab: gọi logout-all (chưa có nút UI — dùng token của account):
+   ```bash
+   curl -X POST http://localhost:8080/api/auth/logout-all -H "Authorization: Bearer <accessToken>"
+   ```
+   Quay lại tab 1, bấm bất kỳ thao tác gọi API kế tiếp → 401 → auto-refresh fail (token bị revoke-all) → về màn login. Đó là hành vi ĐÚNG (không cross-tab realtime — kiểm ở request kế).
+4. **RBAC demo**: login `bob@demo.local` / `demo-password` (roles `["user"]`) → tạo task → nút **Xoá** → bị chặn (403 FORBIDDEN — hiện thông báo lỗi, task còn nguyên). Login `alice@demo.local` (roles `["admin"]`) → xoá cùng task → thành công. e2e assert cùng chuỗi (bước 11–12).
 
 ### 4b. Saga demo (story FI-76 — cần đường A, có Kafka)
 
@@ -131,6 +148,6 @@ Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playb
 
 | Workflow | Chạy khi | Bằng chứng |
 |----------|---------|-----------|
-| `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-mock + schemathesis |
+| `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
 | `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
 | `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |

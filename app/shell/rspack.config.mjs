@@ -13,7 +13,7 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
  * Env build-time (conventions/06 + 08 — KHÔNG hardcode):
  *   REMOTE_TASKS_URL / REMOTE_ACTIVITY_URL — remoteEntry của 2 remote
  *     (dev native: http://localhost:4001|4002/remoteEntry.js; prod: mặc định đi qua gateway /remotes/<name>/)
- *   API_BASE_URL — base gọi API. Dev native: http://localhost:8090 (auth-mock trực tiếp,
+ *   API_BASE_URL — base gọi API. Dev native: http://localhost:8090 (auth-svc trực tiếp,
  *     CORS dev mở — conventions/07). Prod (qua gateway): '' (same-origin).
  *   SHELL_PORT — port dev server (default 3000, conventions/05).
  */
@@ -118,7 +118,7 @@ export default {
     headers: { 'Access-Control-Allow-Origin': '*' },
     // DEV-ONLY proxy — topology gateway dev thu nhỏ (đủ 4 route như gateway
     // conventions/08): /api/tasks → node-svc, /api/activity → go-svc, /api/users →
-    // spring-svc, /api/auth → auth-mock. Shell là host, REMOTE chạy trong page
+    // spring-svc, /api/auth → auth-svc. Shell là host, REMOTE chạy trong page
     // context của shell nên /api/<svc> của remote cũng về đây. Origin dev khác cổng
     // docker compose đã set CORS_DEV_ORIGIN (vd SHELL_PORT=3100) → cùng-origin qua
     // proxy thay vì đụng stack compose. Prod không đi đây (gateway).

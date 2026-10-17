@@ -17,7 +17,7 @@ stack:
   jdk: "21"
   go: "1.24"
   postgres: "16"
-  workspaces: pnpm workspace (root) NHƯNG node-svc + auth-mock có standalone lockfile (cài riêng, xem services.auth-mock.install)
+  workspaces: pnpm workspace (root) NHƯNG node-svc + auth-svc có standalone lockfile (cài riêng, xem services.auth-svc.install)
 
 # ── Contracts — SOURCE OF TRUTH. Sửa contract TRƯỚC, code theo sau. ──────────
 contracts:
@@ -60,14 +60,17 @@ services:
     healthz: [/healthz, /readyz]
     owns: schema activity (tự migrate) — feed/stats + Kafka consumer (idempotent, retry ×3 → DLQ + saga)
     note: đọc-ONLY schema tasks qua role go_readonly; snapshot openapi nhúng phải bit-identical contract (CI drift-guard)
-  auth-mock:
-    path: platform/auth-mock
+  auth-svc:
+    path: services/auth-svc
     port: 8090
-    tech: Fastify (JS, không build)
-    install: cd platform/auth-mock && pnpm install --ignore-workspace
-    start: pnpm start
-    test: pnpm test          # node --test — real-path login → JWT → Bearer
-    note: JWT HS256, NOT-FOR-PROD — issuer/discovery stub cho demo
+    tech: Fastify + TypeScript + Drizzle (auth thật — epic auth-real VU-59)
+    install: cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace
+    dev: pnpm dev            # tsx watch
+    build: pnpm build        # tsc
+    test: pnpm test          # vitest run
+    healthz: [/healthz, /readyz]
+    owns: schema auth (users + refresh_tokens — seed users.json GIỮ UUID) — register/login/refresh rotation CAS/reuse-detect/logout; claims roles = RBAC source
+    note: iss JWT PINNED "auth-mock" (token-contract.md — giá trị lịch sử, KHÔNG đổi theo tên service)
 
 app:
   shared:
@@ -120,7 +123,7 @@ run:
 test_all:              # full suite local — PASS hết trước khi claim done
   - pnpm --filter shell test && pnpm --filter shell typecheck
   - pnpm --filter node-svc test
-  - cd platform/auth-mock && pnpm test
+  - pnpm --filter auth-svc test
   - cd services/go-svc && go test ./...
   - cd services/spring-svc && ./mvnw test
 
@@ -134,9 +137,9 @@ docs:
 
 gotchas:
   - "Vitest test ranh giới ngày: TZ pin qua test.env trong vitest.config — môi trường dev +07 che bug, đừng bỏ pin"
-  - "node-svc + auth-mock: standalone lockfile — pnpm install PHẢI --ignore-workspace, chạy TRONG thư mục service, không phải workspace root"
+  - "node-svc + auth-svc: standalone lockfile — pnpm install PHẢI --ignore-workspace, chạy TRONG thư mục service, không phải workspace root"
   - "fe-shared standalone: khai catalog: → cần mini workspace (sed catalog block từ root pnpm-workspace.yaml) — mẫu ở .github/workflows/convergence.yml step copy-dir"
-  - "pgdata volume từ bản cũ thiếu user svc-fail/svc-activity (Flyway V2 chỉ seed volume mới) → docker compose down -v 1 lần rồi up lại nếu saga chết ở auth/validate"
+  - "pgdata volume từ bản cũ thiếu user svc-fail/svc-activity (Flyway V2) + role auth_svc/schema auth (init script chỉ chạy volume mới — auth-real SF-5) → docker compose down -v 1 lần rồi up lại; .env bản cũ thêm AUTH_SVC_DB_PASSWORD từ .env.example"
   - "assignment_failed là system-owned: re-assign KHÔNG tự reset status — PATCH tường minh {assigneeId, status:'todo'} (status writable: todo/in_progress/done)"
   - "Inter-service call QUA TÊN COMPOSE (http://node-svc:3001), không localhost; .env không bao giờ commit"
   - "Sửa port = 4 chỗ cùng commit: conventions/05-ports.md + .env.example + docker-compose.yml + README"

@@ -1,6 +1,7 @@
 SF-4 (VU-63) test-run — FE refresh-client + LoginPage register
 Date: 2026-10-17
 HEAD tại code-commit cuối: 54fa9c0 (feat(fe): refresh-client + LoginPage register tab + auto-refresh wrapper (VU-63))
+Follow-up docs-only (không đụng code): 039fd6f (commit evidence này) · 4700271 (improvements-log ritual 2 lessons)
 Branch: wakii-dev/sf-4-auth-real · dest: wakii-dev/story-vu59-auth-real (story-hub — executor KHÔNG merge)
 tdd: RED→GREEN (21 test mới FAIL trước khi implement refresh-client/LoginPage-v2/NavBar-wrapper; sau implement 47/47; +1 test pin retry-non-401 theo review → 48/48. Meta-test: đảo guard `if (true) clearSession()` → đúng 1 test FAIL, revert → xanh.)
 

@@ -1,5 +1,6 @@
 // Tests routing admin (batch ⑦) — render 3 route qua MemoryRouter + AppRoutes.
 import { cleanup, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AppRoutes } from './App.js';
@@ -50,5 +51,20 @@ describe('Admin routing', () => {
     expect(screen.getByText('Vùng & thông báo')).toBeInTheDocument();
     // field tab Chung render mặc định (label có dấu * vì required → match regex)
     expect(screen.getByLabelText(/^Tên site/)).toBeInTheDocument();
+  });
+
+  it('dark toggle → set data-bp-theme=dark + persist localStorage', async () => {
+    const user = userEvent.setup();
+    renderAt('/');
+
+    await user.click(screen.getByRole('button', { name: 'Bật dark mode' }));
+
+    // attr trên documentElement — CSS vars thật được verify bằng playwright probe
+    // (scripts/verify-chart.mjs: computed --c-canvas đổi khi attr set)
+    expect(document.documentElement.getAttribute('data-bp-theme')).toBe('dark');
+    expect(window.localStorage.getItem('admin-theme')).toContain('dark');
+
+    await user.click(screen.getByRole('button', { name: 'Tắt dark mode' }));
+    expect(document.documentElement.getAttribute('data-bp-theme')).toBe('light');
   });
 });

@@ -1,6 +1,6 @@
 // Dashboard — 4 Statistic cards + Chart line (chart.js) + Timeline hoạt động +
 // EmptyState một khu (batch ⑦). Grid responsive 1/2/4 cột.
-import { Button, Card, Chart, EmptyState, Icon, Statistic, Tag, Timeline, message } from '@wakii/ui-kit';
+import { Button, Card, Chart, EmptyState, Icon, Statistic, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },
@@ -9,15 +9,43 @@ const STATS = [
   { title: 'Uptime', value: '99,98%', tag: 'SLA', icon: 'info-circle' as const },
 ];
 
-const CHART_CONFIG = {
+// ⚠️ SHAPE NATIVE chart.js v4 — ui-kit <Chart> pass config THẲNG vào `new ChartJs(canvas, config)`,
+// nên data phải LỒNG trong `data: {labels, datasets}`. Interface ChartConfig flat của ui-kit
+// (labels/datasets top-level, như stories họ viết) → chart.js đọc config.data = undefined →
+// chart RỖNG im lặng (probe diagnose-chart.mjs: instance attached + sized nhưng labels:0,
+// datasets:[], 0 pixel). Cast qua unknown vì type ui-kit đang khai báo flat — flag coordinator.
+const CHART_CONFIG_NATIVE = {
   type: 'line' as const,
-  labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
-  datasets: [
-    { label: 'Tasks', data: [12, 19, 8, 22, 30, 25, 18], borderColor: '#1677ff', backgroundColor: 'rgba(22,119,255,0.12)' },
-    { label: 'Uploads', data: [4, 7, 3, 9, 12, 8, 6], borderColor: '#52c41a', backgroundColor: 'rgba(82,196,26,0.12)' },
-  ],
-  options: { responsive: true, maintainAspectRatio: false },
+  data: {
+    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+    datasets: [
+      {
+        label: 'Tasks',
+        data: [12, 19, 8, 22, 30, 25, 18],
+        borderColor: '#1677ff',
+        backgroundColor: 'rgba(22,119,255,0.12)',
+        tension: 0.35,
+        fill: true,
+      },
+      {
+        label: 'Uploads',
+        data: [4, 7, 3, 9, 12, 8, 6],
+        borderColor: '#52c41a',
+        backgroundColor: 'rgba(82,196,26,0.12)',
+        tension: 0.35,
+        fill: true,
+      },
+    ],
+  },
+  // animation:false — render đồng bộ lúc constructor, không phụ thuộc rAF (headless/tab
+  // background vẫn vẽ đúng frame đầu)
+  options: { responsive: true, maintainAspectRatio: false, animation: false },
 };
+
+// Cast tại biên JSX — type flat của ui-kit chưa phản ánh shape native chart.js (xác trên)
+const CHART_CONFIG = CHART_CONFIG_NATIVE as unknown as ChartConfig;
+
+const HAS_CHART_DATA = CHART_CONFIG_NATIVE.data.datasets.some((dataset) => dataset.data.length > 0);
 
 export function Dashboard() {
   return (
@@ -42,9 +70,13 @@ export function Dashboard() {
       {/* Chart + Timeline — 2 cột trên màn rộng */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
         <Card title="Hoạt động 7 ngày" className="xl:col-span-3">
-          <div className="h-64">
-            <Chart config={CHART_CONFIG} height={256} />
-          </div>
+          {HAS_CHART_DATA ? (
+            <div className="h-64">
+              <Chart config={CHART_CONFIG} height={256} />
+            </div>
+          ) : (
+            <EmptyState title="Chưa có dữ liệu" description="Chưa có hoạt động nào trong 7 ngày qua." />
+          )}
         </Card>
         <Card title="Timeline hoạt động" className="xl:col-span-2">
           <Timeline

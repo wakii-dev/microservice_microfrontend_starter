@@ -124,6 +124,7 @@ export function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('admin-theme', 'light');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Dark theme qua data-bp-theme (ui-kit dark.css override theo attr này)
   useEffect(() => {
@@ -142,16 +143,17 @@ export function AdminLayout() {
           </div>
         }
         footer={
-          <div className="flex items-center gap-2 px-2">
+          <div className={`flex items-center gap-2 px-2${sidebarCollapsed ? ' justify-center' : ''}`}>
             <Switch
               size="small"
               checked={theme === 'dark'}
               onChange={(checked) => setTheme(checked ? 'dark' : 'light')}
               aria-label="Dark mode"
             />
-            <span className="whitespace-nowrap text-meta text-ink3">Dark</span>
+            {!sidebarCollapsed && <span className="whitespace-nowrap text-meta text-ink3">Dark mode</span>}
           </div>
         }
+        onToggle={setSidebarCollapsed}
       >
         <Menu
           items={MENU_ITEMS}

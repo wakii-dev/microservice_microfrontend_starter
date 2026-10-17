@@ -132,3 +132,7 @@ MINI-RITUAL SF-5B-VU58: 4 patterns → logged ở trên (kit MF spike checklist:
 - bash-down playbook → rollback-ritual.md · reviewer brief "pre-existing commits" · task-update vocabulary vào SKILL.md
 
 **Kết luận:** không có lesson nào đủ điều kiện lên conventions mới — 9 conventions hiện tại phủ hết các pattern lặp. Nợ duy nhất mang tính quyết định: `additionalProperties` P2 (C-hàng, cần 1 quyết định coordinator ghi vào conventions/04).
+
+## 2026-10-17 — SF-1 auth-real (VU-60)
+- [p6-flag] Context pack gap-item viết shorthand CLI thiếu precision: sf-1.md ghi "Exclude register|refresh|logout" → session trước implement `--exclude-path "login|register|refresh|logout"` nhưng schemathesis 3.39 `--exclude-path` là EXACT match (không filter path nào → /login vẫn bị fuzz → CI đỏ oan). Đúng: `--exclude-path-regex` + phải exclude cả `/login` (shape v2 decision #8 vs auth-mock v1). Fix tại chỗ: contracts.yml comment + chạy thật chứng minh 8→3 ops. Suggested: context-pack/gap-item nhúng CLI flag + semantics đúng theo `--help` của version pin, không viết shorthand regex-ngoài-hình.
+- [p6-flag] CI contracts job boot-smoke vẫn assert TTL=28800/iss trên auth-mock (đúng design chuyển tiếp — SF-5 swap); SF-5 phải nhớ bỏ/nới các assert này khi boot auth-svc (đã ghi trong spec CI ownership, reviewer xác nhận không phải sót).

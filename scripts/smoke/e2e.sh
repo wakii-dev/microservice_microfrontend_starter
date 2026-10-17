@@ -9,7 +9,7 @@
 #          go-svc consume) → đọc feed + stats (go-svc).
 #   AUTH-REAL (VU-64): register user mới → refresh rotation → reuse token cũ
 #          → 401 (revoke-all) → logout idempotent → RBAC: user roles ["user"]
-#          DELETE task → 403 FORBIDDEN, alice (admin) DELETE → 200.
+#          DELETE task → 403 FORBIDDEN, alice (admin) DELETE → 204 (tasks.yaml).
 #   SAGA : tạo task → PATCH assigneeId = svc-fail fixture → go consumer fail
 #          ×3 → compensating event `task.assignment_failed` → node compensation
 #          consumer → GET task status = `assignment_failed` → assert DLQ:

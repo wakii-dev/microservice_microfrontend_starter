@@ -38,3 +38,11 @@ describe('Avatar — branch phụ', () => {
     expect(screen.getByTestId('ic')).toBeInTheDocument();
   });
 });
+
+describe('Avatar — branch phụ (Tier 5 sweep)', () => {
+  it('children chữ fallback span fontSize = size*0.44', () => {
+    render(<Avatar size={40}>VN</Avatar>);
+    const inner = screen.getByText('VN');
+    expect(inner.style.fontSize).toBe('17.6px');
+  });
+});

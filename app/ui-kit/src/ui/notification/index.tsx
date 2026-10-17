@@ -38,8 +38,28 @@ function show(type: NotificationType, title: string, description?: string, durat
       <button type="button" aria-label="Đóng" class="cursor-pointer border-none bg-transparent text-base leading-4 text-ink3">×</button>
     </div>`;
   root.appendChild(el);
+  // Motion identity: enter slide-in-right + fade; exit slide-out (nhanh hơn enter ~30%)
+  if (typeof el.animate === 'function') {
+    el.animate(
+      [
+        { opacity: 0, transform: 'translateX(24px)' },
+        { opacity: 1, transform: 'translateX(0)' },
+      ],
+      { duration: 240, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+    );
+  }
+  const remove = () => {
+    if (typeof el.animate === 'function') {
+      const exit = el.animate(
+        [{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: 'translateX(24px)' }],
+        { duration: 160, easing: 'cubic-bezier(0.4, 0, 1, 1)' },
+      );
+      exit.onfinish = () => el.remove();
+    } else {
+      el.remove();
+    }
+  };
   const closeBtn = el.querySelector('button');
-  const remove = () => el.remove();
   closeBtn?.addEventListener('click', remove);
   window.setTimeout(remove, durationMs);
 }

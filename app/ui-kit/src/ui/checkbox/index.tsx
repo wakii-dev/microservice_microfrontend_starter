@@ -1,8 +1,8 @@
 // Checkbox — antd look: 16×16 radius 4, checked = nền accent + tick trắng; label
 // children bọc <label> (click cả chữ); disabled.
-import type { ReactNode } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
 
-export interface CheckboxProps {
+export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange'> {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
@@ -10,7 +10,7 @@ export interface CheckboxProps {
   className?: string;
 }
 
-export function Checkbox({ checked = false, onChange, disabled = false, children, className }: CheckboxProps) {
+export function Checkbox({ checked = false, onChange, disabled = false, children, className, ...rest }: CheckboxProps) {
   return (
     <label className={`inline-flex cursor-pointer items-center gap-2 text-body text-ink${disabled ? ' cursor-not-allowed text-ink3' : ''}${className ? ` ${className}` : ''}`}>
       <input
@@ -18,6 +18,7 @@ export function Checkbox({ checked = false, onChange, disabled = false, children
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.checked)}
+        {...rest}
         className="peer size-4 cursor-pointer appearance-none rounded-[4px] border border-line bg-s2 transition-colors checked:border-accent checked:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-s3 disabled:checked:bg-ink3"
       />
       <span

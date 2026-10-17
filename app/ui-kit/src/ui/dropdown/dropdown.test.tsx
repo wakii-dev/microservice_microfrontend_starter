@@ -43,3 +43,13 @@ describe('Dropdown', () => {
     expect(screen.queryByText('Sửa')).toBeNull();
   });
 });
+
+describe('Dropdown — branch phụ (Tier 5 sweep)', () => {
+  it('divider "---" → li border; item disabled → class cursor-not-allowed', async () => {
+    const user = userEvent.setup();
+    render(<Dropdown trigger={<button>Menu</button>} items={ITEMS} />);
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(document.querySelector('.my-1.border-t')).not.toBeNull();
+    expect(screen.getByText('Khoá').className).toContain('cursor-not-allowed');
+  });
+});

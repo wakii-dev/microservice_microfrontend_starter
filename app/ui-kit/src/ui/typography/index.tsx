@@ -1,7 +1,7 @@
 // Typography — antd composite: Typography.Title (level 1–5: 38/30/24/20/16 semibold,
 // margin-bottom .5em) · Text (secondary/success/warning/danger, strong/code/underline/
 // delete/keyboard, copyable-lite) · Paragraph. Metrics từ antd typography default.
-import { useCallback, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useRef, type CSSProperties, type ReactNode } from 'react';
 
 const TITLE_SIZE: Record<number, number> = { 1: 38, 2: 30, 3: 24, 4: 20, 5: 16 };
 const TITLE_TAG: Record<number, 'h1' | 'h2' | 'h3' | 'h4' | 'h5'> = { 1: 'h1', 2: 'h2', 3: 'h3', 4: 'h4', 5: 'h5' };
@@ -68,20 +68,26 @@ export function Text({
   if (del) content = <del>{content}</del>;
   if (strong) content = <strong>{content}</strong>;
 
+  const ref = useRef<HTMLSpanElement>(null);
   const onCopy = useCallback(() => {
     if (!copyable) return;
-    const text = typeof children === 'string' ? children : String(children);
-    void navigator.clipboard?.writeText(text);
-  }, [copyable, children]);
+    // copy textContent — đúng nội dung user thấy (children có thể là node)
+    void navigator.clipboard?.writeText(ref.current?.textContent ?? '');
+  }, [copyable]);
 
   return (
     <span
-      className={className}
-      style={{ color: 'var(--ink)', cursor: copyable ? 'pointer' : undefined, ...typeStyle, ...style }}
+      style={{ cursor: copyable ? 'pointer' : undefined }}
       title={copyable ? 'Copy' : undefined}
       onClick={copyable ? onCopy : undefined}
     >
-      {content}
+      <span
+        ref={ref}
+        className={className}
+        style={{ color: 'var(--ink)', ...typeStyle, ...style }}
+      >
+        {content}
+      </span>
       {copyable && (
         <span aria-hidden="true" style={{ marginLeft: 4, color: 'var(--ink3)', fontSize: '0.9em' }}>
           ⧉

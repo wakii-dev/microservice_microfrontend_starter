@@ -31,3 +31,12 @@ describe('Progress — branch phụ', () => {
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 });
+
+describe('Progress — branch phụ (Tier 5 sweep)', () => {
+  it('bar width theo percent + màu exception trên bar', () => {
+    const { container } = render(<Progress percent={75} status="exception" />);
+    const bar = container.querySelector('[role="progressbar"] > div') as HTMLElement;
+    expect(bar.style.width).toBe('75%');
+    expect(bar.style.background).toBe('var(--st-fail)');
+  });
+});

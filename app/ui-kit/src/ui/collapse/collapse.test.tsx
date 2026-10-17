@@ -28,3 +28,14 @@ describe('Collapse', () => {
     expect(screen.getByText('nội dung B')).toBeInTheDocument();
   });
 });
+
+describe('Collapse — branch phụ (Tier 5 sweep)', () => {
+  it('chevron xoay theo open (aria-expanded)', async () => {
+    const user = userEvent.setup();
+    render(<Collapse items={ITEMS} />);
+    const btn = screen.getByRole('button', { name: 'Panel A' });
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+    await user.click(btn);
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+  });
+});

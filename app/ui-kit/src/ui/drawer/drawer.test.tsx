@@ -39,3 +39,12 @@ describe('Drawer — branch phụ', () => {
     expect(screen.getByRole('dialog', { name: 'Rộng' }).style.width).toBe('500px');
   });
 });
+
+describe('Drawer — branch phụ (Tier 5 sweep)', () => {
+  it('không footer prop → không render footer element', () => {
+    render(<Drawer open title="Không footer" />);
+    expect(screen.getByRole('dialog', { name: 'Không footer' })).toBeInTheDocument();
+    // footer element = block cuối có border-t — không truyền footer thì không có
+    expect(document.querySelector('.border-t.border-line2.p-4')).toBeNull();
+  });
+});

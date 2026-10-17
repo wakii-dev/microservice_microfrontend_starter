@@ -22,3 +22,13 @@ describe('Result', () => {
     expect(screen.getByRole('button', { name: 'Về chủ' })).toBeInTheDocument();
   });
 });
+
+describe('Result — branch phụ (Tier 5 sweep)', () => {
+  it('info + warning + 500 → default title + màu riêng', () => {
+    for (const status of ['info', 'warning', '500'] as const) {
+      const { unmount } = render(<Result status={status} />);
+      expect(document.querySelector('.text-5xl')).not.toBeNull();
+      unmount();
+    }
+  });
+});

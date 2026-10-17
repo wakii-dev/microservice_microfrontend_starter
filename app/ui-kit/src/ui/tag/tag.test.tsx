@@ -81,3 +81,25 @@ it('closable × click → onClose được gọi', async () => {
   await userEvent.setup().click(screen.getByRole('button', { name: 'Đóng' }));
   expect(onClose).toHaveBeenCalledTimes(1);
 });
+
+describe('Tag — combo (Tier 5 sweep)', () => {
+  it('icon + closable cùng lúc → cả hai render', () => {
+    const onClose = vi.fn();
+    render(
+      <Tag icon={<span data-testid="ti">▲</span>} closable onClose={onClose}>
+        nhãn
+      </Tag>,
+    );
+    expect(screen.getByTestId('ti')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument();
+  });
+
+  it('Checkable không icon → không span icon', () => {
+    render(
+      <Tag.Checkable checked={false}>
+        trơn
+      </Tag.Checkable>,
+    );
+    expect(screen.getByText('trơn').parentElement!.querySelectorAll('span[aria-hidden]').length).toBe(0);
+  });
+});

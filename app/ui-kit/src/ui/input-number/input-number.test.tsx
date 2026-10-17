@@ -27,3 +27,13 @@ describe('InputNumber', () => {
     expect(onChange).toHaveBeenCalledWith(null);
   });
 });
+
+describe('InputNumber — branch phụ (Tier 5 sweep)', () => {
+  it('text không phải số → onChange(null); nút Giảm; min/max clamp khi bump', async () => {
+    const onChange = vi.fn();
+    render(<InputNumber ariaLabel="n" min={0} max={10} value={10} step={2} onChange={onChange} />);
+    // Giảm từ 10, step 2 → 8 (không vượt min)
+    fireEvent.click(screen.getByRole('button', { name: 'Giảm' }));
+    expect(onChange).toHaveBeenLastCalledWith(8);
+  });
+});

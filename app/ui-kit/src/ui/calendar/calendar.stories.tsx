@@ -4,3 +4,12 @@ const meta = { title: 'Forms/Calendar', component: Calendar, tags: ['autodocs'] 
 export default meta;
 type S = StoryObj<typeof meta>;
 export const MacDinh: S = {};
+
+export const DarkTheme: S = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <Calendar />
+    </div>
+  ),
+};

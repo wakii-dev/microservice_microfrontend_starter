@@ -81,3 +81,18 @@ export const ListPhanTrang: Story = {
     </div>
   ),
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="w-96 rounded-xl bg-canvas p-4">
+      <List
+        items={TASKS}
+        renderItem={renderTask}
+        rowKey={(t) => t.id}
+        header="Việc của tôi"
+        footer={`Tổng ${TASKS.length} việc`}
+      />
+    </div>
+  ),
+};

@@ -139,7 +139,7 @@ export function DatePicker(props: DatePickerProps) {
   // Single: 1 field button (behavior cũ). Range: wrapper viền + 2 nửa from/to.
   const triggerCls = `inline-flex h-8 w-full cursor-pointer items-center gap-2 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
     open ? 'border-accent-hi' : 'border-line hover:border-accent'
-  } ${disabled ? 'cursor-not-allowed bg-[rgba(0,0,0,0.04)] text-ink4' : 'text-ink'}`;
+  } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`;
 
   let trigger: ReactNode;
   if (range) {

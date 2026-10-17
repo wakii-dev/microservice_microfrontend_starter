@@ -47,3 +47,13 @@ export const NhieuTrang: Story = {
   args: { current: 50, pageSize: 10, total: 1000 },
   render: () => <ControlledDemo initial={50} total={1000} />,
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  args: { current: 5, pageSize: 10, total: 100 },
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <ControlledDemo />
+    </div>
+  ),
+};

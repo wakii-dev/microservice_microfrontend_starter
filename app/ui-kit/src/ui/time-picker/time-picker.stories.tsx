@@ -47,3 +47,12 @@ export const TimePickerLocaleEN: Story = {
   name: 'TimePicker locale EN',
   render: () => <TimePicker locale="en" />,
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <TimePicker />
+    </div>
+  ),
+};

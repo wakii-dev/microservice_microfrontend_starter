@@ -143,3 +143,14 @@ export const GalleryAnhCards: S = {
     />
   ),
 };
+
+export const DarkTheme: S = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <Carousel
+        items={[<Slide key="1" label="Slide 1" />, <Slide key="2" label="Slide 2" />, <Slide key="3" label="Slide 3" />]}
+      />
+    </div>
+  ),
+};

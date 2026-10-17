@@ -54,3 +54,13 @@ export const DropzoneMaxCount: Story = {
   name: 'Dropzone maxCount=3',
   render: () => <UploadDropzone multiple maxCount={3} />,
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="grid gap-4 rounded-xl bg-canvas p-4">
+      <Upload multiple accept=".pdf,.png,.jpg,.docx" />
+      <UploadDropzone multiple />
+    </div>
+  ),
+};

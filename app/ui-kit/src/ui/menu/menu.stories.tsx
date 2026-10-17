@@ -70,3 +70,12 @@ export const MenuDisabled: S = {
   name: 'Disabled item — không click được',
   render: () => <Menu items={[{ key: 'a', label: 'Bình thường' }, { key: 'b', label: 'Bị khóa', disabled: true }]} className="w-56" />,
 };
+
+export const DarkTheme: S = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="w-fit rounded-xl bg-canvas p-4">
+      <Menu items={baCap} className="w-56" />
+    </div>
+  ),
+};

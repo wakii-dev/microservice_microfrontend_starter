@@ -63,3 +63,14 @@ export const LocaleEN: S = {
     </div>
   ),
 };
+
+export const DarkTheme: S = {
+  name: 'Dark theme — single + range + time',
+  render: () => (
+    <div data-bp-theme="dark" className="grid w-96 gap-3 rounded-xl bg-canvas p-4">
+      <DatePicker />
+      <DatePicker range />
+      <TimePicker />
+    </div>
+  ),
+};

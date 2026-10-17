@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { MenuCompactContext } from '../menu/index.js';
+import { Icon } from '../icons/index.js';
 
 export interface SidebarProps {
   /** Slot đầu — logo/brand (giữ nguyên khi collapse, consumer tự icon-only). */
@@ -21,10 +22,10 @@ export interface SidebarProps {
 }
 
 function ChevronLeftIcon() {
-  return <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-left" size={12} />;
 }
 function ChevronRightIcon() {
-  return <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-right" size={12} />;
 }
 
 export function Sidebar({

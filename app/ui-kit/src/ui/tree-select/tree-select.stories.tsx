@@ -54,3 +54,12 @@ export const TreeSelectCoBan: Story = {
   name: 'Cơ bản — chọn leaf, đường dẫn, search',
   render: () => <ControlledDemo />,
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <ControlledDemo />
+    </div>
+  ),
+};

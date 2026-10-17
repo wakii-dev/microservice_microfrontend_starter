@@ -123,3 +123,14 @@ export const ZodForm: Story = {
   name: 'Form thật (useForm + zod)',
   render: () => <ZodFormDemo />,
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="w-96 rounded-xl bg-canvas p-4">
+      <Field label="Tiêu đề" htmlFor="field-dark" hint="Ngắn gọn, rõ nghĩa">
+        <Input id="field-dark" placeholder="Vd: Sửa bug login" />
+      </Field>
+    </div>
+  ),
+};

@@ -168,7 +168,7 @@ export function TreeSelect({
             onClick={() => commit(visibleLeaves[flatIndex])}
             style={{ paddingLeft: 12 + depth * 16 }}
             className={`flex h-8 cursor-pointer items-center rounded-2 pr-3 text-body ${
-              isSelected ? 'bg-[#e6f4ff] font-semibold text-accent' : 'text-ink hover:bg-s3'
+              isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-s3'
             } ${isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : ''}`}
           >
             {node.label}
@@ -192,7 +192,7 @@ export function TreeSelect({
         onKeyDown={onTriggerKeyDown}
         className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
-        } ${disabled ? 'cursor-not-allowed bg-[rgba(0,0,0,0.04)] text-ink4' : 'text-ink'}`}
+        } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
       >
         <span className="min-w-0 truncate">
           {hasValue ? selectedText : <span className="text-ink4">{placeholder}</span>}

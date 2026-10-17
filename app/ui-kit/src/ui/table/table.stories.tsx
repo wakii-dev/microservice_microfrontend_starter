@@ -193,3 +193,12 @@ export const TableVirtualDemo: Story = {
     </div>
   ),
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme — striped/selected theo token',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <Table columns={COLS} dataSource={DATA.slice(0, 5)} rowKey="id" striped />
+    </div>
+  ),
+};

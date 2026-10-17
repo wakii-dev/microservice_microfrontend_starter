@@ -40,3 +40,13 @@ export const Fallback: Story = {
     ],
   },
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  args: { items: TEAM, max: 3 },
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <AvatarGroup items={TEAM} max={3} />
+    </div>
+  ),
+};

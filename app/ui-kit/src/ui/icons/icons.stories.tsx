@@ -33,3 +33,19 @@ export const IconSizes: S = {
     </div>
   ),
 };
+
+export const DarkTheme: S = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <div className="grid grid-cols-8 gap-2">
+        {ICON_NAMES.map((name) => (
+          <div key={name} className="flex flex-col items-center gap-1 rounded-lg border border-line bg-s2 p-2">
+            <Icon name={name} size={20} className="text-ink" />
+            <span className="text-[10px] text-ink2">{name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ),
+};

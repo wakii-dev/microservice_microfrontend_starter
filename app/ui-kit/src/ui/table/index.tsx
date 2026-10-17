@@ -553,7 +553,7 @@ export function Table<T extends object>({
                       style={virtualOn ? { height: rowHeight } : undefined}
                       aria-selected={hasSelection ? isSelected : undefined}
                       className={`${borderCls} transition-colors duration-150 ${
-                        isSelected ? 'bg-[#e6f4ff]' : striped && rowIndex % 2 === 1 ? 'bg-[rgba(0,0,0,0.02)]' : ''
+                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3' : ''
                       } hover:bg-s3 ${selectionMode === 'single' ? 'cursor-pointer' : ''}`}
                       onClick={() => selectionMode === 'single' && emitSelection([keyOf(record)])}
                     >

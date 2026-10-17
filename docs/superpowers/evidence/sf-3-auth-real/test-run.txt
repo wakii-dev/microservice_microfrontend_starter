@@ -1,0 +1,103 @@
+SF-3 (VU-62) — evidence test run — epic auth-real (VU-59)
+=============================================================
+HEAD tại code-commit cuối: b02fb885c933c8eb78fa00fb97072c028a1655c4 (short: b02fb88)
+Code commits: b02fb88 (feat(node-svc): RBAC DELETE admin-only — 403 envelope FORBIDDEN)
+Nhánh: wakii-dev/sf-3-auth-real · base: wakii-dev/story-vu59-auth-real @ 7572857 (tip = SF-1 merge)
+Ngày chạy: 2026-10-17 · máy dev local (macOS, node 24, vitest 5 files)
+
+RULE 0 BROWSER VERIFY — CLI-EQUIVALENT PROXY (marker: CLI-equivalent)
+-------------------------------------------------------------
+SF-3 API-only (RBAC guard server-side — không có UI surface để mở browser).
+Proxy theo FI-460: unit tests RED→GREEN exit 0 + curl THẬT 403/204 trên node-svc
+boot cục bộ từ worktree này (node dist/server.js) + logs đầy đủ dưới — tự mắt
+executor đọc output, không process-pass.
+
+tdd: RED→GREEN — 2 test 403 mới (bob roles["user"], token thiếu roles) FAIL trên
+base 7572857 với "expected 403, received 204"; GREEN sau guard commit b02fb88
+(52/52 pass, exit 0). Regression-guard giữ nguyên cả 2 pha: alice admin DELETE →
+204; bob GET/PATCH → 200 (guard scoped DELETE — không over-block).
+
+BUG TÌM THẤY KHI CHẠY THẬT (fix trong b02fb88):
+  preHandler route-level dạng SYNC arrow (không async) làm fastify hook-runner
+  STALL khi guard PASS (alice — request không bao giờ hoàn tất, timeout 5000ms),
+  còn path throw (bob 403) chạy bình thường. A/B probe xác nhận: sync → treo,
+  async → 204 full chain. Fix: guard `async` (idiomatic fastify). Probe file đã
+  xoá sau debug; lesson ghi improvements-log.md.
+
+VERIFICATION 1 — unit suite (vitest, lệnh: ./node_modules/.bin/vitest run)
+-------------------------------------------------------------
+[RED — trước guard, trên working tree chưa có guard]
+ FAIL  RBAC > bob roles ["user"] DELETE → 403 envelope FORBIDDEN
+       AssertionError: expected 204 to be 403
+ FAIL  RBAC > token thiếu roles claim → 403
+       AssertionError: expected 204 to be 403
+ Test Files  1 failed | 4 passed (5) — Tests 2 failed | 50 passed (52) — exit 1
+
+[GREEN — sau guard b02fb88]
+ Test Files  5 passed (5)
+      Tests  52 passed (52)
+ VITEST_EXIT=0
+
+VERIFICATION 2 — build (lệnh: pnpm --filter node-svc build = tsc -p tsconfig.json)
+-------------------------------------------------------------
+BUILD_EXIT=0
+
+VERIFICATION 3 — curl THẬT: boot node-svc từ worktree (RULE 0)
+-------------------------------------------------------------
+Setup: scratch DB `tasks_sf3verify` trên postgres LOCAL (brew @ localhost:5432) —
+GOTCHA MỚI: docker container postgres (boilerplate-postgres-1) KHÔNG với được từ
+host qua localhost:5432 vì brew postgresql@16 bind sẵn 127.0.0.1/::1:5432
+(lsof-verified) → kết nối localhost luôn rơi vào brew cluster (lỗi thật lúc boot:
+"role boilerplate does not exist" code 28000 — CAUSEChain drizzle nuốt, moi qua
+err.cause). Scratch DB + schema `tasks` tạo riêng, XOÁ sau verify — không đụng DB
+compose. KAFKA_BROKERS unset → relay/consumer tắt (không publish event ra Kafka).
+Boot: PORT=3999 node dist/server.js → migrations auto-run OK, healthz 200.
+
+$ curl POST /api/tasks (alice admin)                         → HTTP 201 (tạo task thật)
+  TASK_ID=a52d9c73-12f6-4a65-b31b-8f5061bd55f3
+$ curl DELETE /api/tasks/$TASK_ID (bob roles ["user"])       → HTTP 403
+  {"error":{"code":"FORBIDDEN","message":"Chỉ admin được xoá task",
+   "requestId":"95b763d7-49a0-4ba8-bdd1-5a28e61689f3","details":null}}
+$ curl DELETE (token KHÔNG có roles claim)                   → HTTP 403 FORBIDDEN
+$ curl GET /api/tasks/$TASK_ID (bob — guard scoped DELETE)   → HTTP 200
+$ curl DELETE (alice admin)                                  → HTTP 204 (deleteTask tasks.yaml)
+$ curl DELETE lần 2 (alice)                                  → HTTP 404 TASK_NOT_FOUND (xoá thật)
+$ curl PATCH status (bob — không RBAC trên PATCH)            → HTTP 200
+
+Server logs (conventions/03 JSON — warn-level cho 4xx, KHÔNG log token/password):
+{"level":40,...,"reqId":"95b763d7-...","err":"Chỉ admin được xoá task","msg":"request failed"}
+{"level":40,...,"reqId":"7513c306-...","err":"Chỉ admin được xoá task","msg":"request failed"}
+Full output: /tmp/sf3-curl-verify-output.txt (script /tmp/sf3-curl-verify.sh)
+
+ACCEPTANCE sf-3 (context pack) — từng dòng:
+-------------------------------------------------------------
+[✓] "Bob (roles user) thử xoá task qua API → 403 envelope rõ ràng" — unit test
+    (envelope code/message/requestId assert) + curl thật HTTP 403 FORBIDDEN (V3)
+[✓] "Alice (admin) xoá → 200" — thành công: HTTP 204 theo deleteTask tasks.yaml
+    (contract source-of-truth = 204 "Đã xoá"; "→200" trong spec slice đọc là
+    success-generic — KHÔNG đổi status code success, guard chỉ thêm 403 deny)
+    + unit test assert 204 + outbox task.deleted + curl thật
+[✓] "(e2e user-visible assert ở SF-5)" — out of scope SF-3, đúng boundary
+    (SF-5 thêm assert RBAC vào e2e.sh)
+
+REVIEW (bước 2c) — code-reviewer ĐỘC LẬP
+-------------------------------------------------------------
+Round 1: VERDICT: CHANGES-REQUESTED — 1 P1 (403 deleteTask chưa khai trong
+  contracts/openapi/tasks.yaml — SF-1 gap-answer miss, NGOÀI touch map SF-3
+  "READ-ONLY: mọi thứ khác"; premise verified: precedent 422/503 có thật trong
+  tasks.yaml). KHÔNG tự mở scope → route REQUIREMENT-GAP lên epic VU-59
+  (Linear comment 8ac61a18): patch reproduction-grade 5 bước, option A
+  (mini-task sync-contracts: tasks.yaml + regen api.d.ts; go-svc KHÔNG ảnh
+  hưởng — snapshot chỉ activity.yaml, ls-verified) / option B (mở boundary SF-3).
+Round 2: VERDICT: APPROVED — diff-as-scoped (2 files ⊆ touch map, 52/52 + tsc
+  exit 0 re-verified, coverage + position-verify + meta-test PASS).
+  Điều kiện merge-level: contracts patch phải land TRƯỚC merge SF-3 / trước
+  SF-5 — trượt → gate merge re-block.
+Full: /tmp/story/vu59/code-reviewer-sf-3.md (round 1 + 2) · comments VU-62
+(VERDICT: APPROVED + CHECKLIST-4Q 4/4 PASS — comment efe5aea3)
+
+BIÊN GIỚI
+-------------------------------------------------------------
+Không đụng: contracts/, auth-svc, FE/e2e.sh, PATCH/POST tasks, go-svc, compose,
+nginx, .env.example. alice e2e behavior giữ nguyên (admin → 204 như cũ).
+auth.ts: 0 diff — spec slice 1 là confirm-only (roles đã decode sẵn :44).

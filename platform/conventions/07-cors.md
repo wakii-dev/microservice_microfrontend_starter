@@ -13,7 +13,7 @@
 | node-svc | `@fastify/cors` | origin = `CORS_DEV_ORIGIN` (env, ví dụ `http://localhost:3000,http://localhost:4001,http://localhost:4002`); methods GET/POST/PATCH/DELETE; headers `Authorization, Content-Type, X-Request-Id` |
 | spring-svc | `WebMvcConfigurer#addCorsMappings`, bean chỉ active với profile `dev` (`@Profile("dev")`) | cùng scope ở trên, đọc `cors.dev-origins` từ env |
 | go-svc | middleware `github.com/rs/cors` | cùng scope, đọc `CORS_DEV_ORIGIN` |
-| auth-mock | `@fastify/cors` | luôn mở cho dev origin (mock, chạy local nhiều nhất) |
+| auth-svc | `@fastify/cors` | mở cho dev origin (FE dev gọi trực tiếp :8090) |
 
 ## Quy tắc
 

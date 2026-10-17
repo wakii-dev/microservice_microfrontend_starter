@@ -10,12 +10,12 @@ pnpm install
 pnpm --filter @wakii/shell dev     # dev server :3000 (conventions/05)
 ```
 
-Login demo: `alice@demo.local` / `demo-password` (fixture `contracts/auth/users.json` + dev password chung `AUTH_MOCK_DEV_PASSWORD`).
+Login demo: `alice@demo.local` / `demo-password` (fixture `contracts/auth/users.json` + dev password chung `AUTH_DEV_PASSWORD`).
 
-Dev native cần auth-mock chạy ở `:8090`:
+Dev native cần auth-svc chạy ở `:8090`:
 
 ```bash
-cd platform/auth-mock && pnpm install && pnpm dev   # hoặc node src/server.js
+cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace && pnpm dev
 ```
 
 ## Env (build-time — conventions/06 + 08)
@@ -23,7 +23,7 @@ cd platform/auth-mock && pnpm install && pnpm dev   # hoặc node src/server.js
 | Env | Dev native | Prod (compose) | Ý nghĩa |
 |-----|-----------|----------------|---------|
 | `SHELL_PORT` | 3000 | (compose side) | port dev server |
-| `API_BASE_URL` | `http://localhost:8090` (mặc định khi dev) | `''` (same-origin qua gateway) | base gọi API — dev gọi auth-mock trực tiếp (CORS dev mở, conventions/07), prod đi qua gateway |
+| `API_BASE_URL` | `http://localhost:8090` (mặc định khi dev) | `''` (same-origin qua gateway) | base gọi API — dev gọi auth-svc trực tiếp (CORS dev mở, conventions/07), prod đi qua gateway |
 | `REMOTE_TASKS_URL` | `http://localhost:4001/remoteEntry.js` | `/remotes/tasks/remoteEntry.js` (mặc định) | remoteEntry remote tasks |
 | `REMOTE_ACTIVITY_URL` | `http://localhost:4002/remoteEntry.js` | `/remotes/activity/remoteEntry.js` (mặc định) | remoteEntry remote activity |
 

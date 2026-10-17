@@ -1,0 +1,101 @@
+SF-1 (VU-60) — evidence test run — epic auth-real (VU-59)
+=============================================================
+HEAD tại code-commit cuối: c2bd165b9bd30892987db0fad8f9e5df673f91f5 (short: c2bd165)
+Code commits: 0947d24 (contracts + gap-answer) → c2bd165 (review fixes)
+Nhánh: wakii-dev/sf-1-auth-real · base: wakii-dev/story-vu59-auth-real @ 9be9486
+Ngày chạy: 2026-10-17 · máy dev local (macOS, docker OK, node 24, python3.11 venv)
+
+RULE 0 BROWSER VERIFY — CLI-EQUIVALENT PROXY (FI-460)
+-------------------------------------------------------------
+SF-1 pure contracts/CLI (yaml + md + workflow yaml — KHÔNG có UI/runtime surface
+để mở browser). Proxy được phép theo FI-460: lint + schemathesis chạy THẬT exit 0
+với logs dưới, tự mắt executor đọc output — không process-pass.
+
+tdd: skipped-tdd: pure-contracts SF — không có unit/runtime code để RED→GREEN;
+verification thay thế = spectral + schemathesis scoped chạy cục bộ exit 0 (không
+chỉ trông CI). TDD RED→GREEN áp cho SF-2 (rotation/reuse tests — plan Task 2 Step 3).
+
+VERIFICATION 1 — spectral lint (y hệt CI contracts.yml bước spectral)
+-------------------------------------------------------------
+$ npx --yes @stoplight/spectral-cli@6 lint "contracts/openapi/*.yaml"
+No results with a severity of 'error' found!
+SPECTRAL_EXIT=0
+(= lệnh CI `.github/workflows/contracts.yml` job spectral dùng)
+
+VERIFICATION 2 — schemathesis SCOPED (y hệt CI contracts.yml bước schemathesis,
+chỉ đổi base-url port 18090 — auth-mock boot cục bộ từ CODE worktree này)
+-------------------------------------------------------------
+Setup:
+$ cd platform/auth-mock && pnpm install --ignore-workspace
+$ JWT_SECRET=sf1-local-verify-secret-not-prod AUTH_MOCK_DEV_PASSWORD=demo-password \
+  PORT=18090 node src/server.js     # fixture load từ ../../contracts/auth/users.json
+$ /opt/homebrew/bin/python3.11 -m venv /tmp/stenv
+$ /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"   # 3.39.16
+
+Smoke auth-mock trước khi fuzz (v1 subset — chuyển tiếp đúng thiết kế):
+  GET  :18090/healthz            → 200 {"status":"ok"}
+  GET  :18090/readyz             → 200 {"status":"ok"}
+  GET  :18090/api/auth/users     → 200 {"users":[...5 fixture, UUID giữ nguyên]}
+  POST :18090/api/auth/login     → 200 {accessToken,...} (shape v1 — /login excluded)
+
+BUG TÌM THẤY KHI CHẠY THẬT (fix trong commit 0947d24):
+  `--exclude-path` của schemathesis 3.39 là EXACT match — "login|register|refresh|logout"
+  không loại trừ path nào → /login bị fuzz → status_code_conformance FAILED
+  (4 passed, 4 failed; warning "Most of the responses from POST /api/auth/login have
+  a 401 status code"). Sửa thành `--exclude-path-regex` + comment trong contracts.yml.
+
+Run SAU fix (lệnh contracts.yml, base-url port 18090):
+$ /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml \
+    --base-url http://localhost:18090/api/auth \
+    --exclude-path-regex "login|register|refresh|logout" \
+    --checks all --hypothesis-max-examples 25 --hypothesis-deadline 5000
+Collected API operations: 3            # /healthz /readyz /users — đúng scope
+GET /api/auth/healthz .                # [ 33%]
+GET /api/auth/readyz .                 # [ 66%]
+GET /api/auth/users .                  # [100%]
+    not_a_server_error              3 / 3 passed   PASSED
+    status_code_conformance         3 / 3 passed   PASSED
+    content_type_conformance        3 / 3 passed   PASSED
+    response_headers_conformance    3 / 3 passed   PASSED
+    response_schema_conformance     3 / 3 passed   PASSED
+    negative_data_rejection         3 / 3 passed   PASSED
+    ignored_auth                    3 / 3 passed   PASSED
+============================== 3 passed in 0.08s ===============================
+REAL_EXIT=0
+(code-reviewer độc lập xác nhận lại: dry-run 8 ops → scoped 3 ops — flag hoạt động thật)
+
+VERIFICATION 3 — cấu trúc contract (python yaml.safe_load)
+-------------------------------------------------------------
+paths: ['/healthz','/readyz','/register','/login','/refresh','/logout','/logout-all','/users']
+schemas: [LoginRequest, RegisterRequest, RefreshRequest, TokenPair, AuthSession,
+          UserRef, FixtureUser, FixtureUserList, HealthStatus, Error]
+  — không còn OpenIdConfiguration/LoginResponse; login+register → AuthSession
+    {user, accessToken, refreshToken} (decision #8 — DROP tokenType/expiresIn)
+grep token-contract.md '8h|28800|không refresh|tokenType|expiresIn' → rỗng
+grep auth.yaml 'openid|well-known' → rỗng (discovery stub + x-disclaimer đã xoá)
+
+ACCEPTANCE sf-1 (context pack) — từng dòng:
+-------------------------------------------------------------
+[✓] 1. pnpm lint:contracts xanh — spectral exit 0 (VERIFICATION 1)
+[✓] 1b. CI contracts xanh schemathesis SCOPED không 404 — proxy local: 3 ops scoped
+       7/7 PASS exit 0 (VERIFICATION 2); CI thật chạy trên push nhánh này
+[✓] 2. token-contract.md v2 hiệp ước đầy đủ: TTLs (§1 30m/§2 7d enforce qua CAS
+       expires_at>now()), rotation CAS same-tx (§3), reuse strict revoke-all + tách
+       case token lạ (§3), iss PINNED "auth-mock" (§1), bp.rt rationale (§2),
+       RS256/JWKS path OIDC (§8) — 0 stale claim (VERIFICATION 3)
+[✓] 3. Gap-answer 8 mục materialize: docs/superpowers/contexts/auth-real/gap-answer.md
+       (anchor grep-verify trên compose/nginx/init/.env/workspace thật; reviewer xác nhận
+       100% khớp). Coordinator APPROVED-reply còn chờ — comment GAP-ANSWER-PROPOSAL
+       đã post lên epic VU-59.
+
+REVIEW (bước 2c)
+-------------------------------------------------------------
+Round 1: VERDICT: CHANGES-REQUESTED (1 P1 CAS thiếu expires_at + 3 P2)
+  → fix commit c2bd165
+Round 2: VERDICT: APPROVED — 4/4 fixed position-verified; CHECKLIST-4Q 4/4 PASS
+Full: /tmp/story/vu59/code-reviewer-sf-1.md + comment trên Linear VU-60
+
+BIÊN GIỚI
+-------------------------------------------------------------
+Không đụng: compose, nginx, init, pnpm-workspace, users.json, service code.
+iss không đổi (pinned "auth-mock"). go-svc/Docker: có cục bộ — không cần skipped CI-only.

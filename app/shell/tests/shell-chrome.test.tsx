@@ -1,6 +1,7 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/App';
 import { Layout } from '../src/components/Layout';
 
@@ -10,6 +11,7 @@ import { Layout } from '../src/components/Layout';
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 describe('NavBar active state', () => {
@@ -80,5 +82,45 @@ describe('HomePage dashboard', () => {
     );
     expect(screen.getByText(/alice@demo\.local/)).toBeInTheDocument();
     expect(screen.getByText(/fail@demo\.local/)).toBeInTheDocument();
+  });
+});
+
+describe('NavBar logout qua wrapper refresh-client (SF-4)', () => {
+  it('Đăng xuất → POST /api/auth/logout + cả 2 key sạch + về login', async () => {
+    const user = userEvent.setup();
+    const b64 = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '');
+    window.localStorage.setItem(
+      'bp.jwt',
+      `${b64({ alg: 'HS256' })}.${b64({ sub: 'u1', email: 'alice@demo.local', roles: ['admin'], exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`,
+    );
+    window.localStorage.setItem('bp.rt', 'rt-1');
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
+      String(input) === '/api/auth/logout'
+        ? Promise.resolve(new Response(null, { status: 204 }))
+        : Promise.resolve(new Response('{}', { status: 200 })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId('nav-user')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/api/auth/logout');
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({ refreshToken: 'rt-1' });
+    expect(window.localStorage.getItem('bp.jwt')).toBeNull();
+    expect(window.localStorage.getItem('bp.rt')).toBeNull();
+    // về login + nav không còn user chip
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('nav-user')).not.toBeInTheDocument();
   });
 });

@@ -1,14 +1,19 @@
 openapi: 3.0.3
 info:
-  title: Auth API (auth-mock)
-  version: 0.1.0
-  x-disclaimer: NOT FOR PRODUCTION — mock JWT service cho boilerplate; điểm cắm OIDC thật ở lần copy dự án thật.
+  title: Auth API (auth-svc)
+  version: 0.2.0
   description: |
-    ⚠️ NOT FOR PRODUCTION — auth-mock là mock JWT service (SF-1 sở hữu, chi tiết platform/auth-mock/).
-    Cấp JWT HS256 theo `contracts/auth/token-contract.md`; đọc users fixture từ `contracts/auth/users.json`.
-    Discovery stub OIDC-ready: GET /.well-known/openid-configuration trả metadata tĩnh (không có JWKS — HS256 symmetric).
-    Mọi path được gateway route qua `/api/auth` (pass-through — service mount prefix này).
-    Gateway KHÔNG chặn thiếu-token trên `/api/auth` (đây là entry point login).
+    Hiệp ước v2 của epic auth-real (VU-59) — thay auth-mock bằng auth-svc thật
+    (register + login + refresh rotation + logout), giữ nguyên surface `/api/auth` :8090
+    để gateway/port-table/FE-flow không đổi.
+    Mọi chi tiết token (TTL, rotation CAS, reuse-detect, `iss` pinned, storage FE)
+    định nghĩa trong `contracts/auth/token-contract.md` — đọc CÙNG file này, 2 file
+    là một hiệp ước.
+    Gateway route `/api/auth` pass-through (service mount prefix này); gateway KHÔNG
+    chặn thiếu-token trên `/api/auth` (đây là entry login/register).
+    Chuyển tiếp: auth-mock chỉ còn serve subset v1 (login shape cũ + /users + health)
+    đến khi SF-5 decommission; paths register/refresh/logout do SF-2 (auth-svc)
+    implement — CI schemathesis scope hẹp theo đúng subset đó (.github/workflows/contracts.yml).
 servers:
   - url: /api/auth
 tags:
@@ -18,6 +23,7 @@ paths:
     get:
       tags: [auth]
       summary: Liveness probe
+      description: Serve cả naked `/healthz` (compose healthcheck + CI boot-smoke) lẫn mirror `/api/auth/healthz` (conventions/02 rule 6).
       operationId: getHealthz
       responses:
         "200":
@@ -29,7 +35,8 @@ paths:
   /readyz:
     get:
       tags: [auth]
-      summary: Readiness probe (users fixture đã load)
+      summary: Readiness probe (schema auth reachable)
+      description: Serve cả naked `/readyz` lẫn mirror `/api/auth/readyz` (conventions/02 rule 6). auth-svc kiểm DB thật (rule 2), không hardcode 200.
       operationId: getReadyz
       responses:
         "200":
@@ -39,7 +46,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
         "503":
-          description: Fixture chưa load
+          description: Chưa sẵn sàng (DB/schema auth chưa reachable)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /register:
+    post:
+      tags: [auth]
+      summary: Đăng ký user mới → AuthSession (đăng nhập luôn sau khi tạo)
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User tạo xong + cặp token (roles gán ["user"], email lưu lowercase-normalized)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email đã tồn tại (lowercase-normalized lookup)
           content:
             application/json:
               schema:
@@ -47,7 +80,7 @@ paths:
   /login:
     post:
       tags: [auth]
-      summary: Đăng nhập bằng fixture user → JWT HS256 theo token contract
+      summary: Đăng nhập → JWT HS256 (30m) + refresh token (7d) theo token contract
       operationId: login
       requestBody:
         required: true
@@ -57,15 +90,79 @@ paths:
               $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: JWT hợp lệ (claims + TTL theo contracts/auth/token-contract.md)
+          description: Cặp token hợp lệ (claims + TTL theo contracts/auth/token-contract.md)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
+                $ref: "#/components/schemas/AuthSession"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
-          description: Email không có trong fixture hoặc sai dev password
+          description: Email không tồn tại hoặc sai password (không phân biệt nguyên nhân)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /refresh:
+    post:
+      tags: [auth]
+      summary: Đổi refresh token lấy cặp mới (rotation CAS atomic)
+      description: |
+        Rotation CAS — token cũ bị revoke trong cùng transaction cấp cặp mới.
+        Gửi lại token ĐÃ rotate (reuse) → 401 + revoke TẤT CẢ refresh token của user
+        (strict — token-contract.md §3). 401 cũng trả khi token hết hạn (7d) hoặc lạ.
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: Cặp token mới (accessToken 30m + refreshToken mới 7d, token cũ revoked)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Token lạ / đã revoked (reuse-detect → revoke-all) / hết hạn 7d
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /logout:
+    post:
+      tags: [auth]
+      summary: Revoke một refresh token (idempotent)
+      description: 204 kể cả khi token không tồn tại hoặc đã revoked (không leak sự tồn tại của token).
+      operationId: logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "204":
+          description: Đã revoke (hoặc token không tồn tại — idempotent)
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /logout-all:
+    post:
+      tags: [auth]
+      summary: Revoke TẤT CẢ refresh token của user đang gọi (Bearer bắt buộc)
+      description: |
+        Header `Authorization: Bearer <accessToken>` bắt buộc — gateway presence-check +
+        service verify (token-contract.md §6). Dùng cho "đăng xuất mọi thiết bị".
+      operationId: logoutAll
+      responses:
+        "204":
+          description: Mọi refresh token của `sub` đã revoked (access token còn hạn tự chết ở lần refresh kế)
+        "401":
+          description: Thiếu/sai/hết hạn access token
           content:
             application/json:
               schema:
@@ -73,27 +170,16 @@ paths:
   /users:
     get:
       tags: [auth]
-      summary: Danh sách fixture users (demo — FE login screen dùng để pick user)
-      operationId: listFixtureUsers
+      summary: Danh sách user demo (FE login screen dùng để pick user)
+      description: v2 — auth-svc serve từ schema `auth` (seed idempotent từ contracts/auth/users.json, GIỮ UUID; token-contract.md §5).
+      operationId: listUsers
       responses:
         "200":
-          description: Users từ contracts/auth/users.json
+          description: Users từ schema auth
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/FixtureUserList"
-  /.well-known/openid-configuration:
-    get:
-      tags: [auth]
-      summary: Discovery stub OIDC-ready (metadata tĩnh — không JWKS vì HS256)
-      operationId: getOpenIdConfiguration
-      responses:
-        "200":
-          description: OIDC discovery metadata (stub)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OpenIdConfiguration"
 components:
   responses:
     BadRequest:
@@ -110,23 +196,71 @@ components:
         email:
           type: string
           format: email
+          description: Được normalize lowercase trước lookup (register lưu cùng chuẩn)
         password:
           type: string
-          description: Mock-only — dev password chung qua env AUTH_MOCK_DEV_PASSWORD (xem token-contract.md)
-    LoginResponse:
+          description: Seeded fixture users dùng AUTH_DEV_PASSWORD chung (default demo-password — token-contract.md §5); user tự register dùng password đã đăng ký
+    RegisterRequest:
       type: object
-      required: [accessToken, tokenType, expiresIn]
+      required: [email, password, displayName]
+      properties:
+        email:
+          type: string
+          format: email
+          description: Lưu lowercase-normalized; trùng (sau normalize) → 409 CONFLICT
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          description: 8–72 ký tự (argon2 input limit) — hash argon2id, không lưu raw
+        displayName:
+          type: string
+          minLength: 1
+          description: Tên hiển thị
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+          description: Opaque 256-bit client nhận từ login/register/refresh (KHÔNG phải JWT)
+    TokenPair:
+      type: object
+      required: [accessToken, refreshToken]
       properties:
         accessToken:
           type: string
-          description: JWT HS256 — claims sub/email/roles, TTL 8h (token-contract.md)
-        tokenType:
+          description: JWT HS256 — claims sub/email/roles + iss "auth-mock" (pinned), TTL 30m (token-contract.md §1)
+        refreshToken:
           type: string
-          enum: [Bearer]
-        expiresIn:
-          type: integer
-          description: TTL tính bằng giây — luôn 28800 (8h) theo token contract
-          enum: [28800]
+          description: Opaque 256-bit, TTL 7d, lưu FE ở localStorage['bp.rt'] (token-contract.md §2)
+    AuthSession:
+      description: Response chung cho login + register (shape v2 — DROP tokenType/expiresIn, decision #8)
+      allOf:
+        - $ref: "#/components/schemas/TokenPair"
+        - type: object
+          required: [user]
+          properties:
+            user:
+              $ref: "#/components/schemas/UserRef"
+    UserRef:
+      type: object
+      description: User gắn với cặp token — id là `sub` trong JWT
+      required: [id, email, displayName, roles]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
     FixtureUser:
       type: object
       required: [id, email, roles]
@@ -149,18 +283,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FixtureUser"
-    OpenIdConfiguration:
-      type: object
-      required: [issuer, token_endpoint]
-      properties:
-        issuer:
-          type: string
-        token_endpoint:
-          type: string
-        grant_types_supported:
-          type: array
-          items:
-            type: string
     HealthStatus:
       type: object
       required: [status]

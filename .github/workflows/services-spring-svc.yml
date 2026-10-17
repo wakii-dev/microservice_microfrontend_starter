@@ -36,6 +36,7 @@ jobs:
           SPRING_SVC_DB_PASSWORD: change-me-spring
           GO_SVC_DB_PASSWORD: change-me-go
           GO_READONLY_DB_PASSWORD: change-me-goreadonly
+          AUTH_SVC_DB_PASSWORD: change-me-auth
         ports:
           - 5432:5432
         options: >-
@@ -63,6 +64,7 @@ jobs:
           SPRING_SVC_DB_PASSWORD: change-me-spring
           GO_SVC_DB_PASSWORD: change-me-go
           GO_READONLY_DB_PASSWORD: change-me-goreadonly
+          AUTH_SVC_DB_PASSWORD: change-me-auth
         run: bash platform/postgres/init/01-init.sh
       - uses: actions/setup-java@v4
         with:
@@ -88,10 +90,10 @@ jobs:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
     steps:
       - uses: actions/checkout@v4
-      - name: Boot postgres + auth-mock + gateway + spring-svc (compose thật, init script chạy)
+      - name: Boot postgres + auth-svc + gateway + spring-svc (compose thật, init script chạy)
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            up -d --build postgres auth-mock gateway spring-svc
+            up -d --build postgres auth-svc gateway spring-svc
       - name: Smoke — naked /healthz + /readyz (Flyway + seed xong) theo conventions/02
         run: |
           for i in $(seq 1 60); do
@@ -104,7 +106,7 @@ jobs:
         run: |
           curl -sf http://localhost:8081/v3/api-docs | grep -q '/api/users/users'
           curl -sf http://localhost:8081/v3/api-docs | grep -q '/api/users/teams'
-      - name: Login auth-mock qua gateway → GET fixture user (seed id khớp token sub)
+      - name: Login auth-svc qua gateway → GET fixture user (seed id khớp token sub)
         run: |
           TOKEN=$(curl -sf -X POST http://localhost:8080/api/auth/login \
             -H 'Content-Type: application/json' \

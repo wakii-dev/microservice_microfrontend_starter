@@ -20,7 +20,7 @@ Mọi service log JSON một dòng mỗi entry ra **stdout** (12-factor; compose
 |--------|----------|---------|
 | `ts` | ✓ | ISO 8601 UTC, độ chính xác ms |
 | `level` | ✓ | `debug` \| `info` \| `warn` \| `error` |
-| `service` | ✓ | `node-svc` \| `spring-svc` \| `go-svc` \| `auth-mock` \| `gateway` |
+| `service` | ✓ | `node-svc` \| `spring-svc` \| `go-svc` \| `auth-svc` \| `gateway` |
 | `msg` | ✓ | Câu ngắn, tiếng Anh, không nhạy cảm |
 | `requestId` | khi xử lý request | Lấy từ header `X-Request-Id` (gateway sinh nếu thiếu) — trace xuyên gateway → service |
 | còn lại | tuỳ | Case camelCase; KHÔNG log JWT/email/password toàn phần (mask email: `a***@demo.local`) |
@@ -32,7 +32,7 @@ Mọi service log JSON một dòng mỗi entry ra **stdout** (12-factor; compose
 | node-svc | `pino` (mặc định JSON) |
 | spring-svc | Logback `LogstashEncoder` (`net.logstash.logback`) |
 | go-svc | `log/slog` JSON handler |
-| auth-mock | `pino` |
+| auth-svc | `pino` |
 
 ## Quy tắc
 

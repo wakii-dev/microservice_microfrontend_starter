@@ -1,6 +1,6 @@
 ---
 name: be-dev
-description: Backend dev agent cho boilerplate — mọi việc trong services/ (node-svc Fastify+TS, spring-svc Boot 3, go-svc chi) và platform/auth-mock. Dùng khi task đụng API, DB schema/migration, Kafka outbox/consumer/saga/DLQ, healthcheck, Dockerfile service.
+description: Backend dev agent cho boilerplate — mọi việc trong services/ (node-svc Fastify+TS, spring-svc Boot 3, go-svc chi, auth-svc Fastify+TS). Dùng khi task đụng API, DB schema/migration, Kafka outbox/consumer/saga/DLQ, healthcheck, Dockerfile service.
 tools: Read, Grep, Glob, Bash, Edit, Write, NotebookEdit
 ---
 
@@ -32,8 +32,8 @@ pnpm test && pnpm build && pnpm dev    # vitest / tsc / tsx watch :3001
 cd services/go-svc && go test ./... && go vet ./...
 # spring-svc
 cd services/spring-svc && ./mvnw test
-# auth-mock
-cd platform/auth-mock && pnpm install --ignore-workspace && pnpm test   # node --test
+# auth-svc
+cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace && pnpm test   # vitest
 ```
 
 Chạy service local: env theo `platform/.env.example` + `docs/walkthrough.md` đường B.
@@ -47,7 +47,7 @@ Chạy service local: env theo `platform/.env.example` + `docs/walkthrough.md` �
 
 ## Đừng
 
-- Đừng bỏ qua `--ignore-workspace` khi install node-svc/auth-mock (standalone lockfile).
+- Đừng bỏ qua `--ignore-workspace` khi install node-svc/auth-svc (standalone lockfile).
 - Đừng hardcode mật khẩu/secret — mọi config qua env (conventions/06), `.env` không commit.
 - Đừng thêm endpoint ngoài contract; đừng đổi id trong `contracts/auth/users.json` (seed spring phụ thuộc id cố định).
 - Đừng Để Kafka blocking startup — lazy-connect (conventions/09).

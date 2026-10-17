@@ -258,6 +258,16 @@ export function registerTaskRoutes(app: FastifyInstance, deps: Deps): void {
         operationId: 'deleteTask',
         params: { type: 'object', required: ['taskId'], properties: { taskId: uuidSchema } },
       },
+      // RBAC demo (epic auth-real SF-3): DELETE admin-only — pattern 2-lớp,
+      // gateway chỉ presence-check, service TỰ enforce roles claim (đã decode
+      // ở plugins/auth.ts). Guard chặn TRƯỚC repo — fail-closed: không xoá,
+      // không bắn task.deleted. 403 envelope qua error handler chung (04).
+      preHandler: async (request) => {
+        const user = request.user!;
+        if (!user.roles?.includes('admin')) {
+          throw new HttpError(403, 'FORBIDDEN', 'Chỉ admin được xoá task');
+        }
+      },
     },
     async (request, reply) => {
       const { taskId } = request.params as { taskId: string };

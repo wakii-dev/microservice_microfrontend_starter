@@ -14,10 +14,11 @@ Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services (Node/Spring
 ```
 contracts/    openapi (tasks·users·activity·auth) + db/tasks-schema.sql (canonical DDL)
               + events/ (task-events.md + fixtures golden) + auth/users.json (id cố định)
-platform/     docker-compose.yml (10 services) · gateway/nginx · auth-mock :8090 ·
+platform/     docker-compose.yml (10 services) · gateway/nginx ·
               postgres/init · conventions/ (01–09)
 services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
               spring-svc :8081 (Boot 3 — users/teams) · go-svc :8082 (chi — activity, Kafka consumer, saga)
+              auth-svc :8090 (Fastify+TS+Drizzle — register/login/refresh/RBAC, epic auth-real)
 app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (38 components + Storybook + motion)
               shell :3000 (MF host) · remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
 scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
@@ -30,10 +31,10 @@ docs/         walkthrough · adr/0001–0009 · toolchain · superpowers/ (spec+
 |---|---|
 | Cài root (FE workspace) | `pnpm install --frozen-lockfile` |
 | node-svc cài riêng | `cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace` |
-| auth-mock cài riêng | `cd platform/auth-mock && pnpm install --ignore-workspace` |
+| auth-svc cài riêng | `cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace` |
 | Dev FE | `pnpm --filter <pkg> dev` (shell :3000, remotes :4001/:4002) |
 | Test shell (+typecheck) | `pnpm --filter shell test && pnpm --filter shell typecheck` |
-| Test node-svc / auth-mock | `pnpm --filter node-svc test` · `(cd platform/auth-mock && pnpm test)` |
+| Test node-svc / auth-svc | `pnpm --filter node-svc test` · `pnpm --filter auth-svc test` |
 | Test go / spring | `cd services/go-svc && go test ./...` · `cd services/spring-svc && ./mvnw test` |
 | Codegen types node-svc | `pnpm --filter node-svc generate:types` (từ `contracts/openapi/tasks.yaml`) |
 | Lint contracts | `pnpm lint:contracts` (spectral) |
@@ -41,7 +42,7 @@ docs/         walkthrough · adr/0001–0009 · toolchain · superpowers/ (spec+
 
 ## Ports (nguồn sự thật: `platform/conventions/05-ports.md`)
 
-gateway **8080** · shell 3000 · remote tasks 4001 · remote activity 4002 · node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-mock 8090 · postgres 5432. Sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
+gateway **8080** · shell 3000 · remote tasks 4001 · remote activity 4002 · node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-svc 8090 · postgres 5432. Sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
 
 ## Workflow có contracts (sửa API)
 
@@ -56,7 +57,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 
 ## Run demo
 
-Đường A (compose — khuyến nghị): lệnh đầy đủ trong `run.compose` của [orca.yaml](orca.yaml) → mở http://localhost:8080 → login `alice@demo.local` / `demo-password`. Saga demo: assign task cho `fail@demo.local` → badge "Gán thất bại" + event ở `task-events.dlq`. Verify: `bash scripts/smoke/e2e.sh` PASS 8 bước (happy + saga + DLQ). Đường B native: `docs/walkthrough.md`.
+Đường A (compose — khuyến nghị): lệnh đầy đủ trong `run.compose` của [orca.yaml](orca.yaml) → mở http://localhost:8080 → login `alice@demo.local` / `demo-password`. Saga demo: assign task cho `fail@demo.local` → badge "Gán thất bại" + event ở `task-events.dlq`. Verify: `bash scripts/smoke/e2e.sh` PASS 15 bước (happy + auth-real register/refresh/RBAC + saga + DLQ). Đường B native: `docs/walkthrough.md`.
 
 ## Docs map — làm gì thì đọc gì TRƯỚC
 
@@ -76,7 +77,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 
 | Workflow | Nội dung |
 |---|---|
-| `contracts` | spectral + gitleaks + compose config + boot auth-mock + schemathesis |
+| `contracts` | spectral + gitleaks + compose config + boot auth-svc + schemathesis FULL |
 | `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
 | `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
 | `ui-kit` | install + typecheck + test + coverage + **build-storybook** (ADR-0009 — không publish) |
@@ -85,9 +86,9 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 
 ## Gotchas (đầy đủ trong `gotchas:` của orca.yaml)
 
-- node-svc + auth-mock: standalone lockfile — `pnpm install` **--ignore-workspace**, trong thư mục service.
+- node-svc + auth-svc: standalone lockfile — `pnpm install` **--ignore-workspace**, trong thư mục service.
 - Vitest ranh giới ngày: TZ pin trong `vitest.config.ts` (`test.env`) — đừng bỏ.
-- pgdata volume cũ thiếu user saga-seed → `docker compose down -v` 1 lần rồi up lại.
+- pgdata volume cũ thiếu user saga-seed + role `auth_svc`/schema `auth` (auth-real SF-5) → `docker compose down -v` 1 lần rồi up lại; `.env` bản cũ thêm `AUTH_SVC_DB_PASSWORD`.
 - `assignment_failed` system-owned: re-assign không tự reset — PATCH `{assigneeId, status:"todo"}`.
 - `.env` không commit. Compose env luôn kèm `--env-file platform/.env`.
 

@@ -1,0 +1,128 @@
+# SF-5 auth-real (VU-64) — test-run evidence
+# Code commit cuối: 4cb0912 (a494dab chính + b64d872 + 560694d security + 4cb0912 review-r1)
+# Chạy 2026-10-17 trên worktree sf-5-auth-real · branch wakii-dev/sf-5-auth-real
+# CI-equivalent: GitHub Actions DISABLED repo-wide (enabled:false — human decision, KHÔNG tự bật)
+# → chạy local ĐÚNG script các jobs + ghi rõ ở đây.
+
+tdd: skipped-tdd: convergence = config (compose/CI) + docs + bash script — behavior assertions
+  là runtime checks của chính e2e.sh (script tự là test); RED→GREEN đã chứng minh ở tầng unit
+  cho từng behavior: RBAC 403 (node-svc SF-3 VU-62 meta-tested) · auth flow rotation/reuse
+  (auth-svc integration 37/37 trên postgres thật SF-2 VU-61, re-run fresh-DB trong run này).
+
+═══ 1. CONTRACTS JOB (CI-equivalent) ═══
+spectral: npx --yes @stoplight/spectral-cli@6 lint "contracts/openapi/*.yaml"
+  → "No results with a severity of 'error' found!" PASS
+compose config: docker compose --env-file platform/.env.example config -q → OK (10 services,
+  auth-svc thay auth-mock) PASS
+boot-smoke auth-svc trio (postgres + auth-svc + gateway, FRESH VOLUME sau down -v):
+  auth-svc-1 Healthy (healthcheck /readyz = migration + seed xong)
+  healthz + readyz direct :8090 → {"status":"ok"} ×2 PASS
+  login qua gateway :8080 → shape v2 (user + refreshToken, KHÔNG expiresIn) PASS
+  register qua gateway → 201 + roles ["user"] PASS
+  JWT claims: sub 11111111-…-111111111111 · roles ["admin"] · iss "auth-mock" PINNED ·
+  TTL exp-iat = 1800 (30m) PASS
+  gateway 401 presence /api/tasks no-token → 401 envelope UNAUTHORIZED PASS
+  /api/auth không presence (login body {} → 400, không 401) PASS
+schemathesis FULL: /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml
+  --base-url http://localhost:8090/api/auth --checks all --hypothesis-max-examples 25
+  --hypothesis-deadline 5000 → 8 passed in 2.90s
+  not_a_server_error 104/104 · status_code_conformance 104/104 · content_type 104/104 ·
+  response_headers 104/104 · response_schema 104/104 · negative_data_rejection 104/104 ·
+  ignored_auth 104/104 — PASS (đã bỏ exclude SF-1, FULL paths)
+
+═══ 2. e2e.sh MỞ RỘNG (15 bước — chạy trên stack fresh-volume) ═══
+bash scripts/smoke/e2e.sh → 15/15 PASS EXIT=0
+  1/15 ready · 2/15 login (272 chars) · 3/15 stats baseline · 4/15 task tạo ·
+  5/15 feed QUA KAFKA · 6/15 stats tăng · 7/15 register smoke-<ts>@demo.local (roles user) ·
+  8/15 refresh rotation (token mới ≠ cũ) · 9/15 reuse cũ → 401 + revoke-all ·
+  10/15 logout 204 idempotent trên token đã revoke · 11/15 user DELETE → 403 FORBIDDEN
+  (envelope check) · 12/15 alice DELETE → 204 (tasks.yaml §delete) · 13/15 saga PATCH
+  assignee=svc-fail · 14/15 assignment_failed · 15/15 DLQ có event gốc
+  marker: SAGA_TASK_ID= (convergence.yml parse) — giữ nguyên
+SMOKE_SAGA=0 bash scripts/smoke/e2e.sh → PASS EXIT=0 (happy + auth-real, skip saga)
+Meta-test exit codes (code-reviewer r1 P1): grep "fail N" — mỗi code đúng 1 block (exit =
+label+1, tới 16); reviewer round 2 position-verify độc lập.
+
+═══ 3. UNIT/INTEGRATION SUITES (test_all) ═══
+pnpm --filter node-svc test   → 52 passed (52)  [gồm RBAC SF-3]
+pnpm --filter auth-svc test   → 37 passed (37)  [fresh scratch DB trên brew postgres,
+  AUTH_SVC_TEST_DATABASE_URL — rotation CAS integration thật]
+spring ./mvnw -B verify       → 37/37 BUILD SUCCESS (env CI-equivalent: SPRING_DATASOURCE_URL
+  trỏ compose postgres host-side 55432 + USERS_FIXTURE_PATH + JWT_SECRET)
+pnpm --filter shell test      → 48 passed (48) + typecheck tsc sạch
+go test ./...                 → KHÔNG chạy local: go 1.19 < go.mod 1.24 (go mod tidy từ chối;
+  git tree sạch sau tidy). CI-covered — precedent repo (go.sum được CI tidy mỗi run).
+  go workflow boot-smoke EQUIVALENT đã chứng minh qua e2e: postgres+auth-svc+kafka boot,
+  topic tường minh, go consumer consume golden flow, DLQ assert (bước 13-15).
+
+═══ 4. SPRING BOOT-SMOKE (CI-equivalent các assert workflow spring) ═══
+login gateway → GET /api/users/users/<alice-sub> → email alice@demo.local + id khớp sub PASS
+401 từ service direct :8081 no-token → 401 PASS · garbage token → 401 PASS
+
+═══ 5. BROWSER RULE 0 — 3 TẦNG (screenshots cùng thư mục) ═══
+Tầng 1 DOM (eval đo): tablist ARIA login/register · register roles ["user"] · counts
+  Danh sách (2/2→3/3→4/4→3/3) · errText "Chỉ admin được xoá task" · badge text ·
+  console errors = 0 (hook window.__errs)
+Tầng 2 VISUAL (screenshot thật — xem bằng mắt):
+  sf5-01-before-login.png (dashboard + TÀI KHOẢN DEMO)
+  sf5-02-login-page.png (login + tab Đăng ký)
+  sf5-03-registered-loggedin.png (register → auto login, user chip)
+  sf5-05-tab1-dead-after-logout-all.png (tab 1 chết: về login screen)
+  sf5-06-bob-delete-403.png (banner đỏ 403 + task còn + badge Gán thất bại + bob chip)
+  sf5-07-saga-badge-live.png (badge "Gán thất bại" trên task vừa assign live)
+Tầng 3 FLOW (chuẩn duy nhất): register walkthrough-<ts>@demo.local qua UI → auto login →
+  tạo task → tab 2 login cùng account → POST /api/auth/logout-all (204) → tab 1 request kế
+  (mô phỏng access hết hạn — set bp.jwt token chết, đúng code path 401→refresh single-flight)
+  → refresh fail (revoke-all) → clear 2 key → LOGIN SCREEN (cả tab 2 tương tự).
+  RBAC UI: bob xoá task alice → 403 banner đỏ hiển thị + task còn; alice xoá → 204, 4/4→3/3.
+  Saga UI: PATCH assignee fail-user → API status assignment_failed → UI reload → badge
+  "Gán thất bại" (system-owned, không select status).
+  Chi tiết: docs/superpowers/evidence/auth-real/sf-5-walkthrough.md
+Automation quirk (khai báo trung thực): orca coordinate-clicks thỉnh thoảng trượt trên
+  element REMOTE-mounted (shell OK) — app behavior verify bằng trusted clicks ban đầu
+  (register/login/tạo task đầu) + requestSubmit/HTMLElement.click() (cùng React handlers)
+  + fetch từ page context (201). KHÔNG phải app bug (0 console errors).
+
+═══ 6. SECURITY PASS (acceptance: 0 P0/P1) ═══
+security-audit độc lập (agent riêng, diff ce9ce7e..a494dab): PASS — 0 P0 / 0 P1, 4 P2 hygiene.
+  Cả 4 P2 đã fix commit 560694d (fail-branch không in body, bỏ echo JWT claims,
+  walkthrough read -rs, comment ràng buộc quote init). Report: docs/superpowers/reviews/
+  security-audit-sf-5-auth-real.md
+
+═══ 7. CODE REVIEW ĐỘC LẬP ═══
+Round 1: CHANGES-REQUESTED — 1 P1 (e2e exit-code collision) + 5 P2 → fix commit 4cb0912.
+Round 2: VERDICT: APPROVED — P1 + 5 P2 đóng position-verified, meta-test độc lập,
+  không finding mới. Reports: docs/superpowers/reviews/code-reviewer-sf-5-r1.md
+
+═══ 8. GREP auth-mock CUỐI (sạch living docs) ═══
+grep auth-mock trên CLAUDE.md orca.yaml README.md .env.example compose nginx init scripts/
+.github/workflows/ docs/walkthrough.md docs/toolchain.md docs/adr/ .claude/agents/
+app/shell/{README.md,rspack.config.mjs} → chỉ còn: (a) giá trị iss "auth-mock" PINNED
+(decision #7 — token-contract + node workflow payload + JWT claim check + orca/README notes),
+(b) comment lịch sử/decommission note (compose ownership history, nginx history,
+contracts.yml dòng 5). KHÔNG còn reference SỐNG tới service/path auth-mock.
+Exempt theo acceptance: contracts/ (rev2 final — auth.yaml description chuyển tiếp),
+token-contract.md + users.json $comment (note lịch sử cho phép), docs/superpowers/**
+(workflow history), services/{go,spring,node}-svc README stale (ngoài touch map READ-ONLY —
+follow-up cụm iss-rename, đã report coordinator), docs/wakii-playbook.md (worked-example
+narrative lịch sử của epic).
+
+═══ 9. CI main xanh sau merge (acceptance #9) ═══
+Chưa verify được từ worktree (Actions disabled repo-wide — human decision, KHÔNG tự bật).
+Mọi job của 3 workflow bị swap đã chạy CI-equivalent local PASS (mục 1-4). Sau merge cần
+watch run thật khi coordinator bật lại Actions.
+
+═══ 10. FINDING REPORT CHO COORDINATOR (boundary READ-ONLY — KHÔNG fix) ═══
+[P1-class pre-existing, KHÔNG phải regression SF-5] go-svc resolver userName enrichment
+  chết từ trước: services/go-svc/internal/resolve/resolver.go fetchStatus gọi
+  springURL + "/api/users/<uuid>" trong khi spring serve /api/users/users/<uuid>
+  (users.yaml servers.url=/api/users + path /users/{userId}) → 404 → userName "" cached
+  5 phút. Feed events userName rỗng trên stack (verify bằng tay: svc-activity login
+  auth-svc 200 + GET spring đúng-route 200 — chain khỏe, chỉ URL resolver sai).
+  resolver_test.go:18 stub mirror đúng bug (tautology). Có từ commit 3b8a43e (FI-76 SF-3,
+  trước auth-real). e2e/CI không assert userName nên không đỏ. → follow-up riêng
+  (fix route + meta-test test stub theo contract route).
+[Lưu ý vận hành] compose project name 'boilerplate' DÙNG CHUNG mọi worktree — down -v ở
+  worktree này đã xoá pgdata stack worktree khác đang chạy (container auth-mock cũ 2h
+  giữ network; đã rm -f rồi down -v). Đây là bước BẮT BUỘC của SF convergence
+  (fresh volume — acceptance) nhưng cần etiquette giữa session song song.

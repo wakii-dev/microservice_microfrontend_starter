@@ -4,6 +4,14 @@ export { ApiClient, ApiError, type ApiClientOptions } from './api-client.js';
 export { decodeErrorEnvelope, type ErrorEnvelope } from './error-envelope.js';
 export { tokenStorage, readClaims, isExpired, type TokenStorage } from './token-storage.js';
 export {
+  createAuthClient,
+  REFRESH_STORAGE_KEY,
+  type AuthClient,
+  type AuthSession,
+  type AuthUser,
+  type TokenPair,
+} from './refresh-client.js';
+export {
   loadRemoteModule,
   resolveRemoteUrl,
   REMOTE_NAMES,

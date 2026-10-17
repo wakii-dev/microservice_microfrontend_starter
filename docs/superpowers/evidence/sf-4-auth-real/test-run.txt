@@ -1,0 +1,57 @@
+SF-4 (VU-63) test-run — FE refresh-client + LoginPage register
+Date: 2026-10-17
+HEAD tại code-commit cuối: 54fa9c0 (feat(fe): refresh-client + LoginPage register tab + auto-refresh wrapper (VU-63))
+Follow-up docs-only (không đụng code): 039fd6f (commit evidence này) · 4700271 (improvements-log ritual 2 lessons)
+Branch: wakii-dev/sf-4-auth-real · dest: wakii-dev/story-vu59-auth-real (story-hub — executor KHÔNG merge)
+tdd: RED→GREEN (21 test mới FAIL trước khi implement refresh-client/LoginPage-v2/NavBar-wrapper; sau implement 47/47; +1 test pin retry-non-401 theo review → 48/48. Meta-test: đảo guard `if (true) clearSession()` → đúng 1 test FAIL, revert → xanh.)
+
+== Deterministic ==
+$ pnpm --filter @wakii/shell test
+  Test Files  9 passed (9)
+      Tests   48 passed (48)
+$ pnpm --filter @wakii/shell typecheck   → exit 0 (tsc --noEmit clean)
+$ pnpm --filter @wakii/shell vitest run --coverage
+  All files  94.03% stmts / 97.89% branch / 87.5% funcs / 94.03% lines
+  (gate config vitest.config.ts: lines/statements/branches 90, functions 80 — PASS)
+  LoginPage.tsx 96.57/98.21/88.88/96.57 · api.ts + NavBar.tsx 100/100
+$ pnpm --filter @wakii/shell build       → Rspack compiled successfully (Tailwind v4 utilities mới compile)
+$ pnpm --filter @wakii/remote-tasks test    → 36 passed (không đụng — regression check)
+$ pnpm --filter @wakii/remote-activity test → 22 passed (không đụng — regression check)
+$ pnpm --filter @wakii/ui-kit test          → 16 passed (không đụng — regression check)
+READ-LOCKED: git diff --name-only — token-storage.ts / api-client.ts / error-envelope.ts /
+mf-bootstrap.ts / app/shared/package.json KHÔNG xuất hiện (code-reviewer Q2 xác nhận độc lập).
+
+== Browser walkthrough (RULE 0 — Orca embedded browser, shell dev :3100 từ worktree này) ==
+Backend: auth-stub đúng contract auth.yaml v2 + token-contract v2 trên :8091 (script kèm:
+auth-stub-browser-walkthrough.mjs) — proxy cùng-origin qua devServer (AUTH_MOCK_PORT=8091,
+API_BASE_URL='', SHELL_PORT=3100 — pattern ghi sẵn trong rspack.config.mjs). Compose :8090
+(auth-mock v1) của user KHÔNG bị đụng. Proxy trung thực: auth-svc thật là SF-2 (đang chạy
+song song), full-chain e2e refresh→reuse→401 thuộc SF-5 (plan Task 5 step 2).
+Flow + screenshots (cùng thư mục):
+  01-login-page.png        — login card + tablist (Đăng nhập selected) + form + hint
+  02-register-filled.png   — tab Đăng ký: 3 trường (Email/Mật khẩu/Tên hiển thị) + focus ring
+  03-registered-home-chip.png — register hoaivu@demo.local THÀNH CÔNG → Trang chủ + nav user chip
+  04-after-logout.png      — Đăng xuất → về /login
+  05-relogin-chip.png      — login LẠI bằng user vừa đăng ký → chip hiện (register persist)
+  06-login-401-error.png   — sai mật khẩu → banner đỏ "Email hoặc mật khẩu không đúng."
+eval localStorage sau logout: {"jwt":null,"rt":null} (acceptance #3 — 2 key sạch)
+console: 0 errors toàn flow.
+
+== ACCEPTANCE (context pack sf-4.md) ==
+1. Register từ UI → login → nav user chip: PASS (shots 02/03/05).
+2. Access hết hạn (mock) → tự refresh đúng 1 lần, UI không 401: PASS ở tầng wrapper —
+   refresh-client.test.ts 13 case: 401→refresh đúng 1 lần→retry token MỚI
+   (['old-access','new-access']); 2 caller đồng thời → /refresh đúng 1 call (single-flight
+   2 pha: lock nhả sau settle); refresh 401 → clear 2 key + Unauthorized; retry-401 → clear;
+   retry-non-401 → GIỮ session (meta-tested); 409 passthrough không refresh; no-rt → clear.
+   Lưu ý trung thực: shell chưa có surface data-fetch auth'd (remotes READ-ONLY theo boundary
+   SF-4) — wiring withRefresh vào call thật + full-chain TTL ngắn sẽ do SF-5 e2e chứng minh.
+3. Logout → 2 key sạch, về login: PASS (eval + shot 04 + unit NavBar logout test).
+
+== Review ==
+code-reviewer độc lập: Round 1 CHANGES-REQUESTED (2 P1: thiếu test retry-non-401; evidence
+sai thư mục) → fix (thêm test + meta-test đảo-guard; move evidence) → Round 2 APPROVED
+(CHECKLIST-4Q: 4× PASS). Verdict: /tmp/story/vu59/code-reviewer-sf-4.md.
+P2 còn lại (audit log, không chặn): dead CSS .sh-login* trong styles.css (cleanup SF-5);
+aria-controls xấp xỉ APG; password length UTF-16 vs 72 bytes (server 400 graceful);
+NavBar logout không disable trong await (idempotent, benign).

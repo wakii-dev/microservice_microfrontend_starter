@@ -173,6 +173,8 @@ paths:
           description: Đã xoá
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 components:
@@ -185,6 +187,12 @@ components:
             $ref: "#/components/schemas/Error"
     Unauthorized:
       description: Thiếu hoặc sai JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Token hợp lệ nhưng không đủ quyền (DELETE chỉ admin — envelope code FORBIDDEN)
       content:
         application/json:
           schema:

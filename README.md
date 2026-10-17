@@ -4,7 +4,7 @@ Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Modul
 
 **Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
-## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + auth-mock + kafka broker)
+## Kiến trúc (đã dựng xong — 6 services gồm auth-svc + 3 FE + gateway + kafka broker)
 
 ```mermaid
 graph TB
@@ -18,13 +18,13 @@ graph TB
             compose["docker-compose.yml (10 services — kafka lazy-connect, không chặn chain)"]
             pginit["postgres/init/ (schemas + roles + default privileges)"]
             nginx["gateway/nginx (routing + JWT presence 401)"]
-            authmock["auth-mock :8090 (JWT HS256, NOT-FOR-PROD)"]
             conv["conventions/ (9 docs)"]
         end
         subgraph services ["services/"]
             node["node-svc :3001 (Fastify+TS) — task CRUD + outbox relay + compensation consumer"]
             spring["spring-svc :8081 (Spring Boot 3) — users/teams + @Transactional demo"]
             go["go-svc :8082 (Go 1.24+chi) — activity feed/stats + Kafka consumer + saga"]
+            authsvc["auth-svc :8090 (Fastify+TS — auth thật: register/refresh/RBAC)"]
         end
         subgraph app ["app/"]
             shared["shared (fe-shared — api client, token, MF helper)"]
@@ -42,7 +42,7 @@ graph TB
     gw -- "/api/tasks/* + JWT" --> node
     gw -- "/api/users/* + JWT" --> spring
     gw -- "/api/activity/* + JWT" --> go
-    gw -- "/api/auth/* (mở)" --> authmock
+    gw -- "/api/auth/* (mở)" --> authsvc
     node -- "validate user (2s, fail-closed 503)" --> spring
     node -- "outbox → Kafka task-events (relay 500ms)" --> kafka[("kafka :9092 compose-internal")]
     kafka -- "consumer go-svc-activity" --> go
@@ -50,7 +50,7 @@ graph TB
     node -- "SQL (schema tasks + outbox)" --> db[("postgres :5432")]
     spring -- "SQL (schema users)" --> db
     go -- "readonly schema tasks + own activity" --> db
-    authmock -- "đọc fixture" --> authc
+    authsvc -- "seed fixture (giữ UUID) + ký JWT" --> authc
     node -.-> openapi
     spring -.-> openapi
     go -.-> openapi
@@ -67,7 +67,7 @@ Chuỗi e2e chứng minh bởi: `scripts/smoke/e2e.sh` (local + CI job `converge
 | **nginx gateway** | **8080** | | node-svc | 3001 |
 | shell (MF host) | 3000 | | spring-svc | 8081 |
 | remote tasks | 4001 | | go-svc | 8082 |
-| remote activity | 4002 | | auth-mock | 8090 |
+| remote activity | 4002 | | auth-svc | 8090 |
 | postgres | 5432 | | kafka (compose-internal) | 9092 — KHÔNG expose host |
 
 Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 chỗ cùng commit (conventions + .env.example + compose + README).
@@ -88,11 +88,11 @@ for topic in task-events task-events.dlq; do
   docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
     --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
 done
-# Bước 2 — phần còn lại của stack (health-gated chain: pg → auth-mock/spring → node → gateway)
+# Bước 2 — phần còn lại của stack (health-gated chain: pg → auth-svc/spring → node → gateway)
 docker compose up -d --build
 bash ../scripts/smoke/e2e.sh   # PASS = 2 chiều: happy (login→task→feed qua Kafka) + saga (assign svc-fail → assignment_failed → DLQ assert)
 # shell + remotes: http://localhost:8080/ → login alice@demo.local / demo-password
-# swagger: http://localhost:8080/api/auth/docs (auth-mock; các svc /api/<svc>/docs cần Bearer)
+# swagger: các svc /api/<svc>/docs cần Bearer (auth-svc không serve /docs — auth.yaml v2)
 ```
 
 > **Kafka lazy-connect** (ADR-0008, conventions/09): kafka compose-internal — 9092
@@ -125,8 +125,8 @@ contracts/          # source of truth API/DB/auth — spectral lint trong CI
   openapi/          # 4 specs (tasks/users/activity/auth)
   db/               # canonical DDL bảng tasks (node migrate khớp, go query theo)
   auth/             # users fixture + token contract
-platform/           # compose (health-gated), postgres init, nginx, auth-mock, conventions/
-services/           # node-svc / spring-svc / go-svc — impl hoàn chỉnh, README standalone từng svc
+platform/           # compose (health-gated), postgres init, nginx, conventions/
+services/           # node-svc / spring-svc / go-svc / auth-svc — impl hoàn chỉnh, README standalone từng svc
 app/
   shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
   ui-kit/           # @wakii/ui-kit — design system: tokens + base css + primitives + Storybook 9 (ADR-0009)
@@ -150,7 +150,7 @@ docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)
 
 1. API đổi = sửa `contracts/openapi/*.yaml` TRƯỚC (contract-first — [ADR 0003](docs/adr/0003-contract-first.md)), spectral phải pass.
 2. JWT: gateway chỉ presence-check; **service tự verify** signature + expiry (`contracts/auth/token-contract.md` §4).
-3. auth-mock **NOT FOR PRODUCTION** — copy dự án thật cắm OIDC tại boundary này.
+3. auth-svc là auth DEMO (argon2id + refresh rotation CAS, `iss` pinned `"auth-mock"` — token-contract.md): copy dự án thật nên cắm OIDC/OAuth tại boundary này (upgrade path ghi trong token-contract.md).
 4. Compose health-gated: node/spring probe `/readyz`; go-svc `service_started` (distroless) — readiness chứng minh bằng smoke script (conventions/02 rule 3).
 5. fe-shared (logic) + ui-kit (design system) là workspace deps chung của shell/remotes — copy FE phải kèm cả `app/shared` + `app/ui-kit`.
 6. Đổi quyết định kiến trúc = đọc ADR tương ứng trước (mỗi ADR ghi Consequences + điểm cắm thay thế).

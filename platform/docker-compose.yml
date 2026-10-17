@@ -1,22 +1,25 @@
 # ============================================================================
 # Boilerplate Microservice + Micro-frontend — compose
 #
-# ⚠️ SF-2/3/4/5 của story FI-76 KHÔNG được sửa file này — env downstream đã
-#    PRE-ADD trọn vẹn từ trước (KAFKA_BROKERS, AUTH_MOCK_URL,
-#    SVC_ACTIVITY_PASSWORD). Muốn đổi compose → FLAG lên coordinator qua
-#    orchestration message, KHÔNG tự sửa.
+# ⚠️ Shared file — sửa QUA cơ chế gap-answer soạn trước + coordinator APPROVED
+#    (pattern story auth-real VU-59), KHÔNG tự sửa giữa story.
 #
-# Lịch sử sở hữu (người sửa cuối = SF-1 FI-77, story Kafka foundation):
+# Lịch sử sở hữu (người sửa cuối = auth-real SF-5 VU-64):
 #   FI-64 SF-1: khung 9 services health-gated + postgres init + auth-mock
 #     + 2 entry remotes (FE điền impl vào khung).
 #   FI-75 SF-7: health-gated depends_on (healthcheck /readyz node-svc +
-#     spring-svc; gateway gate auth-mock/node/spring service_healthy + go-svc
+#     spring-svc; gateway gate auth/node/spring service_healthy + go-svc
 #     service_started — distroless không có shell/wget, conventions/02 rule 3;
 #     gateway KHÔNG có healthcheck).
 #   FI-77 SF-1: + entry kafka (apache/kafka KRaft single-node, KHÔNG zookeeper;
 #     heap 512m cho CI 7GB; healthcheck full-path /opt/kafka/bin/... — image
 #     không có script trên PATH; KHÔNG expose 9092 ra host; KHÔNG service nào
 #     depends_on kafka — lazy-connect, conventions/09).
+#   VU-59 SF-5: decommission auth-mock → entry auth-svc (services/auth-svc,
+#     auth thật — register/refresh/RBAC; healthcheck /readyz kiểm DB thật;
+#     mount users.json; role auth_svc + schema auth; go-svc AUTH_MOCK_URL
+#     đổi VALUE giữ KEY — gap-answer epic VU-59 mục ①②④⑤⑥⑦, coordinator
+#     APPROVED).
 # ============================================================================
 
 name: boilerplate
@@ -33,6 +36,7 @@ services:
       SPRING_SVC_DB_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
       GO_SVC_DB_PASSWORD: ${GO_SVC_DB_PASSWORD:?set in .env}
       GO_READONLY_DB_PASSWORD: ${GO_READONLY_DB_PASSWORD:?set in .env}
+      AUTH_SVC_DB_PASSWORD: ${AUTH_SVC_DB_PASSWORD:?set in .env}
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
@@ -72,26 +76,36 @@ services:
       retries: 12
       start_period: 20s
 
-  auth-mock:
-    build: ./auth-mock
+  auth-svc:
+    build: ../services/auth-svc # auth thật (VU-59) thay auth-mock — cùng surface :8090 /api/auth/*
     environment:
-      PORT: 8090 # container port CỐ ĐỊNH (conventions/05) — override ${AUTH_MOCK_PORT} chỉ đổi side host
+      PORT: 8090 # container port CỐ ĐỊNH (conventions/05) — ${AUTH_PORT} chỉ đổi side host
+      DATABASE_URL: postgres://auth_svc:${AUTH_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
       JWT_SECRET: ${JWT_SECRET:?set in .env}
-      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
-      AUTH_MOCK_DEV_PASSWORD: ${AUTH_MOCK_DEV_PASSWORD:-demo-password}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL:-30m} # token-contract.md §1 (30m — cũ 8h của mock)
+      # decision #10: default demo-password KHÔNG đổi — e2e + svc-activity + seed cùng một nguồn
+      AUTH_DEV_PASSWORD: ${AUTH_DEV_PASSWORD:-demo-password}
       # fixture mount trực tiếp từ contracts/ — sửa fixture không cần rebuild image
+      # (seed idempotent ON CONFLICT (id) DO NOTHING — token-contract.md §5)
       USERS_FIXTURE_PATH: /app/users.json
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
       - ../contracts/auth/users.json:/app/users.json:ro
     ports:
-      - "${AUTH_MOCK_PORT:-8090}:8090" # host-side port — truy cập từ máy dev
+      - "${AUTH_PORT:-8090}:8090" # host-side port — truy cập từ máy dev
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
-      # probe TRONG container — hardcode 8090 (conventions/05); ${AUTH_MOCK_PORT} chỉ host-side
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/healthz"]
+      # probe TRONG container — hardcode 8090 (conventions/05); ${AUTH_PORT} chỉ host-side.
+      # /readyz (KHÔNG /healthz như auth-mock cũ) — kiểm DB thật: healthy = đã
+      # migrate schema auth + seed fixture xong → gateway chỉ nhận traffic khi service thật sự sẵn sàng.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/readyz"]
       interval: 5s
       timeout: 3s
       retries: 12
+      start_period: 20s # chờ migration + seed fixture lúc boot
 
   gateway:
     image: nginx:1.27-alpine
@@ -100,7 +114,7 @@ services:
     ports:
       - "${GATEWAY_PORT:-8080}:8080"
     depends_on:
-      auth-mock:
+      auth-svc:
         condition: service_healthy
       node-svc:
         condition: service_healthy
@@ -182,8 +196,10 @@ services:
       KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
       # service-token login fixture user svc-activity (resolver enrich userName;
       # login backoff + lazy re-login — conventions/09). Giá trị .env phải khớp
-      # AUTH_MOCK_DEV_PASSWORD (auth-mock so password với dev password chung).
-      AUTH_MOCK_URL: http://auth-mock:8090
+      # AUTH_DEV_PASSWORD (auth-svc so password hash của seeded users).
+      # KEY giữ AUTH_MOCK_URL (go-svc đọc theo tên env này — gap-answer ④);
+      # VALUE trỏ auth-svc sau decommission (đổi KEY = follow-up cụm iss-rename).
+      AUTH_MOCK_URL: http://auth-svc:8090
       SVC_ACTIVITY_PASSWORD: ${SVC_ACTIVITY_PASSWORD:?set in .env}
     ports:
       - "${GO_SVC_PORT:-8082}:8082" # host-side

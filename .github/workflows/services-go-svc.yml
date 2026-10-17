@@ -62,6 +62,7 @@ jobs:
           SPRING_SVC_DB_PASSWORD=ci-spring-password \
           GO_SVC_DB_PASSWORD=ci-go-password \
           GO_READONLY_DB_PASSWORD=ci-goreadonly-password \
+          AUTH_SVC_DB_PASSWORD=ci-auth-password \
           bash platform/postgres/init/01-init.sh
       - uses: actions/setup-go@v5
         with:
@@ -78,17 +79,17 @@ jobs:
         run: cd services/go-svc && go test -tags integration -v ./test/integration/...
 
   boot-smoke:
-    name: boot-smoke (go-svc + postgres + auth-mock + kafka)
+    name: boot-smoke (go-svc + postgres + auth-svc + kafka)
     runs-on: ubuntu-latest
     env:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
     steps:
       - uses: actions/checkout@v4
 
-      - name: Boot postgres + auth-mock + kafka trước + TẠO TOPIC TRƯỚC go-svc boot
+      - name: Boot postgres + auth-svc + kafka trước + TẠO TOPIC TRƯỚC go-svc boot
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            -f services/go-svc/ci.compose.override.yml up -d --build postgres auth-mock kafka
+            -f services/go-svc/ci.compose.override.yml up -d --build postgres auth-svc kafka
           for i in $(seq 1 30); do
             docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
               exec -T postgres pg_isready -U boilerplate -d boilerplate >/dev/null 2>&1 && break
@@ -210,7 +211,7 @@ jobs:
           AFTER=$(curl -sf http://localhost:8082/api/activity/feed -H "Authorization: Bearer $TOKEN" | python3 -c 'import json,sys; print(json.load(sys.stdin)["total"])')
           [ "$BEFORE" = "$AFTER" ] || { echo "feed total $BEFORE → $AFTER — duplicate envelope id nhân đôi row (vi phạm idempotency)"; exit 1; }
 
-      - name: Login auth-mock (JWT thật, cùng JWT_SECRET) — stats nới 4 keys + 401 từ service
+      - name: Login auth-svc (JWT thật, cùng JWT_SECRET) — stats nới 4 keys + 401 từ service
         run: |
           TOKEN=$(cat /tmp/jwt)
           # GET stats — exit criterion: seed bằng owner role → stats đúng (4 keys — SF-3 nới)

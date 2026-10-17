@@ -501,6 +501,65 @@ describe('CRUD /api/tasks + outbox event matrix (contract: tasks.yaml + task-eve
   });
 });
 
+describe('RBAC DELETE admin-only (epic auth-real SF-3 — enforce roles claim)', () => {
+  const id = '9f0e0000-0000-4000-8000-000000000001';
+  const bob = {
+    authorization: `Bearer ${makeToken({
+      sub: '22222222-2222-4222-8222-222222222222',
+      email: 'bob@demo.local',
+      roles: ['user'],
+    })}`,
+  };
+
+  it('bob roles ["user"] DELETE → 403 envelope FORBIDDEN, KHÔNG xoá + không event (fail-closed)', async () => {
+    const repo = fakeRepo([makeTask({ id })]);
+    const { app } = buildTestApp({ repo });
+    const res = await app.inject({ method: 'DELETE', url: `/api/tasks/${id}`, headers: bob });
+    expect(res.statusCode).toBe(403);
+    expect(res.json().error.code).toBe('FORBIDDEN');
+    expect(res.json().error.message).toBe('Chỉ admin được xoá task');
+    expect(res.json().error.requestId).toBeTruthy();
+    // Guard chặn TRƯỚC repo: task nguyên vẹn + không bắn task.deleted
+    expect(repo.removed).toHaveLength(0);
+    expect(repo.outboxRows).toHaveLength(0);
+    const get = await app.inject({ method: 'GET', url: `/api/tasks/${id}`, headers: AUTH });
+    expect(get.statusCode).toBe(200);
+  });
+
+  it('alice admin DELETE → 204 (deleteTask tasks.yaml) + event task.deleted — e2e hiện tại giữ pass', async () => {
+    const repo = fakeRepo([makeTask({ id })]);
+    const { app } = buildTestApp({ repo });
+    const res = await app.inject({ method: 'DELETE', url: `/api/tasks/${id}`, headers: AUTH });
+    expect(res.statusCode).toBe(204);
+    expect(repo.removed).toEqual([id]);
+    expect(repo.outboxRows.map((e) => e.type)).toEqual(['task.deleted']);
+  });
+
+  it('token thiếu roles claim → 403 (verifyToken decode về [] — không crash)', async () => {
+    const repo = fakeRepo([makeTask({ id })]);
+    const { app } = buildTestApp({ repo });
+    const noRoles = { authorization: `Bearer ${makeToken({ roles: undefined })}` };
+    const res = await app.inject({ method: 'DELETE', url: `/api/tasks/${id}`, headers: noRoles });
+    expect(res.statusCode).toBe(403);
+    expect(res.json().error.code).toBe('FORBIDDEN');
+    expect(repo.removed).toHaveLength(0);
+  });
+
+  it('guard CHỈ scoped DELETE — bob vẫn GET/PATCH được (không over-block PATCH/POST)', async () => {
+    const repo = fakeRepo([makeTask({ id })]);
+    const { app } = buildTestApp({ repo });
+    const get = await app.inject({ method: 'GET', url: `/api/tasks/${id}`, headers: bob });
+    expect(get.statusCode).toBe(200);
+    const patch = await app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      headers: bob,
+      payload: { status: 'done' },
+    });
+    expect(patch.statusCode).toBe(200);
+  });
+});
+
 describe('CORS dev-profile (conventions/07)', () => {
   it('CORS_DEV_ORIGIN set → preflight 204 + ACAO echo dev origin', async () => {
     const { app } = buildTestApp({ corsDevOrigin: 'http://localhost:3000,http://localhost:4001' });

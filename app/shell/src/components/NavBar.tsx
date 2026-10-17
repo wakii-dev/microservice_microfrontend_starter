@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
 import { Button } from '@wakii/ui-kit';
+import { auth } from '../api';
 
 /**
  * App chrome (hand-off §4): brand + nav + user chip/logout — Tailwind (P3 migration).
@@ -16,8 +17,10 @@ export function NavBar() {
   const token = tokenStorage.getToken();
   const claims = token && !isExpired(token) ? readClaims(token) : null;
 
-  function logout() {
-    tokenStorage.clearToken();
+  // Logout qua wrapper refresh-client (SF-4): revoke rt server-side + clear CẢ 2 key
+  // (tokenStorage + bp.rt) — logout() không ném khi mạng chết nên await an toàn.
+  async function logout() {
+    await auth.logout();
     navigate('/login');
   }
 

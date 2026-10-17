@@ -94,3 +94,4 @@ export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
 // ── Navigation mới (batch ② 2026-10-17) ──
 export { Menu, type MenuProps, type MenuItemData, MenuCompactContext } from './ui/menu/index.js';
 export { Sidebar, type SidebarProps } from './ui/sidebar/index.js';
+export { useForm, type UseFormOptions, type FormErrors, type FormValidationMode } from './hooks/useForm.js';

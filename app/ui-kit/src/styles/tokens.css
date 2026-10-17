@@ -16,9 +16,11 @@
   --ink: rgba(0, 0, 0, 0.88); /* chính */
   --ink2: rgba(0, 0, 0, 0.65); /* phụ (desc) */
   --ink3: rgba(0, 0, 0, 0.45); /* meta (uuid, time) — chỉ meta phụ ≥12px */
+  --ink4: rgba(0, 0, 0, 0.25); /* disabled text + placeholder — antd colorTextQuaternary */
+  --bg-disabled: rgba(0, 0, 0, 0.04); /* antd colorBgContainerDisabled */
   /* Viền — antd colorBorder / colorBorderSecondary */
-  --line: #d9d9d9; /* 1px mặc định */
-  --line2: #f0f0f0; /* split/hover nền */
+  --line: #e2e5ea; /* 1px mặc định — cool-tint hairline */
+  --line2: #eef0f3; /* split/hover nền */
   /* Accent duy nhất — antd colorPrimary + hover */
   --accent: #1677ff;
   --accent-hi: #4096ff;
@@ -27,14 +29,27 @@
   --st-doing: #faad14; /* Đang làm (gold-6 / warning) */
   --st-done: #52c41a; /* Xong (green-6 / success) */
   --st-fail: #ff4d4f; /* Gán thất bại + error (red-5) */
+  /* Motion scale (identity "mượt mà" — CHỈ animate transform/opacity; exit nhanh hơn enter ~30%)
+   Nguồn: strategy motion 2026-10-17. Motion identity — xem docs/motion.md. */
+  --motion-instant: 90ms;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 360ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1); /* decelerate — element vào */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* accelerate — element ra */
+  --ease-toggle: cubic-bezier(0.34, 1.56, 0.64, 1); /* spring nhẹ — toggle/press */
+  /* Shadow layered (floating surfaces: modal/drawer/popover/dropdown) */
+  --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.03), 0 12px 16px -4px rgba(0, 0, 0, 0.06), 0 24px 48px -12px rgba(0, 0, 0, 0.08);
+  /* Hover lift */
+  --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
   /* Font stacks (antd — system UI, KHÔNG webfont) */
   --f: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", sans-serif;
   --m: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Consolas, monospace;
-  /* Radius */
-  --r-1: 4px; /* chip nhỏ, input nhỏ */
-  --r-2: 6px; /* button, pill — antd borderRadius mặc định */
-  --r-3: 8px; /* card, panel — antd borderRadiusLG */
+  /* Radius — modern 2026 (shadcn/Geist/Linear-like): mềm hơn antd */
+  --r-1: 6px; /* chip nhỏ, input nhỏ */
+  --r-2: 8px; /* button, input, pill — modern base */
+  --r-3: 12px; /* card, panel — modern LG */
   --r-pill: 9999px;
   /* Spacing scale 4base */
   --sp-1: 4px;
@@ -43,6 +58,15 @@
   --sp-4: 16px;
   --sp-5: 24px;
   --sp-6: 32px;
+  /* Alert tints — antd colorBg/Border theo type (light) */
+  --alert-error-bg: #fff2f0;
+  --alert-error-border: #ffccc7;
+  --alert-warning-bg: #fffbe6;
+  --alert-warning-border: #ffe58f;
+  --alert-info-bg: #e6f4ff;
+  --alert-info-border: #91caff;
+  --alert-success-bg: #f6ffed;
+  --alert-success-border: #b7eb8f;
   /* Type scale (antd base 14) */
   --fs-meta: 12px;
   --fs-label: 13px;

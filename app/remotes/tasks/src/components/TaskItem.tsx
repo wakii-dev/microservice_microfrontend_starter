@@ -2,8 +2,9 @@
 // + meta phải mono (assignee UUID rút gọn + createdAt vi-VN) + actions (select/sửa/xoá).
 // Busy per-item: Spinner THAY badge + disable select/actions khi PATCH/DELETE đang bay.
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
-import { FormEvent, useState } from 'react';
-import { Spinner } from '@wakii/ui-kit';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button, Input, Popconfirm, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -38,8 +39,11 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [draftTitle, setDraftTitle] = useState(task.title);
-  const [draftDescription, setDraftDescription] = useState(task.description ?? '');
+  // RHF: draft edit inline — reset(task) mỗi lần mở edit (đúng giá trị hiện tại);
+  // chỉ gửi field THAY ĐỔI; lỗi (onSave false) → giữ nguyên form + draft.
+  const { register, handleSubmit, reset, getValues } = useForm({
+    defaultValues: { title: task.title, description: task.description ?? '' },
+  });
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -51,21 +55,20 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   }
 
   function startEdit() {
-    setDraftTitle(task.title);
-    setDraftDescription(task.description ?? '');
+    reset({ title: task.title, description: task.description ?? '' });
     setConfirming(false);
     setEditing(true);
   }
 
-  function saveEdit(e: FormEvent) {
-    e.preventDefault();
-    const title = draftTitle.trim();
+  function saveEdit() {
+    const values = getValues();
+    const title = values.title.trim();
     if (!title || busy) return;
     // Chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1); description rỗng
     // gửi '' — contract cho phép, user xoá được mô tả.
     const patch: { title?: string; description?: string } = {};
     if (title !== task.title) patch.title = title;
-    if ((task.description ?? '') !== draftDescription) patch.description = draftDescription;
+    if ((task.description ?? '') !== values.description) patch.description = values.description;
     if (Object.keys(patch).length === 0) {
       setEditing(false);
       return;
@@ -77,8 +80,8 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   }
 
   return (
-    <li className="tsk-item">
-      <div className="tsk-item__status">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-3 border border-line bg-s2 p-3 px-4 transition-colors hover:bg-s3 max-md:grid-cols-1">
+      <div className="flex min-h-[22px] items-center pt-0.5">
         {busy ? (
           <Spinner label={`Đang xử lý task ${task.title}`} />
         ) : (
@@ -88,47 +91,38 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
 
       <div className="tsk-item__main">
         {editing ? (
-          <form className="tsk-item__edit" onSubmit={saveEdit}>
-            <input
-              type="text"
-              className="tsk-item__edit-title"
+          <form className="flex w-full flex-row flex-wrap gap-2" onSubmit={handleSubmit(saveEdit)}>
+            <Input
+              className="min-w-0 flex-1"
               aria-label={`Sửa tiêu đề task ${task.title}`}
               required
               maxLength={200}
-              value={draftTitle}
-              onChange={(e) => setDraftTitle(e.target.value)}
+              {...register('title')}
             />
-            <input
-              type="text"
-              className="tsk-item__edit-desc"
+            <Input
+              className="min-w-0 flex-1"
               aria-label={`Sửa mô tả task ${task.title}`}
-              value={draftDescription}
-              onChange={(e) => setDraftDescription(e.target.value)}
+              {...register('description')}
             />
-            <button type="submit" className="tsk-btn tsk-btn--primary" disabled={busy}>
+            <Button type="primary" htmlType="submit" disabled={busy}>
               Lưu
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
-              disabled={busy}
-              onClick={() => setEditing(false)}
-            >
+            </Button>
+            <Button type="text" disabled={busy} onClick={() => setEditing(false)}>
               Huỷ
-            </button>
+            </Button>
           </form>
         ) : (
           <>
-            <h3 className="tsk-item__title">{task.title}</h3>
-            {task.description && <p className="tsk-item__desc">{task.description}</p>}
+            <h3 className="m-0 text-body font-semibold [overflow-wrap:anywhere]">{task.title}</h3>
+            {task.description && <p className="mt-1 truncate text-label text-ink2">{task.description}</p>}
           </>
         )}
       </div>
 
-      <div className="tsk-item__side">
-        <p className="tsk-item__meta">
+      <div className="flex flex-col items-end gap-2 max-md:items-start">
+        <p className="m-0 flex gap-2 whitespace-nowrap font-mono text-meta text-ink3 max-md:[overflow-wrap:anywhere] max-md:whitespace-normal">
           {task.assigneeId ? (
-            <code className="tsk-item__uuid" title={task.assigneeId}>
+            <code className="font-mono" title={task.assigneeId}>
               {shortUuid(task.assigneeId)}
             </code>
           ) : (
@@ -151,46 +145,36 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
           />
         )}
 
-        {editing ? null : confirming ? (
-          <div className="tsk-item__confirm">
-            <span className="tsk-item__confirm-text">Xoá task này?</span>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--danger"
-              disabled={busy}
-              onClick={() => void run(() => onDelete(task))}
-            >
-              Xác nhận xoá
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
-              disabled={busy}
-              onClick={() => setConfirming(false)}
-            >
-              Huỷ
-            </button>
-          </div>
-        ) : (
-          <div className="tsk-item__actions">
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--ghost"
+        {editing ? null : (
+          <div className="flex gap-2">
+            <Button
+              type="text"
               aria-label={`Sửa task ${task.title}`}
               disabled={busy}
               onClick={startEdit}
             >
               Sửa
-            </button>
-            <button
-              type="button"
-              className="tsk-btn tsk-btn--danger-ghost"
-              aria-label={`Xoá task ${task.title}`}
-              disabled={busy}
-              onClick={() => setConfirming(true)}
+            </Button>
+            {/* Tier 3: Popconfirm thay Modal confirm (bubble bám trigger) */}
+            <Popconfirm
+              open={confirming}
+              title="Xoá task này?"
+              description="Hành động không thể hoàn tác."
+              danger
+              okText="Xác nhận xoá"
+              onConfirm={() => void run(() => onDelete(task))}
+              onCancel={() => setConfirming(false)}
             >
-              Xoá
-            </button>
+              <Button
+                type="text"
+                danger
+                aria-label={`Xoá task ${task.title}`}
+                disabled={busy}
+                onClick={() => setConfirming(true)}
+              >
+                Xoá
+              </Button>
+            </Popconfirm>
           </div>
         )}
       </div>

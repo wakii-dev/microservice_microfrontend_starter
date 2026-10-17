@@ -1,6 +1,7 @@
 // TaskList — heading "x/total" (format là test contract) + ul "Danh sách tasks" + nút
 // "Tải thêm" (chỉ khi đã tải < total). Load-more dùng nút busy, KHÔNG skeleton — tránh
 // list nhảy layout.
+import { Button } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { TaskItem } from './TaskItem';
 
@@ -29,7 +30,7 @@ export function TaskList({
 }: TaskListProps) {
   return (
     <>
-      <h2 className="tsk-list__heading">
+      <h2 className="m-0 text-h2 text-ink2">
         Danh sách ({tasks.length}/{total})
       </h2>
       <ul className="tsk-list" aria-label="Danh sách tasks">
@@ -44,14 +45,14 @@ export function TaskList({
         ))}
       </ul>
       {hasMore && (
-        <button
-          type="button"
-          className="tsk-btn tsk-btn--ghost tsk-load"
+        <Button
+          type="text"
+          className="self-start"
           onClick={onLoadMore}
           disabled={loadingMore}
         >
           {loadingMore ? 'Đang tải thêm…' : 'Tải thêm'}
-        </button>
+        </Button>
       )}
     </>
   );

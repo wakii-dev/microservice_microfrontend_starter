@@ -1,6 +1,7 @@
 // Component tests — mock api layer, kiểm tra UI flow: list → tạo → sửa status → edit inline
 // → delete confirm → load-more → filter → per-item busy → error banner (SF-3, VU-56).
 import { render, screen, waitFor } from '@testing-library/react';
+import { createWrapper } from './test-utils';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, vi } from 'vitest';
 import { TasksPage } from '../src/TasksPage';
@@ -56,7 +57,7 @@ beforeEach(() => {
 
 describe('TasksPage', () => {
   it('render danh sách sau khi load — title + tổng + gọi fetchTasks({}) mặc định', async () => {
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     expect(await screen.findByText('Task A')).toBeInTheDocument();
     expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument();
     expect(mockedApi.fetchTasks).toHaveBeenCalledWith({});
@@ -66,7 +67,7 @@ describe('TasksPage', () => {
     const user = userEvent.setup();
     const TASK_NEW: api.Task = { ...TASK_A, id: '99999999-9999-9999-9999-999999999999', title: 'Task mới' };
     mockedApi.createTask.mockResolvedValue(TASK_NEW);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Task A');
     await user.type(screen.getByLabelText('Tiêu đề'), 'Task mới');
@@ -85,7 +86,7 @@ describe('TasksPage', () => {
     mockedApi.createTask.mockRejectedValue(new api.ApiError(503, {
       error: { code: 'SPRING_UNREACHABLE', message: 'spring-svc down', requestId: 'r1', details: null },
     }));
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Task A');
     await user.type(screen.getByLabelText('Tiêu đề'), 'Task sẽ fail');
@@ -101,7 +102,7 @@ describe('TasksPage', () => {
         error: { code: 'SPRING_UNREACHABLE', message: 'spring-svc down', requestId: 'r1', details: null },
       }),
     );
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     const alert = await screen.findByRole('alert');
     // 503 → message hướng dẫn spring-svc chưa sẵn sàng (describeError)
     expect(alert).toHaveTextContent('spring-svc');
@@ -109,24 +110,25 @@ describe('TasksPage', () => {
 
   it('danh sách rỗng → EmptyState "Chưa có task nào"', async () => {
     mockList([]);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     expect(await screen.findByText('Chưa có task nào')).toBeInTheDocument();
   });
 
   it('loading đầu → Skeleton thay list', () => {
     mockedApi.fetchTasks.mockReturnValue(new Promise(() => {}));
-    const { container } = render(<TasksPage />);
+    const { container } = render(<TasksPage />, { wrapper: createWrapper() });
     expect(container.querySelector('.bp-skeleton--row')).toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Danh sách tasks' })).not.toBeInTheDocument();
   });
 
-  it('đổi status qua select → updateTask(task.id, { status })', async () => {
+  it('đổi status qua Select ui-kit → updateTask(task.id, { status })', async () => {
     const user = userEvent.setup();
     mockedApi.updateTask.mockResolvedValue({ ...TASK_A, status: 'done' });
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
-    const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    await user.selectOptions(select, 'done');
+    // Select mới: combobox → mở listbox → chọn option (ui-kit Tier 3)
+    await user.click(await screen.findByRole('combobox', { name: 'Trạng thái task Task A' }));
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
 
     await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_A.id, { status: 'done' }));
   });
@@ -135,10 +137,11 @@ describe('TasksPage', () => {
     const user = userEvent.setup();
     let resolvePatch: (t: api.Task) => void = () => {};
     mockedApi.updateTask.mockReturnValue(new Promise<api.Task>((resolve) => { resolvePatch = resolve; }));
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    await user.selectOptions(select, 'done');
+    await user.click(select);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
 
     await waitFor(() => expect(select).toBeDisabled());
     expect(screen.getByRole('status', { name: 'Đang xử lý task Task A' })).toBeInTheDocument();
@@ -149,7 +152,7 @@ describe('TasksPage', () => {
 
   it('status assignment_failed → badge "Gán thất bại", KHÔNG select (PATCH cấm status hệ thống)', async () => {
     mockList([{ ...TASK_A, status: 'assignment_failed' }]);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     const badge = await screen.findByRole('status', { name: 'Trạng thái task Task A' });
     expect(badge).toHaveTextContent('Gán thất bại');
     // không combobox nào được render cho task assignment_failed
@@ -157,16 +160,17 @@ describe('TasksPage', () => {
   });
 
   it('select writable CHỈ 3 giá trị — assignment_failed không nằm trong option', async () => {
-    render(<TasksPage />);
-    const select = await screen.findByRole('combobox', { name: 'Trạng thái task Task A' });
-    const options = Array.from(select.querySelectorAll('option')).map((o) => o.value);
-    expect(options).toEqual(['todo', 'in_progress', 'done']);
+    const user = userEvent.setup();
+    render(<TasksPage />, { wrapper: createWrapper() });
+    await user.click(await screen.findByRole('combobox', { name: 'Trạng thái task Task A' }));
+    const optionLabels = screen.getAllByRole('option').map((o) => o.textContent);
+    expect(optionLabels).toEqual(['Cần làm', 'Đang làm', 'Xong']);
   });
 
   it('sửa inline — Lưu gọi PATCH đúng payload chỉ field đổi rồi thoát edit', async () => {
     const user = userEvent.setup();
     mockedApi.updateTask.mockResolvedValue({ ...TASK_A, title: 'Task A sửa', description: 'mô tả mới' });
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
@@ -182,7 +186,7 @@ describe('TasksPage', () => {
 
   it('sửa inline không đổi gì → Lưu KHÔNG gọi PATCH, thoát edit', async () => {
     const user = userEvent.setup();
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     await user.click(screen.getByRole('button', { name: 'Lưu' }));
@@ -193,7 +197,7 @@ describe('TasksPage', () => {
 
   it('sửa inline — Huỷ thoát edit không gọi PATCH', async () => {
     const user = userEvent.setup();
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     await user.click(screen.getByRole('button', { name: 'Huỷ' }));
@@ -207,7 +211,7 @@ describe('TasksPage', () => {
     mockedApi.updateTask.mockRejectedValue(new api.ApiError(400, {
       error: { code: 'VALIDATION_ERROR', message: 'Title không được rỗng', requestId: 'r2', details: null },
     }));
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
@@ -222,7 +226,7 @@ describe('TasksPage', () => {
   it('xoá — confirm 2 bước rồi deleteTask, item biến mất in-place (F3: không refetch full)', async () => {
     const user = userEvent.setup();
     mockedApi.deleteTask.mockResolvedValue(undefined);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Xoá task Task A' }));
     expect(screen.getByText('Xoá task này?')).toBeInTheDocument();
@@ -238,7 +242,7 @@ describe('TasksPage', () => {
 
   it('xoá — Huỷ ở bước confirm KHÔNG gọi deleteTask', async () => {
     const user = userEvent.setup();
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Xoá task Task A' }));
     await user.click(screen.getByRole('button', { name: 'Huỷ' }));
@@ -252,7 +256,7 @@ describe('TasksPage', () => {
     mockedApi.fetchTasks
       .mockResolvedValueOnce({ items: [TASK_A], total: 2 })
       .mockResolvedValueOnce({ items: [TASK_B], total: 2 });
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     expect(await screen.findByText('Danh sách (1/2)')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
@@ -263,7 +267,7 @@ describe('TasksPage', () => {
   });
 
   it('đủ items (tasks.length === total) → KHÔNG có nút Tải thêm', async () => {
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     await screen.findByText('Task A');
     expect(screen.queryByRole('button', { name: 'Tải thêm' })).not.toBeInTheDocument();
   });
@@ -275,7 +279,7 @@ describe('TasksPage', () => {
       .mockResolvedValueOnce({ items: [TASK_A], total: 2 }) // load đầu
       .mockReturnValueOnce(new Promise<api.TaskList>((resolve) => { resolveLoadMore = resolve; })) // load-more treo
       .mockResolvedValueOnce({ items: [TASK_B], total: 1 }); // filter in_progress
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Task A');
     await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
@@ -297,7 +301,7 @@ describe('TasksPage', () => {
       .mockResolvedValueOnce({ items: page, total: 25 }) // load đầu: 10/25
       .mockReturnValueOnce(new Promise<api.TaskList>((resolve) => { resolveLoadMore = resolve; })) // load-more treo
       .mockResolvedValueOnce({ items: [TASK_B], total: 25 }); // filter
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('P1-0');
     await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
@@ -318,7 +322,7 @@ describe('TasksPage', () => {
     mockedApi.fetchTasks
       .mockResolvedValueOnce({ items: [TASK_A], total: 1 })
       .mockResolvedValueOnce({ items: [TASK_B], total: 1 });
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Task A');
     await user.click(screen.getByRole('button', { name: 'Đang làm' }));
@@ -329,7 +333,7 @@ describe('TasksPage', () => {
 
   it('assignee hiển thị UUID rút gọn + tooltip full + createdAt trong <time>', async () => {
     mockList([TASK_B]);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     const uuid = await screen.findByTitle(TASK_B.assigneeId as string);
     expect(uuid).toHaveTextContent('33333333…');
@@ -339,7 +343,7 @@ describe('TasksPage', () => {
   });
 
   it('chưa gán assignee → hiện "Chưa gán"', async () => {
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
     expect(await screen.findByText('Chưa gán')).toBeInTheDocument();
   });
 
@@ -354,18 +358,17 @@ describe('TasksPage', () => {
       .mockResolvedValueOnce({ items: [TASK_A, TASK_B], total: 2 })
       .mockReturnValueOnce(new Promise(() => {}));
     mockedApi.updateTask.mockResolvedValue({ ...TASK_B, status: 'done' });
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
     await user.clear(titleInput);
     await user.type(titleInput, 'Draft đang soạn');
 
-    // can thiệp song song trên task B (select status) — settle: PATCH gọi + select B
-    // enable lại (post-fix mutation xong ngay; pre-fix load() treo trên deferred fetch
-    // → select kẹt disabled → test RED ở waitFor enable)
+    // can thiệp song song trên task B (Select ui-kit — click flow)
     const selectB = screen.getByRole('combobox', { name: 'Trạng thái task Task B' });
-    await user.selectOptions(selectB, 'done');
+    await user.click(selectB);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
     await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_B.id, { status: 'done' }));
     await waitFor(() => expect(selectB).toBeEnabled());
 
@@ -377,7 +380,7 @@ describe('TasksPage', () => {
     const user = userEvent.setup();
     mockList([TASK_A, TASK_B]);
     mockedApi.deleteTask.mockResolvedValue(undefined);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
@@ -398,7 +401,7 @@ describe('TasksPage', () => {
     mockList([TASK_A, TASK_B]);
     const TASK_NEW: api.Task = { ...TASK_A, id: '99999999-9999-9999-9999-999999999999', title: 'Task mới vừa tạo' };
     mockedApi.createTask.mockResolvedValue(TASK_NEW);
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await user.click(await screen.findByRole('button', { name: 'Sửa task Task A' }));
     const titleInput = screen.getByLabelText('Sửa tiêu đề task Task A');
@@ -427,7 +430,7 @@ describe('TasksPage', () => {
     mockedApi.fetchTasks
       .mockResolvedValueOnce({ items: [TASK_A], total: 2 })
       .mockResolvedValueOnce({ items: [], total: 2 }); // server hết row chưa tải (đã bị xoá hết)
-    render(<TasksPage />);
+    render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Danh sách (1/2)');
     await user.click(screen.getByRole('button', { name: 'Tải thêm' }));

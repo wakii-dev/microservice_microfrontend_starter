@@ -8,7 +8,7 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
-  addons: ['@storybook/addon-docs'],
+  addons: ['@storybook/addon-docs', '@storybook/addon-a11y'],
   docs: {},
   async viteFinal(config) {
     // Tailwind v4 — utilities của primitives (spec tailwind-migration P0)

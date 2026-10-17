@@ -1,6 +1,6 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { type LoadRemoteModuleOptions, type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@wakii/fe-shared';
-import { Skeleton } from '@wakii/ui-kit';
+import { Button, Skeleton } from '@wakii/ui-kit';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.
@@ -23,14 +23,12 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
   render() {
     if (this.state.error) {
       return (
-        <div className="sh-remote-fallback" role="alert">
-          <p>
+        <div role="alert" className="flex flex-col items-start gap-4 rounded-3 border border-line bg-s2 p-6">
+          <p className="m-0 text-ink2">
             Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
             xuống). Vui lòng thử lại.
           </p>
-          <button className="sh-btn sh-btn--ghost" type="button" onClick={this.props.onRetry}>
-            Thử lại
-          </button>
+          <Button onClick={this.props.onRetry}>Thử lại</Button>
         </div>
       );
     }
@@ -67,7 +65,7 @@ export function RemoteSlot({
     <RemoteErrorBoundary onRetry={retry} remoteName={name} key={attempt}>
       <Suspense
         fallback={
-          <div className="sh-slot-loading">
+          <div className="flex flex-col gap-3">
             <Skeleton variant="card" count={2} />
           </div>
         }

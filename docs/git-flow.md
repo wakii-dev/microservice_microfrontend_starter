@@ -35,15 +35,19 @@ Quy tắc:
   local repro); ghi **verified gì** khi là refactor/feat (số test, build PASS).
 - Đổi behavior + story workflow → chụp evidence vào `docs/superpowers/evidence/`.
 
-## Rule được ENFORCE (CI git-guard)
+## Rule được ENFORCE (husky pre-push + commit-msg)
 
-Workflow `.github/workflows/git-guard.yml` chặn PR vi phạm 2 rule sau:
+⚠️ 2026-10-17: GitHub Actions DISABLE (billing) → **hooks là lớp chính**. `.husky/pre-push`
+chặn push vi phạm 2 rule sau + chạy FE checks (typecheck/vitest/build) cho package bị đổi:
 
 1. **Branch name**: `wakii-dev/<story|sf|fix|docs|chore|feat>-<slug-kebab>`
    (vd `wakii-dev/fix-gosvc-recent-events`, `wakii-dev/sf-5-ui-redesign-conv`)
 2. **Commit message**: `<type>(<scope>): <mô tả>` với type ∈
    `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`
    (merge commits "Merge pull request #N" được ngoại lệ)
+
+pre-push CHẠY THÊM FE checks (typecheck/vitest/build-storybook) cho package có file đổi
+(so với origin/main) — thay thế lớp CI shell/remotes/ui-kit đã tắt.
 
 Feedback sớm ngay tại máy — **husky** tự cài khi `pnpm install` (root `prepare` script
 chạy `husky`, guard `test -d .git` để không chết trong docker/CI không có .git):
@@ -54,7 +58,8 @@ chạy `husky`, guard `test -d .git` để không chết trong docker/CI không 
   cũng không qua nổi PR)
 
 Worktree (Orca/Claude session): `pnpm install` trong worktree cũng chạy root `prepare`
-→ husky tự active theo worktree đó; CI git-guard vẫn chặn cuối cùng dù quên.
+→ husky tự active theo worktree đó. Bỏ qua khẩn: `git push --no-verify` (tự chịu trách
+nhiệm — KHÔNG có lớp CI phía sau cho đến khi billing được khôi phục).
 
 ## Checklist nhanh trước merge
 

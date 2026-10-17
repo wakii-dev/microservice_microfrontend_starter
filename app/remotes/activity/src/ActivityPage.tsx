@@ -7,9 +7,9 @@
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
 import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
-import './styles.css';
-import { useCallback, useEffect, useState } from 'react';
-import { EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { Alert, Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -34,69 +34,43 @@ function describeError(err: unknown): string {
  * feed vẫn render (go-svc stats 503 khi mất quyền đọc readonly schema — contract activity.yaml).
  */
 export function ActivityPage() {
-  const [items, setItems] = useState<ActivityFeedItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [stats, setStats] = useState<ActivityStats | null>(null);
-  const [loadingFeed, setLoadingFeed] = useState(true);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [feedError, setFeedError] = useState<string | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
+  // 2 query ĐỘC LẬP (thay Promise.allSettled thủ công) — stats fail không che feed.
+  // Query key 'activity/*' trên cache singleton MF: remote tasks invalidate ['activity']
+  // sau mỗi mutation → feed/stats tự refetch (libs adopt 2026-10-17).
+  const feedQuery = useQuery({ queryKey: ['activity', 'feed'], queryFn: fetchFeed });
+  const statsQuery = useQuery({ queryKey: ['activity', 'stats'], queryFn: fetchStats });
+
+  const items = feedQuery.data?.items ?? [];
+  const total = feedQuery.data?.total ?? 0;
+  const stats = statsQuery.data ?? null;
+  const feedError = feedQuery.error ? describeError(feedQuery.error) : null;
+  const statsError = statsQuery.error ? describeError(statsQuery.error) : null;
+  const loadingFeed = feedQuery.isFetching; // refetch (Làm mới) cũng busy — mirror load() cũ
+  const loadingStats = statsQuery.isFetching;
   const loading = loadingFeed || loadingStats;
 
-  const load = useCallback(async () => {
-    setFeedError(null);
-    setStatsError(null);
-    setLoadingFeed(true);
-    setLoadingStats(true);
-    // feed + stats tải độc lập — stats fail không che mất feed (Promise.allSettled giữ)
-    const feedPromise = fetchFeed()
-      .then((res) => {
-        setItems(res.items);
-        setTotal(res.total);
-      })
-      .catch((err: unknown) => {
-        setFeedError(describeError(err));
-      })
-      .finally(() => {
-        setLoadingFeed(false);
-      });
-    const statsPromise = fetchStats()
-      .then((res) => {
-        setStats(res);
-      })
-      .catch((err: unknown) => {
-        setStatsError(describeError(err));
-        setStats(null);
-      })
-      .finally(() => {
-        setLoadingStats(false);
-      });
-    await Promise.allSettled([feedPromise, statsPromise]);
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const load = useCallback(() => {
+    void feedQuery.refetch();
+    void statsQuery.refetch();
+  }, [feedQuery, statsQuery]);
 
   return (
-    <section aria-label="Activity feed và thống kê" className="act-page">
-      <header className="act-header">
-        <h1>Activity</h1>
-        <button type="button" className="act-refresh" disabled={loading} onClick={() => void load()}>
+    <section aria-label="Activity feed và thống kê" className="grid gap-6 max-md:gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <h1 className="m-0 text-h1">Activity</h1>
+        <Button type="default" disabled={loading} onClick={() => void load()}>
           {loading && <Spinner label="Đang tải activity" />}
           Làm mới
-        </button>
+        </Button>
       </header>
 
-      <div aria-label="Thống kê tasks" className="act-stats">
+      <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
         {statsError && (
-          <p role="alert" className="error-banner act-stats__error">
-            Stats: {statsError}
-          </p>
+          <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
         )}
         {loadingStats ? (
-          <div className="act-stats-skeleton">
-            <Skeleton variant="card" count={4} />
+          <div className="col-span-full grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+            <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
           </div>
         ) : (
           stats && (
@@ -122,21 +96,17 @@ export function ActivityPage() {
         )}
       </div>
 
-      {feedError && (
-        <p role="alert" className="error-banner">
-          {feedError}
-        </p>
-      )}
+      {feedError && <Alert type="error" message={feedError} />}
 
-      <section aria-busy={loadingFeed} className="act-feed">
-        <h2 className="act-feed__head">
+      <section aria-busy={loadingFeed}>
+        <h2 className="mb-3 text-h2 font-semibold text-ink">
           Feed ({items.length}/{total})
         </h2>
         {loadingFeed ? (
           <Skeleton variant="row" count={4} />
         ) : items.length === 0 && !feedError ? (
           <EmptyState
-            action={<a className="act-link" href="/tasks">Đi tới Tasks</a>}
+            action={<a className="text-accent-hi no-underline hover:underline" href="/tasks">Đi tới Tasks</a>}
             description="Tạo một task ở trang Tasks để thấy event tại đây."
             title="Chưa có hoạt động nào"
           />

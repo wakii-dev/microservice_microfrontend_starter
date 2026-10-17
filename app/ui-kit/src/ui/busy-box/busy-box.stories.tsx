@@ -1,3 +1,4 @@
+// Parity matrix antd→tokens: docs/parity-matrix.md
 // BusyBox stories — busy/idle toggle.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';

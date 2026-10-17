@@ -1,7 +1,6 @@
+// Parity matrix antd→tokens: docs/parity-matrix.md
 // Space stories (antd Space: small 8/middle 16/large 24).
-import { Button as AntdButton, Space as AntdSpace } from 'antd';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Parity } from '../../../.storybook/Parity';
 import { Button } from '../button/index';
 import { Space } from './index';
 
@@ -24,22 +23,3 @@ function Tri() {
   );
 }
 
-export const ParityVsAntd: Story = {
-  args: { children: 'x' },
-  render: () => (
-    <div style={{ display: 'grid', gap: 16 }}>
-      <Parity
-        antd={
-          <AntdSpace>
-            <Tri />
-          </AntdSpace>
-        }
-        ours={
-          <Space>
-            <Tri />
-          </Space>
-        }
-      />
-    </div>
-  ),
-};

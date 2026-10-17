@@ -1,3 +1,4 @@
+// Parity matrix antd→tokens: docs/parity-matrix.md
 // Badge stories — CẢ 9 variants (4 task status + 5 activity action) trên 1 canvas
 // để so màu chấm/nền 12% alpha trực tiếp (docs sống thay screenshot ad-hoc).
 import type { Meta, StoryObj } from '@storybook/react-vite';

@@ -1,3 +1,4 @@
+// Parity matrix antd→tokens: docs/parity-matrix.md
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input, Textarea } from './index';
 

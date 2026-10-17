@@ -11,13 +11,13 @@
 #     --out <dir>  thư mục output (default: <cwd>/<new-name>)
 #
 # Prune (không copy): .git · node_modules · target/ · dist/ · docs/superpowers ·
-#   frontend/spike · .github/workflow-templates · .github/workflows/convergence.yml
+#   app/spike · .github/workflow-templates · .github/workflows/convergence.yml
 #   (pin story branch — chết trong repo mới) · .story-brief.md · .env
 #
 # Rename: @boilerplate/* → @<new-name>/* (toàn bộ package.json + pnpm-lock.yaml) ·
 #   root package name → <new-name> · compose `name:` → <new-name> · README title.
 #
-# Lưu ý pnpm-lock: importers của thư mục bị prune (vd frontend/spike) còn sót
+# Lưu ý pnpm-lock: importers của thư mục bị prune (vd app/spike) còn sót
 # trong lockfile — pnpm tự reconcile ở lần `pnpm install --no-frozen-lockfile`
 # ĐẦU TIÊN (bắt buộc — đã ghi trong SCAFFOLD.md output). Không tự strip tay
 # bằng sed/awk — rủi ro corrupt lockfile lớn hơn lợi ích.
@@ -55,7 +55,7 @@ tar -C "$SRC" -cf - \
   --exclude='*/target' \
   --exclude='*/dist' \
   --exclude='./docs/superpowers' \
-  --exclude='./frontend/spike' \
+  --exclude='./app/spike' \
   --exclude='./.github/workflow-templates' \
   --exclude='./.github/workflows/convergence.yml' \
   --exclude='./.story-brief.md' \
@@ -72,7 +72,7 @@ find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.j
 echo "[scaffold] rename root package name + compose name + README title + orca.yaml"
 "${SED_I[@]}" "s/\"name\": \"[^\"]*\"/\"name\": \"$NAME\"/" "$OUT/package.json"
 "${SED_I[@]}" "s/^name: boilerplate/name: $NAME/" "$OUT/platform/docker-compose.yml"
-"${SED_I[@]}" "1s/^# Boilerplate Microservice + Micro-frontend/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
+"${SED_I[@]}" "1s/^# Boilerplate Microservice + Micro-app/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
 "${SED_I[@]}" "s/^name: architecture-overview/name: $NAME/" "$OUT/orca.yaml"
 
 cat > "$OUT/SCAFFOLD.md" <<EOF
@@ -87,7 +87,7 @@ Sinh từ boilerplate epic FI-62 bởi \`scripts/scaffold/scaffold.sh\` ngày $(
 ## Bước tiếp theo (bắt buộc theo thứ tự)
 1. \`git init\` + commit đầu tiên.
 2. \`pnpm install --no-frozen-lockfile\` — LẦN ĐẦU PHẢI non-frozen: lockfile còn
-   giữ importers của thư mục đã prune (frontend/spike); pnpm tự reconcile.
+   giữ importers của thư mục đã prune (app/spike); pnpm tự reconcile.
    Từ lần sau dùng \`--frozen-lockfile\` như thường.
 3. \`cp platform/.env.example platform/.env\` rồi điền JWT_SECRET + passwords.
 4. Compose (máy có Docker): \`docker compose -f platform/docker-compose.yml --env-file platform/.env up -d --build\`

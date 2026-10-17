@@ -26,7 +26,7 @@ graph TB
             spring["spring-svc :8081 (Spring Boot 3) — users/teams + @Transactional demo"]
             go["go-svc :8082 (Go 1.24+chi) — activity feed/stats + Kafka consumer + saga"]
         end
-        subgraph frontend ["frontend/"]
+        subgraph app ["app/"]
             shared["shared (fe-shared — api client, token, MF helper)"]
             shell["shell :3000 — MF host (Rspack)"]
             remotes["remotes/ tasks :4001 + activity :4002"]
@@ -126,7 +126,7 @@ contracts/          # source of truth API/DB/auth — spectral lint trong CI
   auth/             # users fixture + token contract
 platform/           # compose (health-gated), postgres init, nginx, auth-mock, conventions/
 services/           # node-svc / spring-svc / go-svc — impl hoàn chỉnh, README standalone từng svc
-frontend/
+app/
   shared/           # fe-shared — api client, token storage, MF bootstrap helper + design system (src/styles tokens+base, src/ui primitives Badge/EmptyState/Skeleton/Spinner)
   shell/            # MF host (Rspack) — login, nav, remote slots
   remotes/          # tasks + activity — 2 MF remote
@@ -150,5 +150,5 @@ docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)
 2. JWT: gateway chỉ presence-check; **service tự verify** signature + expiry (`contracts/auth/token-contract.md` §4).
 3. auth-mock **NOT FOR PRODUCTION** — copy dự án thật cắm OIDC tại boundary này.
 4. Compose health-gated: node/spring probe `/readyz`; go-svc `service_started` (distroless) — readiness chứng minh bằng smoke script (conventions/02 rule 3).
-5. fe-shared là dependency chung của shell/remotes — copy FE phải kèm `frontend/shared`.
+5. fe-shared là dependency chung của shell/remotes — copy FE phải kèm `app/shared`.
 6. Đổi quyết định kiến trúc = đọc ADR tương ứng trước (mỗi ADR ghi Consequences + điểm cắm thay thế).

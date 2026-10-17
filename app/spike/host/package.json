@@ -2,7 +2,7 @@
   "name": "@boilerplate/spike-host",
   "version": "0.1.0",
   "private": true,
-  "description": "Spike SF-1 — MF host hello-world load spike_remote. Pin versions đã test thật vào frontend/shared/package.json mfToolkit.",
+  "description": "Spike SF-1 — MF host hello-world load spike_remote. Pin versions đã test thật vào app/shared/package.json mfToolkit.",
   "type": "module",
   "scripts": {
     "build": "rspack build"

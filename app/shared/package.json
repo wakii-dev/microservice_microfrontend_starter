@@ -26,7 +26,7 @@
     "typescript": "^5.7.0"
   },
   "mfToolkit": {
-    "$comment": "Kết quả spike SF-1 (frontend/spike) — versions ĐÃ TEST THẬT host :3000 load được remote :4001 trên Rspack + React 19 (evidence: docs/superpowers/evidence/sf-1-mf-spike-host.png). SF-5/6 dùng ĐÚNG matrix này; nâng cấp phải re-spike. Learned trong spike: (1) host entry cần async boundary (import('./bootstrap') — không import shared tĩnh, tránh RUNTIME-006 loadShareSync); (2) JSX dùng automatic runtime (jsc.transform.react.runtime='automatic').",
+    "$comment": "Kết quả spike SF-1 (app/spike) — versions ĐÃ TEST THẬT host :3000 load được remote :4001 trên Rspack + React 19 (evidence: docs/superpowers/evidence/sf-1-mf-spike-host.png). SF-5/6 dùng ĐÚNG matrix này; nâng cấp phải re-spike. Learned trong spike: (1) host entry cần async boundary (import('./bootstrap') — không import shared tĩnh, tránh RUNTIME-006 loadShareSync); (2) JSX dùng automatic runtime (jsc.transform.react.runtime='automatic').",
     "pinned": {
       "react": "19.3.0",
       "react-dom": "19.3.0",
@@ -34,7 +34,7 @@
       "@rspack/cli": "1.7.12",
       "@module-federation/enhanced": "0.21.6"
     },
-    "spikePath": "frontend/spike",
+    "spikePath": "app/spike",
     "validatedDate": "2026-10-12"
   }
 }

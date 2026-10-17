@@ -7,27 +7,28 @@ import { fileURLToPath } from 'node:url';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Remote `activity` — MF REMOTE (SF-6, FI-74). Expose `./ActivityPage` load vào shell slot
+ * Remote `tasks` — MF REMOTE (SF-6, FI-74). Expose `./TasksPage` load vào shell slot
  * (registry conventions/08 — ĐỔI tên/expose = breaking, phải đồng bộ conventions/08 + shell).
- * Port dev 4002 (conventions/05). Pin matrix theo frontend/shared mfToolkit
+ * Port dev 4001 (conventions/05). Pin matrix theo app/shared mfToolkit
  * (react 19.3.0 / rspack 1.7.12 / mf-enhanced 0.21.6 — nâng cấp = re-spike).
  *
  * Env build-time (conventions/06 — KHÔNG hardcode):
- *   API_BASE_URL — base gọi API. Dev native: http://localhost:8082 (go-svc trực tiếp,
+ *   API_BASE_URL — base gọi API. Dev native: http://localhost:3001 (node-svc trực tiếp,
  *     CORS dev mở — conventions/07). Prod (qua gateway): '' (same-origin).
- *   REMOTE_PUBLIC_PATH — publicPath chunk. Dev: http://localhost:4002/ (absolute —
- *     bài học spike SF-1). Prod: /remotes/activity/ (relative qua gateway, conventions/08).
- *   REMOTE_ACTIVITY_PORT — port dev server (default 4002, conventions/05).
+ *   REMOTE_PUBLIC_PATH — publicPath chunk. Dev: http://localhost:4001/ (absolute —
+ *     runtime chunk fetch về đúng origin remote, bài học spike SF-1). Prod: /remotes/tasks/
+ *     (relative qua gateway, conventions/08).
+ *   REMOTE_TASKS_PORT — port dev server (default 4001, conventions/05).
  */
 const isDev = process.env.NODE_ENV !== 'production';
 
-const apiBaseUrl = process.env.API_BASE_URL ?? (isDev ? 'http://localhost:8082' : '');
-const publicPath = process.env.REMOTE_PUBLIC_PATH || (isDev ? 'http://localhost:4002/' : '/remotes/activity/');
+const apiBaseUrl = process.env.API_BASE_URL ?? (isDev ? 'http://localhost:3001' : '');
+const publicPath = process.env.REMOTE_PUBLIC_PATH || (isDev ? 'http://localhost:4001/' : '/remotes/tasks/');
 
 export default {
   // 2 entries (BUG-1 sf-5b): `index` = async boundary cho MF container (remoteEntry.js —
   // RUNTIME-006: entry tĩnh shared → loadShareSync trước share init → crash in-shell);
-  // `standalone` = entry STATIC cho trang debug :4002 — toàn bộ graph (react eager, CSS,
+  // `standalone` = entry STATIC cho trang debug :4001 — toàn bộ graph (react eager, CSS,
   // page) bundle sync vào 1 chunk, không sinh async chunk cho shared → loại trừ hẳn lớp
   // lỗi rspack 1.7.12 + mf-enhanced 0.21.6 sinh chunk id stale (phantom "237"/"819") làm
   // import('./standalone') pending vô hạn. index.html chỉ inject `standalone` (2 entry cùng
@@ -66,7 +67,7 @@ export default {
       {
         test: /\.tsx?$/,
         // fe-shared là package TS raw (main: ./src/index.ts) — bundler phải compile luôn
-        include: [path.resolve(rootDir, 'src'), /[\\/]frontend[\\/]shared[\\/]src/],
+        include: [path.resolve(rootDir, 'src'), /[\\/]app[\\/]shared[\\/]src/],
         use: {
           loader: 'builtin:swc-loader',
           options: {
@@ -82,7 +83,7 @@ export default {
     ],
   },
   plugins: [
-    // index.html chỉ dùng cho standalone debug (:4002) — inject CHỈ entry standalone
+    // index.html chỉ dùng cho standalone debug (:4001) — inject CHỈ entry standalone
     // (entry index chỉ tồn tại làm anchor cho MF container remoteEntry.js, không chạy
     // trong trang — 2 entry cùng chạy = double-bootstrap)
     new HtmlRspackPlugin({
@@ -93,10 +94,10 @@ export default {
       __API_BASE_URL__: JSON.stringify(apiBaseUrl),
     }),
     new ModuleFederationPlugin({
-      name: 'activity',
+      name: 'tasks',
       filename: 'remoteEntry.js',
       exposes: {
-        './ActivityPage': './src/ActivityPage.tsx',
+        './TasksPage': './src/TasksPage.tsx',
       },
       // Singleton theo pin matrix — KHÔNG bundle duplicate react (spec slice mục 3;
       // remote consume singleton do shell host cung cấp khi load trong shell).
@@ -106,12 +107,12 @@ export default {
       //
       // eager: true (BUG-1, sf-5b): rspack 1.7.12 + mf-enhanced 0.21.6 build prod sinh
       // data blocks (initializeSharingData/consumesLoadingData) trỏ chunk id stale
-      // (phantom "237" ngoài chunk map) và KHÔNG emit runtime machinery
+      // (phantom "103"/"237" ngoài chunk map) và KHÔNG emit runtime machinery
       // (__webpack_require__.I / .f.consumes là stub throw) — consumer wrapper
-      // không được emit → standalone import('./standalone') pending vô hạn, trang trắng.
-      // eager inline shared vào entry chunk, bỏ máy móc consume async. In-shell không
-      // đổi: host provide react (singleton loaded-first), bản eager của remote chỉ là
-      // fallback không chạy. Dev server không bị (chunking khác).
+      // (706/43/418) không được emit → standalone import('./standalone') pending vô hạn,
+      // trang trắng. eager inline shared vào entry chunk, bỏ máy móc consume async.
+      // In-shell không đổi: host provide react (singleton loaded-first), bản eager của
+      // remote chỉ là fallback không chạy. Dev server không bị (chunking khác).
       shared: {
         react: { singleton: true, requiredVersion: false, eager: true },
         'react-dom': { singleton: true, requiredVersion: false, eager: true },
@@ -125,16 +126,16 @@ export default {
     css: true,
   },
   devServer: {
-    port: Number(process.env.REMOTE_ACTIVITY_PORT || 4002),
+    port: Number(process.env.REMOTE_TASKS_PORT || 4001),
     headers: { 'Access-Control-Allow-Origin': '*' },
     hot: true,
     // DEV-ONLY proxy (SF-1): dev server origin khác cổng compose đã set
-    // CORS_DEV_ORIGIN (vd REMOTE_ACTIVITY_PORT=4102) → chạy dev với API_BASE_URL=
+    // CORS_DEV_ORIGIN (vd REMOTE_TASKS_PORT=4101) → chạy dev với API_BASE_URL=
     // (same-origin) là qua proxy này, không cần đụng stack compose. Prod không đi đây.
     proxy: [
       {
         context: ['/api'],
-        target: `http://localhost:${process.env.GO_SVC_PORT || 8082}`,
+        target: `http://localhost:${process.env.NODE_SVC_PORT || 3001}`,
       },
     ],
   },

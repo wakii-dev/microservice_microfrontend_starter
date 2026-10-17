@@ -69,9 +69,9 @@ services:
     test: pnpm test          # node --test — real-path login → JWT → Bearer
     note: JWT HS256, NOT-FOR-PROD — issuer/discovery stub cho demo
 
-frontend:
+app:
   shared:
-    path: frontend/shared
+    path: app/shared
     scope: "@boilerplate/fe-shared"
     role: consumed QUA SOURCE (main/types trỏ thẳng src/) — không build riêng, KHÔNG có scripts
     read_locked:   # cấm sửa ngoài story/epic được duyệt — versions + contracts đã test thật
@@ -81,15 +81,15 @@ frontend:
       - src/mf-bootstrap.ts
       - package.json#mfToolkit
   shell:
-    path: frontend/shell
+    path: app/shell
     port: 3000
     role: MF host (Rspack) — nav + login + RemoteSlot (error boundary + retry)
     commands: {dev: pnpm dev, build: pnpm build, test: pnpm test, typecheck: pnpm typecheck}
   remotes:
-    tasks: {path: frontend/remotes/tasks, port: 4001, gateway: /remotes/tasks/}
-    activity: {path: frontend/remotes/activity, port: 4002, gateway: /remotes/activity/}
+    tasks: {path: app/remotes/tasks, port: 4001, gateway: /remotes/tasks/}
+    activity: {path: app/remotes/activity, port: 4002, gateway: /remotes/activity/}
     note: standalone dev vẫn tự mang tokens (import tokens trong entry — quyết định epic VU-53 #5)
-  pins:              # catalog: (pnpm-workspace.yaml) + mfToolkit — NÂNG CẤP PHẢI RE-SPIKE (frontend/spike)
+  pins:              # catalog: (pnpm-workspace.yaml) + mfToolkit — NÂNG CẤP PHẢI RE-SPIKE (app/spike)
     react: 19.3.0
     react-dom: 19.3.0
     rspack: 1.7.12

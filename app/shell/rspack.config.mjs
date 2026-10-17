@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
- * Shell — MF host (SF-5). Pin matrix theo frontend/shared/package.json mfToolkit:
+ * Shell — MF host (SF-5). Pin matrix theo app/shared/package.json mfToolkit:
  * react 19.3.0 / rspack 1.7.12 / mf-enhanced 0.21.6 (nâng cấp = re-spike).
  *
  * Env build-time (conventions/06 + 08 — KHÔNG hardcode):
@@ -53,7 +53,7 @@ export default {
       {
         test: /\.tsx?$/,
         // fe-shared là package TS raw (main: ./src/index.ts) — bundler phải compile luôn
-        include: [path.resolve(rootDir, 'src'), /[\\/]frontend[\\/]shared[\\/]src/],
+        include: [path.resolve(rootDir, 'src'), /[\\/]app[\\/]shared[\\/]src/],
         use: {
           loader: 'builtin:swc-loader',
           options: {

@@ -148,7 +148,7 @@ jobs:
           pnpm test
           pnpm build
 
-      - name: Copy frontend/shared ra tmp + typecheck standalone
+      - name: Copy app/shared ra tmp + typecheck standalone
         # fe-shared KHÔNG có scripts riêng (package consumed qua source) — typecheck
         # = sanity standalone với flags CLI (không tsconfig trong package). Ghi rõ: fe-shared
         # inert cho node-svc (backend không import) — proof FE copy-dir mạnh hơn
@@ -156,7 +156,7 @@ jobs:
         run: |
           REPO_ROOT="$PWD" # checkout cwd — tmp copy nằm NGOÀI repo, path phải absolute
           mkdir -p "$RUNNER_TEMP/standalone/fe-shared"
-          cp -r frontend/shared/. "$RUNNER_TEMP/standalone/fe-shared/"
+          cp -r app/shared/. "$RUNNER_TEMP/standalone/fe-shared/"
           cd "$RUNNER_TEMP/standalone/fe-shared"
           # fe-shared khai "catalog:" → cần workspace catalog khi standalone
           # (P0 code-review SF-7: thiếu = ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC).
@@ -169,7 +169,7 @@ jobs:
           # SF-1 (VU-53) thêm src/ui/*.tsx — pre-SF-7 flag set thiếu --jsx (TS6142) và
           # standalone không có consumer để cung cấp types react (thiết kế SF-1: fe-shared
           # KHÔNG khai dep react, consumer map @types/react qua tsconfig paths — xem
-          # frontend/shell/tsconfig.json). Standalone tự đóng vai consumer: cài
+          # app/shell/tsconfig.json). Standalone tự đóng vai consumer: cài
           # @types/react pin đúng shell + thêm --jsx react-jsx (đối xứng jsx automatic
           # runtime của rspack/vitest — mfToolkit $comment).
           pnpm add -D @types/react@19.2.2

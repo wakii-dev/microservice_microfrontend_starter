@@ -10,7 +10,7 @@ Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là nh
 
 ```bash
 git clone <repo> && cd <repo>
-pnpm install --frozen-lockfile     # FE workspace (frontend/*)
+pnpm install --frozen-lockfile     # FE workspace (app/*)
 cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace && cd ../..   # node-svc standalone lockfile
 cd platform/auth-mock && pnpm install --ignore-workspace && cd ../..                     # auth-mock standalone
 ```
@@ -71,9 +71,9 @@ cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
   SPRING_SVC_URL=http://localhost:8081 go run ./cmd/server
 
 # FE (3 terminal):
-cd frontend/shell   && pnpm dev   # :3000
-cd frontend/remotes/tasks    && pnpm dev   # :4001
-cd frontend/remotes/activity && pnpm dev   # :4002
+cd app/shell   && pnpm dev   # :3000
+cd app/remotes/tasks    && pnpm dev   # :4001
+cd app/remotes/activity && pnpm dev   # :4002
 ```
 
 Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conventions/07 (CORS dev đã mở). Chain 3 service "qua một cổng" là đặc tính của compose mode (đường A) + CI e2e-smoke job.

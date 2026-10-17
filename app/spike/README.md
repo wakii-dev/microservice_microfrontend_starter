@@ -1,4 +1,4 @@
-# frontend/spike — MF/Rspack spike (SF-1)
+# app/spike — MF/Rspack spike (SF-1)
 
 Mục đích: chứng minh **React 19 + @module-federation/enhanced + Rspack** load được host → remote, để **pin version có căn cứ** (không bịa) trước khi SF-5/6 build shell/remotes thật. Xoá/sửa được sau khi SF-5 re-validate — KHÔNG phải production code.
 
@@ -6,7 +6,7 @@ Mục đích: chứng minh **React 19 + @module-federation/enhanced + Rspack** l
 
 - ✅ Host (`:3000`) dynamic-import được exposed module `./Hello` từ remote (`:4001/remoteEntry.js`).
 - ✅ Evidence: `docs/superpowers/evidence/sf-1-mf-spike-host.png` (screenshot browser thật).
-- Versions pin: trường `mfToolkit.pinned` trong `frontend/shared/package.json` — react 19.3.0, react-dom 19.3.0, @rspack/core + @rspack/cli 1.7.12, @module-federation/enhanced 0.21.6.
+- Versions pin: trường `mfToolkit.pinned` trong `app/shared/package.json` — react 19.3.0, react-dom 19.3.0, @rspack/core + @rspack/cli 1.7.12, @module-federation/enhanced 0.21.6.
 
 ## Learned (2 pitfall — SF-5/6 tránh lặp)
 
@@ -16,9 +16,9 @@ Mục đích: chứng minh **React 19 + @module-federation/enhanced + Rspack** l
 ## Chạy lại spike
 
 ```bash
-# từ root repo (workspace đã include frontend/spike/*)
+# từ root repo (workspace đã include app/spike/*)
 pnpm install
-cd frontend/spike/remote && pnpm build   # dist + remoteEntry.js
+cd app/spike/remote && pnpm build   # dist + remoteEntry.js
 cd ../host && pnpm build && cp index.html dist/
 # serve 2 dist (0-dep server kèm sẵn, CORS mở):
 cd .. && node serve.mjs remote/dist 4001 &

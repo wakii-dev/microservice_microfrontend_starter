@@ -1,8 +1,8 @@
 {
-  "name": "@boilerplate/remote-activity",
+  "name": "@boilerplate/remote-tasks",
   "version": "0.1.0",
   "private": true,
-  "description": "FE remote `activity` (SF-6, FI-74) — MF remote expose ./ActivityPage, feed + stats qua /api/activity (go-svc qua gateway). Standalone-copy: copy KÈM frontend/shared (fe-shared).",
+  "description": "FE remote `tasks` (SF-6, FI-74) — MF remote expose ./TasksPage, CRUD qua /api/tasks (node-svc qua gateway). Standalone-copy: copy KÈM app/shared (fe-shared).",
   "type": "module",
   "scripts": {
     "dev": "rspack serve",

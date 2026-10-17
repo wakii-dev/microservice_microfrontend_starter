@@ -38,4 +38,4 @@ Mọi HTTP response 4xx/5xx của mọi service dùng **một** shape — mirror
 
 1. Fastify/spring/Go framework error mặc định (vd Fastify `FST_ERR_*`) phải được **map sang envelope** bằng error handler riêng.
 2. Gateway (nginx) 401 presence-check trả envelope tương tự (`{"error":{"code":"UNAUTHORIZED",...}}`) qua `default.conf` inline response.
-3. FE decode envelope bằng helper `decodeErrorEnvelope` trong `frontend/shared` — không tự parse message đáy.
+3. FE decode envelope bằng helper `decodeErrorEnvelope` trong `app/shared` — không tự parse message đáy.

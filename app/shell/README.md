@@ -1,4 +1,4 @@
-# frontend/shell — MF host (SF-5)
+# app/shell — MF host (SF-5)
 
 FE shell — Module Federation host (Rspack + `@module-federation/enhanced`), React 19 + TypeScript + pnpm. Cửa vào của demo: login mock JWT → nav → load remote `tasks` / `activity` (SF-6 impl) vào layout; remote down → error boundary fallback + retry, không trắng trang.
 
@@ -46,8 +46,8 @@ A11y baseline CÓ TEST: skip link (`Tới nội dung chính`) + route focus mana
 ## Docker (verify qua CI — dev machine không có Docker)
 
 ```bash
-# context = repo root (cần frontend/shared + workspace lockfile)
-docker build -f frontend/shell/Dockerfile -t shell .
+# context = repo root (cần app/shared + workspace lockfile)
+docker build -f app/shell/Dockerfile -t shell .
 docker run -p 3000:3000 shell
 ```
 
@@ -59,7 +59,7 @@ Multi-stage: node:22-alpine build → nginx:1.27-alpine serve static `:3000`, SP
 
 ## Standalone-copy
 
-Copy thư mục này **KÈM `frontend/shared/`** (workspace dep `@boilerplate/fe-shared`) + root `pnpm-workspace.yaml` + `pnpm-lock.yaml`. Không copy = build fail ngay ở import fe-shared.
+Copy thư mục này **KÈM `app/shared/`** (workspace dep `@boilerplate/fe-shared`) + root `pnpm-workspace.yaml` + `pnpm-lock.yaml`. Không copy = build fail ngay ở import fe-shared.
 
 ## Kiến trúc nhanh
 

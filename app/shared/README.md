@@ -15,7 +15,7 @@ Repo-con thứ 7. **Từ story VU-53 SF-1: `src/styles/` + `src/ui/` do design-s
 
 ## MF toolkit pin (kết quả spike SF-1)
 
-Trường `mfToolkit.pinned` trong `package.json` = versions **đã test thật** (host load được remote trên Rspack, React 19). Spike: `frontend/spike/`. SF-5/6 dùng đúng matrix; nâng version = re-spike trước.
+Trường `mfToolkit.pinned` trong `package.json` = versions **đã test thật** (host load được remote trên Rspack, React 19). Spike: `app/spike/`. SF-5/6 dùng đúng matrix; nâng version = re-spike trước.
 
 React 19 + Module Federation + Rspack là cặp rủi ro (repo đổi bundler internals) — KHÔNG nâng một mình một thành phần. Spike R2 (SF-1, VU-53): fe-shared JSX qua MF boundary sạch duplicate-react — evidence `docs/superpowers/evidence/sf-1-ui-redesign-dsys/spike-r2-result.md`.
 

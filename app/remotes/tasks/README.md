@@ -34,16 +34,16 @@ pnpm --filter @boilerplate/remote-tasks build       # dist/ — Dockerfile nginx
 
 ## Docker
 
-Build context = **repo root** (cần `frontend/shared` + lockfile):
+Build context = **repo root** (cần `app/shared` + lockfile):
 
 ```bash
-docker build -f frontend/remotes/tasks/Dockerfile -t boilerplate-remote-tasks .
+docker build -f app/remotes/tasks/Dockerfile -t boilerplate-remote-tasks .
 docker run -p 4001:4001 boilerplate-remote-tasks   # http://localhost:4001/remoteEntry.js
 ```
 
 ## Standalone-copy
 
-Copy thư mục này **KÈM `frontend/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@boilerplate/fe-shared` qua `workspace:*`.
+Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@boilerplate/fe-shared` qua `workspace:*`.
 
 ## API contract
 

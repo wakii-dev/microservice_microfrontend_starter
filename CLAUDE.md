@@ -18,7 +18,7 @@ platform/     docker-compose.yml (10 services) · gateway/nginx · auth-mock :80
               postgres/init · conventions/ (01–09)
 services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
               spring-svc :8081 (Boot 3 — users/teams) · go-svc :8082 (chi — activity, Kafka consumer, saga)
-frontend/     shared (fe-shared, consumed qua source) · shell :3000 (MF host)
+app/     shared (fe-shared, consumed qua source) · shell :3000 (MF host)
               remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
 scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
 docs/         walkthrough · adr/0001–0008 · toolchain · superpowers/ (spec+plan+evidence theo story)
@@ -49,8 +49,8 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 
 ## READ-LOCKED (frontend)
 
-- `frontend/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts` + `package.json#mfToolkit` — cấm sửa ngoài epic được duyệt (versions đã test thật: MF host :3000 load remote :4001).
-- Nâng cấp react/rspack/@module-federation/enhanced (catalog: trong `pnpm-workspace.yaml`) **phải re-spike** qua `frontend/spike` trước.
+- `app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts` + `package.json#mfToolkit` — cấm sửa ngoài epic được duyệt (versions đã test thật: MF host :3000 load remote :4001).
+- Nâng cấp react/rspack/@module-federation/enhanced (catalog: trong `pnpm-workspace.yaml`) **phải re-spike** qua `app/spike` trước.
 - fe-shared consumed QUA SOURCE, không build riêng; remote standalone tự mang tokens (import tokens trong entry).
 
 ## Run demo
@@ -65,7 +65,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | Code bất kỳ service nào | `platform/conventions/01–09` (+ README service đó) |
 | Sửa API/contract | `contracts/openapi/*.yaml` + `platform/conventions/04` (envelope) |
 | Đụng Kafka/outbox/saga/DLQ | `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md` |
-| Đụng FE/MF/design system | `docs/adr/0002` + `frontend/shared/README.md` + README shell/remotes |
+| Đụng FE/MF/design system | `docs/adr/0002` + `app/shared/README.md` + README shell/remotes |
 | Vì sao kiến trúc vậy | `docs/adr/0001–0008` |
 | Tổ chức epic/story với Wakii | `docs/wakii-playbook.md` (4 archetype chia SF + gates) |
 

@@ -7,15 +7,15 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "frontend/shell/**"
-      - "frontend/shared/**"
+      - "app/shell/**"
+      - "app/shared/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - ".github/workflows/shell.yml"
   pull_request:
     paths:
-      - "frontend/shell/**"
-      - "frontend/shared/**"
+      - "app/shell/**"
+      - "app/shared/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - ".github/workflows/shell.yml"
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: shell-dist
-          path: frontend/shell/dist/
+          path: app/shell/dist/
           retention-days: 3
 
   boot-smoke:
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Docker build (multi-stage node→nginx, context = repo root)
-        run: docker build -f frontend/shell/Dockerfile -t boilerplate-shell .
+        run: docker build -f app/shell/Dockerfile -t boilerplate-shell .
       - name: Up container
         run: docker run -d --name shell -p 3000:3000 boilerplate-shell
       - name: Smoke — HTTP 200 trên / (SPA index)

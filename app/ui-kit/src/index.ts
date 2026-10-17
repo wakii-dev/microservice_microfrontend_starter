@@ -95,3 +95,7 @@ export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
 export { Menu, type MenuProps, type MenuItemData, MenuCompactContext } from './ui/menu/index.js';
 export { Sidebar, type SidebarProps } from './ui/sidebar/index.js';
 export { useForm, type UseFormOptions, type FormErrors, type FormValidationMode } from './hooks/useForm.js';
+
+// ── Upload (batch ③ 2026-10-18) ──
+export { Upload, UploadDropzone } from './ui/upload/index.js';
+export type { UploadItem, UploadProps, UploadStatus } from './ui/upload/upload-core.js';

@@ -88,7 +88,7 @@ jobs:
           echo "$RES" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/' > /tmp/jwt
           # register mở qua gateway (auth.yaml v2 — entry công khai, roles ["user"])
           # P2 security-audit SF-5: nhánh fail không in body (có thể chứa token) — chỉ field names
-          CODE=$(curl -s -o /tmp/reg.json -w '%{http_code}' -X POST http://localhost:8080/api/auth/register \
+          CODE=$(curl -s --max-time 10 -o /tmp/reg.json -w '%{http_code}' -X POST http://localhost:8080/api/auth/register \
             -H 'Content-Type: application/json' \
             -d '{"email":"ci-contracts@example.com","password":"ci-password-1","displayName":"CI Contracts"}')
           [ "$CODE" = "201" ] || { echo "register qua gateway → $CODE (expect 201) — fields: $(grep -o '"[a-zA-Z]\+":' /tmp/reg.json | tr '\n' ' ')"; exit 1; }

@@ -47,7 +47,7 @@ done
 docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
 bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 15 bước, 3 luồng:
                                     #   happy     : login→task→feed QUA KAFKA (outbox → topic → go consumer)
-                                    #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 200)
+                                    #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 204)
                                     #   saga      : assign svc-fail → task assignment_failed + event gốc ở task-events.dlq
 # Mở browser: http://localhost:8080/ → login alice@demo.local / demo-password
 #             (hoặc tự register account mới — tab Register, mục 4a)

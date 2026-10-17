@@ -21,12 +21,12 @@
 - Modify: `.github/workflows/contracts.yml` — **schemathesis scope hẹp lại**: chỉ chạy paths auth-mock đang implement (paths mới thêm sẽ 404 → job đỏ oan). Exclude `register|refresh|logout` khỏi include-path đến SF-5
 - Prepare (KHÔNG commit — gap-answer doc cho coordinator duyệt, SF-5 thực thi): compose entry `auth-mock`→`auth-svc` + key `gateway.depends_on.auth-mock`→`auth-svc` + nginx upstream + go-svc env `AUTH_MOCK_URL` value → `http://auth-svc:8090` + users.json volume mount cho auth-svc + init 01-init.sh thêm role `auth_svc`/schema `auth` + `AUTH_SVC_DB_PASSWORD`
 
-- [ ] **Step 1: auth.yaml** — schemas `RegisterRequest{email,password(minLength 8,maxLength 72),displayName}`, `TokenPair{accessToken,refreshToken}`, `RefreshRequest{refreshToken}`; paths `POST /register|/login|/refresh|/logout|/logout-all`; **response login/register = `{user: UserRef, accessToken, refreshToken}` — DROP `tokenType`/`expiresIn` (decision #8, KHÔNG thuần additive)**; `GET /users` giữ (description: serve từ schema auth); xoá discovery stub + cập nhật disclaimer header.
-- [ ] **Step 2: mirror healthz/readyz** dưới prefix `/api/auth/` (conventions/02 rule 6).
-- [ ] **Step 3: token-contract.md v2** — access TTL `30m`; refresh: opaque 256-bit, **lưu sha256 hash**, TTL **7d**, rotation **CAS atomic** (`UPDATE ... WHERE id=$old AND revoked_at IS NULL RETURNING` — 0 rows = reuse), **reuse → revoke TẤT CẢ refresh_tokens của user + 401** (strict; FE single-flight giảm xác suất — documented); `iss` **PINNED `"auth-mock"`** (3 service + CI hardcode — đổi tên là follow-up riêng); `localStorage['bp.rt']` rationale pin (accepted-for-demo, httpOnly-cookie = upgrade path); ghi "RS256/JWKS = path OIDC, claims không đổi".
-- [ ] **Step 4: .env.example** — như Files ở trên (default `demo-password` — KHÔNG `change-me-*`: e2e + svc-activity + seed cùng một nguồn, acceptance #3 phụ thuộc).
-- [ ] **Step 5: soạn gap-answer doc đầy đủ** (list ở Files — 8 mục) → FLAG coordinator duyệt. KHÔNG commit compose/nginx/init trong SF-1.
-- [ ] **Step 6: Verify** — `pnpm lint:contracts` xanh; CI `contracts` xanh với schemathesis SCOPED (verify job không 404).
+- [x] **Step 1: auth.yaml** — schemas `RegisterRequest{email,password(minLength 8,maxLength 72),displayName}`, `TokenPair{accessToken,refreshToken}`, `RefreshRequest{refreshToken}`; paths `POST /register|/login|/refresh|/logout|/logout-all`; **response login/register = `{user: UserRef, accessToken, refreshToken}` — DROP `tokenType`/`expiresIn` (decision #8, KHÔNG thuần additive)**; `GET /users` giữ (description: serve từ schema auth); xoá discovery stub + cập nhật disclaimer header.
+- [x] **Step 2: mirror healthz/readyz** dưới prefix `/api/auth/` (conventions/02 rule 6).
+- [x] **Step 3: token-contract.md v2** — access TTL `30m`; refresh: opaque 256-bit, **lưu sha256 hash**, TTL **7d**, rotation **CAS atomic** (`UPDATE ... WHERE id=$old AND revoked_at IS NULL RETURNING` — 0 rows = reuse), **reuse → revoke TẤT CẢ refresh_tokens của user + 401** (strict; FE single-flight giảm xác suất — documented); `iss` **PINNED `"auth-mock"`** (3 service + CI hardcode — đổi tên là follow-up riêng); `localStorage['bp.rt']` rationale pin (accepted-for-demo, httpOnly-cookie = upgrade path); ghi "RS256/JWKS = path OIDC, claims không đổi".
+- [x] **Step 4: .env.example** — như Files ở trên (default `demo-password` — KHÔNG `change-me-*`: e2e + svc-activity + seed cùng một nguồn, acceptance #3 phụ thuộc).
+- [x] **Step 5: soạn gap-answer doc đầy đủ** (list ở Files — 8 mục) → FLAG coordinator duyệt. KHÔNG commit compose/nginx/init trong SF-1.
+- [x] **Step 6: Verify** — `pnpm lint:contracts` xanh; CI `contracts` xanh với schemathesis SCOPED (verify job không 404).
 
 ### Task 2 = SF-2 (tier 1, song song — vùng `services/auth-svc/**` mới + 2 shared files 1 dòng): auth-svc
 
@@ -56,10 +56,10 @@
 - Modify: `services/node-svc/src/routes/tasks.ts` (DELETE guard)
 - Test: `services/node-svc/src/app.test.ts`
 
-- [ ] **Step 1: RED** — test DELETE với token roles `["user"]` → 403 `{code:"FORBIDDEN"}`; alice (admin) → 200. Chạy FAIL.
-- [ ] **Step 2: guard** — preHandler DELETE: `if (!user.roles?.includes('admin')) throw createError(403, 'FORBIDDEN', 'Chỉ admin được xoá task')`.
-- [ ] **Step 3: GREEN** — suite node xanh (e2e.sh hiện tại KHÔNG có bước DELETE — compat mặc nhiên đúng, không cần assert gì thêm ở SF-3).
-- [ ] **Step 4: Verify** — `pnpm --filter node-svc test && pnpm --filter node-svc build`.
+- [x] **Step 1: RED** — test DELETE với token roles `["user"]` → 403 `{code:"FORBIDDEN"}`; alice (admin) → 200. Chạy FAIL.
+- [x] **Step 2: guard** — preHandler DELETE: `if (!user.roles?.includes('admin')) throw createError(403, 'FORBIDDEN', 'Chỉ admin được xoá task')`.
+- [x] **Step 3: GREEN** — suite node xanh (e2e.sh hiện tại KHÔNG có bước DELETE — compat mặc nhiên đúng, không cần assert gì thêm ở SF-3).
+- [x] **Step 4: Verify** — `pnpm --filter node-svc test && pnpm --filter node-svc build`.
 
 *(SF-3 nhỏ hơn chuẩn 8-15 steps — giữ riêng vì vùng file tách bạch là trục song song với SF-2/4; chạy tier co-giãn Standard.)*
 
@@ -70,7 +70,7 @@
 - Modify: `app/shell/src/pages/LoginPage.tsx` (+tab Register; response v2 shape — không còn tokenType/expiresIn) · `app/shell/src/api.ts`
 - Test: `app/shell/tests/` (mock fetch)
 
-- [ ] **Step 1: refresh-client API** —
+- [x] **Step 1: refresh-client API** —
 
 ```ts
 export interface AuthSession { accessToken: string; refreshToken: string; }
@@ -81,9 +81,9 @@ export async function withRefresh<T>(fn: (token: string) => Promise<T>): Promise
 export async function logout(): Promise<void>; // revoke + clear 2 key
 ```
    Access → `tokenStorage` (API có sẵn); refresh → `localStorage['bp.rt']` (rationale pin token-contract.md).
-- [ ] **Step 2: tests** — mock fetch: login/register lưu cặp đúng key; 401 → /refresh đúng 1 lần → retry OK; refresh cũng 401 → clear 2 key + throw Unauthorized; logout revoke + clear.
-- [ ] **Step 3: LoginPage** — tab Login/Register; response v2 shape; lỗi 401/409 theo messages contract.
-- [ ] **Step 4: Verify** — `pnpm --filter shell test && typecheck`; **coverage gate đúng ngưỡng config (lines/statements/branches 90, functions 80)**; **a11y test** (tab/form mới phải qua suite a11y sẵn có).
+- [x] **Step 2: tests** — mock fetch: login/register lưu cặp đúng key; 401 → /refresh đúng 1 lần → retry OK; refresh cũng 401 → clear 2 key + throw Unauthorized; logout revoke + clear.
+- [x] **Step 3: LoginPage** — tab Login/Register; response v2 shape; lỗi 401/409 theo messages contract.
+- [x] **Step 4: Verify** — `pnpm --filter shell test && typecheck`; **coverage gate đúng ngưỡng config (lines/statements/branches 90, functions 80)**; **a11y test** (tab/form mới phải qua suite a11y sẵn có).
 
 ### Task 5 = SF-5 (tier 2): Convergence + decommission + CI swap + docs
 
@@ -95,11 +95,11 @@ export async function logout(): Promise<void>; // revoke + clear 2 key
 - Delete: `platform/auth-mock/`
 - Modify: `platform/.env.example` (đồng bộ rename đã làm ở SF-1 — nếu conflict thì merge)
 
-- [ ] **Step 1: decommission** — xoá `platform/auth-mock/` + entry compose (kèm `depends_on` key) + upstream nginx + go-svc env value; boot compose (volume MỚI hoặc `down -v`): auth-svc healthcheck xanh thay vị trí cũ.
-- [ ] **Step 2: e2e mở rộng** — sau login: register `smoke-<ts>@demo.local` → refresh → reuse old → 401 → logout → register user roles `["user"]` DELETE task → 403; alice DELETE → 200.
-- [ ] **Step 3: CI swap** — 3 workflow boot auth-svc; contracts.yml nới schemathesis full paths; **toàn bộ CI main phải xanh sau merge** (acceptance #9).
-- [ ] **Step 4: docs sync CÙNG commit** — list ở Files; grep `auth-mock` = rỗng trên: docs/*.md, CLAUDE.md, orca.yaml, README.md, .env.example, .github/workflows/ (token-contract.md + users.json $comment giữ note lịch sử nếu muốn — ghi rõ).
-- [ ] **Step 5: Full suite + security pass + human walkthrough 2 tab** (register→login→tab 2→logout-all→tab 1 chết ở request kế tiếp) — evidence `docs/superpowers/evidence/auth-real/`.
+- [x] **Step 1: decommission** — xoá `platform/auth-mock/` + entry compose (kèm `depends_on` key) + upstream nginx + go-svc env value; boot compose (volume MỚI hoặc `down -v`): auth-svc healthcheck xanh thay vị trí cũ.
+- [x] **Step 2: e2e mở rộng** — sau login: register `smoke-<ts>@demo.local` → refresh → reuse old → 401 → logout → register user roles `["user"]` DELETE task → 403; alice DELETE → 200.
+- [x] **Step 3: CI swap** — 3 workflow boot auth-svc; contracts.yml nới schemathesis full paths; **toàn bộ CI main phải xanh sau merge** (acceptance #9).
+- [x] **Step 4: docs sync CÙNG commit** — list ở Files; grep `auth-mock` = rỗng trên: docs/*.md, CLAUDE.md, orca.yaml, README.md, .env.example, .github/workflows/ (token-contract.md + users.json $comment giữ note lịch sử nếu muốn — ghi rõ).
+- [x] **Step 5: Full suite + security pass + human walkthrough 2 tab** (register→login→tab 2→logout-all→tab 1 chết ở request kế tiếp) — evidence `docs/superpowers/evidence/auth-real/`.
 
 ---
 

@@ -36,7 +36,8 @@
 #
 # Exit 0 = PASS; exit N = fail ở bước N (in rõ bước fail).
 # Lịch sử đánh số (bảo toàn contract exit N = fail bước N): FI-81 8 bước nhãn
-# /8 (exit tới 10); VU-64 +6 bước auth-real → nhãn /15 (exit tới 15) — marker
+# /8 (exit tới 10); VU-64 +6 bước auth-real → nhãn /15, exit = label+1 (tới 16,
+# unique từng bước) — marker
 # `SAGA_TASK_ID=` + `SMOKE_SAGA=0` exit 0 giữ nguyên (CI convergence.yml parse).
 # ============================================================================
 set -u
@@ -171,33 +172,33 @@ HTTP=$($CURL -o "$REGISTER_BODY" -w '%{http_code}' -X POST "$GW/api/auth/registe
   -d "{\"email\":\"$REGISTER_EMAIL\",\"password\":\"smoke-password-1\",\"displayName\":\"Smoke E2E\"}")
 # P2 security-audit SF-5: nhánh fail KHÔNG in body (body có thể chứa AuthSession nếu
 # service buggy trả success-code-sai) — chỉ in tên field, nhất quán policy bước login
-[ "$HTTP" = "201" ] || fail 7 "register HTTP $HTTP (expect 201) — fields: $(grep -o '"[a-zA-Z]\+":' "$REGISTER_BODY" | tr '\n' ' ')"
-grep -q '"roles":\["user"\]' "$REGISTER_BODY" || fail 7 "register response thiếu roles [\"user\"] (shape v2 — kiểm auth.yaml)"
+[ "$HTTP" = "201" ] || fail 8 "register HTTP $HTTP (expect 201) — fields: $(grep -o '"[a-zA-Z]\+":' "$REGISTER_BODY" | tr '\n' ' ')"
+grep -q '"roles":\["user"\]' "$REGISTER_BODY" || fail 8 "register response thiếu roles [\"user\"] (shape v2 — kiểm auth.yaml)"
 USER_TOKEN="$(extract accessToken "$REGISTER_BODY")"
 RT1="$(extract refreshToken "$REGISTER_BODY")"
-[ -n "$USER_TOKEN" ] && [ -n "$RT1" ] || fail 7 "register 201 nhưng thiếu cặp token (shape AuthSession — kiểm contracts/openapi/auth.yaml)"
+[ -n "$USER_TOKEN" ] && [ -n "$RT1" ] || fail 8 "register 201 nhưng thiếu cặp token (shape AuthSession — kiểm contracts/openapi/auth.yaml)"
 say "7/15 register OK $REGISTER_EMAIL (roles user — không in token)"
 
 # --- Bước 8: refresh rotation CAS → 200 cặp mới, token cũ bị revoke trong cùng tx ---
 REFRESH_BODY="$(mktemp)"
 HTTP=$($CURL -o "$REFRESH_BODY" -w '%{http_code}' -X POST "$GW/api/auth/refresh" \
   -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT1\"}")
-[ "$HTTP" = "200" ] || fail 8 "refresh HTTP $HTTP (expect 200) — fields: $(grep -o '"[a-zA-Z]\+":' "$REFRESH_BODY" | tr '\n' ' ')"
+[ "$HTTP" = "200" ] || fail 9 "refresh HTTP $HTTP (expect 200) — fields: $(grep -o '"[a-zA-Z]\+":' "$REFRESH_BODY" | tr '\n' ' ')"
 RT2="$(extract refreshToken "$REFRESH_BODY")"
-[ -n "$RT2" ] && [ "$RT2" != "$RT1" ] || fail 8 "refresh 200 nhưng refreshToken không rotate (giống token cũ?)"
+[ -n "$RT2" ] && [ "$RT2" != "$RT1" ] || fail 9 "refresh 200 nhưng refreshToken không rotate (giống token cũ?)"
 say "8/15 refresh rotation OK (token mới khác token cũ)"
 
 # --- Bước 9: REUSE token đã rotate → 401 + revoke TẤT CẢ refresh của user (strict) ---
 HTTP=$($CURL -o /dev/null -w '%{http_code}' -X POST "$GW/api/auth/refresh" \
   -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT1\"}")
-[ "$HTTP" = "401" ] || fail 9 "reuse refresh cũ HTTP $HTTP (expect 401 — reuse-detect strict token-contract §3)"
+[ "$HTTP" = "401" ] || fail 10 "reuse refresh cũ HTTP $HTTP (expect 401 — reuse-detect strict token-contract §3)"
 say "9/15 reuse-detect OK (token cũ → 401 + revoke-all)"
 
 # --- Bước 10: logout idempotent → 204 (RT2 đã bị revoke-all ở bước 9 — vẫn 204,
 #             đúng contract "token lạ/đã revoke vẫn 204, không leak") ---
 HTTP=$($CURL -o /dev/null -w '%{http_code}' -X POST "$GW/api/auth/logout" \
   -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT2\"}")
-[ "$HTTP" = "204" ] || fail 10 "logout HTTP $HTTP (expect 204 idempotent)"
+[ "$HTTP" = "204" ] || fail 11 "logout HTTP $HTTP (expect 204 idempotent)"
 say "10/15 logout OK (204 — idempotent trên token đã revoke)"
 
 # --- Bước 11: RBAC — user roles ["user"] DELETE task của alice → 403 FORBIDDEN
@@ -205,15 +206,15 @@ say "10/15 logout OK (204 — idempotent trên token đã revoke)"
 RBAC_403_BODY="$(mktemp)"
 HTTP=$($CURL -o "$RBAC_403_BODY" -w '%{http_code}' -X DELETE "$GW/api/tasks/$TASK_ID" \
   -H "Authorization: Bearer $USER_TOKEN")
-[ "$HTTP" = "403" ] || fail 11 "DELETE task bởi user thường HTTP $HTTP (expect 403 — RBAC admin-only SF-3): $(cat "$RBAC_403_BODY")"
-grep -q '"code":"FORBIDDEN"' "$RBAC_403_BODY" || fail 11 "403 nhưng thiếu envelope FORBIDDEN (conventions/04): $(cat "$RBAC_403_BODY")"
+[ "$HTTP" = "403" ] || fail 12 "DELETE task bởi user thường HTTP $HTTP (expect 403 — RBAC admin-only SF-3): $(cat "$RBAC_403_BODY")"
+grep -q '"code":"FORBIDDEN"' "$RBAC_403_BODY" || fail 12 "403 nhưng thiếu envelope FORBIDDEN (conventions/04): $(cat "$RBAC_403_BODY")"
 say "11/15 RBAC OK — user thường DELETE → 403 FORBIDDEN"
 
 # --- Bước 12: alice (admin) DELETE cùng task → 204 (contract tasks.yaml —
 #             DELETE trả 204 No Content; prose plan ghi "200" là sơ sài) ---
 HTTP=$($CURL -o /dev/null -w '%{http_code}' -X DELETE "$GW/api/tasks/$TASK_ID" \
   -H "Authorization: Bearer $TOKEN")
-[ "$HTTP" = "204" ] || fail 12 "DELETE task bởi alice HTTP $HTTP (expect 204 — tasks.yaml §delete)"
+[ "$HTTP" = "204" ] || fail 13 "DELETE task bởi alice HTTP $HTTP (expect 204 — tasks.yaml §delete)"
 say "12/15 RBAC OK — alice DELETE → 204 (task xoá thật)"
 
 # ============================================================================
@@ -227,13 +228,13 @@ if [ "$SAGA" = "1" ]; then
   HTTP=$($CURL -o "$SAGA_TASK_BODY" -w '%{http_code}' -X POST "$GW/api/tasks" \
     -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
     -d "{\"title\":\"$SAGA_TITLE\",\"description\":\"SF-5 e2e saga\"}")
-  [ "$HTTP" = "201" ] || fail 8 "tạo task saga HTTP $HTTP (expect 201): $(cat "$SAGA_TASK_BODY")"
+  [ "$HTTP" = "201" ] || fail 14 "tạo task saga HTTP $HTTP (expect 201): $(cat "$SAGA_TASK_BODY")"
   SAGA_TASK_ID="$(extract id "$SAGA_TASK_BODY")"
-  [ -n "$SAGA_TASK_ID" ] || fail 8 "task saga id không parse được: $(cat "$SAGA_TASK_BODY")"
+  [ -n "$SAGA_TASK_ID" ] || fail 14 "task saga id không parse được: $(cat "$SAGA_TASK_BODY")"
   HTTP=$($CURL -o /dev/null -w '%{http_code}' -X PATCH "$GW/api/tasks/$SAGA_TASK_ID" \
     -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
     -d "{\"assigneeId\":\"$FAIL_USER\"}")
-  [ "$HTTP" = "200" ] || fail 8 "PATCH assigneeId=$FAIL_USER HTTP $HTTP (expect 200): task $SAGA_TASK_ID"
+  [ "$HTTP" = "200" ] || fail 14 "PATCH assigneeId=$FAIL_USER HTTP $HTTP (expect 200): task $SAGA_TASK_ID"
   say "13/15 saga: PATCH task $SAGA_TASK_ID assigneeId=svc-fail OK — chờ go retry ×3 → compensating"
 
   # --- Bước 14: poll GET task → status assignment_failed (node compensation
@@ -250,7 +251,7 @@ if [ "$SAGA" = "1" ]; then
     fi
     sleep 1
   done
-  [ "$GOT" = "1" ] || fail 9 "task $SAGA_TASK_ID không thành assignment_failed sau ${SAGA_RETRIES}s (kiểm: go consumer retry/DLQ? node-svc-compensation group consume? conditional UPDATE guard?) — body cuối: $(cat "$SAGA_GET_BODY")"
+  [ "$GOT" = "1" ] || fail 15 "task $SAGA_TASK_ID không thành assignment_failed sau ${SAGA_RETRIES}s (kiểm: go consumer retry/DLQ? node-svc-compensation group consume? conditional UPDATE guard?) — body cuối: $(cat "$SAGA_GET_BODY")"
   say "14/15 saga: task status = assignment_failed (compensation đã chạy)"
 
   # --- Bước 15: assert DLQ — event gốc (task.assigned cho task saga) phải nằm
@@ -264,7 +265,7 @@ if [ "$SAGA" = "1" ]; then
   #            CHÍNH THỨC nằm ở CI step "Assert DLQ" sau step này (parse marker
   #            SAGA_TASK_ID= bên dưới). Chạy standalone (máy có compose) thì
   #            assert ở đây vẫn là assert thật. ---
-  command -v docker >/dev/null || fail 10 "docker không có trong PATH — không assert DLQ được (set SMOKE_SAGA=0 nếu môi trường không có Kafka)"
+  command -v docker >/dev/null || fail 16 "docker không có trong PATH — không assert DLQ được (set SMOKE_SAGA=0 nếu môi trường không có Kafka)"
   DLQ_OUT="$(mktemp)"
   DLQ_ERR="$(mktemp)"
   DLQ_ARRIVED=0
@@ -283,12 +284,12 @@ if [ "$SAGA" = "1" ]; then
     if [ ! -s "$DLQ_OUT" ]; then
       # offset > 0 nhưng console-consumer trả output RỖNG = KHÔNG đọc được
       # (exec/tool fail), khác với "đọc được mà không có taskId" (P2 reviewer)
-      fail 10 "DLQ có message (offset $DLQ_END) nhưng console-consumer trả output RỖNG — không đọc được (kiểm exec/tool)"
+      fail 16 "DLQ có message (offset $DLQ_END) nhưng console-consumer trả output RỖNG — không đọc được (kiểm exec/tool)"
     fi
     if grep -q "$SAGA_TASK_ID" "$DLQ_OUT"; then
       say "15/15 DLQ: event gốc của task $SAGA_TASK_ID có mặt ở task-events.dlq (end offset $DLQ_END) — acceptance saga đủ 2 nửa (status + DLQ)"
     else
-      fail 10 "DLQ có message (offset $DLQ_END) nhưng không thấy taskId=$SAGA_TASK_ID — dlq output: $(head -c 400 "$DLQ_OUT")"
+      fail 16 "DLQ có message (offset $DLQ_END) nhưng không thấy taskId=$SAGA_TASK_ID — dlq output: $(head -c 400 "$DLQ_OUT")"
     fi
   else
     # tool exec không trả output từ trong script (CI quirk — stderr giữ lại để

@@ -33,7 +33,7 @@ Vì sao: consumer subscribe TRƯỚC topic tồn tại → kẹt empty-assignmen
 # gateway ready (gateway không có /readyz riêng — poll qua auth-svc)
 curl -sf http://localhost:8080/api/auth/readyz | grep '"status":"ok"'
 # e2e 2 chiều từ repo root
-bash scripts/smoke/e2e.sh                # PASS = 8 bước: login → task → feed QUA KAFKA + saga → assignment_failed → DLQ
+bash scripts/smoke/e2e.sh                # PASS = 15 bước: login → task → feed QUA KAFKA + auth-real (register/refresh/RBAC) + saga → assignment_failed → DLQ
 ```
 
 UI: http://localhost:8080 — `alice@demo.local` / `demo-password`; saga demo assign cho `fail@demo.local`.

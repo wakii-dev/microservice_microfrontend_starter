@@ -4,7 +4,7 @@ Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Modul
 
 **Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
-## Kiến trúc (đã dựng xong — 6 services + 3 FE + gateway + kafka broker)
+## Kiến trúc (đã dựng xong — 6 services gồm auth-svc + 3 FE + gateway + kafka broker)
 
 ```mermaid
 graph TB
@@ -18,13 +18,13 @@ graph TB
             compose["docker-compose.yml (10 services — kafka lazy-connect, không chặn chain)"]
             pginit["postgres/init/ (schemas + roles + default privileges)"]
             nginx["gateway/nginx (routing + JWT presence 401)"]
-            authsvc["auth-svc :8090 (Fastify+TS — auth thật: register/refresh/RBAC)"]
             conv["conventions/ (9 docs)"]
         end
         subgraph services ["services/"]
             node["node-svc :3001 (Fastify+TS) — task CRUD + outbox relay + compensation consumer"]
             spring["spring-svc :8081 (Spring Boot 3) — users/teams + @Transactional demo"]
             go["go-svc :8082 (Go 1.24+chi) — activity feed/stats + Kafka consumer + saga"]
+            authsvc["auth-svc :8090 (Fastify+TS — auth thật: register/refresh/RBAC)"]
         end
         subgraph app ["app/"]
             shared["shared (fe-shared — api client, token, MF helper)"]

@@ -10,7 +10,7 @@ pnpm install
 pnpm --filter @wakii/shell dev     # dev server :3000 (conventions/05)
 ```
 
-Login demo: `alice@demo.local` / `demo-password` (fixture `contracts/auth/users.json` + dev password chung `AUTH_MOCK_DEV_PASSWORD`).
+Login demo: `alice@demo.local` / `demo-password` (fixture `contracts/auth/users.json` + dev password chung `AUTH_DEV_PASSWORD`).
 
 Dev native cần auth-svc chạy ở `:8090`:
 

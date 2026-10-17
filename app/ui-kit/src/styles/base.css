@@ -60,15 +60,6 @@
     font: inherit;
   }
 
-  /* Error banner — dùng kèm role="alert" (shell/remotes giữ tên class hiện có) */
-  .error-banner {
-    background: color-mix(in srgb, #f06a6a 10%, transparent);
-    border: 1px solid var(--st-fail);
-    border-radius: var(--r-1);
-    color: var(--st-fail);
-    padding: var(--sp-2) var(--sp-4);
-  }
-
   /* Skip link: ẩn khỏi mắt thường, hiện khi focus qua bàn phím (a11y baseline) */
   .skip-link {
     left: -9999px;

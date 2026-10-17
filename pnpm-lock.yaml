@@ -279,6 +279,9 @@ importers:
 
   app/ui-kit:
     devDependencies:
+      '@storybook/addon-a11y':
+        specifier: ^9.1.21
+        version: 9.1.21(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@storybook/addon-docs':
         specifier: ^9.0.0
         version: 9.1.21(@types/react@19.2.2)(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))
@@ -1864,6 +1867,11 @@ packages:
   '@rspack/lite-tapable@1.1.0':
     resolution: {integrity: sha512-E2B0JhYFmVAwdDiG14+DW0Di4Ze4Jg10Pc4/lILUrd5DRCaklduz2OvJ5HYQ6G+hd+WTzqQb3QnDNfK4yvAFYw==}
 
+  '@storybook/addon-a11y@9.1.21':
+    resolution: {integrity: sha512-g0y7B5NWVpPn4aJiDBW7P3GEslIsRQ6HEGuoiPleUjJqCykYTMBMeH6fO5/gjiMjMHcDgWPdgmHbIoHnOE5lEQ==}
+    peerDependencies:
+      storybook: ^9.1.21
+
   '@storybook/addon-docs@9.1.21':
     resolution: {integrity: sha512-wF7dVHS6nYlIyFG+22EKXhWi/fIFHqAlGLC2ge6WlpiFJv1Nd2ibUZSaNeciWij+ZSkwR0RFoQl+zAOVeacGJA==}
     peerDependencies:
@@ -2354,6 +2362,10 @@ packages:
 
   avvio@9.3.1:
     resolution: {integrity: sha512-QyTKW61/qlba+cUQBm/sT9X8lri4UdomqSDwCnrnj1IvLVDRRiXRkz4CgBRWB+/cmfC7SK5WQc8T1vSdGvaUcQ==}
+
+  axe-core@4.14.0:
+    resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
+    engines: {node: '>=4'}
 
   axios@1.20.0:
     resolution: {integrity: sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==}
@@ -6149,6 +6161,12 @@ snapshots:
 
   '@rspack/lite-tapable@1.1.0': {}
 
+  '@storybook/addon-a11y@9.1.21(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))':
+    dependencies:
+      '@storybook/global': 5.0.0
+      axe-core: 4.14.0
+      storybook: 9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+
   '@storybook/addon-docs@9.1.21(@types/react@19.2.2)(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))':
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.2.2)(react@19.3.0)
@@ -6735,6 +6753,8 @@ snapshots:
     dependencies:
       '@fastify/error': 4.2.1
       fastq: 1.20.3
+
+  axe-core@4.14.0: {}
 
   axios@1.20.0:
     dependencies:

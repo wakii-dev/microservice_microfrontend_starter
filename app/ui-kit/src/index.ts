@@ -43,3 +43,4 @@ export { UiImage, type ImageProps } from './ui/image/index.js';
 export { Table, type TableProps, type TableColumn } from './ui/table/index.js';
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from './ui/breadcrumb/index.js';
 export { Steps, type StepsProps, type StepItem } from './ui/steps/index.js';
+export { BusyBox, type BusyBoxProps } from './ui/busy-box/index.js';

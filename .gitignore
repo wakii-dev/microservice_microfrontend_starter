@@ -37,3 +37,6 @@ tmp/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Storybook build output (CI artifact — không commit)
+storybook-static/

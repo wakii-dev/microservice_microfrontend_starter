@@ -78,7 +78,8 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | `contracts` | spectral + gitleaks + compose config + boot auth-mock + schemathesis |
 | `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
 | `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
-| `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone + scaffold build được |
+| `ui-kit` | install + typecheck + test + **build-storybook** (ADR-0009 — không publish) |
+| `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone (fe-shared + ui-kit) + scaffold build được |
 
 ## Gotchas (đầy đủ trong `gotchas:` của orca.yaml)
 

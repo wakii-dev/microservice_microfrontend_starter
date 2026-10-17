@@ -1,34 +1,39 @@
-# ADR 0009 — Tách UI kit khỏi fe-shared (design system ≠ logic)
+# ADR-0009: tách UI kit khỏi fe-shared — design system ≠ logic
 
-Ngày: 2026-10-17 · Status: Accepted
+Ngày: 2026-10-17 · Trạng thái: Accepted
 
-## Context
+## Bối cảnh
 
-Sau story VU-53, design system (tokens + base css + 4 primitives) sống chung
-`app/shared` với 4 file logic READ-LOCKED (api-client/token-storage/error-envelope/
-mf-bootstrap). Boundary bị trộn: SF design-system phải đụng package có vùng cấm —
-mỗi lần đụng tokens là một lần rủi ro chạm file locked. Đồng thời primitives chỉ
-được review qua screenshot ad-hoc, không có catalog sống.
+Sau VU-53, design system (tokens + base css + primitives Badge/EmptyState/Skeleton/Spinner)
+sống trong `app/shared` cùng 4 file logic READ-LOCKED (api-client, token-storage,
+error-envelope, mf-bootstrap). Hệ quả: (1) SF design-system làm việc trong package có
+vùng cấm — mỗi PR phải cẩn thận không đụng file READ-LOCKED; (2) primitives không có
+catalog sống — review bằng screenshot ad-hoc; (3) stories/consumer hand-off không có
+nơi trỏ tới.
 
-## Decision
+## Quyết định
 
-- **Package mới `app/ui-kit` (`@wakii/ui-kit`)**: `src/ui/*` (Badge/EmptyState/
-  Skeleton/Spinner) + `src/styles/{tokens,base}.css` + Storybook 9 (dev-only —
-  build-storybook là gate CI workflow `ui-kit`, KHÔNG stories cho MF views,
-  KHÔNG visual-regression trả phí).
-- **`app/shared` chỉ còn 4 file logic** — READ-LOCKED giữ nguyên nội dung.
-- Cả hai consumed **QUA SOURCE** (main/types trỏ `src/`, không build, không
-  publish registry) — cùng pattern fe-shared.
-- Consumers **import thẳng, không re-export cầu**: UI từ `@wakii/ui-kit`,
-  logic từ `@wakii/fe-shared`.
+1. **Package mới `app/ui-kit` (`@wakii/ui-kit`)** sở hữu trọn vẹn design system:
+   `src/ui/*` + `src/styles/{tokens,base}.css`. `app/shared` thu hẹp thành logic-only.
+2. **Consumption QUA SOURCE** như fe-shared — không build, không dist, KHÔNG runtime
+   dependency (react types do consumer cung cấp qua tsconfig paths / resolve.modules;
+   `react` trong devDependencies chỉ phục vụ test + storybook). Giữ 1 cơ chế duy nhất,
+   tránh 2 dạng consumption trong cùng repo.
+3. **Consumers đổi thẳng import** (`@wakii/ui-kit` cho UI, `@wakii/fe-shared` cho logic)
+   — không re-export cầu: template nội bộ, 3 consumers, tests che đủ; lớp gián tiếp
+   chỉ thêm nợ dọn.
+4. **Storybook 9 + Vite builder sống trong ui-kit** (dev-only, không đụng MF runtime
+   pin-matrix): stories cho primitives + docs tokens đọc var(--*) trực tiếp. Gate CI =
+   build-storybook PASS, KHÔNG publish, KHÔNG visual-regression service.
+5. rspack include regex của 3 FE package compile `(shared|ui-kit)/src` — cả 2 là TS raw.
 
-## Consequences
+## Hệ quả
 
-- (+) SF design-system không còn lí do đụng vùng READ-LOCKED; ranh giới review rõ:
-  tokens/primitives = ui-kit (tự do trong story), api/token/MF = fe-shared (locked).
-- (+) Primitives có catalog sống (Storybook) — review variants/states bằng evidence
-  build-storybook thay vì screenshot ad-hoc.
-- (−) Thêm 1 workspace importer: Dockerfiles ×3 phải COPY `app/ui-kit` (frozen
-  install trong container cần package.json mọi importer); lockfile lớn hơn.
-- (−) Storybook là dev-dep nặng nhất workspace — chấp nhận: scoped trong ui-kit,
-  không đụng MF runtime pin-matrix.
+- SF design-system sau này làm việc trong `app/ui-kit` không đụng vùng READ-LOCKED.
+-. READ-LOCKED boundary của fe-shared giữ nguyên diện tích (4 file logic + mfToolkit).
+- Convergence copy-dir typecheck standalone CẢ 2 package (ui-kit cần @types/react +
+  `--jsx` — pattern fix 2026-10-17, run 39000358809).
+- Dockerfiles ×3 COPY `app/ui-kit` (importer trong lockfile cần package.json khi
+  install frozen trong container).
+- Storybook bump major = đụng devDeps của ui-kit; KHÔNG bắt buộc re-spike MF (không
+  nằm trong runtime share-scope), nhưng phải giữ `build-storybook` xanh trong CI.

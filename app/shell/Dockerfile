@@ -11,11 +11,13 @@ RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 # thiếu importer nào frozen-lockfile cũng fail
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY app/shared/package.json app/shared/
+COPY app/ui-kit/package.json app/ui-kit/
 COPY app/spike/host/package.json app/spike/host/
 COPY app/spike/remote/package.json app/spike/remote/
 COPY app/shell/package.json app/shell/
 RUN pnpm install --frozen-lockfile --filter @wakii/shell...
 COPY app/shared app/shared
+COPY app/ui-kit app/ui-kit
 COPY app/shell app/shell
 # Build-time env (conventions/08 — remote registry; mặc định đi qua gateway /remotes/*)
 ARG REMOTE_TASKS_URL=/remotes/tasks/remoteEntry.js

@@ -11,6 +11,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 # remotes/tasks, remotes/activity) — thiếu importer nào frozen-lockfile cũng fail
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY app/shared/package.json app/shared/
+COPY app/ui-kit/package.json app/ui-kit/
 COPY app/spike/host/package.json app/spike/host/
 COPY app/spike/remote/package.json app/spike/remote/
 COPY app/shell/package.json app/shell/
@@ -18,6 +19,7 @@ COPY app/remotes/tasks/package.json app/remotes/tasks/
 COPY app/remotes/activity/package.json app/remotes/activity/
 RUN pnpm install --frozen-lockfile --filter @wakii/remote-tasks...
 COPY app/shared app/shared
+COPY app/ui-kit app/ui-kit
 COPY app/remotes/tasks app/remotes/tasks
 # Build-time env (conventions/06+08): prod API base = '' (same-origin qua gateway),
 # publicPath = /remotes/tasks/ (gateway /remotes/<name>/ — conventions/08)

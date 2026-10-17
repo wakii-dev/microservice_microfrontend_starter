@@ -11,34 +11,34 @@ export function HomePage() {
   const claims = token && !isExpired(token) ? readClaims(token) : null;
 
   return (
-    <section className="sh-home">
+    <section className="flex flex-col gap-6">
       <header className="sh-home__head">
-        <h1 className="sh-home__title">Trang chủ</h1>
-        <p className="sh-home__sub">
+        <h1 className="m-0 text-h1 font-semibold tracking-[-0.01em]">Trang chủ</h1>
+        <p className="mt-1 text-ink2">
           Chào {claims?.email ?? 'bạn'} — shell tổng hợp 2 remote (tasks, activity) qua module
           federation.
         </p>
       </header>
 
-      <div className="sh-home__grid">
-        <Link className="sh-home__card" to="/tasks">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+        <Link className="flex flex-col gap-2 rounded-3 border border-line bg-s2 p-6 text-inherit no-underline transition-colors hover:border-line2 hover:bg-s3" to="/tasks">
           <h2>Tasks</h2>
           <p>Quản lý công việc — tạo, sửa, đổi status, filter.</p>
         </Link>
-        <Link className="sh-home__card" to="/activity">
+        <Link className="flex flex-col gap-2 rounded-3 border border-line bg-s2 p-6 text-inherit no-underline transition-colors hover:border-line2 hover:bg-s3" to="/activity">
           <h2>Activity</h2>
           <p>Feed sự kiện real-time (Kafka) — mọi thao tác ở Tasks đều phản ánh về đây.</p>
         </Link>
       </div>
 
-      <div className="sh-home__hints">
-        <p className="sh-home__hints-title">Tài khoản demo</p>
-        <ul>
+      <div className="rounded-3 border border-line p-6 text-label text-ink2">
+        <p className="mb-2 text-meta uppercase tracking-[0.06em] text-ink3">Tài khoản demo</p>
+        <ul className="m-0 flex flex-col gap-1 pl-4">
           <li>
-            <code>alice@demo.local</code> / <code>demo-password</code> — tài khoản chính
+            <code className="font-mono text-meta text-ink">alice@demo.local</code> / <code className="font-mono text-meta text-ink">demo-password</code> — tài khoản chính
           </li>
           <li>
-            <code>fail@demo.local</code> — gán task cho user này để xem saga: badge
+            <code className="font-mono text-meta text-ink">fail@demo.local</code> — gán task cho user này để xem saga: badge
             {" "}
             <em>“Gán thất bại”</em>
           </li>

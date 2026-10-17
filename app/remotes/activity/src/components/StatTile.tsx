@@ -9,9 +9,9 @@ export interface StatTileProps {
 
 export function StatTile({ ariaLabel, label, value }: StatTileProps) {
   return (
-    <div aria-label={ariaLabel} className="act-stat">
-      <span className="act-stat__value">{value}</span>
-      <span className="act-stat__label">{label}</span>
+    <div aria-label={ariaLabel} className="grid gap-1 rounded-3 border border-line bg-s2 p-4">
+      <span className="text-h1 font-semibold leading-[1.2] text-ink">{value}</span>
+      <span className="text-meta text-ink3">{label}</span>
     </div>
   );
 }

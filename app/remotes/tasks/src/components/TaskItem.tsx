@@ -80,8 +80,8 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   }
 
   return (
-    <li className="tsk-item">
-      <div className="tsk-item__status">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-3 border border-line bg-s2 p-3 px-4 transition-colors hover:bg-s3 max-md:grid-cols-1">
+      <div className="flex min-h-[22px] items-center pt-0.5">
         {busy ? (
           <Spinner label={`Đang xử lý task ${task.title}`} />
         ) : (
@@ -91,7 +91,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
 
       <div className="tsk-item__main">
         {editing ? (
-          <form className="tsk-item__edit" onSubmit={handleSubmit(saveEdit)}>
+          <form className="flex w-full flex-row flex-wrap gap-2" onSubmit={handleSubmit(saveEdit)}>
             <Input
               className="min-w-0 flex-1"
               aria-label={`Sửa tiêu đề task ${task.title}`}
@@ -113,16 +113,16 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
           </form>
         ) : (
           <>
-            <h3 className="tsk-item__title">{task.title}</h3>
-            {task.description && <p className="tsk-item__desc">{task.description}</p>}
+            <h3 className="m-0 text-body font-semibold [overflow-wrap:anywhere]">{task.title}</h3>
+            {task.description && <p className="mt-1 truncate text-label text-ink2">{task.description}</p>}
           </>
         )}
       </div>
 
-      <div className="tsk-item__side">
-        <p className="tsk-item__meta">
+      <div className="flex flex-col items-end gap-2 max-md:items-start">
+        <p className="m-0 flex gap-2 whitespace-nowrap font-mono text-meta text-ink3 max-md:[overflow-wrap:anywhere] max-md:whitespace-normal">
           {task.assigneeId ? (
-            <code className="tsk-item__uuid" title={task.assigneeId}>
+            <code className="font-mono" title={task.assigneeId}>
               {shortUuid(task.assigneeId)}
             </code>
           ) : (
@@ -146,7 +146,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
         )}
 
         {editing ? null : (
-          <div className="tsk-item__actions">
+          <div className="flex gap-2">
             <Button
               type="text"
               aria-label={`Sửa task ${task.title}`}

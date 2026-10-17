@@ -7,7 +7,6 @@
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
 import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
-import './styles.css';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { Alert, Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
@@ -56,22 +55,22 @@ export function ActivityPage() {
   }, [feedQuery, statsQuery]);
 
   return (
-    <section aria-label="Activity feed và thống kê" className="act-page">
-      <header className="act-header">
-        <h1>Activity</h1>
-        <Button type="default" className="act-refresh" disabled={loading} onClick={() => void load()}>
+    <section aria-label="Activity feed và thống kê" className="grid gap-6 max-md:gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <h1 className="m-0 text-h1">Activity</h1>
+        <Button type="default" disabled={loading} onClick={() => void load()}>
           {loading && <Spinner label="Đang tải activity" />}
           Làm mới
         </Button>
       </header>
 
-      <div aria-label="Thống kê tasks" className="act-stats">
+      <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
         {statsError && (
-          <Alert className="act-stats__error" type="error" message={`Stats: ${statsError}`} />
+          <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
         )}
         {loadingStats ? (
-          <div className="act-stats-skeleton">
-            <Skeleton variant="card" count={4} />
+          <div className="col-span-full grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+            <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
           </div>
         ) : (
           stats && (
@@ -99,15 +98,15 @@ export function ActivityPage() {
 
       {feedError && <Alert type="error" message={feedError} />}
 
-      <section aria-busy={loadingFeed} className="act-feed">
-        <h2 className="act-feed__head">
+      <section aria-busy={loadingFeed}>
+        <h2 className="mb-3 text-h2 font-semibold text-ink">
           Feed ({items.length}/{total})
         </h2>
         {loadingFeed ? (
           <Skeleton variant="row" count={4} />
         ) : items.length === 0 && !feedError ? (
           <EmptyState
-            action={<a className="act-link" href="/tasks">Đi tới Tasks</a>}
+            action={<a className="text-accent-hi no-underline hover:underline" href="/tasks">Đi tới Tasks</a>}
             description="Tạo một task ở trang Tasks để thấy event tại đây."
             title="Chưa có hoạt động nào"
           />

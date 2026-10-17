@@ -32,7 +32,6 @@ import { TaskList } from './components/TaskList';
 // base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
 import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
-import './styles.css';
 
 type ListKey = readonly [string, TaskStatus | null];
 
@@ -214,13 +213,13 @@ export function TasksPage() {
 
   return (
     <motion.section
-      className="tsk-page"
+      className="flex flex-col gap-6 text-ink"
       aria-label="Quản lý tasks"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
-      <h1 className="tsk-page__title">Tasks</h1>
+      <h1 className="m-0 text-h1">Tasks</h1>
 
       {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
         <Alert
@@ -232,7 +231,7 @@ export function TasksPage() {
 
       <TaskForm onCreate={handleCreate} />
 
-      <div className="tsk-toolbar" role="group" aria-label="Lọc theo trạng thái">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
         <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
           Tất cả
         </Tag.Checkable>

@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 createRoot(container).render(
   // standalone không có host provider — tự wrap (in-shell thì shell cấp, singleton share)
   <StrictMode>
-    <aside className="act-standalone-banner" role="note">
+    <aside role="note" className="m-4 max-w-[720px] rounded-2 border border-line border-l-2 border-l-accent bg-s2 p-3 px-4 text-label text-ink2">
       <strong>Standalone debug mode</strong> — remote chạy thật trong shell (:3000). Token không có
       ở origin này nên API sẽ báo 401 — đúng hành vi (gateway/service chặn thiếu-token).
     </aside>

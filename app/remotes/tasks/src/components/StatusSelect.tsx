@@ -12,7 +12,7 @@ interface StatusSelectProps {
 export function StatusSelect({ task, disabled, onChange }: StatusSelectProps) {
   return (
     <select
-      className="tsk-item__select"
+      className="min-w-[120px] rounded-2 border border-line bg-s2 px-2 py-1 text-body text-ink"
       aria-label={`Trạng thái task ${task.title}`}
       value={task.status}
       disabled={disabled}

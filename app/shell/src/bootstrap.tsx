@@ -10,7 +10,6 @@ import { registerBuildtimeRemoteUrls } from './remote-urls';
 import '@wakii/ui-kit/styles/tokens.css';
 import '@wakii/ui-kit/styles/base.css';
 import './app.css';
-import './styles.css';
 
 registerBuildtimeRemoteUrls();
 

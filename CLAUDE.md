@@ -21,7 +21,7 @@ services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
 app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (tokens + primitives + Storybook)
               shell :3000 (MF host) · remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
 scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
-docs/         walkthrough · adr/0001–0008 · toolchain · superpowers/ (spec+plan+evidence theo story)
+docs/         walkthrough · adr/0001–0009 · toolchain · superpowers/ (spec+plan+evidence theo story)
 ```
 
 ## Lệnh hằng ngày

@@ -105,6 +105,9 @@ export default {
         react: { singleton: true },
         'react-dom': { singleton: true },
         'react/jsx-runtime': { singleton: true, requiredVersion: false },
+        // react-query singleton (libs adopt 2026-10-17): 1 cache chung host+remotes —
+        // create task ở remote tasks → invalidate feed activity cùng cache
+        '@tanstack/react-query': { singleton: true },
       },
     }),
   ],

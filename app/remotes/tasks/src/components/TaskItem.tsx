@@ -2,7 +2,8 @@
 // + meta phải mono (assignee UUID rút gọn + createdAt vi-VN) + actions (select/sửa/xoá).
 // Busy per-item: Spinner THAY badge + disable select/actions khi PATCH/DELETE đang bay.
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button, Input, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
@@ -38,8 +39,11 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const [draftTitle, setDraftTitle] = useState(task.title);
-  const [draftDescription, setDraftDescription] = useState(task.description ?? '');
+  // RHF: draft edit inline — reset(task) mỗi lần mở edit (đúng giá trị hiện tại);
+  // chỉ gửi field THAY ĐỔI; lỗi (onSave false) → giữ nguyên form + draft.
+  const { register, handleSubmit, reset, getValues } = useForm({
+    defaultValues: { title: task.title, description: task.description ?? '' },
+  });
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -51,21 +55,20 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   }
 
   function startEdit() {
-    setDraftTitle(task.title);
-    setDraftDescription(task.description ?? '');
+    reset({ title: task.title, description: task.description ?? '' });
     setConfirming(false);
     setEditing(true);
   }
 
-  function saveEdit(e: FormEvent) {
-    e.preventDefault();
-    const title = draftTitle.trim();
+  function saveEdit() {
+    const values = getValues();
+    const title = values.title.trim();
     if (!title || busy) return;
     // Chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1); description rỗng
     // gửi '' — contract cho phép, user xoá được mô tả.
     const patch: { title?: string; description?: string } = {};
     if (title !== task.title) patch.title = title;
-    if ((task.description ?? '') !== draftDescription) patch.description = draftDescription;
+    if ((task.description ?? '') !== values.description) patch.description = values.description;
     if (Object.keys(patch).length === 0) {
       setEditing(false);
       return;
@@ -88,20 +91,18 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
 
       <div className="tsk-item__main">
         {editing ? (
-          <form className="tsk-item__edit" onSubmit={saveEdit}>
+          <form className="tsk-item__edit" onSubmit={handleSubmit(saveEdit)}>
             <Input
               className="min-w-0 flex-1"
               aria-label={`Sửa tiêu đề task ${task.title}`}
               required
               maxLength={200}
-              value={draftTitle}
-              onChange={(e) => setDraftTitle(e.target.value)}
+              {...register('title')}
             />
             <Input
               className="min-w-0 flex-1"
               aria-label={`Sửa mô tả task ${task.title}`}
-              value={draftDescription}
-              onChange={(e) => setDraftDescription(e.target.value)}
+              {...register('description')}
             />
             <Button type="primary" htmlType="submit" disabled={busy}>
               Lưu

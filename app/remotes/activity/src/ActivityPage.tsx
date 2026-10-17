@@ -8,7 +8,8 @@
 import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import './styles.css';
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { Button, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
@@ -34,49 +35,25 @@ function describeError(err: unknown): string {
  * feed vẫn render (go-svc stats 503 khi mất quyền đọc readonly schema — contract activity.yaml).
  */
 export function ActivityPage() {
-  const [items, setItems] = useState<ActivityFeedItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [stats, setStats] = useState<ActivityStats | null>(null);
-  const [loadingFeed, setLoadingFeed] = useState(true);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [feedError, setFeedError] = useState<string | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
+  // 2 query ĐỘC LẬP (thay Promise.allSettled thủ công) — stats fail không che feed.
+  // Query key 'activity/*' trên cache singleton MF: remote tasks invalidate ['activity']
+  // sau mỗi mutation → feed/stats tự refetch (libs adopt 2026-10-17).
+  const feedQuery = useQuery({ queryKey: ['activity', 'feed'], queryFn: fetchFeed });
+  const statsQuery = useQuery({ queryKey: ['activity', 'stats'], queryFn: fetchStats });
+
+  const items = feedQuery.data?.items ?? [];
+  const total = feedQuery.data?.total ?? 0;
+  const stats = statsQuery.data ?? null;
+  const feedError = feedQuery.error ? describeError(feedQuery.error) : null;
+  const statsError = statsQuery.error ? describeError(statsQuery.error) : null;
+  const loadingFeed = feedQuery.isFetching; // refetch (Làm mới) cũng busy — mirror load() cũ
+  const loadingStats = statsQuery.isFetching;
   const loading = loadingFeed || loadingStats;
 
-  const load = useCallback(async () => {
-    setFeedError(null);
-    setStatsError(null);
-    setLoadingFeed(true);
-    setLoadingStats(true);
-    // feed + stats tải độc lập — stats fail không che mất feed (Promise.allSettled giữ)
-    const feedPromise = fetchFeed()
-      .then((res) => {
-        setItems(res.items);
-        setTotal(res.total);
-      })
-      .catch((err: unknown) => {
-        setFeedError(describeError(err));
-      })
-      .finally(() => {
-        setLoadingFeed(false);
-      });
-    const statsPromise = fetchStats()
-      .then((res) => {
-        setStats(res);
-      })
-      .catch((err: unknown) => {
-        setStatsError(describeError(err));
-        setStats(null);
-      })
-      .finally(() => {
-        setLoadingStats(false);
-      });
-    await Promise.allSettled([feedPromise, statsPromise]);
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const load = useCallback(() => {
+    void feedQuery.refetch();
+    void statsQuery.refetch();
+  }, [feedQuery, statsQuery]);
 
   return (
     <section aria-label="Activity feed và thống kê" className="act-page">

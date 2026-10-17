@@ -59,7 +59,19 @@
       "Bash(orca orchestration run-list *)",
       "Bash(orca orchestration run-show *)",
       "Bash(orca orchestration run-current *)",
-      "Bash(orca orchestration inbox *)"
+      "Bash(orca orchestration inbox *)",
+      "Bash(docker *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr checks *)",
+      "Bash(go get *)",
+      "Bash(curl *)",
+      "Bash(ruby *)",
+      "Bash(sed *)",
+      "Bash(tee *)",
+      "Bash(bash scripts/*)",
+      "Bash(bash scripts/**)"
     ]
   }
 }

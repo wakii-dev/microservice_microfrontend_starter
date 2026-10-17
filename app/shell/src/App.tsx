@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { Layout } from './components/Layout';
 import { RemoteSlot } from './components/RemoteSlot';
@@ -35,10 +36,22 @@ export function AppRoutes() {
   );
 }
 
+// QueryClient của HOST — react-query MF singleton nên remotes (in-shell) dùng chung
+// cache này: create task (remote tasks) → invalidate feed (remote activity) cùng nguồn.
+// retry: false — demo fail hiển thị tức thì; refetchOnWindowFocus off cho demo ổn định.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false, refetchOnWindowFocus: false },
+    mutations: { retry: false },
+  },
+});
+
 export function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }

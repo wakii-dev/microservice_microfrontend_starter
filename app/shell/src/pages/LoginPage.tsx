@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
 import { Button, Input } from '@wakii/ui-kit';
@@ -18,10 +18,16 @@ interface LoginResponse {
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  // RHF (libs adopt): email/password + root error (banner 401/message) — submitting
+  // = formState.isSubmitting.
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<{ email: string; password: string }>({
+    defaultValues: { email: '', password: '' },
+  });
 
   // Đã login (token còn hạn) → về trang chủ
   const token = tokenStorage.getToken();
@@ -29,25 +35,22 @@ export function LoginPage() {
     return <Navigate to="/" replace />;
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
+  const onSubmit = handleSubmit(async (values) => {
     try {
-      const res = await api.post<LoginResponse>('/api/auth/login', { email, password });
+      const res = await api.post<LoginResponse>('/api/auth/login', values);
       tokenStorage.setToken(res.accessToken);
       const from = (location.state as { from?: string } | null)?.from ?? '/';
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.status === 401 ? 'Email hoặc mật khẩu không đúng.' : err.message);
+        setError('root', {
+          message: err.status === 401 ? 'Email hoặc mật khẩu không đúng.' : err.message,
+        });
       } else {
-        setError('Không kết nối được máy chủ đăng nhập.');
+        setError('root', { message: 'Không kết nối được máy chủ đăng nhập.' });
       }
-    } finally {
-      setSubmitting(false);
     }
-  }
+  });
 
   return (
     <section className="sh-login">
@@ -67,41 +70,37 @@ export function LoginPage() {
           <span className="sh-login__wordmark">Boilerplate</span>
         </div>
         <h1 className="sh-login__title">Đăng nhập</h1>
-        <form aria-label="Form đăng nhập" className="sh-login__form" onSubmit={handleSubmit}>
+        <form aria-label="Form đăng nhập" className="sh-login__form" onSubmit={onSubmit}>
           <label className="sh-field">
             Email
             <Input
               type="email"
-              name="email"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
             />
           </label>
           <label className="sh-field">
             Mật khẩu
             <Input
               type="password"
-              name="password"
               autoComplete="current-password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register('password')}
             />
           </label>
-          {error && (
+          {errors.root && (
             <p className="error-banner" role="alert">
-              {error}
+              {errors.root.message}
             </p>
           )}
           <Button
             type="primary"
             htmlType="submit"
             className="sh-login__submit"
-            disabled={submitting}
+            disabled={isSubmitting}
           >
-            {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
+            {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
           </Button>
         </form>
         <p className="sh-login__hint">

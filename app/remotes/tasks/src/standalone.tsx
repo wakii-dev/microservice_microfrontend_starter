@@ -4,6 +4,7 @@
 import '@wakii/ui-kit/styles/tokens.css';
 import '@wakii/ui-kit/styles/base.css';
 import './app.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { TasksPage } from './TasksPage';
@@ -13,7 +14,15 @@ if (!container) {
   throw new Error('#root không tồn tại trong index.html');
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false, refetchOnWindowFocus: false },
+    mutations: { retry: false },
+  },
+});
+
 createRoot(container).render(
+  // standalone không có host provider — tự wrap (in-shell thì shell cấp, singleton share)
   <StrictMode>
     <aside className="tsk-standalone">
       <strong>Standalone debug — remote `tasks`</strong>
@@ -22,6 +31,8 @@ createRoot(container).render(
         nên API trả 401 — đúng hành vi (gateway/service chặn thiếu-token).
       </p>
     </aside>
-    <TasksPage />
+    <QueryClientProvider client={queryClient}>
+      <TasksPage />
+    </QueryClientProvider>
   </StrictMode>,
 );

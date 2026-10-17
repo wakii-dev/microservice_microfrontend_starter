@@ -18,3 +18,5 @@ catalog:
   react-router: ^7.9.0
   "@module-federation/enhanced": 0.21.6
   "@rspack/core": 1.7.12
+  # react-query singleton (libs adopt 2026-10-17) — share cache tasks↔activity qua MF
+  "@tanstack/react-query": ^5.0.0

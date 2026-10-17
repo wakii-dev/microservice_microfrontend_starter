@@ -2,6 +2,7 @@
 // stats grid giữ NGUYÊN bộ aria-label (contract), skeleton từng khu độc lập
 // (Promise.allSettled), refresh busy, empty state, unknown-action nguyên văn.
 import { render, screen, waitFor, within } from '@testing-library/react';
+import { createWrapper } from './test-utils';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActivityPage } from '../src/ActivityPage';
@@ -51,7 +52,7 @@ afterEach(() => {
 
 describe('ActivityPage', () => {
   it('render feed với user-display fields từ response (userName + taskTitle)', async () => {
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     // Cả hai field render trực tiếp từ response — không placeholder
     expect(await screen.findByText('Alice Nguyễn')).toBeInTheDocument();
     expect(screen.getByText('Task A')).toBeInTheDocument();
@@ -67,7 +68,7 @@ describe('ActivityPage', () => {
       { ...ITEM, id: 'b4', action: 'task.deleted' },
       { ...ITEM, id: 'b5', action: 'task.assignment_failed' },
     ]);
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const list = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
     // Badge variants map → utility [--_dot:var(--…)] (badge container class chứa var đó)
     for (const dotVar of ['--accent', '--st-doing', '--accent-hi', '--ink3', '--st-fail']) {
@@ -80,21 +81,21 @@ describe('ActivityPage', () => {
       { ...ITEM, id: 'e2', action: 'task.assigned' },
       { ...ITEM, id: 'e3', action: 'task.assignment_failed' },
     ]);
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     expect(await screen.findByText(/đã giao/)).toBeInTheDocument();
     expect(screen.getByText(/gán thất bại/)).toBeInTheDocument();
   });
 
   it('action lạ ngoài labels → render nguyên văn, KHÔNG badge (không bịa placeholder)', async () => {
     mockFeed([{ ...ITEM, id: 'e4', action: 'task.whatever' }]);
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const list = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
     expect(within(list).getByText('task.whatever')).toBeInTheDocument();
     expect(list.querySelector('.bp-badge')).toBeNull();
   });
 
   it('render stats tiles — GIỮ NGUYÊN bộ aria-label contract', async () => {
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     expect(screen.getByLabelText('Thống kê tasks')).toBeInTheDocument();
     expect(await screen.findByLabelText('Tổng số task')).toHaveTextContent('7');
     expect(screen.getByLabelText('Task Cần làm')).toHaveTextContent('3');
@@ -109,7 +110,7 @@ describe('ActivityPage', () => {
         error: { code: 'READONLY_UNAVAILABLE', message: 'Không đọc được schema tasks', requestId: 'r1', details: null },
       }),
     );
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     expect(await screen.findByText(/Không đọc được schema tasks/)).toBeInTheDocument();
     expect(screen.getByText('Alice Nguyễn')).toBeInTheDocument();
   });
@@ -120,7 +121,7 @@ describe('ActivityPage', () => {
         error: { code: 'UNAUTHORIZED', message: 'Token hết hạn', requestId: 'r2', details: null },
       }),
     );
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const alerts = await screen.findAllByRole('alert');
     expect(alerts.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Token hết hạn/)).toBeInTheDocument();
@@ -128,7 +129,7 @@ describe('ActivityPage', () => {
 
   it('feed rỗng → EmptyState gợi ý sang Tasks (link /tasks)', async () => {
     mockFeed([]);
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     expect(await screen.findByText('Chưa có hoạt động nào')).toBeInTheDocument();
     expect(screen.getByText(/Tạo một task ở trang Tasks/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Đi tới Tasks' })).toHaveAttribute('href', '/tasks');
@@ -136,7 +137,7 @@ describe('ActivityPage', () => {
 
   it('nút Làm mới → gọi lại cả feed + stats', async () => {
     const user = userEvent.setup();
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     await screen.findByText('Alice Nguyễn');
     await user.click(screen.getByRole('button', { name: /Làm mới/ }));
     await waitFor(() => expect(mockedApi.fetchFeed).toHaveBeenCalledTimes(2));
@@ -157,7 +158,7 @@ describe('ActivityPage', () => {
       { ...ITEM, id: 'd3', timestamp: yesterdayIso },
       { ...ITEM, id: 'd4', timestamp: '2026-10-12T10:00:00Z' },
     ]);
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const list = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
     const headings = within(list)
       .getAllByRole('heading', { level: 3 })
@@ -166,7 +167,7 @@ describe('ActivityPage', () => {
   });
 
   it('entry: time vi-VN + dateTime giữ ISO gốc', async () => {
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const list = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
     const time = list.querySelector('time');
     expect(time).not.toBeNull();
@@ -179,7 +180,7 @@ describe('ActivityPage', () => {
     mockedApi.fetchStats.mockImplementation(
       () => new Promise<api.ActivityStats>((res) => { resolveStats = res; }),
     );
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     // feed xong trước — timeline render
     const feed = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
     expect(feed).toBeInTheDocument();
@@ -197,7 +198,7 @@ describe('ActivityPage', () => {
     mockedApi.fetchFeed.mockImplementation(
       () => new Promise<api.ActivityFeed>((res) => { resolveFeed = res; }),
     );
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     // stats xong trước — tiles render
     expect(await screen.findByLabelText('Tổng số task')).toBeInTheDocument();
     // feed khu vẫn skeleton — chưa có list
@@ -209,7 +210,7 @@ describe('ActivityPage', () => {
 
   it('nút Làm mới busy khi đang tải — disabled + spinner, xong thì bật lại', async () => {
     const user = userEvent.setup();
-    render(<ActivityPage />);
+    render(<ActivityPage />, { wrapper: createWrapper() });
     const btn = screen.getByRole('button', { name: /Làm mới/ });
     // initial load đang bay → disabled (busy state cũng áp cho lần tải đầu)
     expect(btn).toBeDisabled();

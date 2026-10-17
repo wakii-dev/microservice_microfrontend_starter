@@ -1,5 +1,6 @@
 // Timeline feed nhóm theo ngày (SF-4, hand-off §4): heading ngày 12px --ink3 + rail dọc
 // --line, entry = FeedItem (badge action + tên + task + time mono phải).
+import { motion } from 'motion/react';
 import type { ActivityFeedItem } from '../api';
 import { FeedItem } from './FeedItem';
 import { dayKey, formatDayHeading } from './time';
@@ -31,15 +32,21 @@ export function groupByDay(items: ActivityFeedItem[], now: Date): DayGroup[] {
 export function Timeline({ items, now = new Date() }: { items: ActivityFeedItem[]; now?: Date }) {
   return (
     <ol aria-label="Danh sách hoạt động" className="act-timeline">
-      {groupByDay(items, now).map((group) => (
-        <li key={group.key} className="act-timeline__day">
+      {groupByDay(items, now).map((group, dayIndex) => (
+        <motion.li
+          key={group.key}
+          className="act-timeline__day"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: dayIndex * 0.08, ease: 'easeOut' }}
+        >
           <h3 className="act-timeline__day-heading">{group.heading}</h3>
           <ul className="act-timeline__group">
             {group.items.map((item) => (
               <FeedItem key={item.id} item={item} />
             ))}
           </ul>
-        </li>
+        </motion.li>
       ))}
     </ol>
   );

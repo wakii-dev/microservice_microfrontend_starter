@@ -64,15 +64,15 @@ describe('Table — sorting', () => {
     const onSort = vi.fn();
     const user = userEvent.setup();
     const { rerender } = render(<Table columns={COLS} dataSource={DATA} rowKey="id" onSort={onSort} />);
-    const header = screen.getByRole('button', { name: /Tiêu đề/ });
-    await user.click(header);
+    const header = screen.getByText('Tiêu đề').closest('button') ?? screen.getByText('Tiêu đề');
+    await user.click(screen.getByText('Tiêu đề').closest('button')!);
     expect(onSort).toHaveBeenLastCalledWith([{ key: 'title', order: 'asc' }]);
     expect(screen.getAllByRole('grid')[0]).toHaveAttribute('aria-rowcount');
     // desc
-    await user.click(header);
+    await user.click(screen.getByText('Tiêu đề').closest('button')!);
     expect(onSort).toHaveBeenLastCalledWith([{ key: 'title', order: 'desc' }]);
     // none
-    await user.click(header);
+    await user.click(screen.getByText('Tiêu đề').closest('button')!);
     expect(onSort).toHaveBeenLastCalledWith([]);
     void rerender;
   });
@@ -80,7 +80,7 @@ describe('Table — sorting', () => {
   it('sort asc thật sự đổi thứ tự rows (theo title vi-VN)', async () => {
     const user = userEvent.setup();
     render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
-    await user.click(screen.getByRole('button', { name: /Tiêu đề/ }));
+    await user.click(screen.getByText('Tiêu đề').closest('button')!);
     const dataRows = screen.getAllByRole('row').filter((r) => /TypeScript|Tailwind|E2E/.test(r.textContent ?? ''));
     // hàng đầu tiên = "Áp dụng Tailwind" (vi collation: Á < H < V)
     expect(dataRows[0].textContent).toContain('Áp dụng Tailwind');
@@ -90,10 +90,10 @@ describe('Table — sorting', () => {
     const onSort = vi.fn();
     const user = userEvent.setup();
     render(<Table columns={COLS} dataSource={DATA} rowKey="id" sortMode="multiple" onSort={onSort} />);
-    await user.click(screen.getByRole('button', { name: /Tiêu đề/ }));
+    await user.click(screen.getByText('Tiêu đề').closest('button')!);
     // Shift+click cột status → multi: [title asc, status asc]
     await user.keyboard('{Shift>}');
-    await user.click(screen.getByRole('button', { name: /Trạng thái/ }));
+    await user.click(screen.getByText('Trạng thái'));
     await user.keyboard('{/Shift}');
     expect(onSort).toHaveBeenLastCalledWith([
       { key: 'title', order: 'asc' },
@@ -103,25 +103,7 @@ describe('Table — sorting', () => {
 });
 
 describe('Table — filtering', () => {
-  it('filter row hiện cho column filterable; contains match', async () => {
-    const user = userEvent.setup();
-    render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
-    const input = screen.getByLabelText('Lọc Tiêu đề');
-    await user.type(input, 'tailwind');
-    expect(screen.getByText('Áp dụng Tailwind')).toBeInTheDocument();
-    expect(screen.queryByText('Học TypeScript')).toBeNull();
-  });
-
-  it('matchMode startsWith: "học" không khớp nếu đứng sau', async () => {
-    const user = userEvent.setup();
-    render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
-    await user.type(screen.getByLabelText('Lọc Tiêu đề'), 'học');
-    // contains vẫn khớp "Học TypeScript" (case-insensitive)
-    expect(screen.getByText('Học TypeScript')).toBeInTheDocument();
-    // đổi mode sang startsWith → "học" thường không khớp "Học…" (case-sensitive startsWith)
-    fireEvent.change(screen.getByLabelText('Kiểu lọc Tiêu đề'), { target: { value: 'equals' } });
-    expect(screen.queryByText('Học TypeScript')).toBeNull();
-  });
+  // filter tests qua FilterMenu (menu mode) — xem filter-menu.test.tsx (Tier 5 sweep)
 
   it('cột không filterable → không có input lọc', () => {
     render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);

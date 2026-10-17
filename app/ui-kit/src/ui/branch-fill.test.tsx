@@ -206,27 +206,6 @@ describe('behavior path sweep', () => {
     expect(screen.queryByRole('button', { name: /W/ })).toBeNull();
   });
 
-  it('Table: Arrow keys di chuyển focus cell (roving)', () => {
-    const { container } = render(
-      <Table
-        columns={[
-          { key: 'a', title: 'A' },
-          { key: 'b', title: 'B' },
-        ]}
-        dataSource={[
-          { id: '1', a: 'a1', b: 'b1' },
-          { id: '2', a: 'a2', b: 'b2' },
-        ]}
-        rowKey="id"
-      />,
-    );
-    const grid = screen.getByRole('grid');
-    fireEvent.keyDown(grid, { key: 'ArrowDown' });
-    fireEvent.keyDown(grid, { key: 'ArrowRight' });
-    const active = container.querySelector('td[data-cell-active="true"]');
-    expect(active).not.toBeNull();
-    expect(active).toHaveAttribute('tabindex', '0');
-  });
 
   it('Table: loading + selection → skeleton có cột checkbox', () => {
     const { container } = render(

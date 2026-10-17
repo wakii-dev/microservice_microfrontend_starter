@@ -214,3 +214,18 @@ notification.info('Tiêu đề', 'Mô tả chi tiết');
 ## Motion
 
 Xem `docs/motion.md` — motion scale, easing, guidelines. Tất cả animation tôn trọng `prefers-reduced-motion`.
+
+
+## Composition Rule
+
+Composite components GHÉP từ primitives của chính kit — KHÔNG tay chế raw `<select>/<input>/<button>` nội bộ.
+
+| Composite | Dùng primitives |
+|---|---|
+| Table | Pagination + Select + Checkbox + Input + Button + EmptyState + Skeleton |
+| Select | Button (trigger) + Checkbox (multi) + Spinner (loading) |
+| Popconfirm | Button (OK/Cancel) |
+| Modal/Drawer | Button (OK/Cancel/Đóng) |
+| FilterMenu | Select (match mode) + Input (value) + Button (Apply/Reset) |
+
+**Verify:** `grep -rn '<select\|<button' app/ui-kit/src/ui/*/index.tsx | grep -v primitives` → 0 kết quả (trừ primitives tự thân).

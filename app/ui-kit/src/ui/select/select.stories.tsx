@@ -20,8 +20,8 @@ const OPTIONS = [
 ];
 
 function OursSelected() {
-  const [value, setValue] = useState('todo');
-  return <Select ariaLabel="Parity select — selected" options={OPTIONS} value={value} onChange={setValue} />;
+  const [value, setValue] = useState<string>('todo');
+  return <Select ariaLabel="Parity select — selected" options={OPTIONS} value={value} onChange={(v) => setValue(String(v))} />;
 }
 
 export const Selected: Story = {

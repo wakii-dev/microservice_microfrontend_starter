@@ -109,9 +109,11 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
 
 1. **Register**: mở `http://localhost:8080/` → tab **Register** trên login screen → email mới + password (8–72 ký tự) + tên hiển thị → tạo xong là đăng nhập luôn (roles `["user"]`). Đăng xuất → đăng nhập lại bằng account vừa tạo ✓.
 2. **Refresh rotation (2 tab)**: đăng nhập cùng account ở 2 tab. Tab 1 đứng yên đến khi access token hết hạn (30m) — request kế tab 1 tự refresh (rotate) rồi retry, KHÔNG bị văng về login. (Nhạy hơn: `POST /api/auth/refresh` tay bằng refreshToken trong `localStorage['bp.rt']` — response trả cặp mới, token cũ không dùng lại được.)
-3. **Logout-all (chuẩn acceptance — 1 tab chết, 1 tab còn)**: tab 2 bấm **Đăng xuất** (chỉ revoke refresh của tab đó — tab 1 VẪN sống vì access token 30m còn hạn). Để chết HẾT tab: gọi logout-all (chưa có nút UI — dùng token của account):
+3. **Logout-all (chuẩn acceptance — 1 tab chết, 1 tab còn)**: tab 2 bấm **Đăng xuất** (chỉ revoke refresh của tab đó — tab 1 VẪN sống vì access token 30m còn hạn). Để chết HẾT tab: gọi logout-all (chưa có nút UI — dùng token của account). P2 security-audit SF-5: đừng dán token thẳng vào lệnh (rơi shell history) — dùng `read -rs`:
    ```bash
-   curl -X POST http://localhost:8080/api/auth/logout-all -H "Authorization: Bearer <accessToken>"
+   read -rs TOKEN   # dán access token rồi Enter (không echo)
+   curl -X POST http://localhost:8080/api/auth/logout-all -H "Authorization: Bearer $TOKEN"
+   unset TOKEN
    ```
    Quay lại tab 1, bấm bất kỳ thao tác gọi API kế tiếp → 401 → auto-refresh fail (token bị revoke-all) → về màn login. Đó là hành vi ĐÚNG (không cross-tab realtime — kiểm ở request kế).
 4. **RBAC demo**: login `bob@demo.local` / `demo-password` (roles `["user"]`) → tạo task → nút **Xoá** → bị chặn (403 FORBIDDEN — hiện thông báo lỗi, task còn nguyên). Login `alice@demo.local` (roles `["admin"]`) → xoá cùng task → thành công. e2e assert cùng chuỗi (bước 11–12).

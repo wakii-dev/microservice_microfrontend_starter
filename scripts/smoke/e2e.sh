@@ -169,7 +169,9 @@ REGISTER_BODY="$(mktemp)"
 HTTP=$($CURL -o "$REGISTER_BODY" -w '%{http_code}' -X POST "$GW/api/auth/register" \
   -H 'Content-Type: application/json' \
   -d "{\"email\":\"$REGISTER_EMAIL\",\"password\":\"smoke-password-1\",\"displayName\":\"Smoke E2E\"}")
-[ "$HTTP" = "201" ] || fail 7 "register HTTP $HTTP (expect 201): $(cat "$REGISTER_BODY")"
+# P2 security-audit SF-5: nhánh fail KHÔNG in body (body có thể chứa AuthSession nếu
+# service buggy trả success-code-sai) — chỉ in tên field, nhất quán policy bước login
+[ "$HTTP" = "201" ] || fail 7 "register HTTP $HTTP (expect 201) — fields: $(grep -o '"[a-zA-Z]\+":' "$REGISTER_BODY" | tr '\n' ' ')"
 grep -q '"roles":\["user"\]' "$REGISTER_BODY" || fail 7 "register response thiếu roles [\"user\"] (shape v2 — kiểm auth.yaml)"
 USER_TOKEN="$(extract accessToken "$REGISTER_BODY")"
 RT1="$(extract refreshToken "$REGISTER_BODY")"
@@ -180,7 +182,7 @@ say "7/15 register OK $REGISTER_EMAIL (roles user — không in token)"
 REFRESH_BODY="$(mktemp)"
 HTTP=$($CURL -o "$REFRESH_BODY" -w '%{http_code}' -X POST "$GW/api/auth/refresh" \
   -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT1\"}")
-[ "$HTTP" = "200" ] || fail 8 "refresh HTTP $HTTP (expect 200): $(cat "$REFRESH_BODY")"
+[ "$HTTP" = "200" ] || fail 8 "refresh HTTP $HTTP (expect 200) — fields: $(grep -o '"[a-zA-Z]\+":' "$REFRESH_BODY" | tr '\n' ' ')"
 RT2="$(extract refreshToken "$REFRESH_BODY")"
 [ -n "$RT2" ] && [ "$RT2" != "$RT1" ] || fail 8 "refresh 200 nhưng refreshToken không rotate (giống token cũ?)"
 say "8/15 refresh rotation OK (token mới khác token cũ)"

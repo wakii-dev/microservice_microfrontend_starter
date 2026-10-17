@@ -18,6 +18,10 @@ CREATE SCHEMA IF NOT EXISTS activity;
 CREATE SCHEMA IF NOT EXISTS auth;
 
 -- LOGIN role per service — mỗi service chỉ đụng schema của mình
+-- Ràng buộc (P2 security-audit SF-5): password KHÔNG chứa dấu nháy đơn (')
+-- — bash interpolate rồi bọc single-quote trong SQL; giá trị sai cú pháp làm
+-- init fail-closed (ON_ERROR_STOP) chứ không bypass. Upgrade path: psql -v
+-- binding (:'var') cho cả 5 role — follow-up, không phải instance mới alone.
 CREATE ROLE node_svc   LOGIN PASSWORD '${NODE_SVC_DB_PASSWORD}';
 CREATE ROLE spring_svc LOGIN PASSWORD '${SPRING_SVC_DB_PASSWORD}';
 CREATE ROLE go_svc     LOGIN PASSWORD '${GO_SVC_DB_PASSWORD}';

@@ -144,6 +144,7 @@ jobs:
           cp contracts/events/fixtures/*.json "$RUNNER_TEMP/contracts/events/fixtures/"
           cd "$RUNNER_TEMP/standalone/node-svc"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           pnpm install --frozen-lockfile --ignore-workspace
           pnpm test
           pnpm build
@@ -165,15 +166,21 @@ jobs:
           # LƯU Ý: KHÔNG dùng --ignore-workspace — catalog là workspace feature,
           # ignore-workspace tắt luôn catalog → lại ERR_CATALOG.
           sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > "$RUNNER_TEMP/catalog.yaml"
+          # pnpm 9.15.9 bắt buộc packages field — catalog-only workspace chết
+          # "ERROR packages field missing or empty" (run 39014181194; pnpm 12 chịu nên
+          # local repro pass). "." = self-member → mọi `pnpm add` phải kèm -w.
+          { printf 'packages:\n  - "."\n'; cat "$RUNNER_TEMP/catalog.yaml"; } > "$RUNNER_TEMP/standalone-ws.yaml"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           for DIR in shared ui-kit; do
             echo "=== standalone typecheck: app/$DIR ==="
             mkdir -p "$RUNNER_TEMP/standalone/$DIR"
-            cp -r "app/$DIR/." "$RUNNER_TEMP/standalone/$DIR/"
+            # $REPO_ROOT tuyệt đối BẮT BUỘC: vòng 1 cd vào tmp — path tương đối app/* mất
+            cp -r "$REPO_ROOT/app/$DIR/." "$RUNNER_TEMP/standalone/$DIR/"
             cd "$RUNNER_TEMP/standalone/$DIR"
-            cp "$RUNNER_TEMP/catalog.yaml" pnpm-workspace.yaml
+            cp "$RUNNER_TEMP/standalone-ws.yaml" pnpm-workspace.yaml
             pnpm install --no-frozen-lockfile
-            pnpm add -D @types/react@19.2.2
+            pnpm add -Dw @types/react@19.2.2 # -w: standalone là workspace root (self-member)
             pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --jsx react-jsx src/index.ts
           done
 
@@ -196,6 +203,7 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/demo-app"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           pnpm install --no-frozen-lockfile
           pnpm --filter "@demo-app/shell" build
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q

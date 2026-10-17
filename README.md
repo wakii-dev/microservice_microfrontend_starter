@@ -28,6 +28,7 @@ graph TB
         end
         subgraph app ["app/"]
             shared["shared (fe-shared — api client, token, MF helper)"]
+            uikit["ui-kit — design system (tokens + primitives + Storybook)"]
             shell["shell :3000 — MF host (Rspack)"]
             remotes["remotes/ tasks :4001 + activity :4002"]
             spike["spike (MF pin versions — đã test, prune khi scaffold)"]
@@ -127,7 +128,8 @@ contracts/          # source of truth API/DB/auth — spectral lint trong CI
 platform/           # compose (health-gated), postgres init, nginx, auth-mock, conventions/
 services/           # node-svc / spring-svc / go-svc — impl hoàn chỉnh, README standalone từng svc
 app/
-  shared/           # fe-shared — api client, token storage, MF bootstrap helper + design system (src/styles tokens+base, src/ui primitives Badge/EmptyState/Skeleton/Spinner)
+  shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
+  ui-kit/           # @wakii/ui-kit — design system: tokens + base css + primitives + Storybook 9 (ADR-0009)
   shell/            # MF host (Rspack) — login, nav, remote slots
   remotes/          # tasks + activity — 2 MF remote
   spike/            # MF pin versions — đã test (prune khi scaffold)
@@ -150,5 +152,5 @@ docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)
 2. JWT: gateway chỉ presence-check; **service tự verify** signature + expiry (`contracts/auth/token-contract.md` §4).
 3. auth-mock **NOT FOR PRODUCTION** — copy dự án thật cắm OIDC tại boundary này.
 4. Compose health-gated: node/spring probe `/readyz`; go-svc `service_started` (distroless) — readiness chứng minh bằng smoke script (conventions/02 rule 3).
-5. fe-shared là dependency chung của shell/remotes — copy FE phải kèm `app/shared`.
+5. fe-shared (logic) + ui-kit (design system) là workspace deps chung của shell/remotes — copy FE phải kèm cả `app/shared` + `app/ui-kit`.
 6. Đổi quyết định kiến trúc = đọc ADR tương ứng trước (mỗi ADR ghi Consequences + điểm cắm thay thế).

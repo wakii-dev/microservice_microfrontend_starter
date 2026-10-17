@@ -2,7 +2,8 @@
 // trắng 14px, radius 6? antd tooltip borderRadius = borderRadiusLG? antd tooltip:
 // borderRadius 6, padding 6px 8px, max-width 250, mũi tên 8px vuông xoay 45°.
 // Placement 'top' (default). Portal-free: absolute trong wrapper relative.
-import { useState, type ReactNode } from 'react';
+// A11y (batch ⑫ worker C): ESC đóng bubble khi đang mở qua focus.
+import { useState, type KeyboardEvent, type ReactNode } from 'react';
 
 export interface TooltipProps {
   /** Nội dung bubble. */
@@ -15,6 +16,10 @@ export interface TooltipProps {
 export function Tooltip({ title, children, placement = 'top', className }: TooltipProps) {
   const [open, setOpen] = useState(false);
 
+  const onKeyDown = (e: KeyboardEvent<HTMLSpanElement>) => {
+    if (e.key === 'Escape') setOpen(false);
+  };
+
   return (
     <span
       className={`relative inline-flex${className ? ` ${className}` : ''}`}
@@ -22,6 +27,7 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
+      onKeyDown={onKeyDown}
     >
       {children}
       {open && (

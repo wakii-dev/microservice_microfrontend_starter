@@ -1,8 +1,11 @@
 // Drawer — panel trượt từ phải (antd: width 378, mask, ESC/mask = onClose).
 // Motion identity (CSS thuần): slide-in khi mở, slide-out khi đóng — closing state
 // machine: open=false → animation chạy XONG (onAnimationEnd) mới unmount.
-import { useEffect, useState, type ReactNode } from 'react';
+// A11y (batch ⑫ worker C): focus trap (Tab/Shift+Tab vòng trong panel), mở →
+// focus phần tử đầu (nút ×), đóng → trả focus về trigger (capture activeElement).
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 export interface DrawerProps {
   open: boolean;
@@ -18,6 +21,10 @@ export interface DrawerProps {
 export function Drawer({ open, title, width = 378, onClose, footer, children, className }: DrawerProps) {
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
+  const panelRef = useRef<HTMLElement>(null);
+
+  // active = open && mounted: mở → focus đầu; bắt đầu closing → trả focus trigger
+  useFocusTrap(panelRef, open && mounted);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -49,7 +56,10 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
       data-testid="drawer-overlay"
     >
       <aside
+        ref={panelRef}
         role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
         aria-label={typeof title === 'string' ? title : undefined}
         className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[-6px_0_16px_-8px_rgba(0,0,0,0.08),-9px_0_28px_0_rgba(0,0,0,0.05)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
         style={{ width }}

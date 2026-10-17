@@ -112,3 +112,4 @@ export { TreeSelect, type TreeSelectProps, type TreeNode } from './ui/tree-selec
 // ── Date/Time (batch ⑧ 2026-10-18) ──
 export { TimePicker, type TimePickerProps } from './ui/time-picker/index.js';
 export type { DateLocale } from './ui/date-picker/locale.js';
+export { useFocusTrap } from './hooks/useFocusTrap.js';

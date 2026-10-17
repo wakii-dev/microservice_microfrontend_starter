@@ -63,3 +63,18 @@ describe('Tooltip — branch phụ (Tier 5 sweep)', () => {
     expect(screen.getByRole('tooltip').querySelector('span[aria-hidden]')?.className).toContain('bottom-[calc(100%-4px)]');
   });
 });
+
+describe('Tooltip — ESC (a11y batch ⑫ worker C)', () => {
+  it('ESC đóng bubble khi đang mở qua focus', () => {
+    render(
+      <Tooltip title="gợi ý">
+        <button>T</button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByRole('button', { name: 'T' });
+    fireEvent.focus(trigger);
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+});

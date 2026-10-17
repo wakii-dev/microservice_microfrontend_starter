@@ -166,7 +166,14 @@ jobs:
           sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > pnpm-workspace.yaml
           corepack enable
           pnpm install --no-frozen-lockfile
-          pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler src/index.ts
+          # SF-1 (VU-53) thêm src/ui/*.tsx — pre-SF-7 flag set thiếu --jsx (TS6142) và
+          # standalone không có consumer để cung cấp types react (thiết kế SF-1: fe-shared
+          # KHÔNG khai dep react, consumer map @types/react qua tsconfig paths — xem
+          # frontend/shell/tsconfig.json). Standalone tự đóng vai consumer: cài
+          # @types/react pin đúng shell + thêm --jsx react-jsx (đối xứng jsx automatic
+          # runtime của rspack/vitest — mfToolkit $comment).
+          pnpm add -D @types/react@19.2.2
+          pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --jsx react-jsx src/index.ts
 
   scaffold-verify:
     name: "scaffold output build được — demo-app"

@@ -70,6 +70,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | Vì sao kiến trúc vậy | `docs/adr/0001–0008` |
 | Tổ chức epic/story với Wakii | `docs/wakii-playbook.md` (4 archetype chia SF + gates) |
 | Tạo service mới | skill `add-service` (`.claude/skills/`) — thủ tục 4 SF + lệnh verify |
+| Mở PR / merge / branch | `docs/git-flow.md` — mọi thay đổi vào `main` qua PR (template `.github/pull_request_template.md`) |
 
 ## CI (`.github/workflows/` — chạy mỗi push theo thư mục đổi)
 

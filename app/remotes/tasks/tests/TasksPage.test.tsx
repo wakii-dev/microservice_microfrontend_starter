@@ -117,7 +117,8 @@ describe('TasksPage', () => {
   it('loading đầu → Skeleton thay list', () => {
     mockedApi.fetchTasks.mockReturnValue(new Promise(() => {}));
     const { container } = render(<TasksPage />, { wrapper: createWrapper() });
-    expect(container.querySelector('.bp-skeleton--row')).toBeInTheDocument();
+    // Skeleton (PR #44 shimmer) không còn BEM class — aria-busy là contract duy nhất (role=status bị toast dùng chung)
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Danh sách tasks' })).not.toBeInTheDocument();
   });
 

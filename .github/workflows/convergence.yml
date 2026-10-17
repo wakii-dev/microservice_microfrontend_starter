@@ -144,6 +144,7 @@ jobs:
           cp contracts/events/fixtures/*.json "$RUNNER_TEMP/contracts/events/fixtures/"
           cd "$RUNNER_TEMP/standalone/node-svc"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           pnpm install --frozen-lockfile --ignore-workspace
           pnpm test
           pnpm build
@@ -166,6 +167,7 @@ jobs:
           # ignore-workspace tắt luôn catalog → lại ERR_CATALOG.
           sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > "$RUNNER_TEMP/catalog.yaml"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           for DIR in shared ui-kit; do
             echo "=== standalone typecheck: app/$DIR ==="
             mkdir -p "$RUNNER_TEMP/standalone/$DIR"
@@ -197,6 +199,7 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/demo-app"
           corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
           pnpm install --no-frozen-lockfile
           pnpm --filter "@demo-app/shell" build
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q

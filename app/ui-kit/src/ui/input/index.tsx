@@ -67,7 +67,7 @@ export function Input({
       <input
         value={value}
         onChange={onChange}
-        className={`min-w-0 flex-1 border-none bg-transparent outline-none ${SIZE_CLS[size]} text-ink placeholder:text-ink3`}
+        className={`min-w-0 flex-1 border-none bg-transparent outline-none ${SIZE_CLS[size]} text-ink placeholder:text-ink4`}
         {...rest}
       />
       {showClear && (

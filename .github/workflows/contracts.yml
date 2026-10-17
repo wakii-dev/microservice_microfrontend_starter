@@ -17,6 +17,10 @@ on:
       - ".github/workflows/contracts.yml"
       - ".spectral.yaml"
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide);
+  # job gitleaks giữ permissions riêng (pull-requests: read) — job-level override repo-level
+
 jobs:
   gitleaks:
     name: gitleaks (secret scan)

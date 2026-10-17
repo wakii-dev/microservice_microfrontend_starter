@@ -17,6 +17,9 @@ on:
       - ".github/workflows/services-spring-svc.yml"
       - "contracts/openapi/users.yaml"
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide)
+
 jobs:
   build-test:
     name: build + test (mvnw verify — Postgres thật)

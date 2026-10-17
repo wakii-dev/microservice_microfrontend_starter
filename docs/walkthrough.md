@@ -125,6 +125,8 @@ pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.m
 # rồi lặp lại mục 2-4 trong project mới
 ```
 
+Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playbook.md](wakii-playbook.md) — decision tree story/single/fix + 4 archetype chia SF + gates.
+
 ## 6. CI báo gì
 
 | Workflow | Chạy khi | Bằng chứng |

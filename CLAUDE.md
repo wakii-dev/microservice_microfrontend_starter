@@ -67,6 +67,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | Đụng Kafka/outbox/saga/DLQ | `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md` |
 | Đụng FE/MF/design system | `docs/adr/0002` + `frontend/shared/README.md` + README shell/remotes |
 | Vì sao kiến trúc vậy | `docs/adr/0001–0008` |
+| Tổ chức epic/story với Wakii | `docs/wakii-playbook.md` (4 archetype chia SF + gates) |
 
 ## CI (`.github/workflows/` — chạy mỗi push theo thư mục đổi)
 

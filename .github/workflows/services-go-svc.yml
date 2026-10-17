@@ -21,6 +21,9 @@ on:
       - ".github/workflows/services-go-svc.yml"
       - "contracts/openapi/activity.yaml"
 
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide)
+
 jobs:
   build-test:
     name: build + test (go-svc)

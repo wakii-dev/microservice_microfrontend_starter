@@ -37,8 +37,12 @@ SRC="$(cd "$(dirname "$0")/../.." && pwd)" # repo root (script ở scripts/scaff
 OUT="${OUT:-$PWD/$NAME}"
 [ ! -e "$OUT" ] || { echo "LỖI: output đã tồn tại: $OUT" >&2; exit 1; }
 # chặn OUT nằm TRONG source (tar copy-into-self ô nhiễm output — P0 code-review SF-7)
-OUT_REAL="$(realpath -m "$OUT")"
+# python3 thay realpath -m: BSD realpath (macOS) không có -m — fix portability 2026-10-17
+OUT_REAL="$(python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$OUT")"
 case "$OUT_REAL" in "$SRC"/*) echo "LỖI: --out không được nằm trong repo nguồn: $OUT" >&2; exit 1;; esac
+
+# sed -i BSD (macOS) bắt buộc tham số backup ('') — GNU không. Detect 1 lần (fix portability 2026-10-17)
+if sed --version >/dev/null 2>&1; then SED_I=(sed -i); else SED_I=(sed -i ''); fi
 
 echo "[scaffold] copy $SRC → $OUT (prune boilerplate-infra)"
 mkdir -p "$OUT"
@@ -62,13 +66,14 @@ echo "[scaffold] rename @boilerplate/* → @$NAME/* (package.json + source impor
 find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name 'Dockerfile*' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) \
   -not -path '*/node_modules/*' -not -path '*/target/*' -not -path '*/dist/*' \
-  -exec sed -i "s/@boilerplate\//@$NAME\//g" {} +
-sed -i "s/@boilerplate\//@$NAME\//g" "$OUT/pnpm-lock.yaml"
+  -exec "${SED_I[@]}" "s/@boilerplate\//@$NAME\//g" {} +
+"${SED_I[@]}" "s/@boilerplate\//@$NAME\//g" "$OUT/pnpm-lock.yaml"
 
-echo "[scaffold] rename root package name + compose name + README title"
-sed -i "s/\"name\": \"[^\"]*\"/\"name\": \"$NAME\"/" "$OUT/package.json"
-sed -i "s/^name: boilerplate/name: $NAME/" "$OUT/platform/docker-compose.yml"
-sed -i "1s/^# Boilerplate Microservice + Micro-frontend/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
+echo "[scaffold] rename root package name + compose name + README title + orca.yaml"
+"${SED_I[@]}" "s/\"name\": \"[^\"]*\"/\"name\": \"$NAME\"/" "$OUT/package.json"
+"${SED_I[@]}" "s/^name: boilerplate/name: $NAME/" "$OUT/platform/docker-compose.yml"
+"${SED_I[@]}" "1s/^# Boilerplate Microservice + Micro-frontend/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
+"${SED_I[@]}" "s/^name: architecture-overview/name: $NAME/" "$OUT/orca.yaml"
 
 cat > "$OUT/SCAFFOLD.md" <<EOF
 # Scaffold: $NAME
@@ -93,6 +98,11 @@ Sinh từ boilerplate epic FI-62 bởi \`scripts/scaffold/scaffold.sh\` ngày $(
 - Full e2e trên project scaffolded là **human gate** (cần Docker) — CI chỉ
   chứng minh build + compose-config được (narrowing đã duyệt ở epic FI-62).
 - Đọc \`README.md\` + \`docs/walkthrough.md\` + \`docs/adr/\` để hiểu kiến trúc.
+
+## AI onboarding
+- \`CLAUDE.md\` — onboarding AI (nguyên tắc vàng + lệnh + gotchas).
+- \`orca.yaml\` — descriptor máy đọc cho agent (services/ports/commands/gotchas).
+- \`.claude/agents/\` — 4 agent miền: fe-dev · be-dev · e2e-runner · contracts-keeper.
 EOF
 
 echo "[scaffold] DONE — project mới tại: $OUT"

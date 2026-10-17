@@ -1,0 +1,93 @@
+# CLAUDE.md — onboarding AI cho architecture-overview
+
+Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task management qua nginx gateway. Bản đồ structured cho agent parse: [orca.yaml](orca.yaml). Cho người mới: [docs/walkthrough.md](docs/walkthrough.md).
+
+## Nguyên tắc vàng (vi phạm = review fail)
+
+1. **Contracts là source of truth** — sửa spec/DDL/event contract TRƯỚC, code theo sau (`contracts/`).
+2. **Gateway :8080 là cổng duy nhất** browser/FE chạm vào; inter-service đi qua tên compose (`http://node-svc:3001`), không localhost.
+3. **Conventions bắt buộc** — `platform/conventions/01–09`: Dockerfile, healthcheck, logging JSON, error envelope, ports, config, CORS, gateway/remotes, async messaging.
+4. **Không sửa READ-LOCKED** ngoài story/epic được duyệt — xem bảng frontend bên dưới.
+
+## Bản đồ repo
+
+```
+contracts/    openapi (tasks·users·activity·auth) + db/tasks-schema.sql (canonical DDL)
+              + events/ (task-events.md + fixtures golden) + auth/users.json (id cố định)
+platform/     docker-compose.yml (10 services) · gateway/nginx · auth-mock :8090 ·
+              postgres/init · conventions/ (01–09)
+services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
+              spring-svc :8081 (Boot 3 — users/teams) · go-svc :8082 (chi — activity, Kafka consumer, saga)
+frontend/     shared (fe-shared, consumed qua source) · shell :3000 (MF host)
+              remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
+scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
+docs/         walkthrough · adr/0001–0008 · toolchain · superpowers/ (spec+plan+evidence theo story)
+```
+
+## Lệnh hằng ngày
+
+| Việc | Lệnh |
+|---|---|
+| Cài root (FE workspace) | `pnpm install --frozen-lockfile` |
+| node-svc cài riêng | `cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace` |
+| auth-mock cài riêng | `cd platform/auth-mock && pnpm install --ignore-workspace` |
+| Dev FE | `pnpm --filter <pkg> dev` (shell :3000, remotes :4001/:4002) |
+| Test shell (+typecheck) | `pnpm --filter shell test && pnpm --filter shell typecheck` |
+| Test node-svc / auth-mock | `pnpm --filter node-svc test` · `(cd platform/auth-mock && pnpm test)` |
+| Test go / spring | `cd services/go-svc && go test ./...` · `cd services/spring-svc && ./mvnw test` |
+| Codegen types node-svc | `pnpm --filter node-svc generate:types` (từ `contracts/openapi/tasks.yaml`) |
+| Lint contracts | `pnpm lint:contracts` (spectral) |
+| Chạy full stack + e2e | xem `run.compose` trong [orca.yaml](orca.yaml) — tạo topic TRƯỚC khi boot |
+
+## Ports (nguồn sự thật: `platform/conventions/05-ports.md`)
+
+gateway **8080** · shell 3000 · remote tasks 4001 · remote activity 4002 · node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-mock 8090 · postgres 5432. Sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
+
+## Workflow có contracts (sửa API)
+
+spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → sync snapshot go-svc (`internal/api/openapi/` phải bit-identical — CI drift-guard) → fixtures golden nếu event đổi. Chi tiết từng service trong README của service đó.
+
+## READ-LOCKED (frontend)
+
+- `frontend/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts` + `package.json#mfToolkit` — cấm sửa ngoài epic được duyệt (versions đã test thật: MF host :3000 load remote :4001).
+- Nâng cấp react/rspack/@module-federation/enhanced (catalog: trong `pnpm-workspace.yaml`) **phải re-spike** qua `frontend/spike` trước.
+- fe-shared consumed QUA SOURCE, không build riêng; remote standalone tự mang tokens (import tokens trong entry).
+
+## Run demo
+
+Đường A (compose — khuyến nghị): lệnh đầy đủ trong `run.compose` của [orca.yaml](orca.yaml) → mở http://localhost:8080 → login `alice@demo.local` / `demo-password`. Saga demo: assign task cho `fail@demo.local` → badge "Gán thất bại" + event ở `task-events.dlq`. Verify: `bash scripts/smoke/e2e.sh` PASS 8 bước (happy + saga + DLQ). Đường B native: `docs/walkthrough.md`.
+
+## Docs map — làm gì thì đọc gì TRƯỚC
+
+| Việc | Đọc |
+|---|---|
+| Onboard / chạy demo lần đầu | `docs/walkthrough.md` + `docs/toolchain.md` |
+| Code bất kỳ service nào | `platform/conventions/01–09` (+ README service đó) |
+| Sửa API/contract | `contracts/openapi/*.yaml` + `platform/conventions/04` (envelope) |
+| Đụng Kafka/outbox/saga/DLQ | `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md` |
+| Đụng FE/MF/design system | `docs/adr/0002` + `frontend/shared/README.md` + README shell/remotes |
+| Vì sao kiến trúc vậy | `docs/adr/0001–0008` |
+
+## CI (`.github/workflows/` — chạy mỗi push theo thư mục đổi)
+
+| Workflow | Nội dung |
+|---|---|
+| `contracts` | spectral + gitleaks + compose config + boot auth-mock + schemathesis |
+| `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
+| `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
+| `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone + scaffold build được |
+
+## Gotchas (đầy đủ trong `gotchas:` của orca.yaml)
+
+- node-svc + auth-mock: standalone lockfile — `pnpm install` **--ignore-workspace**, trong thư mục service.
+- Vitest ranh giới ngày: TZ pin trong `vitest.config.ts` (`test.env`) — đừng bỏ.
+- pgdata volume cũ thiếu user saga-seed → `docker compose down -v` 1 lần rồi up lại.
+- `assignment_failed` system-owned: re-assign không tự reset — PATCH `{assigneeId, status:"todo"}`.
+- `.env` không commit. Compose env luôn kèm `--env-file platform/.env`.
+
+## AI boilerplate
+
+- [orca.yaml](orca.yaml) — descriptor máy đọc (services/ports/commands/gotchas).
+- `.claude/agents/` — 4 agent miền: `fe-dev` · `be-dev` · `e2e-runner` · `contracts-keeper`.
+- Scaffold project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>` (bộ AI files đi kèm).
+- Culture evidence: đổi behavior đáng kể → chụp test-run/screenshot vào `docs/superpowers/evidence/` khi làm theo story workflow.

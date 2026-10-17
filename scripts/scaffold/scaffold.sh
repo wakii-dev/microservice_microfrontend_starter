@@ -103,6 +103,7 @@ Sinh từ boilerplate epic FI-62 bởi \`scripts/scaffold/scaffold.sh\` ngày $(
 - \`CLAUDE.md\` — onboarding AI (nguyên tắc vàng + lệnh + gotchas).
 - \`orca.yaml\` — descriptor máy đọc cho agent (services/ports/commands/gotchas).
 - \`.claude/agents/\` — 4 agent miền: fe-dev · be-dev · e2e-runner · contracts-keeper.
+- \`.claude/skills/\` — thủ tục dự án: add-service (thêm service mới) · sync-contracts (sửa API/contract).
 EOF
 
 echo "[scaffold] DONE — project mới tại: $OUT"

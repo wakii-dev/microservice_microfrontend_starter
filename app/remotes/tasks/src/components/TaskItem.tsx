@@ -4,7 +4,7 @@
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Input, Modal, Spinner } from '@wakii/ui-kit';
+import { Button, Input, Popconfirm, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -155,29 +155,28 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
             >
               Sửa
             </Button>
-            <Button
-              type="text"
+            {/* Tier 3: Popconfirm thay Modal confirm (bubble bám trigger) */}
+            <Popconfirm
+              open={confirming}
+              title="Xoá task này?"
+              description="Hành động không thể hoàn tác."
               danger
-              aria-label={`Xoá task ${task.title}`}
-              disabled={busy}
-              onClick={() => setConfirming(true)}
+              okText="Xác nhận xoá"
+              onConfirm={() => void run(() => onDelete(task))}
+              onCancel={() => setConfirming(false)}
             >
-              Xoá
-            </Button>
+              <Button
+                type="text"
+                danger
+                aria-label={`Xoá task ${task.title}`}
+                disabled={busy}
+                onClick={() => setConfirming(true)}
+              >
+                Xoá
+              </Button>
+            </Popconfirm>
           </div>
         )}
-        {/* Modal xoá — portal body; busy = confirmLoading (nút Đang xử lý…) */}
-        <Modal
-          open={confirming}
-          title="Xoá task này?"
-          danger
-          okText="Xác nhận xoá"
-          confirmLoading={busy}
-          onOk={() => void run(() => onDelete(task))}
-          onCancel={() => setConfirming(false)}
-        >
-          Hành động không thể hoàn tác.
-        </Modal>
       </div>
     </li>
   );

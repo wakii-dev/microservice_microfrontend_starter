@@ -302,7 +302,10 @@ func TestAPIRoundtrip(t *testing.T) {
 		SchemaVersion: env.SchemaVersion,
 		ID:            env.ID,
 		Type:          env.Type,
-		OccurredAt:    env.OccurredAt,
+		// FIX 2026-10-17 (CI run 39012899574): golden fixture có occurredAt CỐ ĐỊNH
+		// (2026-10-13) — quá 24h là CountRecent24h = 0 → test chết theo lịch.
+		// Fixture giữ nguyên (contract example) — assertion recentEvents cần event TƯƠI.
+		OccurredAt:    time.Now().UTC(),
 		Payload:       json.RawMessage(fmt.Sprintf(`{"taskId":%q,"userId":%q,"title":"Ship Kafka foundation","status":"todo"}`, taskIDs[0].String(), aliceID)),
 	}
 	handler := &consumer.Handler{Store: st, Tasks: st, Resolver: resolver, Log: slog.Default()}

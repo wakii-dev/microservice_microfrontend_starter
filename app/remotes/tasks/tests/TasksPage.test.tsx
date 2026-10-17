@@ -117,7 +117,10 @@ describe('TasksPage', () => {
   it('loading đầu → Skeleton thay list', () => {
     mockedApi.fetchTasks.mockReturnValue(new Promise(() => {}));
     const { container } = render(<TasksPage />, { wrapper: createWrapper() });
-    expect(container.querySelector('.bp-skeleton--row')).toBeInTheDocument();
+    // Skeleton shimmer (ui-kit migration PR#44): wrapper role=status/aria-busy + 4 bones
+    const skeleton = container.querySelector('[aria-busy="true"][role="status"]');
+    expect(skeleton).not.toBeNull();
+    expect(skeleton?.querySelectorAll(':scope > span')).toHaveLength(4);
     expect(screen.queryByRole('list', { name: 'Danh sách tasks' })).not.toBeInTheDocument();
   });
 

@@ -147,29 +147,4 @@
       opacity: 0.5;
     }
   }
-
-  /* Spinner — vòng 14px viền 2px quay; per-item busy; label = aria-label bắt buộc */
-  .bp-spinner {
-    animation: bp-spin 0.8s linear infinite;
-    border: 2px solid var(--line);
-    border-radius: 50%;
-    border-top-color: var(--accent);
-    display: inline-block;
-    height: 14px;
-    vertical-align: -2px;
-    width: 14px;
-  }
-  @keyframes bp-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Motion tối giản (hand-off §5): mọi animation tắt khi user reduced-motion */
-  @media (prefers-reduced-motion: reduce) {
-    .bp-skeleton,
-    .bp-spinner {
-      animation: none;
-    }
-  }
 }

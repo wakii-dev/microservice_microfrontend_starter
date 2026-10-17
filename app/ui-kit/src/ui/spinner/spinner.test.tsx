@@ -11,6 +11,6 @@ describe('Spinner (hand-off §3)', () => {
   it('aria-label bắt buộc từ prop label', () => {
     render(<Spinner label="Đang cập nhật task" />);
 
-    expect(screen.getByLabelText('Đang cập nhật task')).toHaveClass('bp-spinner');
+    expect(screen.getByLabelText('Đang cập nhật task')).toHaveClass('animate-spin');
   });
 });

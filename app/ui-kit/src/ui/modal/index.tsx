@@ -62,7 +62,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
-        className={`w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}`}
+        className={`w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}`}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);
         }}

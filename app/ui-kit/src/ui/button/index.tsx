@@ -30,7 +30,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const BASE =
-  'inline-flex cursor-pointer items-center justify-center gap-1 rounded-2 border transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:border-line disabled:bg-[rgba(0,0,0,0.04)] disabled:text-ink4';
+  'inline-flex cursor-pointer items-center justify-center gap-1 rounded-2 border transition-all focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:border-line disabled:bg-[rgba(0,0,0,0.04)] disabled:text-ink4 active:scale-[0.97] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
 
 const SIZE = {
   small: 'h-6 px-2 text-label',

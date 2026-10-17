@@ -31,7 +31,7 @@ export function Card({
     <div
       className={`overflow-hidden rounded-3 bg-s2 ${bordered ? 'border border-line' : ''} ${
         hoverable
-          ? 'cursor-pointer transition-shadow hover:border-transparent hover:shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]'
+          ? 'cursor-pointer transition-shadow hover:border-transparent hover:shadow-[var(--shadow-lift)] hover:-translate-y-px'
           : ''
       }${className ? ` ${className}` : ''}`}
     >

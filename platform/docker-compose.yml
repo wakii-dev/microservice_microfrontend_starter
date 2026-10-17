@@ -196,8 +196,8 @@ services:
   #     remote-activity do SF-6 thêm. ---
   shell:
     build:
-      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
-      dockerfile: frontend/shell/Dockerfile
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/shell/Dockerfile
     ports:
       - "${SHELL_PORT:-3000}:3000" # container port cố định 3000 (conventions/05)
     healthcheck:
@@ -208,12 +208,12 @@ services:
 
   # --- remote-tasks / remote-activity: SF-6 (FI-74) điền impl vào khung pre-seed ---
   # (gap-answer được BRIEF SF-6 ủy quyền 2026-10-12: "BẠN tự thêm 2 entry remotes — build
-  # ../frontend/remotes/*, port theo port table, healthcheck static; coordinator duyệt ở review".
+  # ../app/remotes/*, port theo port table, healthcheck static; coordinator duyệt ở review".
   # SF-6 KHÔNG sửa phần khác của file này.)
   remote-tasks:
     build:
-      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
-      dockerfile: frontend/remotes/tasks/Dockerfile
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/remotes/tasks/Dockerfile
     ports:
       - "${REMOTE_TASKS_PORT:-4001}:4001" # container port cố định 4001 (conventions/05)
     healthcheck:
@@ -224,8 +224,8 @@ services:
 
   remote-activity:
     build:
-      context: .. # repo root — Dockerfile cần frontend/shared + workspace lockfile
-      dockerfile: frontend/remotes/activity/Dockerfile
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/remotes/activity/Dockerfile
     ports:
       - "${REMOTE_ACTIVITY_PORT:-4002}:4002" # container port cố định 4002 (conventions/05)
     healthcheck:

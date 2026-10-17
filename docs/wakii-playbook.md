@@ -37,7 +37,7 @@ Trước khi CREATE story, trả lời 5 câu (ghi vào epic summary):
 
 1. Đụng **contracts/** không? (OpenAPI / DDL / event / users.json) — đụng là SF-1 contracts, không ghép với impl.
 2. Đụng **port hoặc route gateway** không? — kích hoạt quy tắc 4 chỗ (conventions/05 + .env.example + compose + README cùng commit).
-3. Đụng **READ-LOCKED** không? (`frontend/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts`, `package.json#mfToolkit`, catalog pins) — cần epic duyệt + re-spike qua `frontend/spike`.
+3. Đụng **READ-LOCKED** không? (`app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts`, `package.json#mfToolkit`, catalog pins) — cần epic duyệt + re-spike qua `app/spike`.
 4. Cần **secret/env mới** không? — liệt kê vào `.env.example` ở SF-1, không để SF cuối mới discover.
 5. Chạy **song song được không?** — SF cùng tier KHÔNG được đụng cùng file; đụng → tách tier.
 
@@ -55,6 +55,14 @@ Rồi tra archetype:
 ### NS — Service mới
 *Thêm service vào demo (vd notification-svc consume task-events).*
 
+- **Câu hỏi làm rõ TRƯỚC khi tính slice** (mỗi câu đổi hình dạng SF-1):
+  | Câu hỏi | Hệ quả kỹ thuật |
+  |---|---|
+  | Sync hay async? | Có Kafka → conventions/09 + topic tạo tường minh trước consumer |
+  | Ngôn ngữ nào? | Node ngoài workspace → standalone lockfile (variant conventions/01); Go → drift-guard snapshot + distroless không healthcheck shell (conventions/02) |
+  | Có DB riêng? | DDL vào `contracts/db/` + role schema-only trong postgres init + migration pattern (drizzle/Flyway/auto) |
+  | Port mấy? | Quy tắc 4 chỗ cùng commit (conventions/05 + .env.example + compose + README) |
+  | FE có hiển thị? | Có → tách SF riêng cho remote/page, không gộp vào SF impl |
 - **Công thức 4 SF:** SF-1 khung (contracts OpenAPI + DDL + entry compose + CI workflow — impl rỗng nhưng boot + healthcheck xanh) → SF-2 impl API → SF-3 consumer/producer + FE hiển thị → SF-4 convergence e2e mở rộng.
 - **Đừng đóng SF-1 trước khi** `docker compose up` riêng service boot được với role DB schema-only (bài học drizzle `CREATE SCHEMA` permission — improvements-log 2026-10-12).
 - **Gates:** boot-smoke CI + drift-guard snapshot; conventions mới (nếu có) phải thuộc SF-1, không nhét SF cuối.
@@ -66,7 +74,7 @@ Rồi tra archetype:
 - **Design trước, code sau, tier tách bạch:** design gate front-load NGAY LÚC CREATE (mock-prototype 3 hướng, user chọn, hand-off `docs/superpowers/designs/`) → SF-1 tier 0 design-system nền móng (tokens + primitives, không phá hiện trạng) → tier 1 từng vùng UI song song → tier 2 convergence + human browser walkthrough.
 - **Quy tắc sống còn của tier 1:** mỗi SF một vùng file (`shell/` | `remotes/tasks` | `remotes/activity`); fe-shared chỉ tier 0 đụng; css scoped, không sửa style chung sau tier 0.
 - **Gates:** direction-approved record trước SF-1; a11y test; walkthrough 8-acceptance + responsive 375px ở convergence (VU-53 precedent).
-- **Rủi ro:** react/rspack/MF upgrade đụng catalog pins → **phải re-spike** qua `frontend/spike` trước, không nâng trong epic UI.
+- **Rủi ro:** react/rspack/MF upgrade đụng catalog pins → **phải re-spike** qua `app/spike` trước, không nâng trong epic UI.
 
 ### IN — Infra/platform
 *Observability, upgrade toolchain, đổi CI, compose.*

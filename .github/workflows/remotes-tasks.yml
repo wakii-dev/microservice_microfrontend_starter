@@ -8,15 +8,15 @@ on:
   push:
     branches: ["**"]
     paths:
-      - "frontend/remotes/tasks/**"
-      - "frontend/shared/**"
+      - "app/remotes/tasks/**"
+      - "app/shared/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - ".github/workflows/remotes-tasks.yml"
   pull_request:
     paths:
-      - "frontend/remotes/tasks/**"
-      - "frontend/shared/**"
+      - "app/remotes/tasks/**"
+      - "app/shared/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - ".github/workflows/remotes-tasks.yml"
@@ -40,15 +40,15 @@ jobs:
       - name: Install (workspace, frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Typecheck
-        run: pnpm --filter @boilerplate/remote-tasks typecheck
+        run: pnpm --filter @wakii/remote-tasks typecheck
       - name: Tests (vitest + testing-library)
-        run: pnpm --filter @boilerplate/remote-tasks test
+        run: pnpm --filter @wakii/remote-tasks test
       - name: Build (rspack production)
-        run: pnpm --filter @boilerplate/remote-tasks build
+        run: pnpm --filter @wakii/remote-tasks build
       - uses: actions/upload-artifact@v4
         with:
           name: remote-tasks-dist
-          path: frontend/remotes/tasks/dist/
+          path: app/remotes/tasks/dist/
           retention-days: 3
 
   boot-smoke:
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Docker build (multi-stage node→nginx, context = repo root)
-        run: docker build -f frontend/remotes/tasks/Dockerfile -t boilerplate-remote-tasks .
+        run: docker build -f app/remotes/tasks/Dockerfile -t boilerplate-remote-tasks .
       - name: Up container
         run: docker run -d --name remote-tasks -p 4001:4001 boilerplate-remote-tasks
       - name: Smoke — HTTP 200 trên / (standalone index)

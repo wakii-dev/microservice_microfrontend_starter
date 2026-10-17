@@ -1,0 +1,49 @@
+name: ui-kit
+
+# ADR-0009 (2026-10-17) — ui-kit design system tách khỏi fe-shared: typecheck + vitest
+# + storybook build gate (docs sống cho primitives + tokens; KHÔNG publish, KHÔNG chromatic).
+# Shell workflow tiếp theo dõi shared/** (logic) — ui-kit đổi chỉ chạy workflow này.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "app/ui-kit/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/ui-kit.yml"
+  pull_request:
+    paths:
+      - "app/ui-kit/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/ui-kit.yml"
+
+permissions:
+  contents: read # least-privilege (chuẩn 8/8 workflows từ 2026-10-17)
+
+jobs:
+  build-test:
+    name: typecheck + vitest + storybook build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install (workspace, frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --filter @wakii/ui-kit typecheck
+      - name: Tests (vitest + testing-library)
+        run: pnpm --filter @wakii/ui-kit test
+      - name: Storybook build (gate "build được" — không publish)
+        run: pnpm --filter @wakii/ui-kit build-storybook
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-kit-storybook-static
+          path: app/ui-kit/storybook-static/
+          retention-days: 3

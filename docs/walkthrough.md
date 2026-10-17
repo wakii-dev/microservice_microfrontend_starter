@@ -10,7 +10,7 @@ Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là nh
 
 ```bash
 git clone <repo> && cd <repo>
-pnpm install --frozen-lockfile     # FE workspace (frontend/*)
+pnpm install --frozen-lockfile     # FE workspace (app/*)
 cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace && cd ../..   # node-svc standalone lockfile
 cd platform/auth-mock && pnpm install --ignore-workspace && cd ../..                     # auth-mock standalone
 ```
@@ -71,9 +71,9 @@ cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
   SPRING_SVC_URL=http://localhost:8081 go run ./cmd/server
 
 # FE (3 terminal):
-cd frontend/shell   && pnpm dev   # :3000
-cd frontend/remotes/tasks    && pnpm dev   # :4001
-cd frontend/remotes/activity && pnpm dev   # :4002
+cd app/shell   && pnpm dev   # :3000
+cd app/remotes/tasks    && pnpm dev   # :4001
+cd app/remotes/activity && pnpm dev   # :4002
 ```
 
 Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conventions/07 (CORS dev đã mở). Chain 3 service "qua một cổng" là đặc tính của compose mode (đường A) + CI e2e-smoke job.
@@ -112,7 +112,7 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
    ```
 4. **Recovery**: re-assign cho user hợp lệ (bob, id `22222222-2222-4222-8222-222222222222`) → saga chạy lại từ đầu (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm). Trên UI task có lại badge "Cần làm" + select status.
 
-> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @boilerplate/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
+> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @wakii/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
 
 > CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 

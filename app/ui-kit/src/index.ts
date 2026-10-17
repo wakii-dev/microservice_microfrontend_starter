@@ -92,7 +92,7 @@ export { useWindowSize } from './hooks/useWindowSize.js';
 export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
 
 // ── Navigation mới (batch ② 2026-10-17) ──
-export { Menu, type MenuProps, type MenuItemData, MenuCompactContext } from './ui/menu/index.js';
+export { Menu, type MenuProps, type MenuItemData, MenuCompactContext, findPath } from './ui/menu/index.js';
 export { Sidebar, type SidebarProps } from './ui/sidebar/index.js';
 export { useForm, type UseFormOptions, type FormErrors, type FormValidationMode } from './hooks/useForm.js';
 
@@ -113,3 +113,15 @@ export { TreeSelect, type TreeSelectProps, type TreeNode } from './ui/tree-selec
 export { TimePicker, type TimePickerProps } from './ui/time-picker/index.js';
 export type { DateLocale } from './ui/date-picker/locale.js';
 export { useFocusTrap } from './hooks/useFocusTrap.js';
+
+// ── Misc family (batch 3) — bổ sung barrel sau QA sweep 2026-10-18 (comp có test
+// nhưng thiếu export, stories = backlog riêng) ──
+export { AutoComplete, type AutoCompleteProps } from './ui/auto-complete/index.js';
+export { CascadeSelect, type CascadeSelectProps } from './ui/cascade-select/index.js';
+export { Chips, type ChipsProps } from './ui/chips/index.js';
+export { Inplace, type InplaceProps } from './ui/inplace/index.js';
+export { Knob, type KnobProps } from './ui/knob/index.js';
+export { Mention, type MentionProps } from './ui/mention/index.js';
+export { OrderList, type OrderListProps, type OrderListItem } from './ui/order-list/index.js';
+export { PickList, type PickListProps } from './ui/pick-list/index.js';
+export { ScrollPanel, type ScrollPanelProps } from './ui/scroll-panel/index.js';

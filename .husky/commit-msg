@@ -1,0 +1,12 @@
+# husky commit-msg — mirror của CI git-guard (docs/git-flow.md, ADR: rule enforced 2 lớp)
+MSG="$(head -1 "$1")"
+
+# merge commits ("Merge pull request #N" / "Merge remote-tracking...") — ngoại lệ
+echo "$MSG" | grep -qE '^Merge ' && exit 0
+
+if ! echo "$MSG" | grep -qE '^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9./-]+\))?!?: .+'; then
+  echo "✗ Commit message vi phạm convention (docs/git-flow.md): \"$MSG\"" >&2
+  echo '  Đúng: <type>(<scope>): <mô tả> — vd: fix(go-svc): recentEvents test chết theo lịch' >&2
+  echo '  Bỏ qua khẩn: git commit --no-verify (git-guard CI vẫn chặn trên PR)' >&2
+  exit 1
+fi

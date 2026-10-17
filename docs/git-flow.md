@@ -35,6 +35,27 @@ Quy tắc:
   local repro); ghi **verified gì** khi là refactor/feat (số test, build PASS).
 - Đổi behavior + story workflow → chụp evidence vào `docs/superpowers/evidence/`.
 
+## Rule được ENFORCE (CI git-guard)
+
+Workflow `.github/workflows/git-guard.yml` chặn PR vi phạm 2 rule sau:
+
+1. **Branch name**: `wakii-dev/<story|sf|fix|docs|chore|feat>-<slug-kebab>`
+   (vd `wakii-dev/fix-gosvc-recent-events`, `wakii-dev/sf-5-ui-redesign-conv`)
+2. **Commit message**: `<type>(<scope>): <mô tả>` với type ∈
+   `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`
+   (merge commits "Merge pull request #N" được ngoại lệ)
+
+Feedback sớm ngay tại máy — **husky** tự cài khi `pnpm install` (root `prepare` script
+chạy `husky`, guard `test -d .git` để không chết trong docker/CI không có .git):
+
+- `.husky/commit-msg` — validate conventional commit TRƯỚC khi commit tạo (mirror
+  git-guard; merge commits được ngoại lệ; thoát khẩn `git commit --no-verify` — CI vẫn chặn)
+- CI `git-guard` vẫn là lớp enforce cuối cùng (hook chỉ là feedback sớm, ai tắt hook
+  cũng không qua nổi PR)
+
+Worktree (Orca/Claude session): `pnpm install` trong worktree cũng chạy root `prepare`
+→ husky tự active theo worktree đó; CI git-guard vẫn chặn cuối cùng dù quên.
+
 ## Checklist nhanh trước merge
 
 - [ ] Suite local xanh (xem bảng lệnh trong CLAUDE.md — `test_all:` của orca.yaml)

@@ -49,11 +49,22 @@
   --text-body: var(--fs-body);
   --text-h2: var(--fs-h2);
   --text-h1: var(--fs-h1);
+  /* Shadow layered */
+  --shadow-pop: var(--shadow-pop);
+  --shadow-lift: var(--shadow-lift);
   /* Radius */
   --radius-1: var(--r-1);
   --radius-2: var(--r-2);
   --radius-3: var(--r-3);
   --radius-pill: var(--r-pill);
+  /* Micro-interaction: hover lift -1px + shadow grow; press scale 0.97 */
+  --animate-press: bp-press var(--motion-instant) var(--ease-toggle);
+}
+
+@keyframes bp-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.97); }
+  100% { transform: scale(1); }
 }
 
 /* ── Motion keyframes dùng chung (motion identity — docs/motion.md) ─────────

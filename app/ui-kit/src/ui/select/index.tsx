@@ -94,7 +94,7 @@ export function Select({ ariaLabel, value, onChange, options, placeholder, disab
           id={listId}
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute z-20 mt-1 max-h-60 w-full min-w-[120px] overflow-auto rounded-3 border border-line bg-s2 p-1 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]"
+          className="absolute z-20 mt-1 max-h-60 w-full min-w-[120px] overflow-auto rounded-3 border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]"
         >
           {options.map((option, i) => {
             const isSelected = option.value === value;

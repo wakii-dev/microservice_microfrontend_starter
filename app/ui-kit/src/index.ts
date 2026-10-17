@@ -44,3 +44,7 @@ export { Table, type TableProps, type TableColumn } from './ui/table/index.js';
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from './ui/breadcrumb/index.js';
 export { Steps, type StepsProps, type StepItem } from './ui/steps/index.js';
 export { BusyBox, type BusyBoxProps } from './ui/busy-box/index.js';
+export { Calendar, type CalendarProps } from './ui/calendar/index.js';
+export { DatePicker, type DatePickerProps } from './ui/date-picker/index.js';
+export { Slider, type SliderProps } from './ui/slider/index.js';
+export { Timeline, type TimelineProps, type TimelineItem } from './ui/timeline/index.js';

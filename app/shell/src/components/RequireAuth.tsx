@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router';
 import type { ReactElement } from 'react';
-import { isExpired, tokenStorage } from '@boilerplate/fe-shared';
+import { isExpired, tokenStorage } from '@wakii/fe-shared';
 
 /** Gate route: chưa login (hoặc token hết hạn) → redirect /login, giữ lại path gốc. */
 export function RequireAuth({ children }: { children: ReactElement }) {

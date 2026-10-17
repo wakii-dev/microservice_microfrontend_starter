@@ -7,7 +7,7 @@ FE shell — Module Federation host (Rspack + `@module-federation/enhanced`), Re
 ```bash
 # từ repo root — pnpm workspace
 pnpm install
-pnpm --filter @boilerplate/shell dev     # dev server :3000 (conventions/05)
+pnpm --filter @wakii/shell dev     # dev server :3000 (conventions/05)
 ```
 
 Login demo: `alice@demo.local` / `demo-password` (fixture `contracts/auth/users.json` + dev password chung `AUTH_MOCK_DEV_PASSWORD`).
@@ -30,15 +30,15 @@ cd platform/auth-mock && pnpm install && pnpm dev   # hoặc node src/server.js
 Ví dụ dev có remote SF-6 chạy local:
 
 ```bash
-REMOTE_TASKS_URL=http://localhost:4001/remoteEntry.js pnpm --filter @boilerplate/shell dev
+REMOTE_TASKS_URL=http://localhost:4001/remoteEntry.js pnpm --filter @wakii/shell dev
 ```
 
 ## Tests + build
 
 ```bash
-pnpm --filter @boilerplate/shell test        # vitest + testing-library (38 tests: a11y, login, remote-down, api-timeout, integration, primitives, shell-chrome)
-pnpm --filter @boilerplate/shell typecheck
-pnpm --filter @boilerplate/shell build       # rspack production build → dist/
+pnpm --filter @wakii/shell test        # vitest + testing-library (38 tests: a11y, login, remote-down, api-timeout, integration, primitives, shell-chrome)
+pnpm --filter @wakii/shell typecheck
+pnpm --filter @wakii/shell build       # rspack production build → dist/
 ```
 
 A11y baseline CÓ TEST: skip link (`Tới nội dung chính`) + route focus management (focus `<main>` mỗi route change).
@@ -59,21 +59,21 @@ Multi-stage: node:22-alpine build → nginx:1.27-alpine serve static `:3000`, SP
 
 ## Standalone-copy
 
-Copy thư mục này **KÈM `app/shared/`** (workspace dep `@boilerplate/fe-shared`) + root `pnpm-workspace.yaml` + `pnpm-lock.yaml`. Không copy = build fail ngay ở import fe-shared.
+Copy thư mục này **KÈM `app/shared/`** (workspace dep `@wakii/fe-shared`) + root `pnpm-workspace.yaml` + `pnpm-lock.yaml`. Không copy = build fail ngay ở import fe-shared.
 
 ## Kiến trúc nhanh
 
 - `src/index.tsx` → async boundary `import('./bootstrap')` (bắt buộc MF — tránh loadShareSync)
-- `src/bootstrap.tsx` — import global `@boilerplate/fe-shared/styles/tokens.css` + `base.css` (shell LÀM CHỦ global base — remotes KHÔNG import lại base khi chạy trong shell)
+- `src/bootstrap.tsx` — import global `@wakii/fe-shared/styles/tokens.css` + `base.css` (shell LÀM CHỦ global base — remotes KHÔNG import lại base khi chạy trong shell)
 - `src/App.tsx` — routes `/`, `/tasks`, `/activity` (remote slots), `/login`
 - `src/components/RemoteSlot.tsx` — lazy remote + error boundary + retry (Suspense fallback = Skeleton primitive)
 - `src/api.ts` — ApiClient từ fe-shared, base `__API_BASE_URL__`
-- Login dùng `tokenStorage` + `ApiClient` từ `@boilerplate/fe-shared` (READ-ONLY — SF-1 sở hữu)
+- Login dùng `tokenStorage` + `ApiClient` từ `@wakii/fe-shared` (READ-ONLY — SF-1 sở hữu)
 - `src/styles.css` — scoped classes shell (`sh-*`), chỉ ăn tokens CSS vars từ fe-shared
 
-## Design system (từ `@boilerplate/fe-shared` — story VU-53)
+## Design system (từ `@wakii/fe-shared` — story VU-53)
 
-- **Tokens**: `import '@boilerplate/fe-shared/styles/tokens.css'` — CSS vars `--c-*` (surface ladder `#010102→#18191a`), `--ink*`, `--line*`, `--accent*`, `--st-*`, `--sp-*`, `--fs-*`, `--r-*`. Depth = surface + viền 1px, KHÔNG box-shadow.
-- **Base**: `import '@boilerplate/fe-shared/styles/base.css'` — reset mỏng + element defaults (`@layer reset,base`) — CHỈ shell import làm global.
-- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared'` — `Badge variant: todo|doing|done|failed|created|updated|assigned|deleted|assignmentFailed` (role="status"), Skeleton (aria-busy + prefers-reduced-motion), Spinner (label bắt buộc), EmptyState (title/description/action).
+- **Tokens**: `import '@wakii/fe-shared/styles/tokens.css'` — CSS vars `--c-*` (surface ladder `#010102→#18191a`), `--ink*`, `--line*`, `--accent*`, `--st-*`, `--sp-*`, `--fs-*`, `--r-*`. Depth = surface + viền 1px, KHÔNG box-shadow.
+- **Base**: `import '@wakii/fe-shared/styles/base.css'` — reset mỏng + element defaults (`@layer reset,base`) — CHỈ shell import làm global.
+- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared'` — `Badge variant: todo|doing|done|failed|created|updated|assigned|deleted|assignmentFailed` (role="status"), Skeleton (aria-busy + prefers-reduced-motion), Spinner (label bắt buộc), EmptyState (title/description/action).
 - Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B, user đã duyệt).

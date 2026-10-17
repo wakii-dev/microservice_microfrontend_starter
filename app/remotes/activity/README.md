@@ -1,18 +1,18 @@
-# @boilerplate/remote-activity
+# @wakii/remote-activity
 
 FE remote `activity` — MF REMOTE (Rspack + @module-federation/enhanced, React 19). Expose `./ActivityPage`, shell (MF host) mount vào route `/activity` theo remote registry [`platform/conventions/08-gateway-and-remotes.md`](../../../platform/conventions/08-gateway-and-remotes.md).
 
-Feed + stats qua gateway `/api/activity` (go-svc) — render **trực tiếp** user-display fields (`userName`, `taskTitle`) từ response (go-svc resolve, FE không tự bịa); JWT tự đính qua `@boilerplate/fe-shared` ApiClient; error envelope decode → banner (stats lỗi không che feed).
+Feed + stats qua gateway `/api/activity` (go-svc) — render **trực tiếp** user-display fields (`userName`, `taskTitle`) từ response (go-svc resolve, FE không tự bịa); JWT tự đính qua `@wakii/fe-shared` ApiClient; error envelope decode → banner (stats lỗi không che feed).
 
 ## Chạy dev
 
 ```bash
 # từ repo root — pnpm workspace
 pnpm install
-pnpm --filter @boilerplate/remote-activity dev   # http://localhost:4002
+pnpm --filter @wakii/remote-activity dev   # http://localhost:4002
 ```
 
-Remote thật sự dùng được khi load TRONG shell (`pnpm --filter @boilerplate/shell dev` với
+Remote thật sự dùng được khi load TRONG shell (`pnpm --filter @wakii/shell dev` với
 `REMOTE_ACTIVITY_URL=http://localhost:4002/remoteEntry.js`); standalone :4002 chỉ để debug UI
 (không token ở origin này → API 401 là đúng hành vi).
 
@@ -27,9 +27,9 @@ Remote thật sự dùng được khi load TRONG shell (`pnpm --filter @boilerpl
 ## Test + build
 
 ```bash
-pnpm --filter @boilerplate/remote-activity test        # vitest + testing-library
-pnpm --filter @boilerplate/remote-activity typecheck
-pnpm --filter @boilerplate/remote-activity build       # dist/ — Dockerfile nginx serve static
+pnpm --filter @wakii/remote-activity test        # vitest + testing-library
+pnpm --filter @wakii/remote-activity typecheck
+pnpm --filter @wakii/remote-activity build       # dist/ — Dockerfile nginx serve static
 ```
 
 ## Docker
@@ -43,7 +43,7 @@ docker run -p 4002:4002 boilerplate-remote-activity   # http://localhost:4002/re
 
 ## Standalone-copy
 
-Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@boilerplate/fe-shared` qua `workspace:*`.
+Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-lock.yaml`) — remote import `@wakii/fe-shared` qua `workspace:*`.
 
 ## API contract
 
@@ -51,9 +51,9 @@ Copy thư mục này **KÈM `app/shared/`** (+ root `pnpm-workspace.yaml`/`pnpm-
 
 > Lưu ý: override `REMOTE_ACTIVITY_PORT` KHÔNG tự đổi publicPath (default vẫn :4002) — đặt kèm `REMOTE_PUBLIC_PATH` nếu đổi port dev.
 
-## Design system (từ `@boilerplate/fe-shared` — story VU-53)
+## Design system (từ `@wakii/fe-shared` — story VU-53)
 
 - **Trong shell**: KHÔNG import lại `base.css` — shell import global làm chủ; remote chỉ ăn **tokens** CSS vars (`--c-* --ink* --line* --accent* --st-* --sp-* --fs-* --r-*`) + scoped classes riêng (`act-*`), không element selector toàn cục.
 - **Standalone** (`src/standalone.tsx`): tự import `tokens.css` + `base.css` để trang debug có style đầy đủ.
-- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared'` — badge action feed = `Badge variant created|updated|assigned|deleted|assignmentFailed` (mỗi action một màu chấm); loading stats/feed skeleton ĐỘC LẬP (giữ `Promise.allSettled`); empty = `EmptyState` hướng dẫn sang Tasks; nút *Làm mới* busy = `Spinner`.
+- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared'` — badge action feed = `Badge variant created|updated|assigned|deleted|assignmentFailed` (mỗi action một màu chấm); loading stats/feed skeleton ĐỘC LẬP (giữ `Promise.allSettled`); empty = `EmptyState` hướng dẫn sang Tasks; nút *Làm mới* busy = `Spinner`.
 - Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B "Linear-referenced dark").

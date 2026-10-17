@@ -14,7 +14,7 @@
 #   app/spike · .github/workflow-templates · .github/workflows/convergence.yml
 #   (pin story branch — chết trong repo mới) · .story-brief.md · .env
 #
-# Rename: @boilerplate/* → @<new-name>/* (toàn bộ package.json + pnpm-lock.yaml) ·
+# Rename: @wakii/* → @<new-name>/* (toàn bộ package.json + pnpm-lock.yaml) ·
 #   root package name → <new-name> · compose `name:` → <new-name> · README title.
 #
 # Lưu ý pnpm-lock: importers của thư mục bị prune (vd app/spike) còn sót
@@ -62,12 +62,12 @@ tar -C "$SRC" -cf - \
   --exclude='.env' \
   . | tar -C "$OUT" -xf -
 
-echo "[scaffold] rename @boilerplate/* → @$NAME/* (package.json + source imports + Dockerfile + yml + md + lockfile)"
+echo "[scaffold] rename @wakii/* → @$NAME/* (package.json + source imports + Dockerfile + yml + md + lockfile)"
 find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' \
   -o -name 'Dockerfile*' -o -name '*.yml' -o -name '*.yaml' -o -name '*.md' \) \
   -not -path '*/node_modules/*' -not -path '*/target/*' -not -path '*/dist/*' \
-  -exec "${SED_I[@]}" "s/@boilerplate\//@$NAME\//g" {} +
-"${SED_I[@]}" "s/@boilerplate\//@$NAME\//g" "$OUT/pnpm-lock.yaml"
+  -exec "${SED_I[@]}" "s/@wakii\//@$NAME\//g" {} +
+"${SED_I[@]}" "s/@wakii\//@$NAME\//g" "$OUT/pnpm-lock.yaml"
 
 echo "[scaffold] rename root package name + compose name + README title + orca.yaml"
 "${SED_I[@]}" "s/\"name\": \"[^\"]*\"/\"name\": \"$NAME\"/" "$OUT/package.json"
@@ -81,7 +81,7 @@ cat > "$OUT/SCAFFOLD.md" <<EOF
 Sinh từ boilerplate epic FI-62 bởi \`scripts/scaffold/scaffold.sh\` ngày $(date +%F).
 
 ## Đổi tên đã áp dụng
-- pnpm scope \`@boilerplate/*\` → \`@$NAME/*\` (package.json + pnpm-lock.yaml)
+- pnpm scope \`@wakii/*\` → \`@$NAME/*\` (package.json + pnpm-lock.yaml)
 - root package name → \`$NAME\`; compose project name → \`$NAME\`; README title
 
 ## Bước tiếp theo (bắt buộc theo thứ tự)

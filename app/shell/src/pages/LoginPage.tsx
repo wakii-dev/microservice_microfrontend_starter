@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
-import { ApiError, isExpired, tokenStorage } from '@boilerplate/fe-shared';
+import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
 import { api } from '../api';
 
 interface LoginResponse {

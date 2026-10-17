@@ -45,7 +45,7 @@ vi.mock('@module-federation/enhanced/runtime', () => ({
   },
 }));
 
-import { loadRemoteModule } from '@boilerplate/fe-shared';
+import { loadRemoteModule } from '@wakii/fe-shared';
 
 afterEach(() => {
   runtime.globalLoading.clear();

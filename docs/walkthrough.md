@@ -112,7 +112,7 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
    ```
 4. **Recovery**: re-assign cho user hợp lệ (bob, id `22222222-2222-4222-8222-222222222222`) → saga chạy lại từ đầu (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm). Trên UI task có lại badge "Cần làm" + select status.
 
-> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @boilerplate/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
+> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @wakii/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
 
 > CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 

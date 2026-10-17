@@ -5,10 +5,10 @@
 // EmptyState hướng dẫn sang Tasks, refresh busy state.
 // Tokens import idempotent (:root custom props cùng giá trị — trong shell shell đã import,
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
-import '@boilerplate/fe-shared/styles/tokens.css';
+import '@wakii/fe-shared/styles/tokens.css';
 import './styles.css';
 import { useCallback, useEffect, useState } from 'react';
-import { EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared';
+import { EmptyState, Skeleton, Spinner } from '@wakii/fe-shared';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';

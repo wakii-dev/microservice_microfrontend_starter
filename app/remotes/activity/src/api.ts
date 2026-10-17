@@ -2,7 +2,7 @@
 // Base URL build-time (conventions/06): dev native = http://localhost:8082 (go-svc trực tiếp,
 // CORS dev mở — conventions/07); prod = '' (same-origin qua gateway, pass-through giữ prefix).
 // JWT + error envelope do fe-shared ApiClient (READ-ONLY) lo.
-import { ApiClient, ApiError, tokenStorage } from '@boilerplate/fe-shared';
+import { ApiClient, ApiError, tokenStorage } from '@wakii/fe-shared';
 
 const TIMEOUT_MS = 10_000;
 

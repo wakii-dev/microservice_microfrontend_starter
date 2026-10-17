@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { isExpired, readClaims, tokenStorage } from '@boilerplate/fe-shared';
+import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
 
 /**
  * Dashboard chào (spec slice mục 4): greeting + quick links 2 remote + demo hints.

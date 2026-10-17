@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/shell",
+  "name": "@wakii/shell",
   "version": "0.1.0",
   "private": true,
   "description": "FE shell — MF host (SF-5, FI-73). Rspack + @module-federation/enhanced, React 19. Standalone-copy: copy KÈM app/shared (fe-shared).",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@boilerplate/fe-shared": "workspace:*",
+    "@wakii/fe-shared": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-router": "catalog:"

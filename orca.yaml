@@ -72,7 +72,7 @@ services:
 app:
   shared:
     path: app/shared
-    scope: "@boilerplate/fe-shared"
+    scope: "@wakii/fe-shared"
     role: consumed QUA SOURCE (main/types trỏ thẳng src/) — không build riêng, KHÔNG có scripts
     read_locked:   # cấm sửa ngoài story/epic được duyệt — versions + contracts đã test thật
       - src/api-client.ts

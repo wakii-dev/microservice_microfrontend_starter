@@ -26,10 +26,10 @@ Bạn là FE dev của boilerplate micro-frontend (Rspack + Module Federation + 
 
 ```bash
 pnpm --filter shell dev            # host :3000
-pnpm --filter "@boilerplate/remote-tasks" dev    # :4001 standalone
-pnpm --filter "@boilerplate/remote-activity" dev # :4002 standalone
+pnpm --filter "@wakii/remote-tasks" dev    # :4001 standalone
+pnpm --filter "@wakii/remote-activity" dev # :4002 standalone
 pnpm --filter shell test && pnpm --filter shell typecheck
-pnpm --filter "@boilerplate/remote-tasks" test   # vitest run
+pnpm --filter "@wakii/remote-tasks" test   # vitest run
 ```
 
 Install workspace từ root: `pnpm install --frozen-lockfile`.

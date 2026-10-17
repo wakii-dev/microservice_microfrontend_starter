@@ -28,7 +28,7 @@ importers:
 
   app/remotes/activity:
     dependencies:
-      '@boilerplate/fe-shared':
+      '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
       react:
@@ -74,7 +74,7 @@ importers:
 
   app/remotes/tasks:
     dependencies:
-      '@boilerplate/fe-shared':
+      '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
       react:
@@ -130,7 +130,7 @@ importers:
 
   app/shell:
     dependencies:
-      '@boilerplate/fe-shared':
+      '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../shared
       react:

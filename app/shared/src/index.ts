@@ -11,7 +11,7 @@ export {
   type LoadRemoteModuleOptions,
 } from './mf-bootstrap.js';
 // Design-system primitives (SF-1, story VU-53) — CSS đi kèm: styles/base.css section
-// Primitives (bp-*). Import styles qua subpath '@boilerplate/fe-shared/styles/*.css'.
+// Primitives (bp-*). Import styles qua subpath '@wakii/fe-shared/styles/*.css'.
 export {
   Badge,
   EmptyState,

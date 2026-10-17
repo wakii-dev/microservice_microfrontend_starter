@@ -3,7 +3,7 @@
 // KHÔNG có vitest (thêm = đụng pnpm-lock.yaml — success criteria cấm).
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Badge, EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared/ui';
+import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared/ui';
 
 afterEach(() => {
   cleanup();

@@ -5,8 +5,8 @@ import { RemoteSlot } from '../src/components/RemoteSlot';
 
 // Mock fe-shared loadRemoteModule — test KHÔNG load remote thật (SF-6 sở hữu remote)
 const loadRemoteModuleMock = vi.hoisted(() => vi.fn());
-vi.mock('@boilerplate/fe-shared', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@boilerplate/fe-shared')>();
+vi.mock('@wakii/fe-shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@wakii/fe-shared')>();
   return { ...actual, loadRemoteModule: loadRemoteModuleMock };
 });
 

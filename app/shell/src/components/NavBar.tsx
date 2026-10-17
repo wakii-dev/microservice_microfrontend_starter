@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router';
-import { isExpired, readClaims, tokenStorage } from '@boilerplate/fe-shared';
+import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
 
 /**
  * App chrome (hand-off §4): brand + nav + user chip/logout.

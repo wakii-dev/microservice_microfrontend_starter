@@ -2,8 +2,8 @@
 // SF-1 (story VU-53): import tokens+base để standalone không còn "trơ trụi" — GIỮ imports.
 // Trong shell, shell import global base LÀM CHỦ — remote không import lại (hand-off §2).
 // SF-4: banner debug scoped (styles.css qua ActivityPage import) thay banner text trần.
-import '@boilerplate/fe-shared/styles/tokens.css';
-import '@boilerplate/fe-shared/styles/base.css';
+import '@wakii/fe-shared/styles/tokens.css';
+import '@wakii/fe-shared/styles/base.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ActivityPage } from './ActivityPage';

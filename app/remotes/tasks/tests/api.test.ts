@@ -8,7 +8,7 @@ import {
   timeoutFetch,
   updateTask,
 } from '../src/api';
-import { tokenStorage } from '@boilerplate/fe-shared';
+import { tokenStorage } from '@wakii/fe-shared';
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

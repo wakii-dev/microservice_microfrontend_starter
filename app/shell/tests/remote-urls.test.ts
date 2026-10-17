@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { resolveRemoteUrl } from '@boilerplate/fe-shared';
+import { resolveRemoteUrl } from '@wakii/fe-shared';
 // F1 (review VU-53 follow-up): host CHƯA BAO GIỜ inject __REMOTE_URLS__ dù docstring
 // fe-shared thiết kế vậy — retry BUG-2 (registerRemotes force) re-register remoteEntry
 // với resolveRemoteUrl() → fallback '/remotes/<name>/remoteEntry.js' SAI trong dev-native

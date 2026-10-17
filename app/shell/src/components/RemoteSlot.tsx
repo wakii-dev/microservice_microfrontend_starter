@@ -5,7 +5,7 @@ import {
   loadRemoteModule,
   resolveRemoteUrl,
   Skeleton,
-} from '@boilerplate/fe-shared';
+} from '@wakii/fe-shared';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.

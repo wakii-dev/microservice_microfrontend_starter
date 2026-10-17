@@ -1,4 +1,4 @@
-# @boilerplate/fe-shared (fe-shared)
+# @wakii/fe-shared (fe-shared)
 
 Repo-con thứ 7. **Từ story VU-53 SF-1: `src/styles/` + `src/ui/` do design-system SF sở hữu** (SF-2/3/4 consume; đụng logic files = flag coordinator). Shell/remotes copy đi nơi khác phải KÈM package này (standalone-copy definition, epic spec §SF-6).
 
@@ -23,12 +23,12 @@ React 19 + Module Federation + Rspack là cặp rủi ro (repo đổi bundler in
 
 ```tsx
 // 1. Primitives — import từ barrel, props API tra hand-off §3 (source of truth)
-import { Badge, EmptyState, Skeleton, Spinner } from '@boilerplate/fe-shared';
+import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared';
 <Badge variant="doing">Đang làm</Badge>
 
 // 2. CSS — shell import LÀM CHỦ global (1 lần duy nhất, shell entry):
-import '@boilerplate/fe-shared/styles/tokens.css';
-import '@boilerplate/fe-shared/styles/base.css';
+import '@wakii/fe-shared/styles/tokens.css';
+import '@wakii/fe-shared/styles/base.css';
 // Remote trong shell KHÔNG import base (shell làm chủ global); standalone debug
 // (:4001/:4002) tự import 2 file trên để có baseline style.
 

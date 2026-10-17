@@ -3,7 +3,7 @@
 // CORS dev mở — conventions/07); prod = '' (same-origin qua gateway, pass-through giữ prefix /api/tasks).
 // JWT + error envelope do fe-shared ApiClient (READ-ONLY) lo — token đọc từ tokenStorage (cùng origin
 // với shell vì remote render TRONG shell).
-import { ApiClient, ApiError, tokenStorage } from '@boilerplate/fe-shared';
+import { ApiClient, ApiError, tokenStorage } from '@wakii/fe-shared';
 
 const TIMEOUT_MS = 10_000;
 

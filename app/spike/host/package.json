@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/spike-host",
+  "name": "@wakii/spike-host",
   "version": "0.1.0",
   "private": true,
   "description": "Spike SF-1 — MF host hello-world load spike_remote. Pin versions đã test thật vào app/shared/package.json mfToolkit.",

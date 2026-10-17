@@ -1,7 +1,7 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { tokenStorage } from '@boilerplate/fe-shared';
+import { tokenStorage } from '@wakii/fe-shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../src/api';
 import { AppRoutes } from '../src/App';
@@ -9,8 +9,8 @@ import { AppRoutes } from '../src/App';
 // Integration cross-cutting (plan T6): login → nav → remote-down fallback.
 // Mock TẦNG api (login) + loadRemoteModule (remote down) — không mạng, không remote thật.
 const loadRemoteModuleMock = vi.hoisted(() => vi.fn());
-vi.mock('@boilerplate/fe-shared', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@boilerplate/fe-shared')>();
+vi.mock('@wakii/fe-shared', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@wakii/fe-shared')>();
   return { ...actual, loadRemoteModule: loadRemoteModuleMock };
 });
 vi.mock('../src/api', () => ({

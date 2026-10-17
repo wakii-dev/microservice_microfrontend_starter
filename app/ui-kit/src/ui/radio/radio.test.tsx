@@ -47,3 +47,13 @@ describe('RadioGroup', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
+
+describe('Radio — branch phụ (Tier 5 sweep)', () => {
+  it('disabled → label class ink3 + không tick được', async () => {
+    const onChange = vi.fn();
+    render(<Radio disabled onChange={onChange}>r</Radio>);
+    expect(screen.getByText('r')).toHaveClass('cursor-not-allowed');
+    await userEvent.setup().click(screen.getByRole('radio'));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

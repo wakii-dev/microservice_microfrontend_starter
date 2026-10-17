@@ -51,3 +51,15 @@ describe('Tooltip — branch phụ', () => {
     expect(screen.getByRole('tooltip').className).toContain('bottom-[calc(100%+8px)]');
   });
 });
+
+describe('Tooltip — branch phụ (Tier 5 sweep)', () => {
+  it('arrow vị trí theo placement bottom', () => {
+    render(
+      <Tooltip title="x" placement="bottom">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    expect(screen.getByRole('tooltip').querySelector('span[aria-hidden]')?.className).toContain('bottom-[calc(100%-4px)]');
+  });
+});

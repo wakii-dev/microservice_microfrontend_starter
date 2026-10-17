@@ -39,3 +39,11 @@ describe('Breadcrumb — branch phụ', () => {
     expect(screen.getByText('D — hiện tại').tagName).toBe('SPAN');
   });
 });
+
+describe('Breadcrumb — branch phụ (Tier 5 sweep)', () => {
+  it('separator aria-hidden giữa items', () => {
+    render(<Breadcrumb items={[{ title: 'A' }, { title: 'B' }]} />);
+    const sep = screen.getAllByText('/');
+    sep.forEach((s) => expect(s).toHaveAttribute('aria-hidden', 'true'));
+  });
+});

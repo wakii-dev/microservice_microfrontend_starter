@@ -79,3 +79,10 @@ describe('Pagination — branch phụ 2', () => {
     expect(screen.queryByText('•••')).toBeNull();
   });
 });
+
+describe('Pagination — branch phụ (Tier 5 sweep)', () => {
+  it('prev disabled ở trang 1; next disabled ở trang cuối', () => {
+    render(<Pagination current={10} pageSize={10} total={100} onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Trang sau' })).toBeDisabled();
+  });
+});

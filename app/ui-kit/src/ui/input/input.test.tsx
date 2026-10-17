@@ -95,3 +95,12 @@ describe('Textarea — showCount (Tier 1.5)', () => {
     expect(screen.getByText('3/10')).toBeInTheDocument();
   });
 });
+
+describe('Input — branch phụ (Tier 5 sweep)', () => {
+  it('allowClear + value rỗng → không ×; suffix-only → affix', () => {
+    const { rerender } = render(<Input aria-label="c" allowClear value="" onChange={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Xoá' })).toBeNull();
+    rerender(<Input aria-label="s" suffix="kg" value="5" readOnly />);
+    expect(screen.getByText('kg')).toBeInTheDocument();
+  });
+});

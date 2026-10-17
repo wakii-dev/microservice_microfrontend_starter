@@ -20,3 +20,13 @@ describe('Segmented', () => {
     expect(onChange).toHaveBeenCalledWith('week');
   });
 });
+
+describe('Segmented — branch phụ (Tier 5 sweep)', () => {
+  it('className passthrough + item không active class thường', () => {
+    const { container } = render(
+      <Segmented options={OPTIONS} value="week" className="marker" onChange={vi.fn()} />,
+    );
+    expect(container.firstElementChild).toHaveClass('marker');
+    expect(screen.getByRole('radio', { name: 'Tuần' }).className).toContain('shadow');
+  });
+});

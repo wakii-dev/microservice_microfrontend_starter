@@ -122,3 +122,13 @@ describe('Select — keyboard branch phụ', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 });
+
+describe('Select — branch phụ (Tier 5 sweep)', () => {
+  it('click trigger khi đang mở → đóng (toggle)', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="T" options={OPTIONS} />);
+    await user.click(screen.getByRole('combobox', { name: 'T' }));
+    await user.click(screen.getByRole('combobox', { name: 'T' }));
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+});

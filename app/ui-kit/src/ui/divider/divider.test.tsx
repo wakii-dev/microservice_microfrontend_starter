@@ -27,3 +27,19 @@ describe('Divider', () => {
     expect(screen.getByText('hoặc')).toBeInTheDocument();
   });
 });
+
+describe('Divider — combo branch (Tier 5 sweep)', () => {
+  it('vertical + dashed; with-text dashed; with-text solid', () => {
+    // RTL render mỗi lần tạo container mới trong body — query qua document (cộng dồn)
+    const one = render(<Divider type="vertical" dashed />);
+    expect(one.container.querySelector('span[role="separator"]')?.className).toContain('border-dashed');
+    one.unmount();
+    const two = render(<Divider dashed>hoặc</Divider>);
+    // with-text: outer giữ role=separator; 2 line span border-dashed
+    expect(two.container.querySelectorAll('span.border-dashed').length).toBe(2);
+    two.unmount();
+    const three = render(<Divider>hoặc</Divider>);
+    expect(three.container.querySelectorAll('span.border-dashed').length).toBe(0);
+    three.unmount();
+  });
+});

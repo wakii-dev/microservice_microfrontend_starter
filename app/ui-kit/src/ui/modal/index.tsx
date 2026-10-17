@@ -1,10 +1,8 @@
-// Modal — hộp thoại确认 (antd look: centered, overlay, radius-3, motion fade/zoom).
-// Portal vào document.body; ESC + click overlay = cancel. Ok/Cancel dùng Button ui-kit
-// (danger khi danger — xoá-confirm pattern của TaskItem).
-import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+// Modal — hộp thoại confirm (antd look: centered, overlay, radius-3, shadow
+// boxShadowSecondary). Motion identity (CSS): zoom-in mở / zoom-out đóng — closing
+// state machine: open=false → animation XONG mới unmount. ESC + overlay = cancel.
+import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { motion } from 'motion/react';
 import { Button } from '../button/index';
 
 export interface ModalProps {
@@ -13,11 +11,11 @@ export interface ModalProps {
   children?: ReactNode;
   okText?: string;
   cancelText?: string;
-  /** Nút OK đỏ (confirm xoá). */
   danger?: boolean;
   confirmLoading?: boolean;
   onOk?: () => void;
   onCancel?: () => void;
+  className?: string;
 }
 
 export function Modal({
@@ -30,8 +28,15 @@ export function Modal({
   confirmLoading = false,
   onOk,
   onCancel,
+  className,
 }: ModalProps) {
-  // ESC = cancel; lock scroll khi open
+  const [mounted, setMounted] = useState(open);
+  const closing = mounted && !open;
+
+  useEffect(() => {
+    if (open) setMounted(true);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -45,25 +50,22 @@ export function Modal({
     };
   }, [open, onCancel]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return createPortal(
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.15 }}
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
       onClick={() => onCancel?.()}
       data-testid="modal-overlay"
     >
-      <motion.div
+      <div
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
-        className="w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]"
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className={`w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}`}
+        onAnimationEnd={(e) => {
+          if (closing && e.target === e.currentTarget) setMounted(false);
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-2 text-h2 font-semibold text-ink">{title}</div>
@@ -76,8 +78,8 @@ export function Modal({
             {confirmLoading ? 'Đang xử lý…' : okText}
           </Button>
         </div>
-      </motion.div>
-    </motion.div>,
+      </div>
+    </div>,
     document.body,
   );
 }

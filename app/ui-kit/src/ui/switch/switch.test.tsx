@@ -33,3 +33,12 @@ describe('Switch — branch phụ (knob children unchecked)', () => {
     expect(screen.getByText('Tắt')).toBeInTheDocument();
   });
 });
+
+describe('Switch — branch phụ (Tier 5 sweep)', () => {
+  it('size default checkedChildren/unCheckedChildren render theo state', async () => {
+    const { rerender } = render(<Switch checked unCheckedChildren="Tắt" checkedChildren="Bật" />);
+    expect(screen.getByText('Bật')).toBeInTheDocument();
+    rerender(<Switch checked={false} unCheckedChildren="Tắt" checkedChildren="Bật" />);
+    expect(screen.getByText('Tắt')).toBeInTheDocument();
+  });
+});

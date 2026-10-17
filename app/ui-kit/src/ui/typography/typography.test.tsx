@@ -107,3 +107,11 @@ describe('Typography — branch phụ', () => {
     expect(screen.getByText('x')).toHaveStyle({ letterSpacing: '1px' });
   });
 });
+
+describe('Typography — branch phụ (Tier 5 sweep)', () => {
+  it('Text KHÔNG copyable → click không crash, không icon', () => {
+    render(<X>plain</X>);
+    fireEvent.click(screen.getByText('plain'));
+    expect(screen.queryByText('⧉')).toBeNull();
+  });
+});

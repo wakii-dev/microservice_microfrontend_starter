@@ -43,3 +43,14 @@ describe('Space — branch phụ', () => {
     expect(el).toHaveClass('flex-col', 'flex-wrap');
   });
 });
+
+describe('Space — branch phụ (Tier 5 sweep)', () => {
+  it('horizontal → không set align inline (undefined branch)', () => {
+    const { container } = render(
+      <Space size="middle">
+        <span>a</span>
+      </Space>,
+    );
+    expect(container.firstElementChild?.getAttribute('style')).not.toContain('align-items');
+  });
+});

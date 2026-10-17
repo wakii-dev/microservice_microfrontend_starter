@@ -1,0 +1,39 @@
+{
+  "name": "admin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "App admin — Vite SPA showcase toàn bộ @wakii/ui-kit (batch ⑦ VU-53): layout Sidebar+Menu đa cấp, Dashboard/Users/Upload/Hooks/Settings, dark theme persist.",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wakii/ui-kit": "workspace:*",
+    "chart.js": "^4.5.1",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-router": "catalog:",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/jest-dom": "6.9.0",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "27.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.0",
+    "vite": "^7.0.0",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

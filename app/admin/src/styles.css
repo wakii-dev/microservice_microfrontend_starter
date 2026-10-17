@@ -1,0 +1,9 @@
+/* Tailwind v4 entry của admin — copy pattern shell/app.css (đã nghiệm chứng 2026-10-17):
+ * import theme + utilities từ ui-kit (KHÔNG preflight — base.css giữ reset riêng).
+ * ⚠️ @source PHẢI trỏ qua node_modules symlink ĐÚNG THẾ: path repo-relative
+ * '../ui-kit/src' bị tailwind resolve qua symlink → BỊ IGNORE (chỉ explicit
+ * node_modules path được scan). */
+@import '@wakii/ui-kit/styles/tailwind.css';
+
+@source './';
+@source '../node_modules/@wakii/ui-kit/src';

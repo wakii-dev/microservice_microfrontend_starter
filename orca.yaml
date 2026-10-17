@@ -129,7 +129,7 @@ docs:
   conventions: platform/conventions/       # 01–09 — BẮT BUỘC, không đúng = review fail
   adr: docs/adr/                           # 0001–0009 — quyết định kiến trúc đã chốt
   toolchain: docs/toolchain.md
-  ci: .github/workflows/                   # 8 workflows — xem CLAUDE.md bảng CI
+  ci: .github/workflows/                   # 10 workflows — xem CLAUDE.md bảng CI
   evidence: docs/superpowers/evidence/     # test-run + screenshots theo story
 
 gotchas:

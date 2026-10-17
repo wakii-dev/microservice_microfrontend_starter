@@ -80,6 +80,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
 | `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
 | `ui-kit` | install + typecheck + test + **build-storybook** (ADR-0009 — không publish) |
+| `git-guard` | mọi PR — enforce branch name (`wakii-dev/<loại>-<slug>`) + commit message theo [git-flow.md](docs/git-flow.md); feedback sớm hơn = `git config core.hooksPath .githooks` |
 | `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone (fe-shared + ui-kit) + scaffold build được |
 
 ## Gotchas (đầy đủ trong `gotchas:` của orca.yaml)

@@ -33,6 +33,9 @@ export function TasksPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  // F2 (review VU-53): server trả trang RỖNG khi các row chưa tải đã bị xoá hết —
+  // tasks.length < total vẫn true mãi → nút "Tải thêm" click vô hạn không load được gì.
+  const [pagesExhausted, setPagesExhausted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
   // Sequence guard chống race stale-response: load-more in-flight + user đổi filter →
@@ -59,6 +62,7 @@ export function TasksPage() {
   }, [statusFilter]);
 
   useEffect(() => {
+    setPagesExhausted(false);
     void load();
   }, [load]);
 
@@ -74,6 +78,8 @@ export function TasksPage() {
       if (seq !== reqSeq.current) return;
       setTasks((prev) => [...prev, ...res.items]);
       setTotal(res.total);
+      // F2: trang rỗng = hết data thật phía server — ẩn nút thay vì để click không hồi kết
+      if (res.items.length === 0) setPagesExhausted(true);
     } catch (err) {
       if (seq !== reqSeq.current) return;
       setError(describeError(err));
@@ -82,12 +88,23 @@ export function TasksPage() {
     }
   }
 
-  /** true = tạo + reload OK — form chỉ xoá input khi true (lỗi → giữ draft user). */
+  // ── F3 (review VU-53): mutations cập nhật IN-PLACE từ response của chính nó —
+  // KHÔNG load() full (skeleton thay cả list unmount mọi TaskItem → mất draft edit
+  // inline / confirm xoá đang mở ở dòng khác). Server response = nguồn sự thật từng item;
+  // load() chỉ cho initial + đổi filter. Ghi chú: offset pagination trên list mutable
+  // có thể skip/dup nếu session khác xoá/tạo giữa chừng — khắc phục triệt để cần
+  // keyset pagination (đổi contract tasks.yaml) — ngoài scope FE fix này.
+
+  /** true = tạo OK — form chỉ xoá input khi true (lỗi → giữ draft user). */
   async function handleCreate(input: { title: string; description?: string }): Promise<boolean> {
     setError(null);
     try {
-      await createTask(input);
-      await load();
+      const created = await createTask(input);
+      setTotal((t) => t + 1);
+      // filter đang bật và task mới không thuộc → chỉ tăng total, không chèn vào list
+      if (!statusFilter || created.status === statusFilter) {
+        setTasks((prev) => [created, ...prev]);
+      }
       return true;
     } catch (err) {
       setError(describeError(err));
@@ -99,22 +116,29 @@ export function TasksPage() {
     if (status === task.status) return;
     setError(null);
     try {
-      await updateTask(task.id, { status });
-      await load();
+      const updated = await updateTask(task.id, { status });
+      // item rơi khỏi filter đang bật → remove khỏi list (total giảm theo)
+      if (statusFilter && updated.status !== statusFilter) {
+        setTasks((prev) => prev.filter((t) => t.id !== updated.id));
+        setTotal((t) => t - 1);
+      } else {
+        setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+      }
     } catch (err) {
       setError(describeError(err));
     }
   }
 
-  /** true = PATCH + reload OK — item chỉ thoát edit khi true (lỗi → giữ form + draft). */
+  /** true = PATCH OK — item chỉ thoát edit khi true (lỗi → giữ form + draft).
+   * Save không đổi status → không tương tác filter, replace in-place. */
   async function handleSave(
     task: Task,
     patch: { title?: string; description?: string },
   ): Promise<boolean> {
     setError(null);
     try {
-      await updateTask(task.id, patch);
-      await load();
+      const updated = await updateTask(task.id, patch);
+      setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
       return true;
     } catch (err) {
       setError(describeError(err));
@@ -126,7 +150,8 @@ export function TasksPage() {
     setError(null);
     try {
       await deleteTask(task.id);
-      await load();
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
+      setTotal((t) => t - 1);
     } catch (err) {
       setError(describeError(err));
     }
@@ -192,6 +217,7 @@ export function TasksPage() {
         <TaskList
           tasks={tasks}
           total={total}
+          hasMore={tasks.length < total && !pagesExhausted}
           loadingMore={loadingMore}
           onStatusChange={handleStatusChange}
           onSave={handleSave}

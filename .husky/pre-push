@@ -1,0 +1,51 @@
+# pre-push — branch rule + FE checks cho package bị đổi (husky hoá git-guard + CI shell/remotes/ui-kit)
+# CI Actions đã DISABLE (billing) → hook này là lớp chính. Cài: pnpm install (root prepare).
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# 1) Branch rule — mirror git-guard (docs/git-flow.md)
+if ! echo "$BRANCH" | grep -qE '^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$'; then
+  echo "✗ pre-push: branch '$BRANCH' vi phạm rule wakii-dev/<story|sf|fix|docs|chore|feat>-<slug>" >&2
+  exit 1
+fi
+
+# 2) FE checks theo path đổi (so với origin/main; fallback HEAD@{push})
+BASE="origin/main"
+git fetch origin main --quiet 2>/dev/null || true
+CHANGED="$(git diff --name-only "$BASE...HEAD" 2>/dev/null || git diff --name-only "$BASE")"
+
+run_pkg() { # $1=filter-name $2...=lệnh
+  local pkg="$1"; shift
+  echo "▸ checks: @wakii/$pkg — $*"
+  pnpm --filter "@wakii/$pkg" "$@" || { echo "✗ FAIL @wakii/$pkg $*" >&2; exit 1; }
+}
+
+PKG_RUN=0
+case "$CHANGED" in
+  *app/ui-kit*|*pnpm-lock.yaml*|*pnpm-workspace.yaml*)
+    run_pkg ui-kit typecheck
+    run_pkg ui-kit test
+    run_pkg ui-kit build-storybook
+    PKG_RUN=1 ;;
+esac
+case "$CHANGED" in
+  *app/shell*|*app/ui-kit*|*app/shared*|*pnpm-lock.yaml*|*pnpm-workspace.yaml*)
+    run_pkg shell typecheck
+    run_pkg shell test
+    run_pkg shell build
+    PKG_RUN=1 ;;
+esac
+case "$CHANGED" in
+  *app/remotes/tasks*|*app/ui-kit*|*app/shared*|*pnpm-lock.yaml*|*pnpm-workspace.yaml*)
+    run_pkg remote-tasks typecheck
+    run_pkg remote-tasks test
+    PKG_RUN=1 ;;
+esac
+case "$CHANGED" in
+  *app/remotes/activity*|*app/ui-kit*|*app/shared*|*pnpm-lock.yaml*|*pnpm-workspace.yaml*)
+    run_pkg remote-activity typecheck
+    run_pkg remote-activity test
+    PKG_RUN=1 ;;
+esac
+
+[ "$PKG_RUN" = "1" ] || echo "▸ không có thay đổi FE — bỏ qua package checks"
+echo "✓ pre-push OK ($BRANCH)"

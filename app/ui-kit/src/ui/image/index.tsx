@@ -12,6 +12,7 @@ export interface ImageProps {
 
 export function UiImage({ src, alt, width, className }: ImageProps) {
   const [preview, setPreview] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!preview) return;
@@ -28,13 +29,14 @@ export function UiImage({ src, alt, width, className }: ImageProps) {
         src={src}
         alt={alt}
         width={width}
-        className={`cursor-zoom-in rounded-2${className ? ` ${className}` : ''}`}
+        onLoad={() => setLoaded(true)}
+        className={`cursor-zoom-in rounded-2 transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}${className ? ` ${className}` : ''}`}
         onClick={() => setPreview(true)}
       />
       {preview &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-8"
+            className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-8 animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]"
             onClick={() => setPreview(false)}
             data-testid="image-preview"
           >

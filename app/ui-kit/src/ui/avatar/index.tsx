@@ -1,7 +1,7 @@
 // Avatar — chữ cái/ảnh (antd: size 32 default, radius 4 (square) / circle, bg fill
 // #f5f5f5? antd avatar default bg colorFillContent = rgba(0,0,0,0.06) — dùng bg-s3;
 // text ink; icon trắng? antd icon = trắng trên bg accent? Default bg gray + icon ink).
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export interface AvatarProps {
   children?: ReactNode;
@@ -14,6 +14,7 @@ export interface AvatarProps {
 }
 
 export function Avatar({ children, src, alt, size = 32, shape = 'circle', className }: AvatarProps) {
+  const [loaded, setLoaded] = useState(false);
   const style: React.CSSProperties = {
     width: size,
     height: size,
@@ -26,7 +27,12 @@ export function Avatar({ children, src, alt, size = 32, shape = 'circle', classN
       style={style}
     >
       {src ? (
-        <img src={src} alt={alt ?? ''} className="size-full object-cover" />
+        <img
+          src={src}
+          alt={alt ?? ''}
+          onLoad={() => setLoaded(true)}
+          className={`size-full object-cover transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        />
       ) : (
         <span style={{ fontSize: size * 0.44 }}>{children}</span>
       )}

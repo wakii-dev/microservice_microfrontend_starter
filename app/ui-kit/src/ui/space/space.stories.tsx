@@ -25,6 +25,7 @@ function Tri() {
 }
 
 export const ParityVsAntd: Story = {
+  args: { children: 'x' },
   render: () => (
     <div style={{ display: 'grid', gap: 16 }}>
       <Parity

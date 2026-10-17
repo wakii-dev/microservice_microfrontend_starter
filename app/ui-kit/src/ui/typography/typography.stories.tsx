@@ -2,6 +2,7 @@
 import { Typography as AntdTypography, Button as AntdButton } from 'antd';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Parity } from '../../../.storybook/Parity';
+import { Button } from '../button/index';
 import { Typography } from './index';
 
 const { Title, Text, Paragraph } = Typography;
@@ -16,6 +17,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const ParityVsAntd: Story = {
+  args: { children: 'x' },
   render: () => (
     <div style={{ display: 'grid', gap: 24 }}>
       <Parity

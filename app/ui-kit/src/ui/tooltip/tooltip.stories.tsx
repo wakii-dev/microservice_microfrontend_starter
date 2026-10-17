@@ -15,6 +15,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const ParityVsAntd: Story = {
+  args: { title: 'Gợi ý', children: 'x' },
   render: () => (
     <Parity
       antd={

@@ -7,8 +7,9 @@ import { Pagination } from './index';
 
 const meta = {
   title: 'Primitives/Pagination',
+  component: Pagination,
   tags: ['autodocs'],
-} satisfies Meta;
+} satisfies Meta<typeof Pagination>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;

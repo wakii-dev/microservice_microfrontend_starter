@@ -1,0 +1,35 @@
+{
+  "name": "auth-svc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Auth API — register/login/refresh(rotation CAS)/logout. Epic VU-59 SF-2 (VU-61). Contract: contracts/openapi/auth.yaml + contracts/auth/token-contract.md v2.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@node-rs/argon2": "^2.0.2",
+    "drizzle-orm": "^0.44.0",
+    "fastify": "^5.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.0",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

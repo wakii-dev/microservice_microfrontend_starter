@@ -9,6 +9,8 @@ packages:
   - "app/remotes/*"
   # node-svc (SF-2 điền impl) — spring-svc/go-svc không thuộc pnpm workspace
   - "services/node-svc"
+  # auth-svc (VU-59 SF-2 / VU-61) — standalone lockfile như node-svc
+  - "services/auth-svc"
 
 # Catalog — single source versions cho MF singletons (SF-5/6 import cùng pin).
 # Nguồn: SF-1 spike + SF-5 re-validation (GAP epic FI-62 2026-10-12). Coordinator sở hữu.

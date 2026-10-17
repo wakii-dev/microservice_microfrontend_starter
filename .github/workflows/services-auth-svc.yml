@@ -1,0 +1,153 @@
+name: services-auth-svc
+
+# VU-59 SF-2 (VU-61) — build + test + docker build + boot-smoke (theo
+# workflow-templates/services-ci.yml.example pattern). auth-svc CHƯA có compose
+# entry (SF-5 mới commit) → boot-smoke: compose postgres + `docker run` image
+# trên network compose + mount users.json runtime (giống cách compose SF-5 sẽ
+# mount). Smoke CHUỖI: register→login→refresh→reuse→401→logout→logout-all.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/auth-svc/**"
+      - "platform/docker-compose.yml" # compose entry đổi (SF-5) cũng phải re-test
+      - "contracts/openapi/auth.yaml" # contract-first — spec đổi phải re-test
+      - "contracts/auth/users.json" # seed đọc fixture
+      - ".github/workflows/services-auth-svc.yml"
+  pull_request:
+    paths:
+      - "services/auth-svc/**"
+      - "platform/docker-compose.yml"
+      - "contracts/openapi/auth.yaml"
+      - "contracts/auth/users.json"
+
+permissions:
+  contents: read # least-privilege (P2 security-audit — follow-up repo-wide)
+
+jobs:
+  build-test:
+    name: build + test (auth-svc — unit + integration postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres: # integration tests chạy THẬT (rotation CAS + seed idempotent)
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: boilerplate
+          POSTGRES_PASSWORD: ci-postgres-password-not-real
+          POSTGRES_DB: boilerplate
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U boilerplate"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+    env:
+      AUTH_SVC_TEST_DATABASE_URL: postgres://boilerplate:ci-postgres-password-not-real@localhost:5433/boilerplate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        # version đọc từ packageManager trong package.json (root) — không khai
+        # trùng ở đây (ERR_PNPM_BAD_PM_VERSION conflict, run 38227939477)
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Install (workspace root, frozen)
+        run: pnpm install --frozen-lockfile
+      - name: Unit + integration tests (rotation CAS trên postgres thật)
+        run: pnpm --filter auth-svc test
+      - name: Build (tsc)
+        run: pnpm --filter auth-svc build
+
+  docker-build:
+    name: docker build (auth-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage — platform/conventions/01)
+        run: docker build -t auth-svc:ci services/auth-svc
+
+  boot-smoke:
+    name: boot-smoke (auth-svc + postgres — chuỗi register→login→refresh→reuse→logout)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+      POSTGRES_PASSWORD: ci-postgres-password-not-real
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot postgres (compose — entry auth-svc thuộc SF-5, chưa có ở SF-2)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d postgres
+      - name: Build + run auth-svc image trên network compose (mount users.json)
+        run: |
+          docker build -t auth-svc:ci services/auth-svc
+          PG_CID=$(docker compose -f platform/docker-compose.yml --env-file platform/.env.example ps -q postgres)
+          NET=$(docker inspect -f '{{range $k,$_ := .NetworkSettings.Networks}}{{$k}}{{end}}' "$PG_CID")
+          docker run -d --name auth-svc-smoke --network "$NET" -p 8090:8090 \
+            -e PORT=8090 \
+            -e DATABASE_URL="postgres://boilerplate:${POSTGRES_PASSWORD}@postgres:5432/boilerplate" \
+            -e JWT_SECRET="${JWT_SECRET}" \
+            -e AUTH_DEV_PASSWORD=demo-password \
+            -e ACCESS_TOKEN_TTL=30m \
+            -e USERS_FIXTURE_PATH=/app/users.json \
+            -e LOG_LEVEL=info \
+            -v "$PWD/contracts/auth/users.json:/app/users.json:ro" \
+            auth-svc:ci
+      - name: Smoke — healthz/readyz 200 (readyz = migration xong + DB ok)
+        run: |
+          ok=0
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8090/readyz >/dev/null && ok=1 && break
+            sleep 2
+          done
+          if [ "$ok" != "1" ]; then
+            echo "::error::readyz không 200 trong 120s — auth-svc logs:"
+            docker logs auth-svc-smoke
+            exit 1
+          fi
+          curl -sf http://localhost:8090/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8090/readyz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8090/api/auth/healthz | grep -q '"status":"ok"' # mirror conventions/02 rule 6
+      - name: Smoke — seed fixture: alice login được bằng AUTH_DEV_PASSWORD (claims admin)
+        run: |
+          CODE=$(curl -s -o /tmp/alice.json -w '%{http_code}' -X POST http://localhost:8090/api/auth/login \
+            -H 'Content-Type: application/json' -d '{"email":"alice@demo.local","password":"demo-password"}')
+          [ "$CODE" = "200" ] || (echo "login alice → $CODE"; docker logs auth-svc-smoke; exit 1)
+          node -e 'const b=require("/tmp/alice.json"); if(b.user.roles[0]!=="admin"||!b.accessToken||!b.refreshToken) process.exit(1);'
+      - name: Smoke — chuỗi register→refresh→reuse→401→logout→logout-all (token-contract §3)
+        run: |
+          set -e
+          # register user mới → 201 cặp token (roles ["user"])
+          CODE=$(curl -s -o /tmp/reg.json -w '%{http_code}' -X POST http://localhost:8090/api/auth/register \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"smoke-ci@example.com","password":"ci-password-1","displayName":"CI Smoke"}')
+          [ "$CODE" = "201" ] || (echo "register → $CODE"; cat /tmp/reg.json; exit 1)
+          RT1=$(node -e 'console.log(require("/tmp/reg.json").refreshToken)')
+          # refresh lần 1 → 200 TokenPair mới
+          CODE=$(curl -s -o /tmp/ref1.json -w '%{http_code}' -X POST http://localhost:8090/api/auth/refresh \
+            -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT1\"}")
+          [ "$CODE" = "200" ] || (echo "refresh 1 → $CODE"; cat /tmp/ref1.json; exit 1)
+          RT2=$(node -e 'console.log(require("/tmp/ref1.json").refreshToken)')
+          # REUSE token cũ → 401 + toàn bộ session user chết (RT2 cũng không dùng được)
+          CODE=$(curl -s -o /tmp/reuse.json -w '%{http_code}' -X POST http://localhost:8090/api/auth/refresh \
+            -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT1\"}")
+          [ "$CODE" = "401" ] || (echo "reuse → $CODE (expected 401)"; cat /tmp/reuse.json; exit 1)
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8090/api/auth/refresh \
+            -H 'Content-Type: application/json' -d "{\"refreshToken\":\"$RT2\"}")
+          [ "$CODE" = "401" ] || (echo "refresh sau reuse → $CODE (expected 401 — revoke-all)"; exit 1)
+          # logout idempotent 204 + logout-all Bearer 204
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8090/api/auth/logout \
+            -H 'Content-Type: application/json' -d '{"refreshToken":"unknown-token-value"}')
+          [ "$CODE" = "204" ] || (echo "logout lạ → $CODE (expected 204 idempotent)"; exit 1)
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8090/api/auth/logout-all \
+            -H "Authorization: Bearer $(node -e 'console.log(require("/tmp/reg.json").accessToken)')")
+          [ "$CODE" = "204" ] || (echo "logout-all → $CODE (expected 204)"; exit 1)
+          # GET /users serve từ schema auth (seed + user vừa register)
+          curl -sf http://localhost:8090/api/auth/users | grep -q 'smoke-ci@example.com'
+      - name: Smoke — 401 logout-all khi thiếu token (service tự verify, không nhờ gateway)
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8090/api/auth/logout-all)
+          [ "$CODE" = "401" ] || (echo "logout-all no-token → $CODE (expected 401)" && exit 1)
+      - name: Cleanup
+        if: always()
+        run: docker rm -f auth-svc-smoke 2>/dev/null || true

@@ -35,9 +35,9 @@
 - Modify: `pnpm-workspace.yaml` (+`- "services/auth-svc"` — 1 dòng, SF-3/SF-4 không đụng file này → an toàn song song)
 - Modify: `pnpm-lock.yaml` (install sinh)
 
-- [ ] **Step 1: khung boot** — mirror node-svc: env/logger/JWT plugin (**verify issuer giữ literal `"auth-mock"`**)/envelope (HttpError.statusCode, pino cast) + `/healthz` `/readyz` naked+prefix. `drizzle.config.ts` schema `auth`.
-- [ ] **Step 2: migration 0000 + seed** — SQL như spec §Kiến trúc (`roles text[] NOT NULL DEFAULT '{"user"}'`); seed từ users.json giữ UUID, `password_hash = argon2id(AUTH_DEV_PASSWORD)`, idempotent `ON CONFLICT (id) DO NOTHING`.
-- [ ] **Step 3: TDD rotation/reuse (RED trước)** —
+- [x] **Step 1: khung boot** — mirror node-svc: env/logger/JWT plugin (**verify issuer giữ literal `"auth-mock"`**)/envelope (HttpError.statusCode, pino cast) + `/healthz` `/readyz` naked+prefix. `drizzle.config.ts` schema `auth`.
+- [x] **Step 2: migration 0000 + seed** — SQL như spec §Kiến trúc (`roles text[] NOT NULL DEFAULT '{"user"}'`); seed từ users.json giữ UUID, `password_hash = argon2id(AUTH_DEV_PASSWORD)`, idempotent `ON CONFLICT (id) DO NOTHING`.
+- [x] **Step 3: TDD rotation/reuse (RED trước)** —
 
 ```ts
 // refresh lần 1 (CAS): old.revoked_at != null + cặp mới + replaced_by=old.id
@@ -46,7 +46,7 @@
 // logout trên token đã revoked: 204 (idempotent)
 ```
    Rotation query: `UPDATE auth.refresh_tokens SET revoked_at=now(), replaced_by=$new WHERE id=$old AND revoked_at IS NULL RETURNING *` — 0 rows → reuse-detect: `UPDATE ... SET revoked_at=now() WHERE user_id=$u AND revoked_at IS NULL` + 401. Hash sha256, KHÔNG lưu raw.
-- [ ] **Step 4: 5 endpoints** — register (argon2id; email lowercase-normalize; 409 UNIQUE; password 8–72), login (sign HS256 TTL `ACCESS_TOKEN_TTL`, iss `"auth-mock"`, + refresh `crypto.randomBytes(32)`), refresh (CAS + reuse-detect), logout (204 idempotent), logout-all (Bearer sub). Envelope conventions/04; không log password/refreshToken.
+- [x] **Step 4: 5 endpoints** — register (argon2id; email lowercase-normalize; 409 UNIQUE; password 8–72), login (sign HS256 TTL `ACCESS_TOKEN_TTL`, iss `"auth-mock"`, + refresh `crypto.randomBytes(32)`), refresh (CAS + reuse-detect), logout (204 idempotent), logout-all (Bearer sub). Envelope conventions/04; không log password/refreshToken.
 - [ ] **Step 5: Verify** — `pnpm --filter auth-svc test` (unit + integration vs postgres local: tạo schema auth thủ công trước — compose chưa có entry này, KHÔNG dùng `compose config -q` cho entry chưa commit); `docker build`; workflow `services-auth-svc.yml` xanh trên nhánh.
 
 ### Task 3 = SF-3 (tier 1, song song — vùng `services/node-svc/**`): RBAC demo

@@ -6,9 +6,12 @@ import { defineConfig } from 'vitest/config';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  // Stub build-time env (rspack DefinePlugin) cho unit test — test mock fetch nên base rỗng
+  // Stub build-time env (rspack DefinePlugin) cho unit test — test mock fetch nên base rỗng;
+  // remote URLs stub giá trị "buildtime" để remote-urls.test khẳng định đường inject
   define: {
     __API_BASE_URL__: "''",
+    __REMOTE_TASKS_URL__: "'http://buildtime:4001/remoteEntry.js'",
+    __REMOTE_ACTIVITY_URL__: "'http://buildtime:4002/remoteEntry.js'",
   },
   resolve: {
     // fe-shared src/ui (SF-1) import 'react' nhưng package không khai báo dep (giữ

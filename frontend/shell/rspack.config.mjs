@@ -74,6 +74,10 @@ export default {
     }),
     new DefinePlugin({
       __API_BASE_URL__: JSON.stringify(apiBaseUrl),
+      // F1 (review VU-53): cùng nguồn với remotes config ở trên — shell bootstrap nạp vào
+      // __REMOTE_URLS__ (remote-urls.ts) để retry BUG-2 re-register ĐÚNG url build-time
+      __REMOTE_TASKS_URL__: JSON.stringify(remoteTasksUrl),
+      __REMOTE_ACTIVITY_URL__: JSON.stringify(remoteActivityUrl),
     }),
     new ModuleFederationPlugin({
       name: 'shell',

@@ -3,21 +3,38 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { tokenStorage } from '@wakii/fe-shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { api } from '../src/api';
 import { AppRoutes } from '../src/App';
 
 // Integration cross-cutting (plan T6): login → nav → remote-down fallback.
-// Mock TẦNG api (login) + loadRemoteModule (remote down) — không mạng, không remote thật.
+// SF-4: login đi qua wrapper refresh-client → mock TẦNG fetch (timeoutFetch bind
+// lazy nên vi.stubGlobal có hiệu lực) thay vì mock module api; loadRemoteModule
+// vẫn mock (remote down) — không mạng, không remote thật.
 const loadRemoteModuleMock = vi.hoisted(() => vi.fn());
 vi.mock('@wakii/fe-shared', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@wakii/fe-shared')>();
   return { ...actual, loadRemoteModule: loadRemoteModuleMock };
 });
-vi.mock('../src/api', () => ({
-  api: { post: vi.fn(), get: vi.fn(), patch: vi.fn(), delete: vi.fn() },
-}));
 
 const FAKE_TOKEN = `.${btoa(JSON.stringify({ sub: 'u1', email: 'alice@demo.local', roles: ['admin'], exp: Math.floor(Date.now() / 1000) + 3600 }))}.sig`;
+
+function stubLoginFetch() {
+  return vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const body = init?.body ? JSON.parse(String(init.body)) : null;
+    if (String(input) === '/api/auth/login' && body?.email === 'alice@demo.local') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            user: { id: 'u1', email: 'alice@demo.local', displayName: 'Alice', roles: ['admin'] },
+            accessToken: FAKE_TOKEN,
+            refreshToken: 'rt-1',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      );
+    }
+    return Promise.resolve(new Response(JSON.stringify({ error: { code: 'NOT_FOUND', message: 'x', requestId: null, details: null } }), { status: 404 }));
+  });
+}
 
 afterEach(() => {
   cleanup();
@@ -25,13 +42,13 @@ afterEach(() => {
   // (chỉ clear localStorage là leak token giữa các test → RequireAuth nhìn thấy auth cũ)
   tokenStorage.clearToken();
   loadRemoteModuleMock.mockReset();
-  vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('integration: login → nav → remote-down fallback', () => {
   it('login xong thấy email trên nav; vào /tasks remote down → fallback, app không crash', async () => {
     const user = userEvent.setup();
-    vi.mocked(api.post).mockResolvedValue({ accessToken: FAKE_TOKEN, tokenType: 'Bearer', expiresIn: 28800 });
+    vi.stubGlobal('fetch', stubLoginFetch());
     loadRemoteModuleMock.mockRejectedValue(new Error('Remote "tasks" load failed'));
 
     render(

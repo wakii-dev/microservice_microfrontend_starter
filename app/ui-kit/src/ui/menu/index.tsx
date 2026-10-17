@@ -7,6 +7,7 @@
 // a11y: role menu/menuitem, aria-expanded, aria-haspopup, aria-current='true'.
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface MenuItemData {
   key: string;
@@ -28,10 +29,10 @@ export interface MenuProps {
 export const MenuCompactContext = createContext(false);
 
 function ChevronRightIcon() {
-  return <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-right" size={12} />;
 }
 function ChevronDownIcon() {
-  return <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-down" size={12} />;
 }
 
 /* Ngôn ngữ nút — khớp pagination/calendar: transparent+hover s3 / accent fill /

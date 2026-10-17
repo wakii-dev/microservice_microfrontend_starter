@@ -6,6 +6,7 @@
 // Contract note: TasksPage giữ "Tải thêm"/"x/total" — component này stories-only
 // cho đến khi có page-based list.
 import { useMemo } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface PaginationProps {
   current: number;
@@ -29,10 +30,10 @@ export function pageList(current: number, pageCount: number): Array<number | 'el
 }
 
 function ChevronLeftIcon() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-left" size={14} />;
 }
 function ChevronRightIcon() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-right" size={14} />;
 }
 
 const ITEM =

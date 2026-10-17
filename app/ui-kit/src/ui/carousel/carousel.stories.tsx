@@ -2,6 +2,11 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Carousel } from './index';
 
+// CSS swiper — đã rời ui/carousel/index.tsx sang entries/carousel.ts (batch ⑩); stories
+// import component trực tiếp nên tự kéo CSS tại đây để canvas Storybook giữ style.
+import 'swiper/css';
+import 'swiper/css/pagination';
+
 // Không set component (items là ReactNode[] required) — render-only stories,
 // cùng pattern pagination.stories.
 const meta = { title: 'Data Display/Carousel', tags: ['autodocs'] } satisfies Meta;

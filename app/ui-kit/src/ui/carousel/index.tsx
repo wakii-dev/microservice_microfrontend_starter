@@ -22,8 +22,9 @@ import { useMemo, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Keyboard, Pagination } from 'swiper/modules';
 import type { Swiper as SwiperInstance } from 'swiper';
-import 'swiper/css';
-import 'swiper/css/pagination';
+import { Icon } from '../icons/index.js';
+// CSS swiper đã chuyển sang src/entries/carousel.ts (subpath '@wakii/ui-kit/carousel') —
+// barrel chính '@wakii/ui-kit' không kéo CSS nặng nữa (batch ⑩ 2026-10-18).
 
 export interface CarouselProps {
   items: React.ReactNode[];
@@ -130,7 +131,7 @@ export function Carousel({
             className={`${BTN_CLS} left-2 swiper-button-prev-custom`}
             onClick={() => swiperRef.current?.slidePrev()}
           >
-            ‹
+            <Icon name="chevron-left" />
           </button>
           <button
             type="button"
@@ -139,7 +140,7 @@ export function Carousel({
             className={`${BTN_CLS} right-2 swiper-button-next-custom`}
             onClick={() => swiperRef.current?.slideNext()}
           >
-            ›
+            <Icon name="chevron-right" />
           </button>
         </>
       )}

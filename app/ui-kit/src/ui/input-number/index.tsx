@@ -1,7 +1,8 @@
 // InputNumber — PrimeReact pattern: input + stepper icon buttons XẶP DỌC trong
-// mép phải (input group: input + border-left phân tách), SVG chevron up/down,
-// keyboard ↑↓, min/max/step clamp, disabled.
+// mép phải (input group: input + border-left phân tách), Icon chevron up/down
+// (bộ icons dùng chung), keyboard ↑↓, min/max/step clamp, disabled.
 import { useState, type FocusEvent } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface InputNumberProps {
   value?: number;
@@ -16,10 +17,10 @@ export interface InputNumberProps {
 }
 
 function ChevronUpIcon({ className }: { className?: string }) {
-  return <svg width="10" height="10" viewBox="0 0 14 14" fill="none" className={className}><path d="M3 9l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-up" size={10} className={className} />;
 }
 function ChevronDownIcon({ className }: { className?: string }) {
-  return <svg width="10" height="10" viewBox="0 0 14 14" fill="none" className={className}><path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  return <Icon name="chevron-down" size={10} className={className} />;
 }
 
 export function InputNumber({

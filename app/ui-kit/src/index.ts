@@ -99,3 +99,7 @@ export { useForm, type UseFormOptions, type FormErrors, type FormValidationMode 
 // ── Upload (batch ③ 2026-10-18) ──
 export { Upload, UploadDropzone } from './ui/upload/index.js';
 export type { UploadItem, UploadProps, UploadStatus } from './ui/upload/upload-core.js';
+
+// ── Icon system + Field (batch ⑥⑩ 2026-10-18) ──
+export { Icon, type IconName } from './ui/icons/index.js';
+export { Field, type FieldProps } from './ui/field/index.js';

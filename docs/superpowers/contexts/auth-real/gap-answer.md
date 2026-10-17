@@ -81,6 +81,11 @@ KHÔNG đổi.
       AUTH_MOCK_URL: http://auth-svc:8090   # ← chỉ đổi VALUE từ http://auth-mock:8090
 ```
 
+**File kèm:** `platform/.env.example` (dòng 53 hiện tại: `AUTH_MOCK_URL=http://auth-mock:8090`)
+— cùng swap VALUE → `http://auth-svc:8090` trong cùng commit SF-5 (compose dùng literal nên
+không phụ thuộc dòng này, nhưng native-dev consumer đọc `.env` sẽ trỏ host chết sau
+decommission nếu quên; **KEY `AUTH_MOCK_URL` giữ nguyên** — go-svc đọc theo tên env này).
+
 **SF thực thi:** SF-5.
 **Lý do:** KEY giữ nguyên `AUTH_MOCK_URL` — go-svc đọc env này ở
 `services/go-svc/internal/config/config.go:42` (`getenv("AUTH_MOCK_URL")`); đổi key =
@@ -181,7 +186,7 @@ workspace chính thức (gotcha CLAUDE.md).
 | ① compose entry | `platform/docker-compose.yml` | SF-5 |
 | ② depends_on key | `platform/docker-compose.yml` | SF-5 |
 | ③ nginx upstream | `platform/gateway/nginx/nginx.conf` | SF-5 |
-| ④ go-svc env value | `platform/docker-compose.yml` | SF-5 |
+| ④ go-svc env value | `platform/docker-compose.yml` + `.env.example:53` | SF-5 |
 | ⑤ users.json mount | `platform/docker-compose.yml` | SF-5 |
 | ⑥ init + role + env password | `platform/postgres/init/01-init.sh` + compose + `.env.example` | SF-5 |
 | ⑦ .env renames | `.env.example` (SF-1 **đã xong**) + compose refs (SF-5) | SF-1 ✓ / SF-5 |

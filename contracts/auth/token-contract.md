@@ -37,25 +37,34 @@
 
 ## 3. Rotation CAS atomic + reuse-detect (strict)
 
-Mỗi `POST /api/auth/refresh`: sinh refresh token mới TRƯỚC, rồi CAS (compare-and-set) atomic trên row cũ:
+Mỗi `POST /api/auth/refresh`: sinh refresh token mới TRƯỚC, rồi CAS (compare-and-set) atomic trên row cũ.
+**INSERT row refresh token mới nằm trong CÙNG transaction với CAS UPDATE** — bước nào trượt
+(CAS thua / INSERT fail) → rollback cả hai, không bao giờ tồn tại trạng thái "đã revoke cũ
+nhưng chưa có cặp mới".
 
 ```sql
 UPDATE auth.refresh_tokens
 SET revoked_at = now(), replaced_by = $new_id
-WHERE id = $old_id AND revoked_at IS NULL
+WHERE id = $old_id AND revoked_at IS NULL AND expires_at > now()
 RETURNING id;
 ```
 
+(`expires_at > now()` enforce TTL 7d của §2 — token hết hạn KHÔNG thắng CAS; rơi vào
+nhánh 0-rows strict bên dưới, không có refresh-chain vô hạn.)
+
 - **RETURNING ≥ 1 row** → thắng CAS: trả cặp mới (accessToken 30m + refreshToken mới 7d). Token cũ đã revoked, `replaced_by` trỏ token mới.
-- **RETURNING 0 rows** → **reuse-detect** (token đã dùng / đã revoke / không tồn tại):
-  revoke **TẤT CẢ** refresh token của user + trả **401** envelope `UNAUTHORIZED`:
+- **RETURNING 0 rows** → **reuse-detect** (token đã dùng / đã revoke / đã hết hạn / không tồn tại):
+  - Token **có row** (đã dùng / revoked / hết hạn): xác định được `user_id` → revoke **TẤT CẢ**
+    refresh token của user + trả **401** envelope `UNAUTHORIZED`:
 
-  ```sql
-  UPDATE auth.refresh_tokens
-  SET revoked_at = now()
-  WHERE user_id = $sub AND revoked_at IS NULL;
-  ```
+    ```sql
+    UPDATE auth.refresh_tokens
+    SET revoked_at = now()
+    WHERE user_id = $sub AND revoked_at IS NULL;
+    ```
 
+  - Token **lạ / không tồn tại** (không có row): không biết `user_id` → chỉ **401** đơn thuần,
+    không revoke gì (không có user để revoke).
   **Strict by design** — token bị replay = kẻ tấn công chiếm được → mất toàn bộ session của user đó an toàn hơn cho phép token cũ còn dùng (chain-only revoke). User chỉ cần login lại.
 - **2 tab refresh đồng thời**: request thua CAS bị coi reuse → 401. Chấp nhận strict; FE dùng **single-flight promise lock** (SF-4) giảm xác suất — documented, không claim cross-tab realtime.
 

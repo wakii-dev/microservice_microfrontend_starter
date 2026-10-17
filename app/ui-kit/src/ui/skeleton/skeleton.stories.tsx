@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from './index';
 
 const meta = {
   title: 'Primitives/Skeleton',

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { EmptyState } from './EmptyState';
+import { EmptyState } from './index';
 
 const meta = {
   title: 'Primitives/EmptyState',

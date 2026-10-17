@@ -15,7 +15,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**'],
-      exclude: ['src/**/*.stories.tsx'], // stories không chạy trong vitest — pha loãng số liệu
+      exclude: ['src/**/*.stories.tsx', 'src/**/*.test.tsx'], // test colocated không pha loãng coverage // stories không chạy trong vitest — pha loãng số liệu
       thresholds: { lines: 85, statements: 85, functions: 90, branches: 90 },
     },
   },

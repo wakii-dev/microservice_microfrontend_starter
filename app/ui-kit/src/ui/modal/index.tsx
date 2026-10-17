@@ -37,18 +37,22 @@ export function Modal({
     if (open) setMounted(true);
   }, [open]);
 
+  // ESC chỉ khi open (không khi closing)
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCancel?.();
     };
     document.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [open, onCancel]);
+
+  // Scroll lock giữ tới mounted=false (exit animation XONG) — không release sớm
+  useEffect(() => {
+    if (!mounted) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [mounted]);
 
   if (!mounted) return null;
 
@@ -62,6 +66,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
+        style={{ willChange: "transform, opacity" }}
         className={`w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}`}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);

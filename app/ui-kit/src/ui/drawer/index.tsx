@@ -23,18 +23,22 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
     if (open) setMounted(true);
   }, [open]);
 
+  // ESC chỉ khi open
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose?.();
     };
     document.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
+
+  // Scroll lock giữ tới mounted=false (exit animation XONG)
+  useEffect(() => {
+    if (!mounted) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [mounted]);
 
   if (!mounted) return null;
 

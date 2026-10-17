@@ -23,4 +23,19 @@
   --st-doing: #f2c94c;
   --st-done: #3fb950;
   --st-fail: #f06a6a;
+  /* Disabled + placeholder */
+  --ink4: rgba(255, 255, 255, 0.30);
+  --bg-disabled: rgba(255, 255, 255, 0.06);
+  /* Alert tints — dark versions (deeper bg, lighter border) */
+  --alert-error-bg: #2c1214;
+  --alert-error-border: #5c2a2e;
+  --alert-warning-bg: #2c2212;
+  --alert-warning-border: #5c4a1e;
+  --alert-info-bg: #121c2c;
+  --alert-info-border: #2a4a5c;
+  --alert-success-bg: #122c1a;
+  --alert-success-border: #2a5c34;
+  /* Shadow — dark = heavier black */
+  --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.2), 0 12px 16px -4px rgba(0, 0, 0, 0.3), 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
 }

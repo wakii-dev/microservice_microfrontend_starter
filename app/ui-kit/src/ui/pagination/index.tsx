@@ -66,7 +66,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
             aria-current={p === current ? 'page' : undefined}
             className={
               p === current
-                ? 'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-2 border border-accent bg-s2 px-2 text-body text-accent'
+                ? 'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-[4px] border-none bg-accent px-2 text-body text-white'
                 : `${ITEM}`
             }
             onClick={() => go(p)}

@@ -24,8 +24,8 @@ export function Switch({
   className,
   ...rest
 }: SwitchProps) {
-  const track = size === 'small' ? 'h-4 w-7' : 'h-[22px] w-11';
-  const knob = size === 'small' ? 'size-3' : 'size-[18px]';
+  const track = size === 'small' ? 'h-5 w-9' : 'h-6 w-11';
+  const knob = size === 'small' ? 'size-3.5' : 'size-[18px]';
   const translate = checked
     ? size === 'small'
       ? 'translate-x-[14px]'
@@ -45,7 +45,7 @@ export function Switch({
       } ${track} ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}${className ? ` ${className}` : ''}`}
     >
       <span
-        className={`absolute left-0 grid place-items-center rounded-pill bg-white text-[10px] text-ink2 shadow-sm transition-transform ${knob} ${translate}`}
+        className={`absolute left-0 grid place-items-center rounded-pill bg-white text-[10px] text-ink2 shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-transform ease-[cubic-bezier(0.34,1.56,0.64,1)] ${knob} ${translate}`}
       >
         {checked ? checkedChildren : unCheckedChildren}
       </span>

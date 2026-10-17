@@ -1,4 +1,6 @@
-# husky commit-msg — mirror của CI git-guard (docs/git-flow.md, ADR: rule enforced 2 lớp)
+# husky commit-msg — validate conventional commit (docs/git-flow.md). LỊCH SỬ: trước
+# đây mirror git-guard CI — 2026-10-17 Actions DISABLE (billing) → hook + pre-push
+# là lớp chính; git-guard.yml giữ trong repo để re-active khi CI trở lại.
 MSG="$(head -1 "$1")"
 
 # merge commits ("Merge pull request #N" / "Merge remote-tracking...") — ngoại lệ

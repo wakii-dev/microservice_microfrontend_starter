@@ -66,6 +66,7 @@ export { Splitter, type SplitterProps } from './ui/splitter/index.js';
 export { Chart, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
 export { Schedule, type ScheduleProps, type ScheduleEvent } from './ui/schedule/index.js';
 export { Editor, type EditorProps } from './ui/editor/index.js';
+
 export { ContextMenu, type ContextMenuProps } from './ui/context-menu/index.js';
 export { Menubar, type MenubarProps, type MenubarItem } from './ui/menubar/index.js';
 export { PanelMenu, type PanelMenuProps, type PanelMenuItem } from './ui/panel-menu/index.js';

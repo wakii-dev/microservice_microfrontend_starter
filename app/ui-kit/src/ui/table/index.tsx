@@ -21,6 +21,7 @@ import { Select } from '../select/index';
 import { Skeleton } from '../skeleton/index';
 import { Button } from '../button/index';
 import { Checkbox } from '../checkbox/index';
+import { FilterIcon, FilterFillIcon, FilterSlashIcon, SortAltIcon, SortAmountUpIcon, SortAmountDownIcon } from './icons';
 import type {
   SortMeta, SortOrder, FilterMatchMode, FilterOperator,
   FilterConstraint, TableColumn, TableProps,
@@ -77,9 +78,11 @@ function FilterMenu({ col, filter, onChange }: {
         onClick={() => setOpen((o) => !o)}
         className={`inline-flex cursor-pointer items-center border-none bg-transparent p-0 text-ink3 transition-colors hover:text-accent ${activeCount > 0 ? 'text-accent' : ''}`}
       >
-        ⏳
+        {activeCount > 0
+          ? <FilterFillIcon className="text-accent" />
+          : <FilterIcon className="text-ink3" />}
         {activeCount > 0 && (
-          <span className="absolute -right-2 -top-1.5 grid size-3.5 place-items-center rounded-pill bg-accent text-[8px] font-bold text-white">
+          <span className="absolute -right-2 -top-1.5 grid size-3.5 place-items-center rounded-pill bg-st-fail text-[8px] font-bold text-white">
             {activeCount}
           </span>
         )}
@@ -87,7 +90,20 @@ function FilterMenu({ col, filter, onChange }: {
       {open && (
         <span className="absolute left-0 top-[calc(100%+4px)] z-30 block w-64 rounded-3 border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]">
           {filter.constraints.map((c, i) => (
-            <span key={i} className="mb-2 flex items-center gap-1">
+            <span key={i} className="mb-3 block">
+              <label className="mb-1 block text-meta text-ink3">
+                {i === 0 ? 'Match Mode' : `Constraint ${i + 1}`}
+                {i > 0 && (
+                  <button
+                    type="button"
+                    aria-label={`Xoá điều kiện ${i + 1}`}
+                    className="ml-1 cursor-pointer border-none bg-transparent p-0 text-ink3 hover:text-st-fail"
+                    onClick={() => onChange({ ...filter, constraints: filter.constraints.filter((_, j) => j !== i) })}
+                  >
+                    <FilterSlashIcon className="inline size-3" />
+                  </button>
+                )}
+              </label>
               <select
                 aria-label={`Match mode ${i + 1}`}
                 value={c.matchMode}
@@ -96,7 +112,7 @@ function FilterMenu({ col, filter, onChange }: {
                   constraints[i] = { ...constraints[i], matchMode: e.target.value as FilterMatchMode };
                   onChange({ ...filter, constraints });
                 }}
-                className="h-7 shrink-0 cursor-pointer rounded-1 border border-line bg-s2 text-[10px] text-ink2"
+                className="mb-1 h-7 w-full cursor-pointer rounded-1 border border-line bg-s2 px-1 text-label text-ink"
               >
                 {modes.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
@@ -109,57 +125,45 @@ function FilterMenu({ col, filter, onChange }: {
                   onChange({ ...filter, constraints });
                 }}
                 placeholder="Giá trị…"
-                className="h-7 min-w-0 flex-1 rounded-1 border border-line bg-s2 px-2 text-label text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
+                className="h-7 w-full rounded-1 border border-line bg-s2 px-2 text-label text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
               />
-              {filter.constraints.length > 1 && (
-                <button
-                  type="button"
-                  aria-label={`Xoá điều kiện ${i + 1}`}
-                  className="shrink-0 cursor-pointer border-none bg-transparent text-ink3 hover:text-st-fail"
-                  onClick={() => onChange({ ...filter, constraints: filter.constraints.filter((_, j) => j !== i) })}
-                >
-                  ×
-                </button>
-              )}
             </span>
           ))}
-          <span className="mb-2 flex items-center justify-between text-meta text-ink3">
-            <span className="flex items-center gap-1">
-              {(['and', 'or'] as const).map((op) => (
-                <button
-                  key={op}
-                  type="button"
-                  onClick={() => onChange({ ...filter, operator: op })}
-                  className={`cursor-pointer rounded-1 border-none px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
-                    filter.operator === op ? 'bg-accent text-white' : 'bg-s3 text-ink3 hover:text-ink2'
-                  }`}
-                >
-                  {op === 'and' ? 'VÀ' : 'HOẶC'}
-                </button>
-              ))}
+          <span className="mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1 text-meta text-ink3">
+              Operator:
+              <select
+                aria-label="Filter operator"
+                value={filter.operator}
+                onChange={(e) => onChange({ ...filter, operator: e.target.value as FilterOperator })}
+                className="cursor-pointer rounded-1 border border-line bg-s2 text-[10px] text-ink2"
+              >
+                <option value="and">AND</option>
+                <option value="or">OR</option>
+              </select>
             </span>
             <button
               type="button"
-              className="cursor-pointer border-none bg-transparent text-[10px] text-accent hover:underline"
+              className="cursor-pointer border-none bg-transparent p-0 text-accent hover:underline"
               onClick={() => onChange({ ...filter, constraints: [...filter.constraints, { value: '', matchMode: col.filterMatchMode ?? 'contains' }] })}
             >
-              + Thêm điều kiện
+              + Thêm
             </button>
           </span>
           <span className="flex items-center justify-between border-t border-line2 pt-2">
             <button
               type="button"
-              className="cursor-pointer border-none bg-transparent text-[10px] text-ink3 hover:text-ink"
+              className="cursor-pointer border-none bg-transparent p-0 text-body text-ink3 hover:text-ink"
               onClick={() => onChange({ constraints: [{ value: '', matchMode: col.filterMatchMode ?? 'contains' }], operator: 'and' })}
             >
-              Reset
+              Clear
             </button>
             <button
               type="button"
-              className="cursor-pointer rounded-1 border-none bg-accent px-2 py-0.5 text-[10px] font-semibold text-white"
+              className="cursor-pointer rounded-2 border-none bg-accent px-3 py-1 text-label font-semibold text-white hover:bg-accent-hi"
               onClick={() => setOpen(false)}
             >
-              Áp dụng
+              Apply
             </button>
           </span>
         </span>

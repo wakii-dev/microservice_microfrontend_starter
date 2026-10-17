@@ -36,7 +36,7 @@ export function UiImage({ src, alt, width, className }: ImageProps) {
       {preview &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-8 animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]"
+            className="fixed inset-0 z-[var(--z-modal)] flex cursor-zoom-out items-center justify-center bg-black/80 p-8 animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]"
             onClick={() => setPreview(false)}
             data-testid="image-preview"
           >

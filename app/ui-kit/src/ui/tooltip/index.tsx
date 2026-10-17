@@ -27,7 +27,7 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
       {open && (
         <span
           role="tooltip"
-          className={`pointer-events-none absolute left-1/2 z-[1070] w-max max-w-[250px] -translate-x-1/2 rounded-2 bg-[rgba(0,0,0,0.85)] px-2 py-1.5 text-body text-white ${
+          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-2 bg-[rgba(0,0,0,0.85)] px-2 py-1.5 text-body text-white ${
             placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
           }`}
         >

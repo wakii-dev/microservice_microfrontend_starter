@@ -26,7 +26,7 @@ export function ContextMenu({ items, children, onItemClick, className }: Context
     <div ref={ref} className={className} onContextMenu={(e) => { e.preventDefault(); setPos({ x: e.clientX, y: e.clientY }); }}>
       {children}
       {pos && (
-        <ul role="menu" className="fixed z-50 m-0 min-w-[160px] list-none rounded-3 border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]" style={{ left: pos.x, top: pos.y }}>
+        <ul role="menu" className="fixed z-[var(--z-dropdown)] m-0 min-w-[160px] list-none rounded-3 border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]" style={{ left: pos.x, top: pos.y }}>
           {items.map((item) => item.key === '---' ? (
             <li key={item.key} className="my-1 border-t border-line2" />
           ) : (

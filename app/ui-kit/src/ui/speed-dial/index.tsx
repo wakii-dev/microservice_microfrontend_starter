@@ -13,7 +13,7 @@ export interface SpeedDialProps {
 export function SpeedDial({ icon, actions, className }: SpeedDialProps) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={`fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2${className ? ` ${className}` : ''}`}>
+    <div className={`fixed bottom-6 right-6 z-[var(--z-toast)] flex flex-col items-center gap-2${className ? ` ${className}` : ''}`}>
       {open && actions.map((action, i) => (
         <button key={action.key} type="button" aria-label={action.label}
           onClick={() => { action.onClick?.(); setOpen(false); }}

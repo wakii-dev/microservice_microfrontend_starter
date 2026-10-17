@@ -44,7 +44,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 bg-black/45 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}`}
+      className={`fixed inset-0 z-[var(--z-modal)] bg-black/45 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}`}
       onClick={() => onClose?.()}
       data-testid="drawer-overlay"
     >

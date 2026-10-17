@@ -58,7 +58,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
+      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/45 p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
       onClick={() => onCancel?.()}
       data-testid="modal-overlay"
     >

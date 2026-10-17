@@ -31,6 +31,16 @@ export function PickList({ source: sourceProp, target: targetProp, onChange, cla
     setPicked(new Set());
   }
 
+  // Chọn/bỏ chọn 1 item (click toggle) — trước đây onPick là no-op → không
+  // thể pick gì cả, nút chuyển luôn disabled.
+  function togglePick(v: string) {
+    setPicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(v)) next.delete(v); else next.add(v);
+      return next;
+    });
+  }
+
   function Panel({ title, items, onPick }: { title: string; items: PickListItem[]; onPick: (v: string) => void }) {
     return (
       <div className="flex-1">
@@ -50,12 +60,12 @@ export function PickList({ source: sourceProp, target: targetProp, onChange, cla
 
   return (
     <div className={`flex items-center gap-3${className ? ` ${className}` : ''}`}>
-      <Panel title="Nguồn" items={source} onPick={() => {}} />
+      <Panel title="Nguồn" items={source} onPick={togglePick} />
       <div className="flex flex-col gap-1">
         <Button size="small" onClick={moveToTarget} disabled={picked.size === 0}>›</Button>
-        <Button size="small" onClick={() => {}} disabled>‹</Button>
+        <Button size="small" onClick={moveToSource} disabled={picked.size === 0}>‹</Button>
       </div>
-      <Panel title="Đích" items={target} onPick={() => {}} />
+      <Panel title="Đích" items={target} onPick={togglePick} />
     </div>
   );
 }

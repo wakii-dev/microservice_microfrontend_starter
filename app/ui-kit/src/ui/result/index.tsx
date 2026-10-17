@@ -25,7 +25,7 @@ export interface ResultProps {
 export function Result({ status = 'info', title, subTitle, extra, children, className }: ResultProps) {
   const cfg = CONFIG[status];
   return (
-    <div className={`flex flex-col items-center gap-2 py-8 text-center${className ? ` ${className}` : ''}`}>
+    <div className={`flex flex-col items-center gap-2 py-8 text-center animate-[bp-slide-up-in_var(--motion-slow)_var(--ease-enter)]${className ? ` ${className}` : ''}`}>
       <div
         aria-hidden="true"
         className={`text-5xl font-bold ${status === 'success' ? 'text-st-done' : status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}`}

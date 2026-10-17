@@ -44,7 +44,11 @@ export function Collapse({ items, defaultActiveKeys = [], className }: CollapseP
                 ▾
               </span>
             </button>
-            {open && <div className="px-4 pb-3 text-body text-ink2">{item.children}</div>}
+            <div
+              className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="overflow-hidden px-4 pb-3 text-body text-ink2">{item.children}</div>
+            </div>
           </div>
         );
       })}

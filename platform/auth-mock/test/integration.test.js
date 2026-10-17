@@ -6,10 +6,14 @@ import assert from 'node:assert/strict';
 import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { buildApp } from '../src/app.js';
 
 // fixture THẬT của repo (contracts/auth/users.json) — không phải fixture test tự bịa
 const REPO_FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'contracts', 'auth', 'users.json');
+// endpoint /api/auth/users trả đúng toàn bộ fixture — đếm theo fixture thay vì hard-code
+// (trước đây assert cứng 3, gãy khi FI-77 thêm svc-activity/svc-fail → 5 user)
+const FIXTURE_USER_COUNT = JSON.parse(readFileSync(REPO_FIXTURE, 'utf8')).users.length;
 const SECRET = 'integration-test-secret-at-least-32-chars!';
 
 test('real-path: login fixture thật → JWT verify → dùng Bearer gọi endpoint', async () => {
@@ -40,9 +44,9 @@ test('real-path: login fixture thật → JWT verify → dùng Bearer gọi endp
     assert.ok(['alice@demo.local', 'bob@demo.local', 'carol@demo.local'].includes(claims.email));
     assert.equal(claims.exp - claims.iat, 28800);
 
-    // 4. fixture users endpoint trả đúng 3 user thật
+    // 4. fixture users endpoint trả đúng toàn bộ user trong fixture
     const users = (await app.inject({ method: 'GET', url: '/api/auth/users' })).json();
-    assert.equal(users.users.length, 3);
+    assert.equal(users.users.length, FIXTURE_USER_COUNT);
     assert.ok(users.users.some((u) => u.id === claims.sub));
 
     // 5. discovery stub cho issuer khớp token vừa cấp

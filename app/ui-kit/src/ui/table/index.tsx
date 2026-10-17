@@ -383,7 +383,7 @@ export function Table<T extends object>({
               <Fragment key={k}>
                 <tr
                   aria-selected={hasSelection ? isSelected : undefined}
-                  className={`${borderCls} transition-colors ${
+                  className={`${borderCls} transition-colors duration-150 ${
                     isSelected ? 'bg-[#e6f4ff]' : striped && rowIndex % 2 === 1 ? 'bg-[rgba(0,0,0,0.02)]' : ''
                   } hover:bg-s3 ${selectionMode === 'single' ? 'cursor-pointer' : ''}`}
                   onClick={() => selectionMode === 'single' && selectSingle(record)}

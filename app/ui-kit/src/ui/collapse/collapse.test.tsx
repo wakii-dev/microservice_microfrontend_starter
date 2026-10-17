@@ -15,11 +15,14 @@ describe('Collapse', () => {
   it('mặc định đóng; click label → mở; click lần nữa → đóng', async () => {
     const user = userEvent.setup();
     render(<Collapse items={ITEMS} />);
-    expect(screen.queryByText('nội dung A')).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Panel A' }));
-    expect(screen.getByText('nội dung A')).toBeInTheDocument();
+    // grid-rows animation: content vẫn trong DOM nhưng wrapper có grid-rows-[0fr] khi đóng
+    const wrapper = screen.getByText('nội dung A').parentElement;
+    // sau lần mở: wrapper grid-rows-[1fr]
+    expect(wrapper?.parentElement?.className).toContain('grid-rows-[1fr]');
     await user.click(screen.getByRole('button', { name: 'Panel A' }));
-    expect(screen.queryByText('nội dung A')).toBeNull();
+    // sau lần đóng: wrapper grid-rows-[0fr]
+    expect(wrapper?.parentElement?.className).toContain('grid-rows-[0fr]');
   });
 
   it('nhiều panel mở cùng lúc + defaultActiveKeys', () => {

@@ -18,7 +18,7 @@ platform/     docker-compose.yml (10 services) · gateway/nginx · auth-mock :80
               postgres/init · conventions/ (01–09)
 services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
               spring-svc :8081 (Boot 3 — users/teams) · go-svc :8082 (chi — activity, Kafka consumer, saga)
-app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (tokens + primitives + Storybook)
+app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (38 components + Storybook + motion)
               shell :3000 (MF host) · remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
 scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
 docs/         walkthrough · adr/0001–0009 · toolchain · superpowers/ (spec+plan+evidence theo story)
@@ -79,7 +79,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | `contracts` | spectral + gitleaks + compose config + boot auth-mock + schemathesis |
 | `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
 | `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
-| `ui-kit` | install + typecheck + test + **build-storybook** (ADR-0009 — không publish) |
+| `ui-kit` | install + typecheck + test + coverage + **build-storybook** (ADR-0009 — không publish) |
 | `git-guard` | mọi PR — enforce branch name (`wakii-dev/<loại>-<slug>`) + commit message theo [git-flow.md](docs/git-flow.md); feedback sớm hơn = `git config core.hooksPath .githooks` |
 | `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone (fe-shared + ui-kit) + scaffold build được |
 

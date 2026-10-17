@@ -33,10 +33,10 @@ export function Tabs({ items, activeKey, onChange, className }: TabsProps) {
               aria-selected={isActive}
               disabled={tab.disabled}
               onClick={() => !tab.disabled && onChange?.(tab.key)}
-              className={`relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[''] ${
+              className={`relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[''] after:transition-transform after:duration-200 after:ease-[cubic-bezier(0.16,1,0.3,1)] after:origin-left ${
                 isActive
-                  ? 'text-accent after:bg-accent'
-                  : 'text-ink after:bg-transparent hover:text-accent'
+                  ? 'text-accent after:bg-accent after:scale-x-100'
+                  : 'text-ink after:bg-transparent after:scale-x-0 hover:text-accent'
               } ${tab.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
             >
               {tab.label}

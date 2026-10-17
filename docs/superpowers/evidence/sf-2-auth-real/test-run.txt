@@ -1,0 +1,82 @@
+SF-2 (VU-61) — evidence test run — epic auth-real (VU-59)
+=============================================================
+HEAD tại code-commit cuối: ade54cccb4841c58ad93dc1cfd3367debc0f5eb7 (short: ade54cc)
+Code commits: 240eb91 (feat auth-svc) → ade54cc (review fixes P1+P2#1/#4)
+Nhánh: wakii-dev/sf-2-auth-real · base: wakii-dev/story-vu59-auth-real @ 7572857 (SF-1 merged)
+Ngày chạy: 2026-10-17 · máy dev local (macOS, Docker 29.7.2, node 24, pnpm 9.15.9)
+Postgres integration: container riêng `auth-svc-dev-pg` (postgres:16-alpine, :5433) —
+compose entry auth-svc thuộc SF-5 nên KHÔNG đụng compose (đúng boundary).
+
+tdd: RED→GREEN — RED xác nhận 4 test files fail lúc chưa có impl (Failed to load
+url ./db/client.js … "Test Files 4 failed"); GREEN 37/37 sau khi implement
+(27 unit + 10 integration trên postgres thật). Meta-test review P1: suite ĐỎ
+trên DB fresh với code cũ (reviewer chứng minh `expected 5 to be +0`), XANH sau
+fix trên DB mới tạo (vu61_fresh — executor; vu61_rr2 — reviewer tự chạy lại).
+
+CI NOTE (quan trọng — đọc trước khi tin "workflow xanh")
+-------------------------------------------------------------
+GitHub Actions đang DISABLED repo-wide: `gh api repos/wakii-dev/architecture-overview/
+actions/permissions` → {"enabled":false}; 10/10 workflows `state=disabled_manually`.
+→ KHÔNG push nào fire CI (kể cả convergence push:"**") — acceptance "workflow
+services-auth-svc.yml xanh trên nhánh" CHƯA thể chứng minh trên GitHub. Chứng minh
+thay thế = 3 jobs của workflow chạy tương đương LOCAL (dưới đây), script y hệt.
+Khuyến nghị coordinator: enable Actions rồi re-push/re-run, hoặc chuyển chứng minh
+CI sang SF-5 (CI swap + epic acceptance #9).
+
+JOB 1 tương đương build-test — unit + integration trên postgres thật
+-------------------------------------------------------------
+$ AUTH_SVC_TEST_DATABASE_URL=postgres://boilerplate:…@localhost:5433/vu61_fresh pnpm test
+ Test Files  4 passed (4)      ← DB MỚI TẠO (DROP+CREATE trước khi chạy — đúng điều kiện CI service container)
+      Tests  37 passed (37)    ← 18 app.test + 6 env.test + 3 auth-crypto.test + 10 integration
+$ pnpm build   → exit 0 (tsc)
+Integration chứng minh: migration 0000 tạo schema auth + 2 bảng đúng cột · seed
+idempotent (re-seed insert 0, UUID giữ nguyên, alice roles admin) · createUser dup
+23505 · rotation CAS: old revoked + replaced_by + INSERT mới CÙNG tx · token hết
+hạn 0-rows → reuse · REUSE → revoke-all user · **2 refresh ĐỒNG THỜI cùng old id
+(Promise.all) → ĐÚNG 1 'ok' / 1 'reuse'** · token lạ → 'unknown', 0 mutation DB ·
+logout idempotent + logout-all.
+
+JOB 2 tương đương docker-build
+-------------------------------------------------------------
+$ docker build -t auth-svc:sf2 services/auth-svc
+#17 writing image sha256:931302661290d95c72b4d9b3ac868c8acce4c6ab78c04ca341e78afa03f0bbbb done
+
+JOB 3 tương đương boot-smoke — CHUỖI trên IMAGE (không phải tsx), script y hệt workflow
+-------------------------------------------------------------
+container: docker run auth-svc:sf2 (:8093) + mount contracts/auth/users.json:/app/users.json
+readyz OK (attempt 2) · healthz/readyz/api/auth/healthz → 200 {"status":"ok"}
+alice login → 200 roles admin (argon2id verify musl TRONG container alpine, 38ms)
+register smoke-ci@example.com → 201 (roles ["user"], shape {user,accessToken,refreshToken})
+refresh lần 1 → 200 TokenPair mới · REUSE token cũ → 401 "reuse detected — all sessions
+revoked" · refresh token MỚI sau reuse → 401 (revoke-all thật) · logout token lạ → 204
+· logout-all Bearer → 204 · thiếu Bearer → 401 · GET /users thấy user vừa register
+
+RULE 0 — curl chuỗi đầu-cuối trên dev server (:8092, tsx) — TRƯỚC docker
+-------------------------------------------------------------
+1. healthz/readyz naked+mirror → 4×200 {"status":"ok"}
+2. register Smoke.Chain@Example.COM → 201, email lưu lowercase, roles ["user"],
+   JWT decode: iss=auth-mock, exp-iat=1800 (30m), refreshToken opaque 43-char không phải JWT
+3. register trùng khác case → 409 {"code":"CONFLICT"}
+4. login alice@demo.local/demo-password → 200, UUID giữ nguyên 11111111-…, roles ["admin"],
+   shape keys = user,accessToken,refreshToken (KHÔNG tokenType/expiresIn — decision #8)
+5. login sai password → 401 UNAUTHORIZED message chung
+6. refresh → 200 cặp mới
+7. REUSE old → 401 UNAUTHORIZED "Refresh token reuse detected — all sessions revoked"
+8. token MỚI sau reuse → 401 (strict revoke-all hoạt động thật)
+9. logout token lạ → 204 (idempotent)
+10. logout-all Bearer → 204 · không Bearer → 401
+11. GET /users → đủ 5 fixture (alice admin; bob/carol/svc-activity/fail user)
+
+Verify từng dòng ACCEPTANCE (context pack sf-2.md)
+-------------------------------------------------------------
+✓ curl register→login→refresh→refresh-lại-token-cũ (401 + mọi refresh của user chết)
+  →logout (204 idempotent)→logout-all — chạy đầu-cuối trên auth-svc boot local (mục RULE 0 + JOB 3)
+✓ 5 user fixture login được bằng AUTH_DEV_PASSWORD (alice roles admin, bob user —
+  claims đúng từ seed): alice/bob qua curl + integration test verify hash + listUsers=5 fixture
+✗→⚠ Workflow services-auth-svc.yml xanh trên nhánh: Actions DISABLED repo-wide (CI NOTE
+  trên) — 3 jobs chứng minh tương đương local; cần coordinator enable Actions để có run xanh thật
+
+Review (bước 2c)
+-------------------------------------------------------------
+Round 1: CHANGES-REQUESTED (1 P1 — seed test pre-condition ẩn; 5 P2) → fix ade54cc
+Round 2: APPROVED (reviewer tự chạy 37/37 trên DB fresh) — /tmp/story/vu59/code-reviewer-sf-2.md

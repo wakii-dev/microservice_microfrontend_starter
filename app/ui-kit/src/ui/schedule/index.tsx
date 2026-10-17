@@ -1,3 +1,4 @@
+// @ts-nocheck — peer-dep lazy import (engine optional, consumer tự cài — runtime try/catch)
 // Schedule — PEER-DEP pattern: FullCalendar lazy import.
 // Cài: pnpm add @fullcalendar/core @fullcalendar/daygrid @fullcalendar/interaction
 import { useEffect, useRef, useState, type ReactNode } from 'react';
@@ -27,8 +28,11 @@ export function Schedule({ events = [], onEventClick, fallback, className }: Sch
     (async () => {
       try {
         const [{ Calendar }, dayGridPlugin, interactionPlugin] = await Promise.all([
+                    // @ts-ignore — peer-dep lazy
           import('@fullcalendar/core'),
+                    // @ts-ignore — peer-dep lazy
           import('@fullcalendar/daygrid'),
+                    // @ts-ignore — peer-dep lazy
           import('@fullcalendar/interaction'),
         ]);
         if (cancelled || !ref.current) return;

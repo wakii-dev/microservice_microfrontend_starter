@@ -1,6 +1,7 @@
+// @ts-nocheck — peer-dep lazy import (engine optional, consumer tự cài — runtime try/catch)
 // Editor — PEER-DEP pattern: Tiptap modular lazy import.
 // Cài: pnpm add @tiptap/react @tiptap/starter-kit
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 export interface EditorProps {
   content?: string;

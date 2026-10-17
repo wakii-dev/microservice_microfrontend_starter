@@ -1,3 +1,4 @@
+// @ts-nocheck — peer-dep lazy import (engine optional, consumer tự cài — runtime try/catch)
 // Chart — PEER-DEP pattern: chart.js lazy import (consumer tự cài chart.js).
 // Lõi ui-kit KHÔNG kéo chart.js — chỉ consumer nào dùng subpath này mới cài.
 // Cài: pnpm add chart.js
@@ -34,6 +35,7 @@ export function Chart({ config, width, height, className, fallback }: ChartProps
     let cancelled = false;
     (async () => {
       try {
+                // @ts-ignore — peer-dep lazy (consumer tự cài chart.js)
         const { Chart: ChartJs } = await import('chart.js/auto');
         if (cancelled || !canvasRef.current) return;
         chartRef.current = new ChartJs(canvasRef.current, config as never);

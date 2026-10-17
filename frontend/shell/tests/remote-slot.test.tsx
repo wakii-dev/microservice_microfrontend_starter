@@ -50,6 +50,14 @@ describe('RemoteSlot (error boundary remote-down)', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
+  it('đang tải → Suspense fallback là Skeleton (aria-busy), KHÔNG còn text "Đang tải…" (SF-2)', () => {
+    loadRemoteModuleMock.mockReturnValue(new Promise(() => {})); // never resolves
+    const { container } = render(<RemoteSlot name="tasks" exposedModule="./TasksPage" />);
+
+    expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument();
+    expect(screen.queryByText('Đang tải tasks…')).not.toBeInTheDocument();
+  });
+
   it('re-render (click lại nav link đang đứng) KHÔNG load lại remote (lazy cache — P2 review fix)', async () => {
     loadRemoteModuleMock.mockResolvedValue({ default: () => <div>STABLE</div> });
     const { rerender } = render(
@@ -62,5 +70,40 @@ describe('RemoteSlot (error boundary remote-down)', () => {
     rerender(<RemoteSlot name="tasks" exposedModule="./TasksPage" key="x" />);
     expect(loadRemoteModuleMock).toHaveBeenCalledTimes(1);
     expect(screen.getByText('STABLE')).toBeInTheDocument();
+  });
+
+  it('BUG-2: bấm thử lại sau khi remote sống lại → recovery in-place (cờ retry bust sticky layer)', async () => {
+    const user = userEvent.setup();
+    // Mini-model sticky rejection: load fail NHỚ BÊN — chỉ lần gọi MANG CỜ retry
+    // (registerRemotes force bên dưới fe-shared) mới phá được sticky layer.
+    // RemoteSlot cũ không truyền cờ → retry nhận lại rejection cũ → fallback mãi mãi.
+    let sticky = true;
+    const stickyLoad = (opts?: { retry?: boolean }) => {
+      if (opts?.retry) sticky = false;
+      return sticky
+        ? Promise.reject(new Error('Remote "tasks" load failed'))
+        : Promise.resolve({ default: () => <div>TASKS-CONTENT</div> });
+    };
+    loadRemoteModuleMock.mockImplementation((...args: unknown[]) =>
+      stickyLoad(args[2] as { retry?: boolean } | undefined),
+    );
+
+    render(<RemoteSlot name="tasks" exposedModule="./TasksPage" />);
+    await screen.findByRole('alert');
+
+    // Pin contract: lần đầu (attempt 0) KHÔNG được mang cờ — initial load không reset
+    // cache runtime (nếu có regression truyền cờ mọi attempt, test này bắt tại đây).
+    expect(loadRemoteModuleMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ name: 'tasks' }),
+      './TasksPage',
+      undefined,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('TASKS-CONTENT')).toBeInTheDocument();
+    });
   });
 });

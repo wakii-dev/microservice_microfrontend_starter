@@ -1,5 +1,6 @@
 packages:
-  # FE workspace — SF-1 sở hữu frontend/shared; SF-5/6 READ-ONLY (đụng = flag coordinator)
+  # FE workspace — từ story VU-53 SF-1: frontend/shared/src/{styles,ui} do design-system
+  # SF sở hữu (SF-2/3/4 consume); 4 file logic fe-shared + mfToolkit READ-LOCKED
   - "frontend/*"
   # Spike MF/Rspack (SF-1) — xoá được sau khi pin versions chốt
   - "frontend/spike/*"

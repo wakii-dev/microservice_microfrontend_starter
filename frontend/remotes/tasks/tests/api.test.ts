@@ -1,5 +1,13 @@
 // API shape tests — assert URL/method/header/body khớp contract tasks.yaml + envelope decode.
-import { ApiError, createTask, fetchTasks, timeoutFetch, updateTask } from '../src/api';
+// SF-3 (VU-56): fetchTasks nhận params limit/offset/status (clamp limit 1..100, offset ≥ 0) + deleteTask.
+import {
+  ApiError,
+  createTask,
+  deleteTask,
+  fetchTasks,
+  timeoutFetch,
+  updateTask,
+} from '../src/api';
 import { tokenStorage } from '@boilerplate/fe-shared';
 
 function jsonResponse(body: unknown, status = 200) {
@@ -15,7 +23,7 @@ describe('api — remote tasks', () => {
     vi.unstubAllGlobals();
   });
 
-  it('fetchTasks — GET /api/tasks với Authorization Bearer', async () => {
+  it('fetchTasks — GET /api/tasks mặc định limit=10&offset=0 + Authorization Bearer', async () => {
     tokenStorage.setToken('hdr.payload.sig');
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
     vi.stubGlobal('fetch', fetchMock);
@@ -24,9 +32,66 @@ describe('api — remote tasks', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/tasks?limit=50');
+    expect(url).toBe('/api/tasks?limit=10&offset=0');
     expect(init.method).toBe('GET');
     expect(init.headers['Authorization']).toBe('Bearer hdr.payload.sig');
+  });
+
+  it('fetchTasks — params status/limit/offset lên query đúng thứ tự contract', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchTasks({ status: 'in_progress', limit: 20, offset: 40 });
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/tasks?limit=20&offset=40&status=in_progress');
+  });
+
+  it('fetchTasks — clamp theo contract: limit max 100, offset ≥ 0', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchTasks({ limit: 500, offset: -5 });
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/tasks?limit=100&offset=0');
+  });
+
+  it('deleteTask — DELETE /api/tasks/{id} + Authorization, 204 không body', async () => {
+    tokenStorage.setToken('hdr.payload.sig');
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(deleteTask('abc-123')).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/tasks/abc-123');
+    expect(init.method).toBe('DELETE');
+    expect(init.headers['Authorization']).toBe('Bearer hdr.payload.sig');
+    expect(init.body).toBeUndefined();
+  });
+
+  it('deleteTask — 404 error envelope → ApiError giữ code + requestId', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse(
+        {
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Không tìm thấy task',
+            requestId: 'req-9',
+            details: null,
+          },
+        },
+        404,
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const err = await deleteTask('missing').catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.status).toBe(404);
+    expect(err.code).toBe('TASK_NOT_FOUND');
+    expect(err.requestId).toBe('req-9');
   });
 
   it('createTask — POST JSON body + Content-Type', async () => {

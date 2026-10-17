@@ -86,25 +86,33 @@ Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08
 
 ## 4. Browser walkthrough (human gate — KHÔNG trong CI)
 
-Trên máy có stack sống (đường A hoặc B + FE dev servers):
+Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo design direction "Linear-referenced dark" (story VU-53): nền tối `#010102`, 1 accent indigo, badge pill chấm-màu, không box-shadow.
 
-1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → login `alice@demo.local` / `demo-password`.
-2. Nav → **Tasks**: tạo task mới → hiện trong danh sách (node-svc thật; có assignee thì đi qua spring validate).
-3. Nav → **Activity**: feed/stats phản ánh task vừa tạo (outbox → Kafka `task-events` → go consumer).
-4. Kill 1 remote dev server → reload shell → error boundary, remote còn lại vẫn chạy.
+1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → thấy **dashboard chào** với quick links Tasks/Activity + box **TÀI KHOẢN DEMO** (`alice@demo.local / demo-password`, `fail@demo.local`). Login → nav phải hiện user chip (avatar + email) + nút **Đăng xuất**.
+2. Nav → **Tasks** (item nav active gạch accent): form **Tạo task** (Tiêu đề + Mô tả) → task mới xuất hiện đầu danh sách, heading **"Danh sách (x/total)"** cập nhật. Thử tiếp:
+   - **Sửa inline**: nút *Sửa* trên card → input inline tiêu đề/mô tả → *Lưu* (PATCH thật) / *Huỷ*.
+   - **Đổi status**: select trên card (`Cần làm` / `Đang làm` / `Xong`) — lúc PATCH đang bay item hiện spinner + select khoá (per-item busy).
+   - **Lọc**: chip `Tất cả` / `Cần làm` / `Đang làm` / `Xong` → danh sách + "x/total" lọc theo `?status=`.
+   - **Tải thêm**: nếu total > số đã tải, nút *Tải thêm* cuối danh sách nạp trang kế (limit/offset thật), "x/total" tăng dần tới đủ.
+   - **Xoá**: nút *Xoá* → xác nhận inline ("Xoá task này?" → *Xác nhận xoá* / *Huỷ*) — xoá thật qua DELETE.
+   - Mỗi card hiển thị assignee (UUID rút gọn monospace, hover thấy đủ), "Chưa gán" nếu trống, + createdAt vi-VN.
+3. Nav → **Activity**: **stats cards** (Tổng task / Cần làm / Đang làm / Xong / Sự kiện 24h qua) + **feed timeline nhóm theo ngày** phản ánh mọi thao tác ở bước 2 qua Kafka (outbox → `task-events` → go consumer): badge "đã tạo / đã cập nhật / đã giao / đã xoá" từng màu, tên task, time vi-VN. Nút *Làm mới* load lại.
+4. **Remote-down fallback**: dừng 1 remote rồi reload shell — đường A: `docker stop boilerplate-remote-tasks-1`; đường B: Ctrl-C dev server `:4001`. Shell vẫn nguyên (nav + user chip), slot Tasks hiện fallback "Không tải được phần **tasks**…" + nút **Thử lại**; **Activity vẫn chạy bình thường**. Khôi phục: khởi động lại remote (`docker start` / chạy lại `pnpm dev`) rồi nút *Thử lại* tải lại remote; nếu nút chưa ăn (MF runtime giữ rejection cũ) thì **reload trang** — remote sống lại mount bình thường.
 
 ### 4b. Saga demo (story FI-76 — cần đường A, có Kafka)
 
-1. Trong **Tasks**, tạo task rồi PATCH/assign cho user fixture fail: **`fail@demo.local`** (hoặc gọi `PATCH /api/tasks/{id}` với `assigneeId=55555555-5555-4555-8555-555555555555`).
+1. Trong **Tasks**, tạo task (vd `saga-demo`) rồi gán cho user fixture fail: **`fail@demo.local`** — UI hiển thị assignee ở chế độ read-only (UUID rút gọn), việc gán đi qua API: `PATCH /api/tasks/{id}` với `assigneeId=55555555-5555-4555-8555-555555555555` (swagger `:8080/api/tasks/docs` hoặc curl với Bearer token).
 2. Go consumer cố tình fail ×3 (simulate hook — assignee trùng svc-fail) → publish compensating event `task.assignment_failed` vào topic chung → node compensation consumer cập nhật status.
-3. Quan sát: task chuyển sang status **`assignment_failed`** (badge trên remote-tasks — SF-3). Event gốc (task.assigned) nằm ở `task-events.dlq`:
+3. Quan sát trên **Tasks**: task chuyển badge **"Gán thất bại"** (pill đỏ chấm đỏ — nhận diện rõ; task ở trạng thái này không còn select status — system-owned). Event gốc (task.assigned) nằm ở `task-events.dlq`:
    ```bash
    docker compose -f platform/docker-compose.yml --env-file platform/.env.example exec -T kafka \
      /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
      --topic task-events.dlq --from-beginning --timeout-ms 15000
    # mỗi dòng = 1 DLQ message: {"schemaVersion":1,"originalEvent":"{...task.assigned...}","error":{"reason":...,"retries":3,...}}
    ```
-4. Re-assign cho user hợp lệ (bob) → saga chạy lại từ đầu, event flow về bình thường (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm).
+4. **Recovery**: re-assign cho user hợp lệ (bob, id `22222222-2222-4222-8222-222222222222`) → saga chạy lại từ đầu (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm). Trên UI task có lại badge "Cần làm" + select status.
+
+> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @boilerplate/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
 
 > CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 

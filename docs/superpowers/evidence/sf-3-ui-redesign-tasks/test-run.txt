@@ -1,0 +1,63 @@
+SF-3 test evidence — 2026-10-14 (story VU-53, Linear VU-56)
+HEAD: 3296bc2 (branch wakii-dev/sf-3-ui-redesign-tasks) — hash sync lần cuối ở commit cuối (T8)
+
+Unit tests (vitest, jsdom — frontend/remotes/tasks):
+- pnpm test → Test Files 2 passed (2) / Tests 32 passed (32)
+  - api.test.ts: 9 case — fetchTasks default URL (?limit=10&offset=0) + params thứ tự + clamp
+    (limit 500→100, offset -5→0) + deleteTask DELETE 204 + Authorization + 404 envelope +
+    createTask POST + updateTask PATCH + 400 envelope + timeoutFetch abort
+  - TasksPage.test.tsx: 23 case — render list + "Danh sách (x/total)" + fetchTasks({}) · tạo
+    task + reload + xoá input · TẠO THẤT BẠI GIỮ INPUT (review P1-1) · 503 banner role=alert ·
+    EmptyState "Chưa có task nào" · Skeleton (.bp-skeleton--row) thay list · đổi status select
+    updateTask({status}) · per-item busy select disabled + Spinner label · assignment_failed
+    badge "Gán thất bại" role=status name="Trạng thái task <title>" KHÔNG select · select chỉ
+    3 writable · sửa inline PATCH đúng payload chỉ field đổi + thoát edit · sửa không đổi gì
+    KHÔNG gọi PATCH · Huỷ không gọi PATCH · LƯU THẤT BẠI GIỮ FORM + DRAFT (review P1-2) ·
+    xoá confirm 2 bước deleteTask + reload · Huỷ xoá không gọi · Tải thêm fetchTasks({offset})
+    append + (x/total) · đủ items không nút · RACE load-more↔filter stale-response bị bỏ
+    (review P1-3) · RACE NHẬN NỮA: nút Tải thêm không kẹt disabled khi load-more bị supersede
+    (review P1-4) · filter chip fetchTasks({status}) + aria-pressed · assignee UUID rút gọn
+    title=full + <time datetime> vi-VN · "Chưa gán"
+
+- pnpm typecheck → tsc --noEmit sạch (exit 0)
+- pnpm build → rspack compiled successfully; dist có __federation_expose_TasksPage.[hash].css
+  (scoped .tsk-*) + tokens chunk (cssFilename contenthash)
+
+TDD: RED→GREEN per task — T1 (5 api test RED trên api.ts cũ → GREEN), T2 (suite component
+mới RED trên code cũ → GREEN ở T3), review round 1 (3 test RED tái được P1-1/P1-2/P1-3 trên
+commit trước fix 6b31cf2 → GREEN), review round 2 (test RED tái được P1-4 nút kẹt disabled
+trên commit trước fix 3296bc2 → GREEN). Evidence RED: output lần chạy trước mỗi commit
+feat/fix.
+
+Browser verify (Rule 0, 3 tầng) — dev stack isolate từ worktree (:4101 tasks + :3100 shell,
+backend compose :3001/:8090 thật):
+- Tầng 1 DOM (eval): section aria "Quản lý tasks" + form + ul + 4 chips + computed
+  .tsk-page gap 24px (tokens resolve) + tooltip assignee full UUID + role=status badge label
+- Tầng 2 VISUAL (screenshot, cùng thư mục này): 01-tasks-page.png (trước tokens — transient
+  pre-SF-2), 02-tasks-page-tokens.png, 03-tasks-page-form-fixed.png (sau fix explicit
+  flex-direction/max-width), 04-saga-badge.png, 05-standalone-401.png (full dark direction B
+  — tokens+base). So hand-off: surface ladder s2/s3 + line + accent #5e6ad2 + meta mono
+  --ink3 + pill chip ✓. Shell chrome (nav/s body) còn light = transient Phase 2 đến SF-2
+  merge (spec epic "Phased-release" đã ghi nhận expected)
+- Tầng 3 FLOW (chuỗi liền): logout → login alice@demo.local → nav Tasks → tạo "SF-3 demo
+  task" (8/8, input reset) → sửa inline tiêu đề (PATCH, form đóng) → đổi status (badge cập
+  nhật "Đang làm") → filter "Đang làm" (2/2, aria-pressed) → xoá confirm 2 bước (10/10) →
+  seed API → reload (10/11) + nút Tải thêm → click (11/11, nút mất) → saga 4b: POST task +
+  PATCH assigneeId=55555555-…-555555555555 → Kafka compensation ~12s → badge "Gán thất bại"
+  + KHÔNG select (04-saga-badge.png) → standalone :4101 banner + style + 401 alert đúng →
+  logout → /login. Console: 0 app error (2 error là HMR websocket lúc restart dev server)
+
+Fix giữa verify (commit d024761): remote import tokens.css trong page entry (kiến trúc epic
+quyết định #5 — shell pre-SF-2 chưa import global) + explicit flex-direction/max-width cho
+.tsk-form/.tsk-item__edit (shell css cũ có form{column,max-width:20rem} toàn cục — SF-2 merge
+sẽ xoá; explicit giữ đúng layout cả trước lẫn sau merge)
+
+Lưu ý môi trường: :8080 compose vẫn chạy image cũ (pre-SF-3) đến khi coordinator merge —
+walkthrough :8080 chính thức là việc SF-5; verify này chạy cùng code trên dev stack isolate.
+Demo data để lại trong DB: "SF-3 demo task (đã sửa)", "load-more seed 1/2", "SF-3 saga 4b
+fresh" (badge demo), "post-fix sanity" — tương tự residue các lần smoke trước, không phá e2e.
+
+tdd: RED→GREEN — 4 chu kỳ (T1 api, T2/T3 components, review-fix P1-1/P1-2/P1-3, review-fix
+P1-4); tests viết trước code, RED được xác nhận trong output trước mỗi lần implement
+
+evidence-sync: commit cuối của run là docs tick/evidence; code commit cuối = 3296bc2 (HEAD~2); hash commit ngay trước evidence-sync này = f893399

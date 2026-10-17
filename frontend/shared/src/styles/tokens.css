@@ -1,0 +1,50 @@
+/*
+ * Design tokens — SF-1 story VU-53 (UI redesign, hướng B "Linear-referenced dark").
+ * Source of truth: docs/superpowers/designs/ui-redesign-direction.md §1 (user đã duyệt).
+ * Idempotent theo thiết kế: remote CSS inject runtime SAU CSS shell — cùng giá trị
+ * custom properties ghi đè vô hại. SF-2/3/4 consume — KHÔNG tự chế token mới
+ * (thiếu = flag coordinator, không thêm ỳ).
+ */
+:root {
+  /* Bậc bề mặt (thay cho shadow: depth bằng surface, KHÔNG box-shadow) */
+  --c-canvas: #010102; /* nền ngoài cùng */
+  --c-s1: #0f1011; /* khối lớn (nav, sidebar) */
+  --c-s2: #141516; /* card / panel */
+  --c-s3: #18191a; /* row, input, hover surface */
+  /* Mực (text) */
+  --ink: #f7f8f8; /* chính — contrast vs #141516 ≈ 15:1 AA */
+  --ink2: #d0d6e0; /* phụ (desc) — ≈ 10:1 AA */
+  --ink3: #8a8f98; /* meta (uuid, time) — ≈ 4.6:1: CHỈ cho meta phụ ≥12px */
+  /* Viền */
+  --line: #23252a; /* 1px mặc định */
+  --line2: #2b2d33; /* hover/focus ring nền */
+  /* Accent duy nhất */
+  --accent: #5e6ad2; /* Florentine indigo — nút chính, nav active, avatar, timeline dot */
+  --accent-hi: #828fff; /* hover accent + focus-visible outline */
+  /* Trạng thái task */
+  --st-todo: #8a8f98; /* Cần làm */
+  --st-doing: #f2c94c; /* Đang làm */
+  --st-done: #3fb950; /* Xong */
+  --st-fail: #f06a6a; /* Gán thất bại + error */
+  /* Font stacks (CỨNG — 0 webfont, CSP chưa set) */
+  --f: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --m: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  /* Radius */
+  --r-1: 4px; /* chip nhỏ, input */
+  --r-2: 6px; /* button, pill */
+  --r-3: 8px; /* card, panel */
+  --r-pill: 9999px;
+  /* Spacing scale 4base */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  /* Type scale */
+  --fs-meta: 12px;
+  --fs-label: 13px;
+  --fs-body: 14px;
+  --fs-h2: 16px;
+  --fs-h1: 18px;
+}

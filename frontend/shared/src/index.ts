@@ -8,4 +8,18 @@ export {
   REMOTE_NAMES,
   type RemoteName,
   type RemoteEntry,
+  type LoadRemoteModuleOptions,
 } from './mf-bootstrap.js';
+// Design-system primitives (SF-1, story VU-53) — CSS đi kèm: styles/base.css section
+// Primitives (bp-*). Import styles qua subpath '@boilerplate/fe-shared/styles/*.css'.
+export {
+  Badge,
+  EmptyState,
+  Skeleton,
+  Spinner,
+  type BadgeVariant,
+  type BadgeProps,
+  type EmptyStateProps,
+  type SkeletonProps,
+  type SpinnerProps,
+} from './ui/index.js';

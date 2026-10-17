@@ -49,43 +49,60 @@ export function LoginPage() {
   }
 
   return (
-    <section>
-      <h1>Đăng nhập</h1>
-      <form onSubmit={handleSubmit} aria-label="Form đăng nhập">
-        <label>
-          Email
-          <input
-            type="email"
-            name="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label>
-          Mật khẩu
-          <input
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
-        {error && (
-          <p role="alert" className="error-banner">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
-        </button>
-      </form>
-      <p>
-        <small>Demo: alice@demo.local / demo-password (mock — dev password chung)</small>
-      </p>
+    <section className="sh-login">
+      <div className="sh-login__card">
+        <div className="sh-login__brand">
+          <span aria-hidden="true" className="sh-login__mark">
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            >
+              <path d="M3 4.5h7M3 8h10M3 11.5h5" />
+            </svg>
+          </span>
+          <span className="sh-login__wordmark">Boilerplate</span>
+        </div>
+        <h1 className="sh-login__title">Đăng nhập</h1>
+        <form aria-label="Form đăng nhập" className="sh-login__form" onSubmit={handleSubmit}>
+          <label className="sh-field">
+            Email
+            <input
+              type="email"
+              name="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label className="sh-field">
+            Mật khẩu
+            <input
+              type="password"
+              name="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          {error && (
+            <p className="error-banner" role="alert">
+              {error}
+            </p>
+          )}
+          <button className="sh-btn sh-btn--primary sh-login__submit" type="submit" disabled={submitting}>
+            {submitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
+          </button>
+        </form>
+        <p className="sh-login__hint">
+          Demo: <code>alice@demo.local</code> / <code>demo-password</code> (mock — dev password
+          chung)
+        </p>
+      </div>
     </section>
   );
 }

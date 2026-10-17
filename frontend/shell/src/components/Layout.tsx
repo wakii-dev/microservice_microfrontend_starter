@@ -22,7 +22,7 @@ export function Layout() {
       </a>
       <NavBar />
       {/* biome-ignore lint/a11y/noNoninteractiveTabindex: focus target cho route change */}
-      <main id="main-content" ref={mainRef} tabIndex={-1}>
+      <main className="sh-main" id="main-content" ref={mainRef} tabIndex={-1}>
         <Outlet />
       </main>
     </>

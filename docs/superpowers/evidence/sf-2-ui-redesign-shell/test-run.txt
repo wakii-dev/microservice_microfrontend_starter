@@ -1,0 +1,70 @@
+SF-2 test evidence — story VU-53 UI redesign (Shell restyle, VU-55)
+HEAD: 8a29fe4 (code HEAD — branch wakii-dev/sf-2-ui-redesign-shell) — 2026-10-14
+Code commits: 09cd5b4 (plan) · baf6712 (feat shell restyle + tests TDD) · 8a29fe4 (review P2 null-guard avatar)
+Post-evidence commits: docs-only (evidence + plan tick; 0 code thay đổi sau 8a29fe4)
+
+tdd: RED→GREEN — 7 test mới viết TRƯỚC khi implement:
+  RED  (chưa implement): 7 test mới FAIL — nav thiếu aria-current, không có brand
+       "Boilerplate", HomePage không quick links/hints, RemoteSlot fallback là
+       <p>Đang tải…</p> (không aria-busy), LoginPage không wordmark. 30 test cũ PASS.
+       (vitest run 07:33:57 — 3 files failed, 7 failed / 30 passed)
+  GREEN (sau implement): 37/37 PASS (7 shell-chrome + 5 remote-slot + 4 login + 3 a11y
+       NGUYÊN VẸN + 2 integration + api-timeout + primitives 15 không regress)
+       — pnpm test 08:08:55, Test Files 7 passed (7) · Tests 37 passed (37)
+  GREEN-2 (sau review P2 fix 8a29fe4): 38/38 PASS — thêm 1 test tái được bug reviewer
+       tìm ra (token {sub,exp} KHÔNG email → TypeError charAt, trắng nav) — RED 08:16
+       (1 failed: TypeError đúng kịch bản) → fix claims.email?.charAt(0)?.toUpperCase()
+       ?? '?' → GREEN 08:17:10, Tests 38 passed (38)
+
+Unit/component tests (pnpm test @ frontend/shell — vitest 3.2.4, jsdom):
+- Test Files 7 passed (7) · Tests 38 passed (38) — a11y 3 case giữ nguyên vẹn (hard gate)
+- Thêm shell-chrome.test.tsx (6): nav aria-current per route, brand, token-thiếu-email
+  guard, HomePage h1 + quick links ≥2 link/Tên + hints alice/fail@demo.local
+- Thêm case remote-slot (1): Suspense fallback = Skeleton aria-busy, KHÔNG text "Đang tải…"
+- Thêm case login (1): wordmark Boilerplate + heading Đăng nhập + hint demo
+
+Typecheck (tsc --noEmit): shell 0 errors
+Build: dev-server compile OK qua walkthrough; lockfile 0 đổi (git diff HEAD pnpm-lock.yaml rỗng)
+
+RULE 0 — BROWSER VERIFY 3 TẦNG (cluster dev riêng 3200/4201/4202 từ worktree SF-2;
+KHÔNG đụng docker stack chung :3000/:4001/:4002 của SF-3/4):
+- Tầng 1 DOM (orca eval): login card 340px centered + wordmark/heading/labels/hint; sau
+  login chip "A alice@demo.local" + activeNav aria-current="page" đúng route mọi bước;
+  fallback role=alert đúng text contract + nút "Thử lại"; skeleton aria-busy=true ×2
+  (bp-skeleton--card); 375px scrollWidth=clientWidth (không overflow), topbar wrap.
+- Tầng 2 VISUAL (screenshots trong thư mục này, ĐÃ đọc ảnh): flow-1-login.png (card dark
+  giữa màn, nút accent full-width, hint mono), flow-2-home-dashboard.png (nav active gạch
+  accent + chip user + 2 quick-link cards + hints panel), flow-3-tasks-active.png (Tasks
+  active + remote mount data thật 8/8), flow-4-remote-down-fallback.png (fallback đẹp +
+  nav còn sống), flow-5-skeleton-loading.png (2 skeleton cards pulse khi remote chậm),
+  flow-6-responsive-375/768.png (wrap 2 dòng, không overflow), flow-7-login-error.png
+  (error banner st-fail). So b-reference.png: login card 1-1, topbar/chip/hints khớp;
+  nav active dùng GẠCH ACCENT theo hand-off §4 (reference dùng pill nền — resolved theo
+  hand-off vì .wakii "restyle theo hand-off", đã ghi trong plan).
+- Tầng 3 FLOW (orca browser, keypress trusted input): login alice@demo.local/demo-password
+  → navigate về / → greeting + chip + quick links → click Tasks (active đổi + remote load
+  data thật) → Activity (active đổi + stats/feed) → logout (về /login, jwt clear, chip
+  biến mất) → wrong-password (banner "Email hoặc mật khẩu không đúng." role=alert, giữ
+  hợp đồng chữ) → kill tasks remote :4201 → reload /tasks → fallback + Thử lại + nav sống
+  → revive remote → reload → hồi phục đầy đủ.
+
+FINDINGS dev-loop (không thuộc code SF-2 — pre-existing, flag SF-5/coordinator):
+1. Docker remoteEntry :4001/:4002 build prod có publicPath gateway '/remotes/<name>/'
+   — consume direct-port từ dev shell → chunk URL resolve về shell origin → 404 →
+   ChunkLoadError giết cả bootstrap (root trống). Dev-loop phải dùng native dev remotes
+   (publicPath tuyệt đối theo REMOTE_PUBLIC_PATH). Cluster này dùng 3200/4201/4202
+   (tránh 3100/4101/4102 convention — SF-3/4 đang chạy song song).
+2. MF manifest eager-preload: remoteEntry của MỘT remote fail lúc load trang →
+   loadRemote() của remote KHÁC cũng fail trong cùng session (reload hết). Khi đó
+   "Thử lại" không hồi phục được trong session (unit contract vẫn đúng); reload sau
+   khi remote sống lại = hồi phục đầy đủ. Walkthrough 4.4 (SF-5, compose :8080) sẽ
+   gặp cùng behavior — cân nhắc reload-trong-walkthrough hoặc fix runtime (ngoài
+   scope SF-2, mf-bootstrap READ-ONLY).
+3. Skeleton window trên dev localhost quá ngắn để thấy bằng mắt (fail ms) — bắt được
+   bằng CDP request-interception delay 5s cho request remote (flow-5). Khi remote
+   unreachable, fallback hiện gần-instant (đúng thiết kế, không treo skeleton).
+4. DTS plugin dev-worker đam port type-server 4001 (docker chiếm) → đôi khi
+   uncaughtException giết dev server (activity remote: 1/4 lần). Retry launch = pass.
+5. Dev shell cần API_BASE_URL='' để mọi API đi qua devServer proxy (same-origin,
+   tránh CORS origin không nằm trong allowlist compose) — dùng cho cả shell lẫn
+   2 remote khi chạy cụm dev riêng.

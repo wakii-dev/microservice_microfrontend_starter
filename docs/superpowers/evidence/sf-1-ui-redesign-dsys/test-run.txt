@@ -1,0 +1,43 @@
+SF-1 test evidence — story VU-53 UI redesign (Design-system nền móng, VU-54)
+HEAD: c3ae8d6 (branch wakii-dev/sf-1-ui-redesign-dsys) — 2026-10-14
+Code commits: 9271558 (spike R2 + config ×3) · 3c33ed3 (primitives + tests) · c3ae8d6 (standalone boundary fix)
+Post-evidence commits: 7784d39 (docs) · 7cf8e4e (review APPROVED round 2 — P1 proxy 4 route + P2 fix; tests 30/30 + typecheck ×3 + curl 4/4 JSON re-verified SAU commit) · 8c64f6b (plan tick T11 + evidence hash sync — docs-only, 0 code thay đổi sau 7cf8e4e; improvements-log docs-only tiếp theo eaabb53)
+
+tdd: RED→GREEN — tests/primitives.test.tsx viết TRƯỚC implementation:
+  RED  (chưa có primitives): 15 test primitives FAIL — "Failed to resolve import react"
+       (fe-shared không dep react) + barrel chưa export /tmp/tdd-red.log 06:30:25
+  GREEN (sau khi implement 4 primitives + vitest alias react + esbuild jsx automatic):
+       30/30 PASS (15 primitives + 15 cũ không regress) — /tmp/tdd-green.log 06:32:16
+
+Unit/component tests (pnpm test @ frontend/shell — vitest 3.2.4, jsdom):
+- Test Files 6 passed (6) · Tests 30 passed (30)
+  - primitives.test.tsx 15/15: Badge (role=status + 9 variant class + dot),
+    EmptyState (title/desc/action optional, không icon), Skeleton (aria-busy,
+    count N, variant class), Spinner (aria-label bắt buộc)
+  - a11y / api-timeout / integration / login / remote-slot: 15/15 giữ nguyên xanh
+
+Typecheck (tsc --noEmit): shell 0 errors · remote-tasks 0 errors · remote-activity 0 errors
+Build (rspack build, NODE_ENV=production — contenthash):
+- shell: compiled successfully · remotes/tasks: compiled (2 warning size-limit,
+  class warning có sẵn từ trước SF-1) · remotes/activity: compiled (2 warning)
+- CSS emit ở ROOT dist + contenthash: tasks/activity dist/main.<hash>.css ✓
+
+pnpm-lock.yaml: 0 thay đổi (git status sạch, 0 deps mới) ✓
+
+Browser verify (3 tầng — Rule 0, Orca browser + headless Chrome repro):
+- Tầng 1 DOM: standalone body bg rgb(1,1,2)=#010102 (--c-canvas), color #f7f8f8
+  (--ink), font system-ui stack, 14px (--fs-body); demo page: 10 badge/10 dot,
+  4 skeleton, spinner animation bp-spin, empty title render
+- Tầng 2 VISUAL: standalone-4101-tasks-styled.png · standalone-4102-activity-styled.png
+  · ds-demo-primitives.png (so drafts/b-reference.png — badge pills màu dot +
+  nền alpha, surface ladder không shadow, skeleton/spinner/empty đúng spec) ·
+  spike-r2-shell-3100-tasks.png
+- Tầng 3 FLOW (spike R2 exit criteria): login :3100 → /tasks remote mount →
+  click JSX probe hooks 0→1 → đổi status todo→done persist PATCH+reload →
+  console collector [] SẠCH (0 "Invalid hook call", 0 "2 copies of React") →
+  re-run sau standalone fix: status in_progress persist, console [] lại —
+  flow-3100-tasks-status-change-rerun.png
+
+Bug bắt được trong run (fix tại c3ae8d6): standalone remote trắng từ trước —
+entry import JSX tĩnh → RUNTIME-006 loadShareSync trước share init; fix async
+boundary import('./standalone') theo pattern shell bootstrap.

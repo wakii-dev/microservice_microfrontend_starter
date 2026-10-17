@@ -65,6 +65,13 @@ describe('LoginPage', () => {
     expect(window.localStorage.getItem('bp.jwt')).toBeNull();
   });
 
+  it('render login card: wordmark Boilerplate + heading Đăng nhập + hint demo (SF-2 visual)', () => {
+    renderLogin();
+    expect(screen.getByText('Boilerplate')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
+    expect(screen.getByText(/alice@demo\.local/)).toBeInTheDocument();
+  });
+
   it('lỗi mạng → thông báo không kết nối được', async () => {
     const user = userEvent.setup();
     vi.mocked(api.post).mockRejectedValue(new TypeError('Failed to fetch'));

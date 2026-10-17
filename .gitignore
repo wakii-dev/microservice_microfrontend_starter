@@ -10,6 +10,8 @@ dist/
 build/
 coverage/
 *.tsbuildinfo
+# MF dts-plugin sinh khi chạy rspack dev (SF-1 spike R2) — generated, không commit
+@mf-types/
 
 # --- java (spring-svc) ---
 target/

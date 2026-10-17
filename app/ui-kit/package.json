@@ -20,13 +20,67 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "build": "tsup",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
-    "zod": "^4.0.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.0.0",
+    "swiper": "^14.3.0",
+    "chart.js": "^4.5.1",
+    "@fullcalendar/core": "^6.1.15",
+    "@tiptap/react": "^3.32.0"
+  },
+  "peerDependenciesMeta": {
+    "swiper": { "optional": true },
+    "chart.js": { "optional": true },
+    "@fullcalendar/core": { "optional": true },
+    "@tiptap/react": { "optional": true }
+  },
+  "files": [
+    "dist",
+    "src/styles"
+  ],
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.cjs"
+      },
+      "./carousel": {
+        "types": "./dist/carousel.d.ts",
+        "import": "./dist/carousel.js",
+        "require": "./dist/carousel.cjs"
+      },
+      "./chart": {
+        "types": "./dist/chart.d.ts",
+        "import": "./dist/chart.js",
+        "require": "./dist/chart.cjs"
+      },
+      "./schedule": {
+        "types": "./dist/schedule.d.ts",
+        "import": "./dist/schedule.js",
+        "require": "./dist/schedule.cjs"
+      },
+      "./editor": {
+        "types": "./dist/editor.d.ts",
+        "import": "./dist/editor.js",
+        "require": "./dist/editor.cjs"
+      },
+      "./styles/tokens.css": "./src/styles/tokens.css",
+      "./styles/base.css": "./src/styles/base.css",
+      "./styles/tailwind.css": "./src/styles/tailwind.css",
+      "./styles/themes/dark.css": "./src/styles/themes/dark.css"
+    }
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.22",
     "@fullcalendar/interaction": "^6.1.22",
@@ -45,6 +99,9 @@
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "3.2.4",
     "chart.js": "^4.5.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "jsdom": "27.0.0",
     "motion": "^12",
     "react": "catalog:",
@@ -52,7 +109,9 @@
     "react-hook-form": "^7",
     "storybook": "^9.0.0",
     "tailwindcss": "^4.3.3",
+    "tsup": "^9.0.0",
     "typescript": "^5.7.0",
+    "typescript-eslint": "^8.71.2",
     "vite": "^7.0.0",
     "vitest": "3.2.4",
     "zod": "^4.0.0"

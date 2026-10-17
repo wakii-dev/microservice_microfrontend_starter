@@ -1,7 +1,7 @@
 // Stories List — Data Display. Parity antd List (renderItem/divider/bordered/
 // pagination/loading skeleton/empty→EmptyState).
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { List, type ListProps } from './index';
+import { List } from './index';
 
 interface TaskItem {
   id: string;
@@ -31,10 +31,10 @@ const meta = {
   title: 'Data Display/List',
   component: List,
   tags: ['autodocs'],
-} satisfies Meta<ListProps<TaskItem>>;
+} satisfies Meta;
 export default meta;
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 export const ListCoBan: Story = {
   name: 'Cơ bản — divider + header/footer',

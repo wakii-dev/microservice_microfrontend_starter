@@ -8,10 +8,10 @@ const meta = {
   title: 'Forms/TreeSelect',
   component: TreeSelect,
   tags: ['autodocs'],
-} satisfies Meta<typeof TreeSelect>;
+} satisfies Meta;
 export default meta;
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 const DEPARTMENTS: TreeNode[] = [
   {

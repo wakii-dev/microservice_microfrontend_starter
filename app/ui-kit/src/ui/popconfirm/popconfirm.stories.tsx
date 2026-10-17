@@ -1,9 +1,7 @@
-// Popconfirm — PARITY: antd Popconfirm (icon warning, small buttons Huỷ/OK).
-// States: confirm (OK), cancel (Huỷ/ESC), danger (icon đỏ).
+// Popconfirm stories — confirm (danger) + cancel/ESC.
+// Parity matrix antd→tokens: docs/parity-matrix.md
 import { useState } from 'react';
-import { Button as AntdButton, Popconfirm as AntdPopconfirm } from 'antd';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Parity } from '../../../.storybook/Parity';
 import { Button } from '../button/index';
 import { Popconfirm } from './index';
 
@@ -35,20 +33,10 @@ function OursDemo({ danger }: { danger?: boolean }) {
   );
 }
 
-export const ParityConfirm: Story = {
+export const XacNhanXoa: Story = {
   args: { open: true, title: 'Xoá task này?', children: 'x' },
-  render: () => (
-    <Parity
-      antd={
-        <AntdPopconfirm title="Xoá task này?" okText="Xác nhận xoá">
-          <AntdButton danger>Xoá task</AntdButton>
-        </AntdPopconfirm>
-      }
-      ours={<OursDemo />}
-    />
-  ),
+  render: () => <OursDemo />,
 };
-
 export const DangerIcon: Story = {
   args: { open: true, title: 'Xoá task này?', children: 'x', danger: true },
   render: () => <OursDemo danger />,

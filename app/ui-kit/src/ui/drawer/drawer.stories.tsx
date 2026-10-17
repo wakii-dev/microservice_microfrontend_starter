@@ -1,8 +1,7 @@
 // Drawer stories — open/close, footer.
+// Parity matrix antd→tokens: docs/parity-matrix.md
 import { useState } from 'react';
-import { Drawer as AntdDrawer, Button as AntdButton } from 'antd';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Parity } from '../../../.storybook/Parity';
 import { Button } from '../button/index';
 import { Drawer } from './index';
 
@@ -21,21 +20,8 @@ function Demo() {
     </>
   );
 }
-function AntdDemo() {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <AntdButton type="primary" onClick={() => setOpen(true)}>Mở drawer</AntdButton>
-      <AntdDrawer open={open} title="Chi tiết task" onClose={() => setOpen(false)} footer={<AntdButton type="primary" onClick={() => setOpen(false)}>Đóng</AntdButton>}>
-        Nội dung chi tiết task — mọi thao tác tại đây.
-      </AntdDrawer>
-    </>
-  );
-}
 
-export const ParityVsAntd: Story = {
+export const CoBan: Story = {
   args: { open: false, title: 'Chi tiết task' },
-  render: () => (
-    <Parity antd={<AntdDemo />} ours={<Demo />} />
-  ),
+  render: () => <Demo />,
 };

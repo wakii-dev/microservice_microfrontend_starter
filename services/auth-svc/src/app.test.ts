@@ -15,14 +15,14 @@ import {
 } from './repo.test-support.js';
 
 const SECRET = 'test-secret-at-least-32-characters!!';
-const TLL_30M = '30m';
+const TTL_30M = '30m';
 
 function makeEnv(): Env {
   return {
     port: 8090,
     databaseUrl: 'postgres://unused',
     jwtSecret: SECRET,
-    accessTokenTtl: TLL_30M,
+    accessTokenTtl: TTL_30M,
     authDevPassword: 'demo-password',
     usersFixturePath: null,
     corsDevOrigin: '',

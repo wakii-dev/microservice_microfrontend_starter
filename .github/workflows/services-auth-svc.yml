@@ -77,7 +77,7 @@ jobs:
       - name: Boot postgres (compose — entry auth-svc thuộc SF-5, chưa có ở SF-2)
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            up -d postgres
+            up -d --wait postgres # --wait: chờ healthcheck pg_isready trước khi docker run auth-svc
       - name: Build + run auth-svc image trên network compose (mount users.json)
         run: |
           docker build -t auth-svc:ci services/auth-svc

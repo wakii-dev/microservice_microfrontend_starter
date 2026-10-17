@@ -56,10 +56,13 @@ d('DrizzleAuthRepo — postgres thật (rotation CAS + seed idempotent)', () => 
 
   it('seed idempotent: re-seed KHÔNG đè/dupplicate — 5 user fixture ổn định, UUID giữ nguyên', async () => {
     const log = { warn: () => {}, info: () => {}, error: () => {} } as never;
-    // seed có thể đã chạy ở boot/lần test trước — idempotency: re-seed insert 0
+    // Chạy 2 lần LIÊN TIẾP: lần 2 (re-seed) PHẢI insert 0 — ON CONFLICT (id)
+    // DO NOTHING. `first` = 0 hoặc 5 tuỳ DB đã seed sẵn hay chưa (fresh CI
+    // container → 5); không assert cứng `first` (review P1 VU-61 round 1).
     const first = await seedUsersFromFixture(repo, FIXTURE, 'demo-password', log);
     const second = await seedUsersFromFixture(repo, FIXTURE, 'demo-password', log);
-    expect(first.inserted + second.inserted).toBe(0); // ON CONFLICT (id) DO NOTHING
+    expect(second.inserted).toBe(0);
+    expect([0, 5]).toContain(first.inserted);
 
     const rows = await db.select().from(users).where(eq(users.id, '11111111-1111-4111-8111-111111111111'));
     expect(rows).toHaveLength(1);

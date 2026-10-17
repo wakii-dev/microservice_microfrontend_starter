@@ -14,7 +14,7 @@ COPY app/shared/package.json app/shared/
 COPY app/spike/host/package.json app/spike/host/
 COPY app/spike/remote/package.json app/spike/remote/
 COPY app/shell/package.json app/shell/
-RUN pnpm install --frozen-lockfile --filter @boilerplate/shell...
+RUN pnpm install --frozen-lockfile --filter @wakii/shell...
 COPY app/shared app/shared
 COPY app/shell app/shell
 # Build-time env (conventions/08 — remote registry; mặc định đi qua gateway /remotes/*)
@@ -25,7 +25,7 @@ ENV REMOTE_TASKS_URL=${REMOTE_TASKS_URL} \
     REMOTE_ACTIVITY_URL=${REMOTE_ACTIVITY_URL} \
     API_BASE_URL="" \
     NODE_ENV=production
-RUN pnpm --filter @boilerplate/shell build
+RUN pnpm --filter @wakii/shell build
 
 # runtime stage — nginx serve static, port cố định 3000 (conventions/05)
 # Healthcheck KHÔNG khai ở đây (conventions/01 rule 4 — một nguồn duy nhất: compose entry `shell`)

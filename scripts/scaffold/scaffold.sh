@@ -72,7 +72,7 @@ find "$OUT" \( -name package.json -o -name '*.ts' -o -name '*.tsx' -o -name '*.j
 echo "[scaffold] rename root package name + compose name + README title + orca.yaml"
 "${SED_I[@]}" "s/\"name\": \"[^\"]*\"/\"name\": \"$NAME\"/" "$OUT/package.json"
 "${SED_I[@]}" "s/^name: boilerplate/name: $NAME/" "$OUT/platform/docker-compose.yml"
-"${SED_I[@]}" "1s/^# Boilerplate Microservice + Micro-app/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
+"${SED_I[@]}" "1s/^# Boilerplate Microservice + Micro-frontend/# $NAME (scaffolded từ boilerplate microservice + micro-frontend)/" "$OUT/README.md"
 "${SED_I[@]}" "s/^name: architecture-overview/name: $NAME/" "$OUT/orca.yaml"
 
 cat > "$OUT/SCAFFOLD.md" <<EOF

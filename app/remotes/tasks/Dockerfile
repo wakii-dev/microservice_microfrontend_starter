@@ -16,7 +16,7 @@ COPY app/spike/remote/package.json app/spike/remote/
 COPY app/shell/package.json app/shell/
 COPY app/remotes/tasks/package.json app/remotes/tasks/
 COPY app/remotes/activity/package.json app/remotes/activity/
-RUN pnpm install --frozen-lockfile --filter @boilerplate/remote-tasks...
+RUN pnpm install --frozen-lockfile --filter @wakii/remote-tasks...
 COPY app/shared app/shared
 COPY app/remotes/tasks app/remotes/tasks
 # Build-time env (conventions/06+08): prod API base = '' (same-origin qua gateway),
@@ -24,7 +24,7 @@ COPY app/remotes/tasks app/remotes/tasks
 ENV API_BASE_URL="" \
     REMOTE_PUBLIC_PATH="/remotes/tasks/" \
     NODE_ENV=production
-RUN pnpm --filter @boilerplate/remote-tasks build
+RUN pnpm --filter @wakii/remote-tasks build
 
 # runtime stage — nginx serve static, port cố định 4001 (conventions/05)
 # Healthcheck KHÔNG khai ở đây (conventions/01 rule 4 — một nguồn duy nhất: compose entry remote-tasks)

@@ -40,11 +40,11 @@ jobs:
       - name: Install (workspace, frozen lockfile)
         run: pnpm install --frozen-lockfile
       - name: Typecheck
-        run: pnpm --filter @boilerplate/remote-tasks typecheck
+        run: pnpm --filter @wakii/remote-tasks typecheck
       - name: Tests (vitest + testing-library)
-        run: pnpm --filter @boilerplate/remote-tasks test
+        run: pnpm --filter @wakii/remote-tasks test
       - name: Build (rspack production)
-        run: pnpm --filter @boilerplate/remote-tasks build
+        run: pnpm --filter @wakii/remote-tasks build
       - uses: actions/upload-artifact@v4
         with:
           name: remote-tasks-dist

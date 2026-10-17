@@ -31,6 +31,7 @@ export const CacType: Story = {
 };
 
 export const NguoiDung: Story = {
+  args: { children: 'Danger' },
   name: 'Danger',
   render: () => (
     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>

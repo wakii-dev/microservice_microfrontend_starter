@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
+import { Button } from '@wakii/ui-kit';
 
 /**
  * App chrome (hand-off §4): brand + nav + user chip/logout.
@@ -55,12 +56,12 @@ export function NavBar() {
               </span>
               <span className="sh-user__email">{claims.email}</span>
             </span>
-            <button className="sh-btn sh-btn--ghost" type="button" onClick={logout}>
+            <Button type="text" onClick={logout}>
               Đăng xuất
-            </button>
+            </Button>
           </>
         ) : (
-          <Link className="sh-btn sh-btn--ghost" to="/login">
+          <Link className="inline-flex h-8 cursor-pointer items-center rounded-2 border-transparent bg-transparent px-[15px] text-body text-ink3 transition-colors hover:bg-s3 hover:text-ink2" to="/login">
             Đăng nhập
           </Link>
         )}

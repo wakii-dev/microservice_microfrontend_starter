@@ -143,50 +143,6 @@
 
 /* ── Buttons (ghost + primary) ──────────────────────────────────────────── */
 
-.sh-btn {
-  align-items: center;
-  border: none;
-  border-radius: var(--r-2);
-  color: inherit;
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  font-size: var(--fs-label);
-  font-weight: 500;
-  gap: var(--sp-2);
-  height: 28px;
-  justify-content: center;
-  padding: 0 var(--sp-3);
-  text-decoration: none;
-  transition:
-    background 150ms ease,
-    color 150ms ease;
-}
-
-.sh-btn--ghost {
-  background: transparent;
-  color: var(--ink3);
-}
-
-.sh-btn--ghost:hover {
-  background: var(--c-s3);
-  color: var(--ink2);
-}
-
-.sh-btn--primary {
-  background: var(--accent);
-  color: #fff;
-}
-
-.sh-btn--primary:hover {
-  background: var(--accent-hi);
-}
-
-.sh-btn--primary:disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-
 /* ── Main container (hand-off §4: max-width 1200 + padding sp-5) ────────── */
 
 .sh-main {

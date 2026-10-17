@@ -33,6 +33,7 @@ function CheckableDemo() {
 }
 
 export const CheckableFilterChips: Story = {
+  args: { children: 'Tất cả' },
   name: 'Checkable (filter chips)',
   render: () => <CheckableDemo />,
 };

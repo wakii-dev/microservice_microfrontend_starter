@@ -52,87 +52,10 @@
 
 /* ── Nút + chip (accent có kỷ luật — hand-off §1) ──────────────────────── */
 
-.tsk-btn {
-  background: var(--c-s3);
-  border: 1px solid var(--line);
-  color: var(--ink2);
-  font-size: var(--fs-label);
-  padding: var(--sp-2) var(--sp-4);
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-
-.tsk-btn:hover:not(:disabled) {
-  background: var(--line);
-  color: var(--ink);
-}
-
-.tsk-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.tsk-btn--primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.tsk-btn--primary:hover:not(:disabled) {
-  background: var(--accent-hi);
-  border-color: var(--accent-hi);
-  color: #fff;
-}
-
-.tsk-btn--ghost {
-  background: transparent;
-}
-
-.tsk-btn--danger {
-  background: var(--st-fail);
-  border-color: var(--st-fail);
-  color: #fff;
-}
-
-.tsk-btn--danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--st-fail) 80%, #fff);
-  color: #fff;
-}
-
-.tsk-btn--danger-ghost {
-  background: transparent;
-  color: var(--st-fail);
-}
-
-.tsk-btn--danger-ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--st-fail) 12%, transparent);
-  color: var(--st-fail);
-}
-
 .tsk-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2);
-}
-
-.tsk-chip {
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  color: var(--ink3);
-  font-size: var(--fs-label);
-  padding: var(--sp-1) var(--sp-3);
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-
-.tsk-chip:hover {
-  border-color: var(--line2);
-  color: var(--ink2);
-}
-
-.tsk-chip--active {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  border-color: var(--accent);
-  color: var(--ink);
 }
 
 /* ── Danh sách + card task ─────────────────────────────────────────────── */

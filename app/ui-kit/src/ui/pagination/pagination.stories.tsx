@@ -20,6 +20,7 @@ function OursDemo() {
 }
 
 export const ParityVsAntd: Story = {
+  args: { current: 5, pageSize: 10, total: 100 },
   render: () => (
     <Parity
       antd={<AntdPagination current={5} total={100} />}

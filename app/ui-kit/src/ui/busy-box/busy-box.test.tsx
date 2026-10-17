@@ -1,4 +1,4 @@
-// BusyBox tests — busy/idle switch + variant/count passthrough.
+// BusyBox tests — busy/idle switch + variant passthrough.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BusyBox } from './index.js';
@@ -14,7 +14,7 @@ describe('BusyBox', () => {
     );
     expect(screen.queryByText('content')).toBeNull();
     expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
-    expect(container.querySelectorAll('.bp-skeleton--card')).toHaveLength(2);
+    expect(container.querySelectorAll('.rounded-xl')).toHaveLength(2);
   });
 
   it('busy=false → content render, không skeleton', () => {

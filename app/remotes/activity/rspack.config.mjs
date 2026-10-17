@@ -61,7 +61,18 @@ export default {
       // primitives sau này) cần css experiment; thiếu rule = build fail trên import .css
       {
         test: /\.css$/,
+        // Tailwind v4 qua postcss — mirror shell (spec tailwind-migration P0)
         type: 'css',
+        use: [
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: { '@tailwindcss/postcss': {} },
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.tsx?$/,

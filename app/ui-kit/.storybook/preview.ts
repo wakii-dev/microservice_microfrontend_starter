@@ -1,5 +1,7 @@
-// Preview render primitives ĐÚNG ngữ cảnh design system: tokens + base css import
-// toàn cục (idempotent — cùng cơ chế shell/standalone). Nền canvas tối theo direction B.
+// Preview render primitives ĐÚNG ngữ cảnh design system: tokens (antd-look light
+// default) + base css + tailwind utilities (@tailwindcss/vite — main.ts). Dark theme
+// demo qua story riêng (data-bp-theme='dark' — themes/dark.css).
+import './tailwind-preview.css';
 import '../src/styles/tokens.css';
 import '../src/styles/base.css';
 
@@ -7,8 +9,11 @@ import '../src/styles/base.css';
 const preview = {
   parameters: {
     backgrounds: {
-      default: 'canvas',
-      values: [{ name: 'canvas', value: '#010102' }],
+      default: 'canvas-light',
+      values: [
+        { name: 'canvas-light', value: '#f5f5f5' },
+        { name: 'canvas-dark', value: '#010102' },
+      ],
     },
   },
 };

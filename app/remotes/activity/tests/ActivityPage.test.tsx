@@ -59,7 +59,7 @@ describe('ActivityPage', () => {
     expect(screen.getByText('Feed (1/1)')).toBeInTheDocument();
   });
 
-  it('badge variant theo action — class bp-badge--<variant> (hand-off §3)', async () => {
+  it('badge variant theo action — dot var --_dot theo variant (Tailwind migration 2026-10-17)', async () => {
     mockFeed([
       { ...ITEM, id: 'b1', action: 'task.created' },
       { ...ITEM, id: 'b2', action: 'task.updated' },
@@ -69,8 +69,9 @@ describe('ActivityPage', () => {
     ]);
     render(<ActivityPage />);
     const list = await screen.findByRole('list', { name: 'Danh sách hoạt động' });
-    for (const variant of ['created', 'updated', 'assigned', 'deleted', 'assignmentFailed']) {
-      expect(list.querySelector(`.bp-badge--${variant}`)).toBeInTheDocument();
+    // Badge variants map → utility [--_dot:var(--…)] (badge container class chứa var đó)
+    for (const dotVar of ['--accent', '--st-doing', '--accent-hi', '--ink3', '--st-fail']) {
+      expect(list.querySelector(`[class*="[--_dot:var(${dotVar})]"]`)).toBeInTheDocument();
     }
   });
 

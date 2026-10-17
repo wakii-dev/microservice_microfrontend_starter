@@ -1,0 +1,56 @@
+/* Tailwind v4 entry của ui-kit — APPS import file này (KHÔNG tự @import "tailwindcss"
+ * lần 2). CSS-first config: khối @theme dưới đây CHÍNH là tailwind config (v4 không
+ * dùng tailwind.config.js).
+ *
+ * Import tách từng layer (theme + utilities) — CỐ Ý KHÔNG import preflight: base.css
+ * giữ reset/global riêng, tránh double-reset làm shift visual hàng loạt (spec
+ * tailwind-migration quyết định #4).
+ *
+ * tokens.css giữ làm NGUỒN DUY NHẤT: @theme inline map thẳng var() — utilities
+ * (bg-accent, text-ink2…) refer runtime vars → accent-override/data-bp-theme hoạt
+ * động không cần build lại.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source './';
+
+@theme inline {
+  /* Font — antd system stack (tokens.css --f/--m) */
+  --font-sans: var(--f);
+  --font-mono: var(--m);
+
+  /* Spacing base 4px — 1 đơn vị utility = 4px (gap-1.5 = 6px, p-4 = 16px khớp --sp-*) */
+  --spacing: 4px;
+
+  /* Surface */
+  --color-canvas: var(--c-canvas);
+  --color-s1: var(--c-s1);
+  --color-s2: var(--c-s2);
+  --color-s3: var(--c-s3);
+  /* Mực */
+  --color-ink: var(--ink);
+  --color-ink2: var(--ink2);
+  --color-ink3: var(--ink3);
+  /* Viền + accent */
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-accent: var(--accent);
+  --color-accent-hi: var(--accent-hi);
+  /* Trạng thái task */
+  --color-st-todo: var(--st-todo);
+  --color-st-doing: var(--st-doing);
+  --color-st-done: var(--st-done);
+  --color-st-fail: var(--st-fail);
+  /* Type scale */
+  --text-meta: var(--fs-meta);
+  --text-label: var(--fs-label);
+  --text-body: var(--fs-body);
+  --text-h2: var(--fs-h2);
+  --text-h1: var(--fs-h1);
+  /* Radius */
+  --radius-1: var(--r-1);
+  --radius-2: var(--r-2);
+  --radius-3: var(--r-3);
+  --radius-pill: var(--r-pill);
+}

@@ -21,6 +21,7 @@ import { TaskList } from './components/TaskList';
 // shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
 // base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
 import '@wakii/ui-kit/styles/tokens.css';
+import './app.css'; // tailwind utilities (spec tailwind-migration)
 import './styles.css';
 
 /**

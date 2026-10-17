@@ -94,59 +94,10 @@
   }
 
   /*
-   * ── Primitives (hand-off §3) — namespace `bp-` ───────────────────────────
-   * CSS nằm trong base vì shell làm chủ global; consumer chỉ cần markup đúng
-   * DOM từ components fe-shared/src/ui (SF-2/3/4 dùng ĐÚNG props API).
+   * ── Primitives còn lại (hand-off §3) — đang migrate dần sang Tailwind v4
+   * Badge đã sang utilities (2026-10-17); các primitive khác migrate theo phase
+   * trong spec tailwind-migration. Consumer import @wakii/ui-kit/styles/tailwind.css.
    */
-
-  /* Badge — pill chấm-màu + nhãn; nền ≤12% alpha màu dot; role="status" */
-  .bp-badge {
-    align-items: center;
-    background: color-mix(in srgb, var(--_dot) 12%, transparent);
-    border-radius: var(--r-pill);
-    color: var(--ink2);
-    display: inline-flex;
-    font-size: var(--fs-meta);
-    gap: 6px;
-    line-height: 1.25;
-    padding: 2px 8px;
-    white-space: nowrap;
-  }
-  .bp-badge__dot {
-    background: var(--_dot);
-    border-radius: 50%;
-    height: 6px;
-    width: 6px;
-  }
-  /* task status */
-  .bp-badge--todo {
-    --_dot: var(--st-todo);
-  }
-  .bp-badge--doing {
-    --_dot: var(--st-doing);
-  }
-  .bp-badge--done {
-    --_dot: var(--st-done);
-  }
-  .bp-badge--failed {
-    --_dot: var(--st-fail);
-  }
-  /* activity action (hand-off §3 mapping) */
-  .bp-badge--created {
-    --_dot: var(--accent);
-  }
-  .bp-badge--updated {
-    --_dot: var(--st-doing);
-  }
-  .bp-badge--assigned {
-    --_dot: var(--accent-hi);
-  }
-  .bp-badge--deleted {
-    --_dot: var(--ink3);
-  }
-  .bp-badge--assignmentFailed {
-    --_dot: var(--st-fail);
-  }
 
   /* EmptyState — KHÔNG icon; title + mô tả + optional action */
   .bp-empty {

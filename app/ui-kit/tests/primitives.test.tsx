@@ -22,21 +22,32 @@ const BADGE_VARIANTS = [
   'assignmentFailed',
 ] as const;
 
-describe('Badge (hand-off §3)', () => {
-  it('render pill role=status + dot + children, đúng class variant', () => {
+describe('Badge (hand-off §3 — Tailwind migration 2026-10-17)', () => {
+  it('render pill role=status + dot + children, variant map đúng --_dot', () => {
     render(<Badge variant="todo">Cần làm</Badge>);
 
     const badge = screen.getByRole('status');
     expect(badge).toHaveTextContent('Cần làm');
-    expect(badge).toHaveClass('bp-badge', 'bp-badge--todo');
-    // dot là con đầu — CSS chấm màu 6px
-    expect(badge.firstElementChild).toHaveClass('bp-badge__dot');
+    // variant → CSS var --_dot (dot + nền color-mix 12% kế thừa cùng var)
+    expect(badge).toHaveClass('[--_dot:var(--st-todo)]');
+    // dot là con đầu — chấm màu 6px theo var
+    expect(badge.firstElementChild).toHaveClass('bg-[var(--_dot)]');
   });
 
-  it.each(BADGE_VARIANTS)('variant %s → class bp-badge--%s', (variant) => {
+  it.each(BADGE_VARIANTS)('variant %s → utility --_dot riêng', (variant) => {
     render(<Badge variant={variant}>{variant}</Badge>);
 
-    expect(screen.getByRole('status')).toHaveClass(`bp-badge--${variant}`);
+    expect(screen.getByRole('status').className).toMatch(/\[--_dot:var\(--[\w-]+\)\]/);
+  });
+
+  it('className passthrough append sau structural class', () => {
+    render(
+      <Badge variant="done" className="extra-class">
+        xong
+      </Badge>,
+    );
+    const badge = screen.getByRole('status');
+    expect(badge).toHaveClass('extra-class', '[--_dot:var(--st-done)]');
   });
 });
 

@@ -1,38 +1,40 @@
 /*
- * Design tokens — SF-1 story VU-53 (UI redesign, hướng B "Linear-referenced dark").
- * Source of truth: docs/superpowers/designs/ui-redesign-direction.md §1 (user đã duyệt).
- * Idempotent theo thiết kế: remote CSS inject runtime SAU CSS shell — cùng giá trị
- * custom properties ghi đè vô hại. SF-2/3/4 consume — KHÔNG tự chế token mới
- * (thiếu = flag coordinator, không thêm ỳ).
+ * Design tokens — LIGHT DEFAULT theo visual language **antd** (decision 2026-10-17:
+ * docs/superpowers/specs/2026-10-17-antd-look-tokens.md — supersede direction B làm
+ * theme phụ, xem themes/dark.css). Source of truth duy nhất: Tailwind v4 @theme inline
+ * (styles/tailwind.css) map thẳng các var này; components KHÔNG hardcode màu.
+ * Idempotent theo thiết kế: import nhiều lần cùng giá trị vô hại.
+ * KHÔNG tự chế token mới (thiếu = flag coordinator, không thêm ỳ).
  */
 :root {
-  /* Bậc bề mặt (thay cho shadow: depth bằng surface, KHÔNG box-shadow) */
-  --c-canvas: #010102; /* nền ngoài cùng */
-  --c-s1: #0f1011; /* khối lớn (nav, sidebar) */
-  --c-s2: #141516; /* card / panel */
-  --c-s3: #18191a; /* row, input, hover surface */
-  /* Mực (text) */
-  --ink: #f7f8f8; /* chính — contrast vs #141516 ≈ 15:1 AA */
-  --ink2: #d0d6e0; /* phụ (desc) — ≈ 10:1 AA */
-  --ink3: #8a8f98; /* meta (uuid, time) — ≈ 4.6:1: CHỈ cho meta phụ ≥12px */
-  /* Viền */
-  --line: #23252a; /* 1px mặc định */
-  --line2: #2b2d33; /* hover/focus ring nền */
-  /* Accent duy nhất */
-  --accent: #5e6ad2; /* Florentine indigo — nút chính, nav active, avatar, timeline dot */
-  --accent-hi: #828fff; /* hover accent + focus-visible outline */
-  /* Trạng thái task */
-  --st-todo: #8a8f98; /* Cần làm */
-  --st-doing: #f2c94c; /* Đang làm */
-  --st-done: #3fb950; /* Xong */
-  --st-fail: #f06a6a; /* Gán thất bại + error */
-  /* Font stacks (CỨNG — 0 webfont, CSP chưa set) */
-  --f: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --m: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  /* Bậc bề mặt (antd: layout gray + container white; depth bằng bậc, không shadow mặc định) */
+  --c-canvas: #f5f5f5; /* colorBgLayout — nền ngoài cùng */
+  --c-s1: #ffffff; /* khối lớn (nav, sidebar) — colorBgContainer */
+  --c-s2: #ffffff; /* card / panel — colorBgContainer */
+  --c-s3: #fafafa; /* row, input, hover surface — colorFillQuaternary-ish */
+  /* Mực (text) — antd colorText 4 mức */
+  --ink: rgba(0, 0, 0, 0.88); /* chính */
+  --ink2: rgba(0, 0, 0, 0.65); /* phụ (desc) */
+  --ink3: rgba(0, 0, 0, 0.45); /* meta (uuid, time) — chỉ meta phụ ≥12px */
+  /* Viền — antd colorBorder / colorBorderSecondary */
+  --line: #d9d9d9; /* 1px mặc định */
+  --line2: #f0f0f0; /* split/hover nền */
+  /* Accent duy nhất — antd colorPrimary + hover */
+  --accent: #1677ff;
+  --accent-hi: #4096ff;
+  /* Trạng thái task — map antd palette */
+  --st-todo: #bfbfbf; /* Cần làm (gray quartz) */
+  --st-doing: #faad14; /* Đang làm (gold-6 / warning) */
+  --st-done: #52c41a; /* Xong (green-6 / success) */
+  --st-fail: #ff4d4f; /* Gán thất bại + error (red-5) */
+  /* Font stacks (antd — system UI, KHÔNG webfont) */
+  --f: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+  --m: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Consolas, monospace;
   /* Radius */
-  --r-1: 4px; /* chip nhỏ, input */
-  --r-2: 6px; /* button, pill */
-  --r-3: 8px; /* card, panel */
+  --r-1: 4px; /* chip nhỏ, input nhỏ */
+  --r-2: 6px; /* button, pill — antd borderRadius mặc định */
+  --r-3: 8px; /* card, panel — antd borderRadiusLG */
   --r-pill: 9999px;
   /* Spacing scale 4base */
   --sp-1: 4px;
@@ -41,7 +43,7 @@
   --sp-4: 16px;
   --sp-5: 24px;
   --sp-6: 32px;
-  /* Type scale */
+  /* Type scale (antd base 14) */
   --fs-meta: 12px;
   --fs-label: 13px;
   --fs-body: 14px;

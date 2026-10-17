@@ -164,7 +164,7 @@ roles. Non-goals: OAuth/social, multi-tenant, rate-limit distributed.
 
 ## 6. Cập nhật playbook
 
-Epic mới không khớp archetype nào ở chương 2 → **đừng ép** vào archetype cũ. Thêm archetype mới
+Epic mới không khớp archetype nào ở chương 2 → **đừng ép** vào archetype cũ. Merge mọi nhánh story về main qua PR (git-flow.md) — quy tắc này đè model merge-thẳng-dest của các story trước 2026-10-17. Thêm archetype mới
 (định nghĩa + công thức slice + gates + rủi ro — cùng format) trong **cùng commit merge epic đó** —
 cùng nguyên tắc với orca.yaml: descriptor đi cùng thay đổi nó mô tả, drift = lỗi onboarding.
 

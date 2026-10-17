@@ -8,13 +8,15 @@ export interface SliderProps {
   max?: number;
   step?: number;
   disabled?: boolean;
+  /** Accessible name cho role="slider" (axe aria-input-field-name). */
+  ariaLabel?: string;
   /** Range mode — [min, max]. */
   range?: [number, number] | undefined;
   onRangeChange?: (range: [number, number]) => void;
   className?: string;
 }
 
-export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 1, disabled = false, range, onRangeChange, className }: SliderProps) {
+export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 1, disabled = false, ariaLabel = 'Thanh trượt', range, onRangeChange, className }: SliderProps) {
   const [internal, setInternal] = useState(range ? ([...range] as [number, number]) : (valueProp ?? min));
   const value: number | [number, number] = range
     ? (range as [number, number])
@@ -41,6 +43,7 @@ export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 
     <div className={`flex w-full items-center gap-3${className ? ` ${className}` : ''}`}>
       <div
         role="slider"
+        aria-label={ariaLabel}
         aria-valuemin={min} aria-valuemax={max}
         aria-valuenow={isRange ? value[0] : (value as number)}
         aria-disabled={disabled}

@@ -114,7 +114,7 @@ export function SplitButton({
           }}
           className="ml-1.5 flex -mr-1.5 cursor-pointer items-center self-stretch py-1 pl-1.5"
         >
-          <Icon name="chevron-down" size={14} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+          <Icon name="chevron-down" size={16} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </span>
       </button>
       {open && (

@@ -1,7 +1,7 @@
 {
   "name": "wakii-ui-kit",
-  "version": "0.1.0",
-  "description": "ui-kit — design system của boilerplate: tokens + base css + primitives (Badge/EmptyState/Skeleton/Spinner, SF-1 story VU-53). Tách khỏi fe-shared 2026-10-17 (ADR-0009): design system ≠ logic, SF design-system không đụng vùng READ-LOCKED của fe-shared. Consumed QUA SOURCE — main/types trỏ thẳng src/, KHÔNG build, KHÔNG runtime dep (react types do consumer cung cấp — tsconfig paths/resolve.modules của consumer; devDeps react chỉ để chạy test + storybook).",
+  "version": "0.1.1",
+  "description": "Design system của Wakii — tokens + Tailwind v4 + 90 React components + hooks (antd/PrimeReact parity), dark theme, motion. Storybook: https://storybook-static-khaki-two.vercel.app",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -131,5 +131,24 @@
   },
   "dependencies": {
     "swiper": "^14.3.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wakii-dev/architecture-overview.git",
+    "directory": "app/ui-kit"
+  },
+  "homepage": "https://storybook-static-khaki-two.vercel.app",
+  "bugs": "https://github.com/wakii-dev/architecture-overview/issues",
+  "keywords": [
+    "design-system",
+    "ui-kit",
+    "react",
+    "tailwind",
+    "components",
+    "antd",
+    "primereact",
+    "wakii"
+  ],
+  "author": "wakii-dev",
+  "license": "MIT"
 }

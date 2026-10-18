@@ -2,10 +2,14 @@
 // EmptyState, pagination client-side (Pagination component sẵn), header/footer,
 // bordered. a11y: role=list + listitem (ul/li). antd: divider giữa items mặc
 // định, bordered = viền ngoài + nền s2, pagination góc phải dưới.
+// virtual=true → render ảo qua VirtualScroll (danh sách rất dài): bỏ qua
+// pagination, row div cao cố định virtualItemSize (ul/li semantics nhường chỗ
+// window hoá — antd virtual cũng vậy).
 import { useState, type ReactNode } from 'react';
 import { EmptyState } from '../empty-state/index';
 import { Pagination } from '../pagination/index';
 import { Skeleton } from '../skeleton/index';
+import { VirtualScroll } from '../virtual-scroll/index';
 
 export interface ListPaginationProps {
   pageSize: number;
@@ -25,6 +29,12 @@ export interface ListProps<T> {
   bordered?: boolean;
   /** Key React cho item (mặc định index). */
   rowKey?: (item: T, index: number) => string;
+  /** Render ảo (VirtualScroll) — danh sách hàng nghìn items; bỏ qua pagination. */
+  virtual?: boolean;
+  /** Chiều cao row cố định khi virtual (px, mặc định 48 — khớp px-4 py-3 text-body). */
+  virtualItemSize?: number;
+  /** Chiều cao viewport cuộn khi virtual (px, mặc định 320). */
+  virtualHeight?: number;
   className?: string;
 }
 
@@ -38,6 +48,9 @@ export function List<T>({
   footer,
   bordered = false,
   rowKey,
+  virtual = false,
+  virtualItemSize = 48,
+  virtualHeight = 320,
   className,
 }: ListProps<T>) {
   const [page, setPage] = useState(1);
@@ -45,7 +58,8 @@ export function List<T>({
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const safePage = Math.min(page, pageCount);
   const offset = (safePage - 1) * pageSize;
-  const paged = pagination ? items.slice(offset, offset + pageSize) : items;
+  // virtual ưu tiên: render ảo tự lo window — không slice pagination nữa
+  const paged = virtual ? items : pagination ? items.slice(offset, offset + pageSize) : items;
 
   const itemBorder = (isLast: boolean) =>
     !isLast || footer ? 'border-b border-line2' : '';
@@ -67,6 +81,21 @@ export function List<T>({
         <div className="p-6">
           <EmptyState title={emptyText} />
         </div>
+      ) : virtual ? (
+        <VirtualScroll
+          items={paged}
+          itemSize={virtualItemSize}
+          height={virtualHeight}
+          renderItem={(item, index) => (
+            <div
+              key={rowKey ? rowKey(item, index) : index}
+              role="listitem"
+              className={`px-4 py-3 ${itemBorder(index === paged.length - 1)}`}
+            >
+              {renderItem(item, index)}
+            </div>
+          )}
+        />
       ) : (
         <ul role="list" className="m-0 list-none p-0">
           {paged.map((item, i) => {
@@ -88,7 +117,7 @@ export function List<T>({
           {footer}
         </div>
       )}
-      {pagination && !loading && items.length > 0 && (
+      {pagination && !loading && items.length > 0 && !virtual && (
         <div className="flex justify-end px-4 pb-4 pt-3">
           <Pagination
             current={safePage}

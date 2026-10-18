@@ -108,3 +108,57 @@ describe('List', () => {
     expect(texts).toEqual(['Y', 'X']);
   });
 });
+
+describe('List — virtual (VirtualScroll integration)', () => {
+  const MANY = Array.from({ length: 500 }, (_, i) => i);
+
+  it('virtual=true → chỉ mount window+buffer (15 rows với height 240/itemSize 48), không render 500', () => {
+    render(
+      <List
+        items={MANY}
+        renderItem={(i) => <span>Item {i}</span>}
+        virtual
+        virtualItemSize={48}
+        virtualHeight={240}
+      />,
+    );
+    expect(screen.getAllByRole('listitem')).toHaveLength(15); // ceil(240/48) + 2*5
+    expect(screen.getByText('Item 0')).toBeInTheDocument();
+    expect(screen.queryByText('Item 400')).toBeNull();
+  });
+
+  it('virtual ưu tiên pagination: 500 items + pageSize 10 vẫn window theo full list', () => {
+    render(
+      <List
+        items={MANY}
+        renderItem={(i) => <span>Item {i}</span>}
+        virtual
+        virtualItemSize={48}
+        virtualHeight={240}
+        pagination={{ pageSize: 10 }}
+      />,
+    );
+    expect(screen.getAllByRole('listitem')).toHaveLength(15);
+    expect(screen.queryByRole('navigation')).toBeNull(); // Pagination không render
+  });
+
+  it('virtual + rowKey → key theo data (scroll window không mất định danh)', () => {
+    render(
+      <List
+        items={['a', 'b', 'c']}
+        renderItem={(item) => <span>{item}</span>}
+        virtual
+        virtualItemSize={48}
+        virtualHeight={96}
+        rowKey={(item) => `k-${item}`}
+      />,
+    );
+    expect(screen.getByText('a')).toBeInTheDocument();
+    expect(screen.getByText('b')).toBeInTheDocument();
+  });
+
+  it('virtual + items rỗng → vẫn EmptyState như thường', () => {
+    render(<List items={[]} renderItem={() => null} virtual emptyText="Trống" />);
+    expect(screen.getByText('Trống')).toBeInTheDocument();
+  });
+});

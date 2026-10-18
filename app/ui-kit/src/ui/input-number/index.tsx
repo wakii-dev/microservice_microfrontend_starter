@@ -5,14 +5,25 @@ import { useState, type FocusEvent } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface InputNumberProps {
+  /** Giá trị khởi tạo lúc mount (đọc 1 lần — state text quản lý nội bộ, prop đổi sau
+   * không ghi đè text đang hiển thị). */
   value?: number;
+  /** Callback giá trị mới: typing/blur commit hoặc stepper/↑↓. Text rỗng hoặc không
+   * phải số → null. Giá trị luôn đã clamp trong [min, max]. */
   onChange?: (value: number | null) => void;
+  /** Cận dưới khi clamp (mặc định -Infinity). */
   min?: number;
+  /** Cận trên khi clamp (mặc định Infinity). */
   max?: number;
+  /** Bước nhảy của nút stepper và phím ↑↓ (mặc định 1). */
   step?: number;
+  /** Khoá input + 2 nút stepper, cả nhóm mờ đi (bg-s3 + opacity). */
   disabled?: boolean;
+  /** Trạng thái lỗi: viền đỏ --st-fail trên cả input lẫn cột stepper. */
   invalid?: boolean;
+  /** Accessible name của input (ràng buộc a11y — luôn truyền). */
   ariaLabel?: string;
+  /** Append sau structural classes — escape hatch pattern antd. */
   className?: string;
 }
 

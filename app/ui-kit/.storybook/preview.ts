@@ -1,20 +1,35 @@
 // Preview render primitives ĐÚNG ngữ cảnh design system: tokens (antd-look light
-// default) + base css + tailwind utilities (@tailwindcss/vite — main.ts). Dark theme
-// demo qua story riêng (data-bp-theme='dark' — themes/dark.css).
+// default) + base css + tailwind utilities (@tailwindcss/vite — main.ts).
+// Dark theme qua toolbar toggle (addon-themes — đặt `data-bp-theme="dark"` lên
+// <html>, đúng rule AGENTS.md; tokens.css tự import themes/dark.css nên không
+// cần import thêm ở đây). Canvas padding chuẩn 24px qua preview-head.html.
+import type { Preview } from '@storybook/react-vite';
+import { withThemeByDataAttribute } from '@storybook/addon-themes';
 import './tailwind-preview.css';
 import '../src/styles/tokens.css';
 import '../src/styles/base.css';
 
-/** @type { import('@storybook/react-vite').Preview } */
-const preview = {
+const preview: Preview = {
   parameters: {
-    backgrounds: {
-      default: 'canvas-light',
-      values: [
-        { name: 'canvas-light', value: '#f5f5f5' },
-        { name: 'canvas-dark', value: '#010102' },
-      ],
+    controls: {
+      matchers: {
+        color: /(background|color)$/i,
+        date: /Date$/i,
+      },
     },
   },
+  decorators: [
+    withThemeByDataAttribute<Preview>({
+      themes: { light: '', dark: 'dark' },
+      defaultTheme: 'light',
+      attributeName: 'data-bp-theme',
+      // 'body' thay vì 'html' mặc định: tokens.css khai light trong `:root` (line
+      // 13) SAU khi @import dark.css (line 11) — cùng specificity 0-1-0, rule sau
+      // thắng ⇒ trên <html> light đè dark. <body> không match :root → dark thắng,
+      // var cascade xuống toàn canvas (đúng rule AGENTS: html HOẶC node bao).
+      parentSelector: 'body',
+    }),
+  ],
 };
+
 export default preview;

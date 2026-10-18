@@ -1,86 +1,80 @@
-# @wakii-dev/ui-kit — design system (tokens + base + primitives + hooks)
+# @wakii/ui-kit
 
-📖 **Storybook (Vercel): https://storybook-static-khaki-two.vercel.app** — 301 stories toàn bộ components/hooks, dark theme, autodocs.
-📦 **Packages:** [`@wakii-dev/ui-kit@0.1.2`](https://github.com/wakii-dev/architecture-overview/pkgs/package/ui-kit) — GitHub Packages (chính thức, latest). Cần `.npmrc`: `@wakii-dev:registry=https://npm.pkg.github.com` + token, rồi `npm i @wakii-dev/ui-kit`. Mirror public không cần auth: [`wakii-ui-kit`](https://www.npmjs.com/package/wakii-ui-kit) trên npmjs.org (subpath: `@wakii-dev/ui-kit/carousel`...).
+> Design system của Wakii — **~90 React components + 17 hooks**, tokens-first với Tailwind v4,
+> dark theme, motion mượt, a11y. Benchmark antd × PrimeReact, làm hơn ở motion và modern identity.
 
-Design system của boilerplate: **tokens.css** (màu/spacing/radius/shadow/z-index — CSS
-custom props), **base.css** (reset + global `bp-*` primitives css), **Tailwind v4**
-(`styles/tailwind.css` — `@theme inline` map thẳng tokens, utilities dùng trong toàn bộ
-components), **motion** (keyframes identity `bp-*`) và bộ **React components + hooks**
-(VU-53 redesign 2026-10).
+[![npm](https://img.shields.io/npm/v/@wakii/ui-kit?label=%40wakii%2Fui-kit&logo=npm)](https://www.npmjs.com/package/@wakii/ui-kit)
+[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook)](https://storybook-static-khaki-two.vercel.app)
+[![tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#)
+[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-Tách khỏi `@wakii/fe-shared` 2026-10-17 — **ADR-0009**: design system ≠ logic;
-SF design-system làm việc ở đây mà không đụng vùng READ-LOCKED của fe-shared.
+📖 **Storybook:** https://storybook-static-khaki-two.vercel.app — mọi component, props, states demo thật.
+🏠 **Repo:** https://github.com/wakii-dev/architecture-overview · 📦 **GitHub Packages:** `@wakii-dev/ui-kit` (mirror nội bộ org).
 
-## Nguyên tắc
+---
 
-- **Consumed QUA SOURCE trong workspace**: `main`/`types` trỏ thẳng `src/` — monorepo
-  không cần build. Khi publish npm: `publishConfig` chuyển sang `dist/` (tsup esm+cjs+dts).
-- **Không runtime dependency bắt buộc** — `react`/`react-dom` là peerDeps; heavy deps
-  (swiper/chart.js/fullcalendar/tiptap) là **optional peers** — chỉ pull khi dùng subpath.
-- Tokens/base **idempotent**: import nhiều lần (shell + standalone remote) cùng giá trị.
-- Components consume Tailwind utilities + CSS vars từ tokens — KHÔNG tự bịa màu/spacing.
-- Z-index dùng thang token `z-[var(--z-*)]` (dropdown 1000 → tooltip 1090) — không hardcode số.
-
-## Install
-
-**Workspace (hiện tại — qua source):**
+## Cài đặt
 
 ```bash
-pnpm install --frozen-lockfile   # root workspace
+npm i @wakii/ui-kit            # npmjs.org (public)
+# hoặc GitHub Packages (org nội bộ):
+#   .npmrc: @wakii-dev:registry=https://npm.pkg.github.com → npm i @wakii-dev/ui-kit
 ```
+
+React ≥ 18. Heavy engines là **optional peers** — chỉ cài khi dùng subpath: `swiper` (`@wakii/ui-kit/carousel`), `chart.js` (chart), `zod` (useForm).
+
+## Bắt đầu trong 30 giây
 
 ```tsx
-import { Button, Input, Modal, message } from '@wakii-dev/ui-kit';
-import '@wakii-dev/ui-kit/styles/tokens.css';  // :root custom props — shell import global
-import '@wakii-dev/ui-kit/styles/base.css';    // CHỈ shell (host) — remote standalone import kèm
-import '@wakii-dev/ui-kit/styles/tailwind.css'; // Tailwind v4 utilities (app import 1 lần)
+import '@wakii/ui-kit/styles/ui-kit.css';   // 1 file CSS compiled (tokens + utilities + motion)
+
+import { Button } from '@wakii/ui-kit';
+
+function App() {
+  return <Button variant="primary" icon="check">Bắt đầu</Button>;
+}
 ```
 
-**npm (tương lai — sau khi publish, build dist):**
+**Dark mode** — một attribute, không reload:
+
+```html
+<html data-bp-theme="dark">
+```
+
+**Form với zod** (schema là source of truth):
 
 ```tsx
-import { Button, Field } from '@wakii-dev/ui-kit';
-// Heavy components qua subpath — CSS đi kèm entry, không qua barrel chính:
-import { Carousel } from '@wakii-dev/ui-kit/carousel'; // tự import 'swiper/css'
-import { Chart } from '@wakii-dev/ui-kit/chart';
-import { Schedule } from '@wakii-dev/ui-kit/schedule'; // peer-lazy fullcalendar
-import { Editor } from '@wakii-dev/ui-kit/editor';
+const form = useForm({ schema: z.object({ email: z.string().email('Email không hợp lệ') }), mode: 'onBlur' });
+<Field label="Email" error={form.errors.email} required>
+  <Input value={form.values.email} invalid={!!form.errors.email}
+         onChange={form.handleChange('email')} onBlur={form.handleBlur('email')} />
+</Field>
 ```
 
-## Component groups
+## Có gì trong hộp
 
 | Nhóm | Components |
-| --- | --- |
-| Primitives | `Badge` · `Tag` · `Button` · `Spinner` · `Skeleton` · `EmptyState` · `Divider` · `Typography` · `Icon` (~40 primeicons SVG) · `Card` · `Avatar` |
-| Form | `Input` · `Textarea` · `Select` · `AutoComplete` · `Checkbox` · `Radio` · `Switch` · `Slider` · `Rating` · `InputNumber` · `InputOTP` · `InputMask` · `Password` · `Chips` · `Mention` · `Field` (label/error/hint — react-hook-form + zod) · `Upload` + `UploadDropzone` |
-| Date/Time | `Calendar` · `DatePicker` · `Schedule` (fullcalendar peer-lazy) |
-| Data Display | `Table` (DataTable + filter) · `Chart` (chart.js) · `Carousel` (swiper) · `Timeline` · `Statistic` · `Descriptions` · `Tree` · `List` · `Image` (preview) · `Editor` (tiptap) |
-| Feedback | `Modal` · `Drawer` · `message` · `Notification` · `Alert` · `Progress` · `Tooltip` · `Popconfirm` · `Spinner` |
-| Navigation | `Tabs` · `Breadcrumb` · `Pagination` · `Menubar` · `ContextMenu` · `PanelMenu` · `Steps` · `Toolbar` |
-| Hooks (16, spec usehooks.com) | `useLocalStorage` · `useSessionStorage` · `useToggle` · `usePrevious` · `useDefault` · `useDebounce` · `useThrottle` · `useTimeout` · `useCountdown` · `useClickAway` · `useHover` · `useKeyPress` · `useMediaQuery` · `useLockBodyScroll` · `useWindowSize` · `useCopyToClipboard` |
+|---|---|
+| **Layout & Nav** | Sidebar (collapsible 200→80px), Menu/Submenu đa cấp, Breadcrumb, Steps, Tabs, Pagination (antd look), TabMenu, Menubar, Dropdown, SpeedDial |
+| **Data Display** | Table (DataTable + filter + **virtual scroll 5k+ rows**), List, Tree, TreeSelect, Descriptions, Timeline, Statistic, Avatar, AvatarGroup, Badge, Tag, Collapse, Card, Image, Galleria, Carousel (Swiper), Chart, Calendar, DatePicker (range + time + locale vi/en), TimePicker, Schedule (FullCalendar) |
+| **Forms** | Input, Textarea, InputNumber, InputMask, InputOTP, Select, AutoComplete, CascadeSelect, Checkbox, Radio, Switch, Slider, Rate, ColorPicker, Upload + **UploadDropzone** (drag-drop), **Field** wrapper, Editor (Tiptap) |
+| **Feedback** | Alert (filled mặc định + outlined), Message, Notification, Modal, Drawer, Popconfirm, Progress, Skeleton, Spinner, Result, EmptyState, BlockUI |
+| **Overlay** | Tooltip, Popover, ContextMenu — z-index theo thang token `--z-*` |
+| **Hooks (17)** | useForm (zod), useLocalStorage, useSessionStorage, useDebounce, useThrottle, useTimeout, useCountdown, useClickAway, useHover, useKeyPress, useMediaQuery, useLockBodyScroll, useWindowSize, useCopyToClipboard, useToggle, usePrevious, useDefault, useFocusTrap |
+| **Icon** | `Icon` component ~40 primeicons SVG gốc, tree-shakeable |
 
-Mỗi component có stories (Storybook `Primitives/*`, `Data Display/*`, section `Hooks`)
-và test behavior colocated (`*.test.tsx`) — docs sống thay screenshot ad-hoc.
+## Nguyên tắc thiết kế
 
-## Dark theme
+- **Tokens-first** — `tokens.css` là nguồn sự thật duy nhất (màu/spacing/radius/shadow/**z-index scale**); components không hex cứng
+- **Dark theme** qua CSS var cascade (`[data-bp-theme="dark"]`) — không flash, không JS
+- **Motion CSS thuần 0 deps** — keyframes identity `bp-*`, tôn trọng `prefers-reduced-motion`
+- **A11y thật** — focus trap + restore (Modal/Drawer), aria chuẩn, keyboard walkthrough
+- **Behavior tests** — 540 tests assert hành vi thật (click → onChange, class state, jump logic), không smoke render
 
-```tsx
-import '@wakii-dev/ui-kit/styles/themes/dark.css'; // override [data-bp-theme="dark"]
-// bật: document.documentElement.setAttribute('data-bp-theme', 'dark')
-```
+## Tài liệu
 
-`tokens.css` đã `@import` dark theme ở đầu file (CSS spec: `@import` sau rule bị drop —
-bug 2026-10-17). Import tokens là đủ; dark.css chỉ cần khi muốn tách fichier.
+- [USAGE.md](./USAGE.md) — hướng dẫn chi tiết theo nhóm (form, icon, subpath, z-index)
+- [CHANGELOG.md](./CHANGELOG.md) · [MIGRATION.md](./MIGRATION.md) (Alert filled, pagination antd, subpath heavy)
+- [parity-matrix.md](../docs/parity-matrix.md) — đối chiếu antd/PrimeReact từng component
 
-## Scripts
-
-| Lệnh | Nội dung |
-| --- | --- |
-| `pnpm --filter @wakii-dev/ui-kit dev` | Storybook dev :6006 |
-| `pnpm --filter @wakii-dev/ui-kit test` | vitest + testing-library (jsdom) |
-| `pnpm --filter @wakii-dev/ui-kit typecheck` | `tsc --noEmit` |
-| `pnpm --filter @wakii-dev/ui-kit lint` | eslint flat config — legacy chỉ warn, không auto-fix |
-| `pnpm --filter @wakii-dev/ui-kit build` | tsup → `dist/` (esm+cjs+dts, 5 entries) — chỉ cho npm publish |
-| `pnpm --filter @wakii-dev/ui-kit build-storybook` | CI gate "build được" |
-| `pnpm --filter @wakii-dev/ui-kit exec changeset status` | xem changesets pending (publish flow) |
+MIT © wakii-dev

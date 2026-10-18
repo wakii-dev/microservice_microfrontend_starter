@@ -1,0 +1,7 @@
+/* Entry build CSS cho npm consumers — compile TẤT CẢ utilities dùng trong src/ui
+ * + src/hooks thành 1 file. Consumers chỉ cần import '@wakii/ui-kit/styles/ui-kit.css'.
+ * KHÔNG import trực tiếp file này trong dev (dev dùng vite plugin scan runtime). */
+@import './tailwind.css';
+@import './base.css';
+@source '../ui';
+@source '../hooks';

@@ -5,7 +5,8 @@
 // opacity-0 để animate) — "hiện/ẩn" assert qua aria-expanded + class animate.
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Menu, findPath, type MenuItemData } from './index.js';
+import { Menu, MenuCompactContext, findPath, type MenuItemData } from './index.js';
+import { Icon } from '../icons/index.js';
 
 afterEach(cleanup);
 
@@ -163,5 +164,48 @@ describe('findPath', () => {
   it('không có selected → null; leaf cấp 1 → []', () => {
     expect(findPath(threeLevels, undefined)).toBeNull();
     expect(findPath(threeLevels, 'dash')).toEqual([]);
+  });
+});
+
+describe('Menu — compact (sidebar icon-only, fix ⑥ 2026-10-18)', () => {
+  it('item icon căn GIỮA cột: justify-center + px-0, nhịp dọc py-2 đều', () => {
+    render(
+      <MenuCompactContext.Provider value={true}>
+        <Menu items={threeLevels} />
+      </MenuCompactContext.Provider>,
+    );
+    const item = screen.getByRole('menuitem', { name: 'Dashboard' });
+    expect(item).toHaveClass('justify-center', 'px-0', 'py-2');
+    expect(item).toHaveClass('hover:bg-s3');
+  });
+
+  it('submenu cha compact → chấm chỉ báo con (dot) + không chevron', () => {
+    // dot gắn trên ICON cha — fixture có icon (như AdminLayout dùng Icon users)
+    const withIcon: MenuItemData[] = [
+      {
+        key: 'ql',
+        label: 'Quản lý',
+        icon: <Icon name="users" size={16} />,
+        children: [{ key: 'a', label: 'Con' }],
+      },
+    ];
+    render(
+      <MenuCompactContext.Provider value={true}>
+        <Menu items={withIcon} />
+      </MenuCompactContext.Provider>,
+    );
+    const trigger = screen.getByRole('menuitem', { name: 'Quản lý' });
+    const dot = trigger.querySelector('span.relative > span');
+    expect(dot).not.toBeNull();
+    expect(dot).toHaveClass('size-1', 'rounded-full', 'bg-ink3');
+    expect(trigger.querySelector('svg')).not.toBeNull(); // svg duy nhất = icon users
+    expect(trigger.querySelectorAll('svg')).toHaveLength(1); // chevron đã ẩn khi compact
+  });
+
+  it('expanded giữ layout cũ: px-3 gap-2, không dot', () => {
+    render(<Menu items={threeLevels} />);
+    const item = screen.getByRole('menuitem', { name: 'Dashboard' });
+    expect(item).toHaveClass('px-3', 'py-1.5', 'gap-2');
+    expect(item).not.toHaveClass('justify-center');
   });
 });

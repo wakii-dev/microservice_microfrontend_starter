@@ -122,7 +122,7 @@ function KeyPressCard() {
         {KEYS.map((k) => (
           <kbd
             key={k.label}
-            className="rounded-2 border border-line px-3 py-1.5 text-label transition-colors"
+            className="rounded-lg border border-line px-3 py-1.5 text-label transition-colors"
             style={k.pressed ? { background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' } : undefined}
           >
             {k.label}

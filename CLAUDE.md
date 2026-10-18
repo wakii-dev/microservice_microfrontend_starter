@@ -109,3 +109,4 @@ Khi làm worker trong terminal Orca của repo này (điều phối bởi ZCode 
 4. **Path an toàn**: mọi đường dẫn ghi file dùng tuyệt đối từ `app/ui-kit/...` — KHÔNG dùng relative `src/...` từ repo root (đã gây file lạc chỗ).
 5. **Gate độc lập**: lead tự chạy verify trên diff thật trước khi commit — report của worker là đầu vào, không phải chân lý.
 6. Session chết giữa chừng: lead cứu WIP từ git (commit ghi rõ "recovered by coordinator") — luôn giữ tree ở trạng gian test-xanh-được.
+- **Peer-to-peer**: cần gì ở teammate → `docs/team/inbox/<tên>.md` (format `[HH:MM] @<bạn> → nội dung`); lead giao thư mỗi chu kỳ; broadcast → `docs/team/CHANNEL.md`.

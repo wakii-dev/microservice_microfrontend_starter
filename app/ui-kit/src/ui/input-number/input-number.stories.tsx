@@ -75,15 +75,14 @@ export const CoBan: S = {
 };
 
 /** Clamp min/max — gõ giá trị vượt cận (vd 99 với max 10) rồi blur: onChange nhận
- * giá trị đã clamp về 10; xoá rỗng rồi blur → onChange(null). Lưu ý behavior hiện
- * tại: text trong input giữ nguyên nội dung người gõ — clamp áp cho GIÁ TRỊ phát
- * ra qua onChange, không ép viết lại ô hiển thị. */
+ * giá trị đã clamp về 10 VÀ ô input tự nhảy về 10 (sync text lúc blur — gõ giữa
+ * chừng không bị ép); xoá rỗng rồi blur → onChange(null). */
 export const MinMaxClamp: S = {
   args: { min: 0, max: 10, step: 1, ariaLabel: 'Số lượng (giới hạn 0–10)' },
   render: ({ min, max, step, ariaLabel }) => (
     <Demo
       ariaLabel={ariaLabel}
-      hint="Thử: gõ 99 → blur → onChange = 10. Xoá rỗng → blur → onChange = null."
+      hint="Thử: gõ 99 → blur → ô input nhảy về 10, onChange = 10. Xoá rỗng → blur → onChange = null."
       max={max}
       min={min}
       step={step}

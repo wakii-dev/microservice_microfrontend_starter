@@ -46,6 +46,19 @@ export function InputNumber({
     onChange?.(Math.min(max, Math.max(min, n)));
   }
 
+  /** Blur commit: NHẤT QUÁN đồng bộ text về giá trị đã clamp — nhập 99 (max 10) rồi
+   * blur thì ô input phải NHẢY về 10 thay vì kẹt số sai trên màn (onChange đã clamp
+   * từ trước nhưng text không sync → demo/UX "chưa đúng"). Gõ giữa chừng KHÔNG sync
+   * (commit per-keystroke giữ text thô — clamp chỉ ép ở blur, pattern antd). */
+  function commitOnBlur(raw: string) {
+    commit(raw);
+    const n = Number(raw);
+    if (raw !== '' && !Number.isNaN(n)) {
+      const clamped = Math.min(max, Math.max(min, n));
+      if (clamped !== n) setText(String(clamped));
+    }
+  }
+
   function bump(delta: number) {
     const base = Number(text) || 0;
     const next = Math.min(max, Math.max(min, base + delta));
@@ -64,7 +77,7 @@ export function InputNumber({
         value={text}
         disabled={disabled}
         onChange={(e) => { setText(e.target.value); commit(e.target.value); }}
-        onBlur={(e: FocusEvent<HTMLInputElement>) => commit(e.target.value)}
+        onBlur={(e: FocusEvent<HTMLInputElement>) => commitOnBlur(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'ArrowUp') { e.preventDefault(); bump(step); }
           if (e.key === 'ArrowDown') { e.preventDefault(); bump(-step); }

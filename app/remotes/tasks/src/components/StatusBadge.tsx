@@ -1,7 +1,7 @@
 // StatusBadge — bọc primitive Badge (fe-shared, đóng băng props API) để giữ nguyên
 // accessible name contract "Trạng thái task <title>" trên role="status" (context pack
 // boundary: KHÔNG đổi aria-label bộ tasks). Text label nguyên văn qua children.
-import { Badge } from '@wakii/ui-kit';
+import { Badge } from 'wakii-ui-kit';
 import type { TaskStatusExtended } from '../api';
 import { STATUS_LABELS, STATUS_VARIANTS } from './status';
 

@@ -1,6 +1,6 @@
 // Dashboard — 4 Statistic cards + Chart line (chart.js) + Timeline hoạt động +
 // EmptyState một khu (batch ⑦). Grid responsive 1/2/4 cột.
-import { Button, Card, Chart, EmptyState, Icon, Statistic, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
+import { Button, Card, Chart, EmptyState, Icon, Statistic, Tag, Timeline, message, type ChartConfig } from 'wakii-ui-kit';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },

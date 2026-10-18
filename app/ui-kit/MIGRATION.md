@@ -1,4 +1,4 @@
-# Migration — @wakii/ui-kit
+# Migration — wakii-ui-kit
 
 Các breaking/behavior change giữa 2 lần merge, và cách giữ hành vi cũ khi cần.
 Xem [CHANGELOG.md](./CHANGELOG.md) cho danh sách đầy đủ.
@@ -44,13 +44,13 @@ chỉ dùng primitive. Consumer đang import carousel/chart/schedule/editor từ
 
 ```tsx
 // TRƯỚC — kéo cả swiper CSS qua barrel
-import { Carousel } from '@wakii/ui-kit';
+import { Carousel } from 'wakii-ui-kit';
 
 // SAU — subpath (component + CSS gói cùng nhau)
-import { Carousel } from '@wakii/ui-kit/carousel';
-import { Chart } from '@wakii/ui-kit/chart';
-import { Schedule } from '@wakii/ui-kit/schedule';
-import { Editor } from '@wakii/ui-kit/editor';
+import { Carousel } from 'wakii-ui-kit/carousel';
+import { Chart } from 'wakii-ui-kit/chart';
+import { Schedule } from 'wakii-ui-kit/schedule';
+import { Editor } from 'wakii-ui-kit/editor';
 ```
 
 Yêu cầu đi kèm: `swiper` là **peer-dep của subpath carousel** — consumer tự cài

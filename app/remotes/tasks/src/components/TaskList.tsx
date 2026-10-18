@@ -1,7 +1,7 @@
 // TaskList — heading "x/total" (format là test contract) + ul "Danh sách tasks" + nút
 // "Tải thêm" (chỉ khi đã tải < total). Load-more dùng nút busy, KHÔNG skeleton — tránh
 // list nhảy layout.
-import { Button } from '@wakii/ui-kit';
+import { Button } from 'wakii-ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { TaskItem } from './TaskItem';
 

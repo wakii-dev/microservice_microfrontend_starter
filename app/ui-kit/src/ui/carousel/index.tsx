@@ -23,8 +23,8 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Keyboard, Pagination } from 'swiper/modules';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { Icon } from '../icons/index.js';
-// CSS swiper đã chuyển sang src/entries/carousel.ts (subpath '@wakii/ui-kit/carousel') —
-// barrel chính '@wakii/ui-kit' không kéo CSS nặng nữa (batch ⑩ 2026-10-18).
+// CSS swiper đã chuyển sang src/entries/carousel.ts (subpath 'wakii-ui-kit/carousel') —
+// barrel chính 'wakii-ui-kit' không kéo CSS nặng nữa (batch ⑩ 2026-10-18).
 
 export interface CarouselProps {
   items: React.ReactNode[];

@@ -38,9 +38,6 @@ importers:
 
   app/admin:
     dependencies:
-      '@wakii/ui-kit':
-        specifier: workspace:*
-        version: link:../ui-kit
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
@@ -53,6 +50,9 @@ importers:
       react-router:
         specifier: 'catalog:'
         version: 7.18.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      wakii-ui-kit:
+        specifier: workspace:*
+        version: link:../ui-kit
       zod:
         specifier: ^4.0.0
         version: 4.6.7
@@ -105,9 +105,6 @@ importers:
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
-      '@wakii/ui-kit':
-        specifier: workspace:*
-        version: link:../../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -120,6 +117,9 @@ importers:
       react-hook-form:
         specifier: ^7
         version: 7.90.0(@types/react@19.2.2)(react@19.3.0)
+      wakii-ui-kit:
+        specifier: workspace:*
+        version: link:../../ui-kit
     devDependencies:
       '@module-federation/enhanced':
         specifier: 'catalog:'
@@ -169,9 +169,6 @@ importers:
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
-      '@wakii/ui-kit':
-        specifier: workspace:*
-        version: link:../../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -184,6 +181,9 @@ importers:
       react-hook-form:
         specifier: ^7
         version: 7.90.0(@types/react@19.2.2)(react@19.3.0)
+      wakii-ui-kit:
+        specifier: workspace:*
+        version: link:../../ui-kit
     devDependencies:
       '@module-federation/enhanced':
         specifier: 'catalog:'
@@ -243,9 +243,6 @@ importers:
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../shared
-      '@wakii/ui-kit':
-        specifier: workspace:*
-        version: link:../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -261,6 +258,9 @@ importers:
       react-router:
         specifier: 'catalog:'
         version: 7.18.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      wakii-ui-kit:
+        specifier: workspace:*
+        version: link:../ui-kit
     devDependencies:
       '@module-federation/enhanced':
         specifier: 'catalog:'

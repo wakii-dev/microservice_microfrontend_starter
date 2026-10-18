@@ -1,7 +1,7 @@
 // StatusSelect — chỉ 3 writable status (assignment_failed KHÔNG ở đây — PATCH cấm);
 // disabled khi per-item busy đang bay (spec slice #3).
 // Tier 3 ui-kit: dùng Select component (combobox a11y — thay <select> native).
-import { Select } from '@wakii/ui-kit';
+import { Select } from 'wakii-ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { STATUS_LABELS, WRITABLE_STATUSES } from './status';
 

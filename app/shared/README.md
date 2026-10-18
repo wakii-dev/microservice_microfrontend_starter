@@ -4,7 +4,7 @@
 timeout/envelope), `token-storage` (JWT storage + claims), `error-envelope` (decode
 chuẩn conventions/04), `mf-bootstrap` (MF runtime helper — loadRemoteModule/retry).
 
-> **Design system KHÔNG còn ở đây** — tách sang [`@wakii/ui-kit`](../ui-kit) 2026-10-17
+> **Design system KHÔNG còn ở đây** — tách sang [`wakii-ui-kit`](../ui-kit) 2026-10-17
 > (ADR-0009): tokens/base css + primitives Badge/EmptyState/Skeleton/Spinner + Storybook.
 
 ## READ-LOCKED

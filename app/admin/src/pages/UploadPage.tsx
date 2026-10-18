@@ -1,6 +1,6 @@
 // UploadPage — demo Upload (trigger + list trạng thái) + UploadDropzone (kéo thả,
 // maxCount) (batch ⑦). List trạng thái done/uploading/error là nội bộ Upload.
-import { Alert, Card, Upload, UploadDropzone } from '@wakii/ui-kit';
+import { Alert, Card, Upload, UploadDropzone } from 'wakii-ui-kit';
 
 export function UploadPage() {
   return (

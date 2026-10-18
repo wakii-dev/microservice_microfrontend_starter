@@ -2,7 +2,7 @@
 // react-hook-form (libs adopt 2026-10-17): form state qua useForm — fields chỉ reset
 // khi tạo THÀNH CÔNG; lỗi (banner ở page) giữ nguyên input cho user sửa.
 import { useForm } from 'react-hook-form';
-import { Button, Input, Textarea } from '@wakii/ui-kit';
+import { Button, Input, Textarea } from 'wakii-ui-kit';
 import type { CreateTaskInput } from '../api';
 
 interface TaskFormProps {

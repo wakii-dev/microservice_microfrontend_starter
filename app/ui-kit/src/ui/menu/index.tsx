@@ -36,13 +36,16 @@ function ChevronDownIcon() {
 }
 
 /* Ngôn ngữ nút — khớp pagination/calendar: transparent+hover s3 / accent fill /
- * ink4 disabled. 3 biến thể viết tường minh (không ghép chuỗi kiểu surgery). */
-const ITEM_NORMAL =
-  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-body text-ink transition-colors hover:bg-s3';
-const ITEM_SELECTED =
-  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-accent px-3 py-1.5 text-body font-medium text-white transition-colors hover:bg-accent';
-const ITEM_DISABLED =
-  'flex w-full cursor-not-allowed items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-body text-ink4';
+ * ink4 disabled. 3 biến thể viết tường minh (không ghép chuỗi kiểu surgery).
+ * Compact (sidebar icon-only): icon căn GIỮA cột (justify-center px-0 — hết lệch
+ * trái), nhịp dọc đều py-2 (fix ⑥-2/⑥-5 2026-10-18). */
+function itemCls(kind: 'normal' | 'selected' | 'disabled', compact: boolean): string {
+  const base = 'flex w-full items-center rounded-lg border-none text-body transition-colors';
+  const fit = compact ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-1.5';
+  if (kind === 'disabled') return `${base} cursor-not-allowed bg-transparent text-ink4 ${fit}`;
+  if (kind === 'selected') return `${base} cursor-pointer bg-accent font-medium text-white hover:bg-accent ${fit}`;
+  return `${base} cursor-pointer bg-transparent text-ink hover:bg-s3 ${fit}`;
+}
 
 /** Đường đi các key submenu cha của selectedKey (không gồm leaf) — auto-open lần đầu. */
 export function findPath(items: MenuItemData[], selected?: string, trail: string[] = []): string[] | null {
@@ -98,12 +101,16 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 aria-haspopup="true"
                 aria-expanded={open}
                 disabled={item.disabled}
-                className={item.disabled ? ITEM_DISABLED : ITEM_NORMAL}
+                className={itemCls(item.disabled ? 'disabled' : 'normal', compact)}
                 onClick={() => !item.disabled && toggle(item.key)}
               >
                 {item.icon && (
-                  <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center text-base leading-none">
+                  <span aria-hidden="true" className="relative flex size-4 shrink-0 items-center justify-center text-base leading-none">
                     {item.icon}
+                    {/* Compact: chấm nhỏ góc phải icon cha = còn con (fix ⑥-6). */}
+                    {compact && (
+                      <span aria-hidden="true" className="absolute -bottom-1 -right-1 size-1 rounded-full bg-ink3" />
+                    )}
                   </span>
                 )}
                 {label}
@@ -124,7 +131,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 role="menuitem"
                 aria-current={selected ? 'true' : undefined}
                 disabled={item.disabled}
-                className={item.disabled ? ITEM_DISABLED : selected ? ITEM_SELECTED : ITEM_NORMAL}
+                className={itemCls(item.disabled ? 'disabled' : selected ? 'selected' : 'normal', compact)}
                 onClick={() => {
                   if (item.disabled) return;
                   onSelect?.(item.key);

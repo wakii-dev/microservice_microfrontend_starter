@@ -129,7 +129,7 @@ platform/           # compose (health-gated), postgres init, nginx, conventions/
 services/           # node-svc / spring-svc / go-svc / auth-svc — impl hoàn chỉnh, README standalone từng svc
 app/
   shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
-  ui-kit/           # @wakii/ui-kit — design system: tokens + base css + primitives + Storybook 9 (ADR-0009)
+  ui-kit/           # wakii-ui-kit — design system: tokens + base css + primitives + Storybook 9 (ADR-0009)
   shell/            # MF host (Rspack) — login, nav, remote slots
   remotes/          # tasks + activity — 2 MF remote
   spike/            # MF pin versions — đã test (prune khi scaffold)

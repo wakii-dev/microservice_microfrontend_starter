@@ -13,7 +13,7 @@ import {
   TreeSelect,
   message,
   useForm,
-} from '@wakii/ui-kit';
+} from 'wakii-ui-kit';
 
 const REGION_TREE = [
   {

@@ -1,5 +1,5 @@
 ---
-'@wakii/ui-kit': minor
+'wakii-ui-kit': minor
 ---
 
 VU-53 UI redesign — đợt ship đầu tiên: 16 hooks native (spec usehooks.com) · Upload +

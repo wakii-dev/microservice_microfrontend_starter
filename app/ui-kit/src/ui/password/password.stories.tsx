@@ -20,15 +20,7 @@ export const Disabled: S = { args: { ariaLabel: 'Locked password', value: 'secre
 
 /** Controlled — useState demo: toggle + type updates value. */
 export const Controlled: S = {
-  render: () => {
-    const [v, setV] = useState('');
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <Password value={v} onChange={setV} ariaLabel="Password" placeholder="Enter password" showStrength />
-        <p className="m-0 font-mono text-meta text-ink3">length: <strong className="text-ink">{v.length}</strong></p>
-      </div>
-    );
-  },
+  render: () => <PasswordControlledDemo />,
 };
 
 /** DarkTheme — field + meter on dark canvas. */
@@ -39,3 +31,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function PasswordControlledDemo() {
+  const [v, setV] = useState('');
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Password value={v} onChange={setV} ariaLabel="Password" placeholder="Enter password" showStrength />
+      <p className="m-0 font-mono text-meta text-ink3">length: <strong className="text-ink">{v.length}</strong></p>
+    </div>
+  );
+}

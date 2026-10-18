@@ -14,15 +14,7 @@ export const FourDigits: S = { args: { length: 4, ariaLabel: 'PIN code' } };
 
 /** Controlled — useState demo: joined value displayed under the cells. */
 export const Controlled: S = {
-  render: () => {
-    const [v, setV] = useState('');
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <InputOTP length={6} ariaLabel="OTP code" value={v} onChange={setV} />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
-      </div>
-    );
-  },
+  render: () => <InputOtpControlledDemo />,
 };
 
 /** Disabled — all cells locked. */
@@ -36,3 +28,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function InputOtpControlledDemo() {
+  const [v, setV] = useState('');
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <InputOTP length={6} ariaLabel="OTP code" value={v} onChange={setV} />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
+    </div>
+  );
+}

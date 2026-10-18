@@ -19,15 +19,7 @@ export const Disabled: S = { args: { disabled: true, placeholder: 'Disabled' } }
 
 /** Controlled — useState demo: picked date shown below. */
 export const Controlled: S = {
-  render: () => {
-    const [d, setD] = useState<Date | undefined>();
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <DatePicker value={d} onChange={(x) => setD(x)} placeholder="Pick a date…" />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{d ? d.toLocaleDateString('vi-VN') : '—'}</strong></p>
-      </div>
-    );
-  },
+  render: () => <ControlledDemo />,
 };
 
 function RangeDemo() {
@@ -104,3 +96,13 @@ export const PlaceholderContrast: S = {
     </div>
   ),
 };
+
+function ControlledDemo() {
+  const [d, setD] = useState<Date | undefined>();
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <DatePicker value={d} onChange={(x) => setD(x)} placeholder="Pick a date…" />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{d ? d.toLocaleDateString('vi-VN') : '—'}</strong></p>
+    </div>
+  );
+}

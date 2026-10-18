@@ -35,23 +35,7 @@ export const WithDisabled: S = {
 /** Controlled — useState demo: pick shows the selected value. */
 export const Controlled: S = {
   args: { options: [] },
-  render: () => {
-    const [v, setV] = useState('fe');
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <RadioGroup
-          value={v}
-          onChange={setV}
-          options={[
-            { label: 'Frontend', value: 'fe' },
-            { label: 'Backend', value: 'be' },
-            { label: 'DevOps', value: 'ops' },
-          ]}
-        />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
-      </div>
-    );
-  },
+  render: () => <RadioGroupControlledDemo />,
 };
 
 /** Single — standalone Radio without a group. */
@@ -76,3 +60,21 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function RadioGroupControlledDemo() {
+  const [v, setV] = useState('fe');
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <RadioGroup
+        value={v}
+        onChange={setV}
+        options={[
+          { label: 'Frontend', value: 'fe' },
+          { label: 'Backend', value: 'be' },
+          { label: 'DevOps', value: 'ops' },
+        ]}
+      />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
+    </div>
+  );
+}

@@ -16,15 +16,7 @@ export const Disabled: S = { args: { disabled: true, children: 'Cannot check' } 
 
 /** Controlled — useState demo: click label flips checked. */
 export const Controlled: S = {
-  render: () => {
-    const [on, setOn] = useState(false);
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <Checkbox checked={on} onChange={setOn}>Enable autosave</Checkbox>
-        <p className="m-0 font-mono text-meta text-ink3">checked: <strong className="text-ink">{String(on)}</strong></p>
-      </div>
-    );
-  },
+  render: () => <CheckboxControlledDemo />,
 };
 
 /** DarkTheme — both states on dark canvas. */
@@ -37,3 +29,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function CheckboxControlledDemo() {
+  const [on, setOn] = useState(false);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Checkbox checked={on} onChange={setOn}>Enable autosave</Checkbox>
+      <p className="m-0 font-mono text-meta text-ink3">checked: <strong className="text-ink">{String(on)}</strong></p>
+    </div>
+  );
+}

@@ -19,18 +19,20 @@ export const Basic: Story = {
 
 /** Controlled — useState demo: onClose fires when the edit form closes. */
 export const Controlled: Story = {
-  render: () => {
-    const [closed, setClosed] = useState(0);
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <Inplace
-          display={<span>Config A</span>}
-          onClose={() => setClosed((n) => n + 1)}
-        >
-          <Input defaultValue="Config A" aria-label="Edit config" className="w-56" />
-        </Inplace>
-        <p className="m-0 font-mono text-meta text-ink3">onClose count: <strong className="text-ink">{closed}</strong></p>
-      </div>
-    );
-  },
+  render: () => <InplaceControlledDemo />,
 };
+
+function InplaceControlledDemo() {
+  const [closed, setClosed] = useState(0);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Inplace
+        display={<span>Config A</span>}
+        onClose={() => setClosed((n) => n + 1)}
+      >
+        <Input defaultValue="Config A" aria-label="Edit config" className="w-56" />
+      </Inplace>
+      <p className="m-0 font-mono text-meta text-ink3">onClose count: <strong className="text-ink">{closed}</strong></p>
+    </div>
+  );
+}

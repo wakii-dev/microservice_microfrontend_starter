@@ -50,7 +50,7 @@ function Scales({
     <section style={{ marginBottom: 32 }}>
       <h2 style={{ fontSize: 'var(--fs-h1)', color: 'var(--ink)', margin: '0 0 12px' }}>{title}</h2>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'baseline' }}>
-        {items.map(([name, value]) => (
+        {items.map(([name]) => (
           <div key={name}>
             <div style={style(`var(${name})`)} />
             <code style={{ fontSize: 'var(--fs-meta)', color: 'var(--ink2)' }}>{name}</code>

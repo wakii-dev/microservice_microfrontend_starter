@@ -20,15 +20,7 @@ export const Disabled: S = { args: { value: 40, disabled: true, ariaLabel: 'Lock
 
 /** Controlled — useState demo: click track / arrow keys → value shown. */
 export const Controlled: S = {
-  render: () => {
-    const [v, setV] = useState(25);
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <Slider value={v} onChange={setV} min={0} max={100} ariaLabel="Brightness" />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
-      </div>
-    );
-  },
+  render: () => <SliderControlledDemo />,
 };
 
 /** DarkTheme — track + handles on dark canvas. */
@@ -39,3 +31,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function SliderControlledDemo() {
+  const [v, setV] = useState(25);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Slider value={v} onChange={setV} min={0} max={100} ariaLabel="Brightness" />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
+    </div>
+  );
+}

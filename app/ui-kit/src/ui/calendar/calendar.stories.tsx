@@ -10,17 +10,7 @@ export const Basic: S = {};
 
 /** Controlled — useState demo: click a day → selected + shown below. */
 export const Controlled: S = {
-  render: () => {
-    const [d, setD] = useState<Date | undefined>();
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <Calendar value={d} onChange={setD} />
-        <p className="m-0 font-mono text-meta text-ink3">
-          value: <strong className="text-ink">{d ? d.toLocaleDateString('vi-VN') : '—'}</strong>
-        </p>
-      </div>
-    );
-  },
+  render: () => <CalendarControlledDemo />,
 };
 
 /** LocaleEN — English weekday/month labels. */
@@ -37,3 +27,15 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function CalendarControlledDemo() {
+  const [d, setD] = useState<Date | undefined>();
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Calendar value={d} onChange={setD} />
+      <p className="m-0 font-mono text-meta text-ink3">
+        value: <strong className="text-ink">{d ? d.toLocaleDateString('vi-VN') : '—'}</strong>
+      </p>
+    </div>
+  );
+}

@@ -9,7 +9,6 @@ import { notification } from '../ui/notification/index';
 import { message } from '../ui/message/index';
 import { Spinner as SpinnerComp } from '../ui/spinner/index';
 import { Switch } from '../ui/switch/index';
-import { Collapse } from '../ui/collapse/index';
 
 const meta = { title: 'Motion Showcase', tags: ['autodocs'] } satisfies Meta;
 export default meta;

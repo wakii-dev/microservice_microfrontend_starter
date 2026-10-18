@@ -11,15 +11,7 @@ export const Basic: S = { args: { value: '#1677ff' } };
 
 /** Controlled — useState demo: pick a preset / native / hex → swatch follows value. */
 export const Controlled: S = {
-  render: () => {
-    const [v, setV] = useState('#1677ff');
-    return (
-      <div className="grid max-w-[220px] gap-3">
-        <ColorPicker value={v} onChange={setV} />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
-      </div>
-    );
-  },
+  render: () => <ColorPickerControlledDemo />,
 };
 
 /** CustomPresets — custom color list via presets prop. */
@@ -44,3 +36,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function ColorPickerControlledDemo() {
+  const [v, setV] = useState('#1677ff');
+  return (
+    <div className="grid max-w-[220px] gap-3">
+      <ColorPicker value={v} onChange={setV} />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v}</strong></p>
+    </div>
+  );
+}

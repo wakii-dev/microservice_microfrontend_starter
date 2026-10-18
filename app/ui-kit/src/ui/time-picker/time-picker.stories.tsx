@@ -64,13 +64,15 @@ export const Disabled: Story = {
 
 /** Controlled — string value 'HH:mm' demo. */
 export const Controlled: Story = {
-  render: () => {
-    const [t, setT] = useState<string>('09:00');
-    return (
-      <div className="grid w-[260px] gap-3">
-        <TimePicker value={t} onChange={(d) => setT(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`)} />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{t}</strong></p>
-      </div>
-    );
-  },
+  render: () => <TimePickerControlledDemo />,
 };
+
+function TimePickerControlledDemo() {
+  const [t, setT] = useState<string>('09:00');
+  return (
+    <div className="grid w-[260px] gap-3">
+      <TimePicker value={t} onChange={(d) => setT(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`)} />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{t}</strong></p>
+    </div>
+  );
+}

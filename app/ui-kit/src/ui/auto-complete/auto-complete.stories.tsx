@@ -27,24 +27,7 @@ export const Basic: Story = {
 
 /** Controlled — useState demo: typed value + picked value displayed. */
 export const Controlled: Story = {
-  render: () => {
-    const [value, setValue] = useState('');
-    const [selected, setSelected] = useState('');
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <AutoComplete
-          suggestions={TASKS}
-          value={value}
-          onChange={setValue}
-          onSelect={setSelected}
-          placeholder="Search tasks…"
-        />
-        <p className="m-0 font-mono text-meta text-ink3">
-          value: <strong className="text-ink">{value || '—'}</strong> · selected: <strong className="text-ink">{selected || '—'}</strong>
-        </p>
-      </div>
-    );
-  },
+  render: () => <AutoCompleteControlledDemo />,
 };
 
 /** Empty — no suggestions → dropdown never opens. */
@@ -63,3 +46,22 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+function AutoCompleteControlledDemo() {
+  const [value, setValue] = useState('');
+  const [selected, setSelected] = useState('');
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <AutoComplete
+        suggestions={TASKS}
+        value={value}
+        onChange={setValue}
+        onSelect={setSelected}
+        placeholder="Search tasks…"
+      />
+      <p className="m-0 font-mono text-meta text-ink3">
+        value: <strong className="text-ink">{value || '—'}</strong> · selected: <strong className="text-ink">{selected || '—'}</strong>
+      </p>
+    </div>
+  );
+}

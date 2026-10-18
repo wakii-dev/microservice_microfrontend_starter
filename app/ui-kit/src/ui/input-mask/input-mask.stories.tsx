@@ -15,15 +15,7 @@ export const Date: S = { args: { mask: '99/99/9999', ariaLabel: 'Date', placehol
 /** Controlled — useState demo: masked value shown next to the input. */
 export const Controlled: S = {
   args: { mask: '99/99/9999' },
-  render: () => {
-    const [v, setV] = useState('');
-    return (
-      <div className="grid max-w-[280px] gap-3">
-        <InputMask mask="99/99/9999" ariaLabel="Date of birth" placeholder="DD/MM/YYYY" value={v} onChange={setV} />
-        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
-      </div>
-    );
-  },
+  render: () => <InputMaskControlledDemo />,
 };
 
 /** Disabled — locked input (passthrough via native rest props). */
@@ -42,3 +34,13 @@ export const CommonMasks: S = {
     </div>
   ),
 };
+
+function InputMaskControlledDemo() {
+  const [v, setV] = useState('');
+  return (
+    <div className="grid max-w-[280px] gap-3">
+      <InputMask mask="99/99/9999" ariaLabel="Date of birth" placeholder="DD/MM/YYYY" value={v} onChange={setV} />
+      <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
+    </div>
+  );
+}

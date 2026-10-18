@@ -20,15 +20,7 @@ export const Basic: Story = {
 
 /** Controlled — useState demo: values shown as JSON. */
 export const Controlled: Story = {
-  render: () => {
-    const [value, setValue] = useState<string[]>(['react', 'typescript']);
-    return (
-      <div className="w-96">
-        <Chips value={value} onChange={setValue} placeholder="Add tech…" />
-        <p className="mt-2 font-mono text-meta text-ink3">values: {JSON.stringify(value)}</p>
-      </div>
-    );
-  },
+  render: () => <ChipsControlledDemo />,
 };
 
 /** Empty — no values: only the placeholder input shows. */
@@ -49,3 +41,13 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+function ChipsControlledDemo() {
+  const [value, setValue] = useState<string[]>(['react', 'typescript']);
+  return (
+    <div className="w-96">
+      <Chips value={value} onChange={setValue} placeholder="Add tech…" />
+      <p className="mt-2 font-mono text-meta text-ink3">values: {JSON.stringify(value)}</p>
+    </div>
+  );
+}

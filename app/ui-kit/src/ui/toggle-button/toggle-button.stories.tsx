@@ -20,15 +20,7 @@ export const Disabled: S = {
 /** Controlled — useState demo: click flips checked. */
 export const Controlled: S = {
   args: { children: 'Toggle' },
-  render: () => {
-    const [on, setOn] = useState(false);
-    return (
-      <div className="grid max-w-[240px] gap-3">
-        <ToggleButton checked={on} onChange={setOn}>Enable notifications</ToggleButton>
-        <p className="m-0 font-mono text-meta text-ink3">checked: <strong className="text-ink">{String(on)}</strong></p>
-      </div>
-    );
-  },
+  render: () => <ToggleButtonControlledDemo />,
 };
 
 /** DarkTheme — both states on dark canvas. */
@@ -41,3 +33,13 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+function ToggleButtonControlledDemo() {
+  const [on, setOn] = useState(false);
+  return (
+    <div className="grid max-w-[240px] gap-3">
+      <ToggleButton checked={on} onChange={setOn}>Enable notifications</ToggleButton>
+      <p className="m-0 font-mono text-meta text-ink3">checked: <strong className="text-ink">{String(on)}</strong></p>
+    </div>
+  );
+}

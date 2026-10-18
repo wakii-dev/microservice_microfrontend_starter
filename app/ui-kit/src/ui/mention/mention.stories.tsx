@@ -16,15 +16,7 @@ export const Basic: Story = {
 
 /** Controlled — useState demo: value shown under the textarea. */
 export const Controlled: Story = {
-  render: () => {
-    const [v, setV] = useState('');
-    return (
-      <div className="w-96">
-        <Mention value={v} onChange={setV} suggestions={PEOPLE} placeholder="Type @ to mention…" />
-        <p className="mt-2 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
-      </div>
-    );
-  },
+  render: () => <MentionControlledDemo />,
 };
 
 /** Empty — suggestions=[] → no dropdown even after @. */
@@ -40,3 +32,13 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+function MentionControlledDemo() {
+  const [v, setV] = useState('');
+  return (
+    <div className="w-96">
+      <Mention value={v} onChange={setV} suggestions={PEOPLE} placeholder="Type @ to mention…" />
+      <p className="mt-2 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
-// SplitButton — primary action + dropdown secondary (antd Dropdown.Button).
+// SplitButton — MỘT nút duy nhất [label ⌄]: icon chevron nằm TRONG nút (trailing icon),
+// không chia 2 phần thị giác — chỉ vùng click khác nhau (label = action, chevron = menu).
 // Unity shell 2026-10-18 (feedback user: 2 component Button rời → lộ seam, không
 // "1 thể thống nhất"): KHÔNG còn dùng Button — 2 <button> trần trong 1 wrapper
 // liên tục: MỘT border duy nhất trên wrapper (primary: border-accent · danger
@@ -131,7 +132,7 @@ export function SplitButton({
               setOpen(true);
             }
           }}
-          className={`inline-flex cursor-pointer items-center justify-center ${solid ? '' : 'border-l border-line'} border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
+          className={`inline-flex cursor-pointer items-center justify-center border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
         >
           <span aria-hidden="true" className={`inline-flex transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
             <Icon name="chevron-down" size={14} />

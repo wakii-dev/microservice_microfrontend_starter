@@ -161,12 +161,12 @@ describe('SplitButton — unity shell (feedback "1 thể thống nhất" 2026-10
     expect(shell!.querySelector('span.w-px')).toBeNull(); // solid: không divider (PrimeReact seamless)
   });
 
-  it('default variant: hairline border-l CHỈ trên chevron (antd compact single-line), main trần', () => {
+  it('default variant: MỘT bề mặt — KHÔNG border-l ở bất kỳ nút con nào (single button thị giác)', () => {
     const { container } = render(<SplitButton label="Lưu" type="default" items={items} />);
     const shell = container.querySelector('span.relative > span')!;
-    const [main, chevron] = shell.querySelectorAll('button');
-    expect(main.className).not.toContain('border-l');
-    expect(chevron).toHaveClass('border-l', 'border-line');
+    for (const b of shell.querySelectorAll('button')) {
+      expect(b.className).not.toContain('border-l');
+    }
   });
 
   it('size áp đồng bộ cả 2 nút: small h-8 / middle h-9 (mặc định) / large h-10', () => {

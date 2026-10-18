@@ -4,7 +4,7 @@
 // chương đặt id + data-mood + --mood-progress). Mọi chapter import TỪ FILE NÀY —
 // không tự viết scroll listener (contract EXPERIENCE-DESIGN.md mục 4).
 /* eslint-disable react-refresh/only-export-components -- engine cố ý gộp hooks + components cùng hệ mood; tách file chỉ để tắt warning fast-refresh */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 
 /** Progress scroll toàn trang 0..1 (rAF-throttle, 1 listener). */
 export function usePageProgress() {
@@ -73,23 +73,71 @@ export function CrossfadeBackdrop({ pct }: { pct: number }) {
   );
 }
 
-/** Wrapper chương — đặt id + data-mood + --mood-progress (contract EXPERIENCE-DESIGN mục 2-3). */
+/** Wrapper chương — đặt id + data-mood + --mood-progress (contract EXPERIENCE-DESIGN mục 2-3).
+ * innerRef: cho chapter cần đo scroll progress (vd ScrollFlythrough). */
 export function SectionMood({
   id,
   mood,
   className = 'relative min-h-screen',
   style,
+  innerRef,
   children,
 }: {
   id: string;
   mood: string;
   className?: string;
   style?: CSSProperties;
+  innerRef?: React.Ref<HTMLElement>;
   children: ReactNode;
 }) {
   return (
-    <section id={id} data-mood={mood} className={className} style={style}>
+    <section ref={innerRef} id={id} data-mood={mood} className={className} style={style}>
       {children}
     </section>
   );
 }
+
+/** 1 mood trong palette 5 mood (contract EXPERIENCE-DESIGN.md §2 — gradient stops từng chương). */
+export interface MoodStop {
+  id: string;
+  /** CSS background đầy đủ (gradient stops theo contract). */
+  background: string;
+}
+
+/** MOOD BACKDROP (SF-1) — crossfade N mood theo scroll TOÀN TRANG:
+ * opacity layer i = clamp(0, 1 − |p×(N−1) − i|, 1) — nội suy tuyến tính,
+ * tại ranh giới 2 mood liền kề = 50/50. rAF-throttle qua usePageProgress;
+ * chỉ layer nền đổi — 0 re-render content. Dùng kèm SectionMood (data-mood). */
+export function MoodBackdrop({ stops }: { stops: MoodStop[] }) {
+  const pct = usePageProgress();
+  const f = pct * (stops.length - 1);
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
+      {stops.map((stop, i) => {
+        const opacity = Math.max(0, Math.min(1, 1 - Math.abs(f - i)));
+        return (
+          <div
+            key={stop.id}
+            data-mood={stop.id}
+            className="absolute inset-0"
+            style={{ background: stop.background, opacity }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/** PALETTE MOOD — stops đúng contract §2 (chung cho index + demo + chapters).
+ * atlas = hero sáng cố định; focus→future = chapters nền tối tự chủ; future sáng trở lại. */
+export const MOOD_STOPS: MoodStop[] = [
+  { id: 'atlas', background: 'linear-gradient(165deg, #cdd8f6 0%, var(--hero-sky-a) 55%, #dfe4fb 100%)' },
+  { id: 'focus', background: 'linear-gradient(180deg, var(--chapter-bg-a), var(--chapter-bg-b))' },
+  { id: 'docs', background: 'linear-gradient(180deg, var(--chapter-bg-b), rgb(10, 20, 38))' },
+  {
+    id: 'velocity',
+    background: 'linear-gradient(180deg, var(--chapter-bg-a), color-mix(in srgb, var(--accent) 14%, rgb(10, 12, 22)))',
+  },
+  { id: 'ship', background: 'linear-gradient(180deg, rgb(10, 12, 22), var(--scrim-4))' },
+  { id: 'future', background: 'linear-gradient(180deg, var(--c-s1), var(--c-canvas))' },
+];

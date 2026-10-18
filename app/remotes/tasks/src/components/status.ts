@@ -2,7 +2,7 @@
 // STATUS_LABELS là test contract — KHÔNG đổi text (context pack boundary).
 // `assignment_failed` là status hệ thống (saga compensation): HIỂN THỊ badge,
 // KHÔNG cho chọn trong select — PATCH cấm (contract tasks.yaml TaskStatusExtended).
-import type { BadgeVariant } from 'wakii-ui-kit';
+import type { BadgeVariant } from '@wakii-dev/ui-kit';
 import type { TaskStatus, TaskStatusExtended } from '../api';
 
 export const STATUS_LABELS: Record<TaskStatusExtended, string> = {

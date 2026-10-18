@@ -18,7 +18,7 @@ import {
   Upload,
   message,
   useForm,
-} from 'wakii-ui-kit';
+} from '@wakii-dev/ui-kit';
 import {
   MOCK_USERS,
   ROLE_OPTIONS,

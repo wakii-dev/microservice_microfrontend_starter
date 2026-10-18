@@ -5,11 +5,11 @@
 // EmptyState hướng dẫn sang Tasks, refresh busy state.
 // Tokens import idempotent (:root custom props cùng giá trị — trong shell shell đã import,
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
-import 'wakii-ui-kit/styles/tokens.css';
+import '@wakii-dev/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Skeleton, Spinner } from 'wakii-ui-kit';
+import { Alert, Button, EmptyState, Skeleton, Spinner } from '@wakii-dev/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';

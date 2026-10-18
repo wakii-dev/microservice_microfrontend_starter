@@ -1,8 +1,8 @@
 // Standalone render (tách khỏi index.tsx để entry là async boundary — RUNTIME-006).
 // SF-1 (story VU-53): import tokens+base để standalone không còn "trơ trụi". Trong shell,
 // shell import global base LÀM CHỦ — remote không import lại (kiến trúc hand-off §2).
-import 'wakii-ui-kit/styles/tokens.css';
-import 'wakii-ui-kit/styles/base.css';
+import '@wakii-dev/ui-kit/styles/tokens.css';
+import '@wakii-dev/ui-kit/styles/base.css';
 import './app.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';

@@ -40,3 +40,6 @@ Thumbs.db
 
 # Storybook build output (CI artifact — không commit)
 storybook-static/
+
+# Team internal comms (inbox/channel/board) — local only, không vào repo
+docs/team/

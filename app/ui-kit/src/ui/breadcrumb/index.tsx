@@ -23,7 +23,7 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
               {isLast || !item.href ? (
                 <span className={isLast ? 'text-ink' : ''}>{item.title}</span>
               ) : (
-                <a href={item.href} className="text-ink2 no-underline transition-colors hover:text-accent">
+                <a href={item.href} className="rounded-sm text-ink2 no-underline transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40">
                   {item.title}
                 </a>
               )}

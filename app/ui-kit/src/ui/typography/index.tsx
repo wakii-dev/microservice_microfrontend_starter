@@ -117,6 +117,7 @@ export function Paragraph({ children, type, strong, className, style }: Paragrap
 }
 
 /** Typography composite — pattern antd (Typography.Title/Text/Paragraph). */
+// eslint-disable-next-line react-refresh/only-export-components
 export const Typography = Object.assign(
   () => null,
   { Title, Text, Paragraph },

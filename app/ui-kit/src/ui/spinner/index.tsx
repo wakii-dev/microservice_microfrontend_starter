@@ -7,7 +7,9 @@ import type { ReactNode } from 'react';
 export interface SpinnerProps {
   /** aria-label BẮT BUỘC — màn đọc cần biết busy của cái gì. */
   label: string;
+  /** ring (mặc định) / dots / bars. */
   variant?: 'ring' | 'dots' | 'bars';
+  /** small / default / large. */
   size?: 'small' | 'default' | 'large';
   /** Màu: accent (mặc định) / muted (ink3) / inverse (trắng — trên nền tối). */
   color?: 'accent' | 'muted' | 'inverse';

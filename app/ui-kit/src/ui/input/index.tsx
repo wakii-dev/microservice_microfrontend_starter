@@ -5,7 +5,7 @@
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 
 const FIELD_BASE =
-  'w-full rounded-2 border bg-s2 text-body text-ink placeholder:text-ink4 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-[rgba(0,0,0,0.04)] disabled:text-ink4';
+  'w-full rounded-lg border bg-s2 text-body text-ink placeholder:text-ink4 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-ink4';
 const FIELD_OK = 'border-line focus:border-accent-hi';
 const FIELD_INVALID = 'border-st-fail focus:border-st-fail';
 const RING_OK = 'focus:ring-2 focus:ring-accent/10';
@@ -61,7 +61,7 @@ export function Input({
   // Affix pattern antd: wrapper mang viền/ring, input trần flex-1 bên trong
   return (
     <span
-      className={`inline-flex w-full items-center gap-1 rounded-2 border bg-s2 px-2 transition-colors focus-within:outline-none ${ringCls}${className ? ` ${className}` : ''}`}
+      className={`inline-flex w-full items-center gap-1 rounded-lg border bg-s2 px-2 transition-colors focus-within:outline-none ${ringCls}${className ? ` ${className}` : ''}`}
     >
       {prefix && <span className="shrink-0 text-ink3">{prefix}</span>}
       <input

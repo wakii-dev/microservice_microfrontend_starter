@@ -51,7 +51,7 @@ const VARIANTS: Record<ButtonType, string> = {
 };
 
 const DANGER: Partial<Record<ButtonType, string>> = {
-  'primary': 'border-st-fail bg-st-fail text-white hover:border-[#ff7875] hover:bg-[#ff7875]',
+  'primary': 'border-st-fail bg-st-fail text-white hover:border-st-fail/85 hover:bg-st-fail/85',
   'text': 'border-transparent bg-transparent text-st-fail hover:bg-st-fail/12',
 };
 

@@ -1,6 +1,5 @@
 // Typography tests — Title levels (antd scale) + Text types/marks/copyable + Paragraph.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Typography, Title, Text, Paragraph } from './index.js';
 

@@ -1,80 +1,127 @@
-# @wakii/ui-kit
+<div align="center">
 
-> Design system của Wakii — **~90 React components + 17 hooks**, tokens-first với Tailwind v4,
-> dark theme, motion mượt, a11y. Benchmark antd × PrimeReact, làm hơn ở motion và modern identity.
+# 🎨 @wakii/ui-kit
 
-[![npm](https://img.shields.io/npm/v/@wakii/ui-kit?label=%40wakii%2Fui-kit&logo=npm)](https://www.npmjs.com/package/@wakii/ui-kit)
-[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook)](https://storybook-static-khaki-two.vercel.app)
-[![tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#)
-[![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+**A production-grade React design system — 90+ components, 17 hooks, tokens-first, dark theme built in.**
 
-📖 **Storybook:** https://storybook-static-khaki-two.vercel.app — mọi component, props, states demo thật.
-🏠 **Repo:** https://github.com/wakii-dev/architecture-overview · 📦 **GitHub Packages:** `@wakii-dev/ui-kit` (mirror nội bộ org).
+Benchmarked against Ant Design & PrimeReact. Faster motion, modern identity, zero styling surprises.
+
+[![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+[![Tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#-quality)
+[![React](https://img.shields.io/badge/React-%E2%89%A518-61dafb?logo=react)](#)
+
+[📖 Live Storybook](https://storybook-static-khaki-two.vercel.app) ·
+[📦 npm](https://www.npmjs.com/package/@wakii/ui-kit) ·
+[🏠 GitHub](https://github.com/wakii-dev/architecture-overview) ·
+[📚 Full docs](./USAGE.md)
+
+</div>
 
 ---
 
-## Cài đặt
+## ✨ Why wakii-ui-kit
+
+| | |
+|---|---|
+| 🧩 **90+ components** | From DataTable with **virtual scroll (5k+ rows)** to Upload Dropzone, TreeSelect, TimePicker, range DatePicker — the parts real apps actually need |
+| 🪝 **17 battle-tested hooks** | `useForm` (zod-powered), `useDebounce`, `useClickAway`, `useFocusTrap`… every hook ships behavior tests |
+| 🌗 **Dark theme, done right** | One attribute — `<html data-bp-theme="dark">`. CSS-variable cascade, no flash, no JS, no rebuild |
+| 🎯 **Tokens-first** | One `tokens.css` is the single source of truth — colors, spacing, radii, shadows, even a **z-index scale**. No hardcoded hex in components |
+| 🚀 **Motion with taste** | Pure-CSS keyframes (zero animation deps), respects `prefers-reduced-motion` |
+| ♿ **Real a11y** | Focus trap + focus restore in Modal/Drawer, ARIA roles, full keyboard support — verified in Storybook |
+| 🪶 **Smart weight** | Heavy engines (Swiper, Chart.js, Tiptap, FullCalendar) are optional peers behind subpath exports — your bundle stays lean |
+| 🧪 **540 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
+
+## 🚀 Quick start
 
 ```bash
-npm i @wakii/ui-kit            # npmjs.org (public)
-# hoặc GitHub Packages (org nội bộ):
-#   .npmrc: @wakii-dev:registry=https://npm.pkg.github.com → npm i @wakii-dev/ui-kit
+npm install @wakii/ui-kit
 ```
 
-React ≥ 18. Heavy engines là **optional peers** — chỉ cài khi dùng subpath: `swiper` (`@wakii/ui-kit/carousel`), `chart.js` (chart), `zod` (useForm).
-
-## Bắt đầu trong 30 giây
-
 ```tsx
-import '@wakii/ui-kit/styles/ui-kit.css';   // 1 file CSS compiled (tokens + utilities + motion)
+// one CSS file — tokens + utilities + motion, all compiled
+import '@wakii/ui-kit/styles/ui-kit.css';
 
 import { Button } from '@wakii/ui-kit';
 
-function App() {
-  return <Button variant="primary" icon="check">Bắt đầu</Button>;
+export function App() {
+  return <Button variant="primary" icon="check">Get started</Button>;
 }
 ```
 
-**Dark mode** — một attribute, không reload:
+### 🌗 Dark mode in one line
 
 ```html
 <html data-bp-theme="dark">
 ```
 
-**Form với zod** (schema là source of truth):
+### 📝 Forms with zod — schema is the single source of truth
 
 ```tsx
-const form = useForm({ schema: z.object({ email: z.string().email('Email không hợp lệ') }), mode: 'onBlur' });
+import { z } from 'zod';
+import { useForm, Field, Input } from '@wakii/ui-kit';
+
+const schema = z.object({
+  email: z.string().email('Invalid email'),
+});
+
+const form = useForm({ schema, mode: 'onBlur' });
+
 <Field label="Email" error={form.errors.email} required>
-  <Input value={form.values.email} invalid={!!form.errors.email}
-         onChange={form.handleChange('email')} onBlur={form.handleBlur('email')} />
+  <Input
+    value={form.values.email}
+    invalid={!!form.errors.email}
+    onChange={form.handleChange('email')}
+    onBlur={form.handleBlur('email')}
+  />
 </Field>
 ```
 
-## Có gì trong hộp
+## 🧩 Component map
 
-| Nhóm | Components |
+| Group | Components |
 |---|---|
-| **Layout & Nav** | Sidebar (collapsible 200→80px), Menu/Submenu đa cấp, Breadcrumb, Steps, Tabs, Pagination (antd look), TabMenu, Menubar, Dropdown, SpeedDial |
-| **Data Display** | Table (DataTable + filter + **virtual scroll 5k+ rows**), List, Tree, TreeSelect, Descriptions, Timeline, Statistic, Avatar, AvatarGroup, Badge, Tag, Collapse, Card, Image, Galleria, Carousel (Swiper), Chart, Calendar, DatePicker (range + time + locale vi/en), TimePicker, Schedule (FullCalendar) |
-| **Forms** | Input, Textarea, InputNumber, InputMask, InputOTP, Select, AutoComplete, CascadeSelect, Checkbox, Radio, Switch, Slider, Rate, ColorPicker, Upload + **UploadDropzone** (drag-drop), **Field** wrapper, Editor (Tiptap) |
-| **Feedback** | Alert (filled mặc định + outlined), Message, Notification, Modal, Drawer, Popconfirm, Progress, Skeleton, Spinner, Result, EmptyState, BlockUI |
-| **Overlay** | Tooltip, Popover, ContextMenu — z-index theo thang token `--z-*` |
-| **Hooks (17)** | useForm (zod), useLocalStorage, useSessionStorage, useDebounce, useThrottle, useTimeout, useCountdown, useClickAway, useHover, useKeyPress, useMediaQuery, useLockBodyScroll, useWindowSize, useCopyToClipboard, useToggle, usePrevious, useDefault, useFocusTrap |
-| **Icon** | `Icon` component ~40 primeicons SVG gốc, tree-shakeable |
+| **Layout & Navigation** | Sidebar (collapsible 200→80px) · Menu / nested Submenu · Breadcrumb · Steps · Tabs · Pagination (antd look) · TabMenu · Menubar · Dropdown · SpeedDial |
+| **Data display** | DataTable (filters, selection kept across pages, **virtual scroll**) · List · Tree · TreeSelect · Descriptions · Timeline · Statistic · Avatar · AvatarGroup · Badge · Tag · Collapse · Card · Image · Galleria · Carousel (Swiper) · Chart · Calendar · DatePicker (range + time + vi/en locale) · TimePicker · Schedule |
+| **Forms** | Input · Textarea · InputNumber · InputMask · InputOTP · Select · AutoComplete · CascadeSelect · Checkbox · Radio · Switch · Slider · Rate · ColorPicker · Upload + UploadDropzone (drag & drop) · Field wrapper · Editor (Tiptap) |
+| **Feedback** | Alert (filled by default + outlined) · Message · Notification · Modal · Drawer · Popconfirm · Progress · Skeleton · Spinner · Result · EmptyState · BlockUI |
+| **Overlay** | Tooltip · Popover · ContextMenu — all on the tokenized `--z-*` scale |
+| **Icons** | `Icon` component — 40+ primeicons SVG paths, tree-shakeable |
 
-## Nguyên tắc thiết kế
+<details>
+<summary><b>17 Hooks</b></summary>
 
-- **Tokens-first** — `tokens.css` là nguồn sự thật duy nhất (màu/spacing/radius/shadow/**z-index scale**); components không hex cứng
-- **Dark theme** qua CSS var cascade (`[data-bp-theme="dark"]`) — không flash, không JS
-- **Motion CSS thuần 0 deps** — keyframes identity `bp-*`, tôn trọng `prefers-reduced-motion`
-- **A11y thật** — focus trap + restore (Modal/Drawer), aria chuẩn, keyboard walkthrough
-- **Behavior tests** — 540 tests assert hành vi thật (click → onChange, class state, jump logic), không smoke render
+`useForm` (zod) · `useLocalStorage` · `useSessionStorage` · `useDebounce` · `useThrottle` · `useTimeout` · `useCountdown` · `useClickAway` · `useHover` · `useKeyPress` · `useMediaQuery` · `useLockBodyScroll` · `useWindowSize` · `useCopyToClipboard` · `useToggle` · `usePrevious` · `useDefault` · `useFocusTrap`
 
-## Tài liệu
+</details>
 
-- [USAGE.md](./USAGE.md) — hướng dẫn chi tiết theo nhóm (form, icon, subpath, z-index)
-- [CHANGELOG.md](./CHANGELOG.md) · [MIGRATION.md](./MIGRATION.md) (Alert filled, pagination antd, subpath heavy)
-- [parity-matrix.md](../docs/parity-matrix.md) — đối chiếu antd/PrimeReact từng component
+## 📦 Distribution
 
-MIT © wakii-dev
+| Registry | Package | Audience |
+|---|---|---|
+| **npmjs.org** | [`@wakii/ui-kit`](https://www.npmjs.com/package/@wakii/ui-kit) | Public — no auth needed |
+| **GitHub Packages** | `@wakii-dev/ui-kit` | Org-internal — add `@wakii-dev:registry=https://npm.pkg.github.com` to `.npmrc` |
+
+Heavy engines are **optional peer dependencies** — install them only if you use the subpath:
+`@wakii/ui-kit/carousel` → `swiper` · `chart` → `chart.js` · `useForm` → `zod` · schedule → `@fullcalendar/*` · editor → `@tiptap/*`
+
+## 🔬 Quality
+
+- **540 behavior tests** (clicks → callbacks, state classes, keyboard flows)
+- **Storybook test-runner**: 215/215 stories render-verified on every push
+- Dark-mode audited across every component
+- `prefers-reduced-motion` respected globally
+
+## 📚 Documentation
+
+- [USAGE.md](./USAGE.md) — deep dives per group (forms, icons, subpaths, z-index)
+- [CHANGELOG.md](./CHANGELOG.md) / [MIGRATION.md](./MIGRATION.md) — releases & breaking changes (Alert filled, antd Pagination, subpath heavy engines)
+- [parity-matrix.md](../docs/parity-matrix.md) — component-by-component benchmark vs antd/PrimeReact
+
+<div align="center">
+
+**MIT** © [wakii-dev](https://github.com/wakii-dev) — built with 🤖 multi-agent pair-coding
+
+</div>

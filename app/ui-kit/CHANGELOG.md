@@ -4,7 +4,9 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
-## [Unreleased] — 2026-10-17/18 (story VU-53 UI redesign)
+## [0.3.0] — 2026-10-19 (story VU-53 UI redesign — OCD parity wave)
+
+> ~110 commits: 30+ component mới (Timesheet/Kanban/3D/Parallax-họ/Layout/TreeTable...), 6+1 templates, motion-max, a11y pass, app-fit 4 apps Wakii, storybook 131 titles/641 stories, eslint 0/0, 1111+ tests. Chi tiết mục dưới.
 
 ### Added
 

@@ -13,13 +13,13 @@ nơi trỏ tới.
 
 ## Quyết định
 
-1. **Package mới `app/ui-kit` (`@wakii/ui-kit`)** sở hữu trọn vẹn design system:
+1. **Package mới `app/ui-kit` (`wakii-ui-kit`)** sở hữu trọn vẹn design system:
    `src/ui/*` + `src/styles/{tokens,base}.css`. `app/shared` thu hẹp thành logic-only.
 2. **Consumption QUA SOURCE** như fe-shared — không build, không dist, KHÔNG runtime
    dependency (react types do consumer cung cấp qua tsconfig paths / resolve.modules;
    `react` trong devDependencies chỉ phục vụ test + storybook). Giữ 1 cơ chế duy nhất,
    tránh 2 dạng consumption trong cùng repo.
-3. **Consumers đổi thẳng import** (`@wakii/ui-kit` cho UI, `@wakii/fe-shared` cho logic)
+3. **Consumers đổi thẳng import** (`wakii-ui-kit` cho UI, `@wakii/fe-shared` cho logic)
    — không re-export cầu: template nội bộ, 3 consumers, tests che đủ; lớp gián tiếp
    chỉ thêm nợ dọn.
 4. **Storybook 9 + Vite builder sống trong ui-kit** (dev-only, không đụng MF runtime

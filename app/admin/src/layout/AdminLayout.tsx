@@ -15,10 +15,26 @@ import {
   message,
   useLocalStorage,
   type MenuItemData,
-} from '@wakii/ui-kit';
+} from 'wakii-ui-kit';
 
-const MENU_ITEMS: MenuItemData[] = [
-  { key: '/', label: 'Dashboard', icon: <Icon name="home" size={16} /> },
+/* Badge count đè GÓC icon (absolute) — không chiếm layout, không tràn rìa khi
+ * sidebar compact (fix ⑥-3): size-4, text-[9px], ring nền surface tách viền. */
+function IconWithCount({ name, count }: { name: 'home' | 'users' | 'star' | 'settings'; count: number }) {
+  return (
+    <span className="relative inline-flex">
+      <Icon name={name} size={16} />
+      <span
+        aria-hidden="true"
+        className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-pill bg-st-fail text-[9px] font-bold leading-none text-white ring-2 ring-s2"
+      >
+        {count}
+      </span>
+    </span>
+  );
+}
+
+const MENU_MAIN: MenuItemData[] = [
+  { key: '/', label: 'Dashboard', icon: <IconWithCount name="home" count={7} /> },
   {
     key: 'group-manage',
     label: 'Quản lý',
@@ -37,8 +53,9 @@ const MENU_ITEMS: MenuItemData[] = [
       { key: '/demo/components', label: 'Components' },
     ],
   },
-  { key: '/settings', label: 'Cài đặt', icon: <Icon name="settings" size={16} /> },
 ];
+
+const MENU_SECONDARY: MenuItemData[] = [{ key: '/settings', label: 'Cài đặt', icon: <Icon name="settings" size={16} /> }];
 
 function MoonIcon() {
   return (
@@ -137,10 +154,17 @@ export function AdminLayout() {
       <Sidebar
         ariaLabel="Sidebar admin"
         brand={
-          <div className="flex items-center gap-2 px-1">
-            <span className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent text-label font-bold text-white">W</span>
-            <span className="whitespace-nowrap text-body font-semibold text-ink">Wakii Admin</span>
-          </div>
+          sidebarCollapsed ? (
+            /* Compact: chỉ logo W, căn giữa ngang (fix ⑥-1 — hết tràn chữ). */
+            <div className="flex w-full justify-center">
+              <span className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent text-label font-bold text-white">W</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-1">
+              <span className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent text-label font-bold text-white">W</span>
+              <span className="whitespace-nowrap text-body font-semibold text-ink">Wakii Admin</span>
+            </div>
+          )
         }
         footer={
           <div className={`flex items-center gap-2 px-2${sidebarCollapsed ? ' justify-center' : ''}`}>
@@ -156,7 +180,17 @@ export function AdminLayout() {
         onToggle={setSidebarCollapsed}
       >
         <Menu
-          items={MENU_ITEMS}
+          items={MENU_MAIN}
+          mode="vertical"
+          selectedKey={location.pathname}
+          onSelect={(key) => {
+            if (key.startsWith('/')) navigate(key);
+          }}
+        />
+        {/* Divider mảnh tách nhóm chính/phụ — đều nhịp dọc cả expanded lẫn compact (fix ⑥-5). */}
+        <div role="separator" className="my-2 border-t border-line" />
+        <Menu
+          items={MENU_SECONDARY}
           mode="vertical"
           selectedKey={location.pathname}
           onSelect={(key) => {

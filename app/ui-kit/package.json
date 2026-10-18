@@ -1,5 +1,5 @@
 {
-  "name": "@wakii/ui-kit",
+  "name": "wakii-ui-kit",
   "version": "0.1.0",
   "description": "ui-kit — design system của boilerplate: tokens + base css + primitives (Badge/EmptyState/Skeleton/Spinner, SF-1 story VU-53). Tách khỏi fe-shared 2026-10-17 (ADR-0009): design system ≠ logic, SF design-system không đụng vùng READ-LOCKED của fe-shared. Consumed QUA SOURCE — main/types trỏ thẳng src/, KHÔNG build, KHÔNG runtime dep (react types do consumer cung cấp — tsconfig paths/resolve.modules của consumer; devDeps react chỉ để chạy test + storybook).",
   "type": "module",

@@ -69,7 +69,10 @@ export function Sidebar({
         aria-label={collapsed ? 'Mở rộng' : 'Thu gọn'}
         aria-expanded={!collapsed}
         onClick={toggle}
-        className="absolute -right-3 top-1/2 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors hover:text-accent"
+        className={`absolute top-1/2 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors hover:text-accent ${
+          /* Collapsed: căn giữa ngang trên mép sidebar (fix ⑥-4); expanded: lưồi nửa ngoài mép phải. */
+          collapsed ? 'left-1/2 -translate-x-1/2' : '-right-3'
+        }`}
       >
         {collapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
       </button>

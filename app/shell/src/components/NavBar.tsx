@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Button } from '@wakii/ui-kit';
+import { Button } from 'wakii-ui-kit';
 import { auth } from '../api';
 
 /**

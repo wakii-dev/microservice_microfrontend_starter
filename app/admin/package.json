@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "App admin — Vite SPA showcase toàn bộ @wakii/ui-kit (batch ⑦ VU-53): layout Sidebar+Menu đa cấp, Dashboard/Users/Upload/Hooks/Settings, dark theme persist.",
+  "description": "App admin — Vite SPA showcase toàn bộ wakii-ui-kit (batch ⑦ VU-53): layout Sidebar+Menu đa cấp, Dashboard/Users/Upload/Hooks/Settings, dark theme persist.",
   "scripts": {
     "dev": "vite --port 5173",
     "build": "vite build",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@wakii/ui-kit": "workspace:*",
+    "wakii-ui-kit": "workspace:*",
     "chart.js": "^4.5.1",
     "react": "catalog:",
     "react-dom": "catalog:",

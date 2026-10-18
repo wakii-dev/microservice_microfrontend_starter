@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Avatar } from './index';
+/** Identity chip — letter initials by default, photo via `src`. */
 const meta = { title: 'Data Display/Avatar', component: Avatar, tags: ['autodocs'] } satisfies Meta<typeof Avatar>;
 export default meta;
 type S = StoryObj<typeof meta>;

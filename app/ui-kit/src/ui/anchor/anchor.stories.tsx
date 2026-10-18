@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Anchor, type AnchorLinkItem } from './index';
 
+/** Anchor navigation — jump links synced with scroll position. */
 const meta = { title: 'Navigation/Anchor', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

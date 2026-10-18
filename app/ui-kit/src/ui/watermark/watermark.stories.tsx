@@ -3,8 +3,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Watermark } from './index';
 
+/** Repeated watermark overlay for page branding. */
 const meta = {
-  title: 'Primitives/Watermark',
+  title: 'Data Display/Watermark',
   component: Watermark,
   tags: ['autodocs'],
 } satisfies Meta<typeof Watermark>;

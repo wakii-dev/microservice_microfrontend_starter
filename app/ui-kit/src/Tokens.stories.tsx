@@ -6,7 +6,7 @@ import type { CSSProperties } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const meta = {
-  title: 'Design Tokens',
+  title: 'Theming & Motion/Design Tokens',
   tags: ['!dev'],
 } satisfies Meta;
 export default meta;
@@ -140,7 +140,7 @@ export const SángMặcĐịnh: Story = {
 };
 
 export const TốiDirectionB: Story = {
-  name: 'Dark — direction B (theme phụ, archive VU-53)',
+  name: 'Dark — direction B (archive VU-53)',
   render: () => (
     <div data-bp-theme="dark" style={{ padding: 24, background: 'var(--c-canvas)', minHeight: '100vh' }}>
       <Swatches

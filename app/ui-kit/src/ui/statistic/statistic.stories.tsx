@@ -5,8 +5,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Statistic } from './index';
 
+/** Big-number KPI readout — title, value, prefix/suffix. */
 const meta = {
-  title: 'Primitives/Statistic',
+  title: 'Data Display/Statistic',
   component: Statistic,
   tags: ['autodocs'],
 } satisfies Meta<typeof Statistic>;

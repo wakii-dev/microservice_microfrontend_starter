@@ -53,7 +53,7 @@ import {
 } from './index';
 
 const meta = {
-  title: 'Kitchen Sink',
+  title: 'Domain/Kitchen Sink',
   tags: ['!dev'],
 } satisfies Meta;
 export default meta;

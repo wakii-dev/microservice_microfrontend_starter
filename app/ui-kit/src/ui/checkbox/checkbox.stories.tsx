@@ -8,6 +8,12 @@ type S = StoryObj<typeof meta>;
 /** Basic — unchecked. */
 export const Basic: S = { args: { children: 'Remember me' } };
 
+/** Group — multi-pick column of checkboxes (antd Checkbox.Group pattern, consumer-side). */
+export const Group: S = {
+  name: 'Group — multi-pick (consumer-side state)',
+  render: () => <CheckboxGroupDemo />,
+};
+
 /** Checked — pressed state. */
 export const Checked: S = { args: { checked: true, children: 'Selected' } };
 
@@ -28,12 +34,6 @@ export const DarkTheme: S = {
       <Checkbox disabled>Cannot check</Checkbox>
     </div>
   ),
-};
-
-/** Group — multi-pick column of checkboxes (antd Checkbox.Group pattern, consumer-side). */
-export const Group: S = {
-  name: 'Group — multi-pick (consumer-side state)',
-  render: () => <CheckboxGroupDemo />,
 };
 
 const STACKS = ['React', 'TypeScript', 'Rust'];

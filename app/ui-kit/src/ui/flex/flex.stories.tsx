@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Flex } from './index';
 
+/** Flexbox layout utility — direction, gap, align, justify as props. */
 const meta = { title: 'Primitives/Flex', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

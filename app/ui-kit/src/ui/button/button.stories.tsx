@@ -22,6 +22,12 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** Basic — primary button, the everyday default. */
+export const Basic: Story = {
+  name: 'Basic',
+  args: { type: 'primary', children: 'Create task' },
+};
+
 export const Variants: Story = {
   args: { children: 'Button' },
   render: () => (

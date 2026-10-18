@@ -9,15 +9,15 @@ type S = StoryObj<typeof meta>;
 /** Basic — default value + preset grid. */
 export const Basic: S = { args: { value: '#1677ff' } };
 
-/** Controlled — useState demo: pick a preset / native / hex → swatch follows value. */
-export const Controlled: S = {
-  render: () => <ColorPickerControlledDemo />,
-};
-
 /** CustomPresets — custom color list via presets prop. */
 export const CustomPresets: S = {
   name: 'Custom presets',
   args: { value: '#00b96b', presets: ['#00b96b', '#8adaa3', '#ffd666', '#ff9c6e'] },
+};
+
+/** Controlled — useState demo: pick a preset / native / hex → swatch follows value. */
+export const Controlled: S = {
+  render: () => <ColorPickerControlledDemo />,
 };
 
 /** Empty — presets=[]: palette falls back to native color + hex input only. */

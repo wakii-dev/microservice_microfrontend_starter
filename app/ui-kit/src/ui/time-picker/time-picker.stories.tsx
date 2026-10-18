@@ -60,15 +60,6 @@ export const LocaleEN: Story = {
   render: () => <TimePicker locale="en" />,
 };
 
-export const DarkTheme: Story = {
-  name: 'Dark theme',
-  render: () => (
-    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
-      <TimePicker />
-    </div>
-  ),
-};
-
 /** Disabled — trigger locked. */
 export const Disabled: Story = {
   args: { disabled: true, value: '08:30' },
@@ -77,6 +68,15 @@ export const Disabled: Story = {
 /** Controlled — string value 'HH:mm' demo. */
 export const Controlled: Story = {
   render: () => <TimePickerControlledDemo />,
+};
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <TimePicker />
+    </div>
+  ),
 };
 
 function TimePickerControlledDemo() {

@@ -5,8 +5,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Popconfirm } from './index';
 
+/** Confirm bubble anchored to a trigger — ESC = cancel. */
 const meta = {
-  title: 'Primitives/Popconfirm',
+  title: 'Feedback/Popconfirm',
   component: Popconfirm,
   tags: ['autodocs'],
 } satisfies Meta<typeof Popconfirm>;

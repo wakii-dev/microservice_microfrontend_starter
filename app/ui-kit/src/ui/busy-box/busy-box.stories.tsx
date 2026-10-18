@@ -5,6 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { BusyBox } from './index';
 
+/** Compact busy indicator — spinner + label in one line. */
 const meta = { title: 'Primitives/BusyBox', component: BusyBox, tags: ['autodocs'] } satisfies Meta<typeof BusyBox>;
 export default meta;
 type Story = StoryObj<typeof meta>;

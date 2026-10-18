@@ -8,6 +8,7 @@ import { List } from '../list/index';
 import { message } from '../message/index';
 import { VirtualScroll } from './index';
 
+/** Windowed list for long data — constant DOM node count. */
 const meta = { title: 'Data Display/VirtualScroll', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

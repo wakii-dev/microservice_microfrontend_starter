@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon } from '../icons/index';
 import { Tabs } from './index';
+/** Switch content panels in place — accent underline, controlled activeKey. */
 const meta = { title: 'Navigation/Tabs', component: Tabs, tags: ['autodocs'] } satisfies Meta<typeof Tabs>;
 export default meta;
 type S = StoryObj<typeof meta>;

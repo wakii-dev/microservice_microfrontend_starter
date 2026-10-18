@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Switch } from './index';
 
+/** Instant on/off toggle — `role=switch` + `aria-checked` built in. */
 const meta = { title: 'Forms/Switch', component: Switch, tags: ['autodocs'] } satisfies Meta<typeof Switch>;
 export default meta;
 type S = StoryObj<typeof meta>;
@@ -52,19 +53,6 @@ export const Disabled: S = {
   ),
 };
 
-export const DarkTheme: S = {
-  name: 'Dark theme',
-  /* Soft bg-s2 card (dark = muted gray) like a real card surface — not a harsh
-   * near-black box on the light canvas (user feedback). */
-  render: () => (
-    <div data-bp-theme="dark" className="inline-flex items-center gap-4 rounded-xl bg-s2 p-4">
-      <Switch checked aria-label="Dark 1" />
-      <Switch aria-label="Dark 2" />
-      <Switch checked size="small" aria-label="Dark 3" />
-    </div>
-  ),
-};
-
 function ControlledDemo() {
   const [on, setOn] = useState(true);
   return (
@@ -79,3 +67,17 @@ function ControlledDemo() {
 export const Controlled: S = {
   render: () => <ControlledDemo />,
 };
+
+export const DarkTheme: S = {
+  name: 'Dark theme',
+  /* Soft bg-s2 card (dark = muted gray) like a real card surface — not a harsh
+   * near-black box on the light canvas (user feedback). */
+  render: () => (
+    <div data-bp-theme="dark" className="inline-flex items-center gap-4 rounded-xl bg-s2 p-4">
+      <Switch checked aria-label="Dark 1" />
+      <Switch aria-label="Dark 2" />
+      <Switch checked size="small" aria-label="Dark 3" />
+    </div>
+  ),
+};
+

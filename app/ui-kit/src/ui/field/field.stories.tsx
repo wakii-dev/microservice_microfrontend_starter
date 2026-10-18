@@ -11,7 +11,7 @@ import { Select } from '../select/index.js';
 import { Field } from './index.js';
 
 const meta = {
-  title: 'Primitives/Field',
+  title: 'Forms/Field',
   component: Field,
   tags: ['autodocs'],
   parameters: {
@@ -28,7 +28,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CoBan: Story = {
-  name: 'Cơ bản',
+  name: 'Basic',
   args: {
     label: 'Tiêu đề',
     htmlFor: 'field-title',
@@ -38,7 +38,7 @@ export const CoBan: Story = {
 };
 
 export const Required: Story = {
-  name: 'Required (dấu *)',
+  name: 'Required marker',
   args: {
     label: 'Email',
     htmlFor: 'field-email',
@@ -48,7 +48,7 @@ export const Required: Story = {
 };
 
 export const ErrorThayHint: Story = {
-  name: 'Error thay hint',
+  name: 'Error replaces hint',
   args: {
     label: 'Email',
     htmlFor: 'field-error',
@@ -142,7 +142,7 @@ function ZodFormDemo() {
 }
 
 export const ZodForm: Story = {
-  name: 'Form thật (useForm + zod)',
+  name: 'Real form — useForm + zod',
   render: () => <ZodFormDemo />,
 };
 

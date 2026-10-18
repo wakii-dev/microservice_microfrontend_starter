@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { BlockUI } from './index';
 
+/** Lock a region in place with a scrim + centered message. */
 const meta = { title: 'Feedback/BlockUI', component: BlockUI, tags: ['autodocs'] } satisfies Meta<typeof BlockUI>;
 export default meta;
 type S = StoryObj<typeof meta>;

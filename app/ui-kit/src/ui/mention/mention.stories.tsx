@@ -19,11 +19,6 @@ export const Controlled: Story = {
   render: () => <MentionControlledDemo />,
 };
 
-/** Empty — suggestions=[] → no dropdown even after @. */
-export const Empty: Story = {
-  args: { suggestions: [], placeholder: 'No one to mention…', className: 'w-96' },
-};
-
 /** DarkTheme — textarea + open suggestion list on dark canvas. */
 export const DarkTheme: Story = {
   render: () => (
@@ -31,6 +26,11 @@ export const DarkTheme: Story = {
       <Mention suggestions={PEOPLE.slice(0, 3)} placeholder="Type @ to mention…" />
     </div>
   ),
+};
+
+/** Empty — suggestions=[] → no dropdown even after @. */
+export const Empty: Story = {
+  args: { suggestions: [], placeholder: 'No one to mention…', className: 'w-96' },
 };
 
 function MentionControlledDemo() {

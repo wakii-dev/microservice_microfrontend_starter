@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Rating } from './index';
-const meta = { title: 'Data Display/Rating', component: Rating, tags: ['autodocs'] } satisfies Meta<typeof Rating>;
+const meta = { title: 'Forms/Rating', component: Rating, tags: ['autodocs'] } satisfies Meta<typeof Rating>;
 export default meta;
 type S = StoryObj<typeof meta>;
 
 /** Basic — 5 stars, click to rate (hover previews). */
-export const MacDinh: S = {};
+export const MacDinh: S = { name: 'Basic — click to rate' };
+
+/** CustomMax — 10-star scale (antd Rate count). */
+export const CustomMax: S = { name: 'Custom max — 10 stars', args: { value: 6, max: 10 } };
 
 /** ReadOnly — stars render but clicks are locked (display-only score). */
 export const ReadOnly: S = { args: { value: 3, readOnly: true } };
 
 /** Disabled — locked + dimmed (antd Rate disabled). */
 export const Disabled: S = { args: { value: 2, disabled: true } };
-
-/** CustomMax — 10-star scale (antd Rate count). */
-export const CustomMax: S = { name: 'Custom max — 10 stars', args: { value: 6, max: 10 } };
 
 /** Controlled — hover preview + picked value shown below. */
 export const Controlled: S = {

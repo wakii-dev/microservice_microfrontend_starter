@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Input } from './index';
 
 const meta = {
-  title: 'Primitives/Input Search',
+  title: 'Forms/InputSearch',
   component: Input.Search,
   tags: ['autodocs'],
   argTypes: {

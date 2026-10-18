@@ -5,8 +5,9 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Tag } from './index';
 
+/** Tiny label chip — statuses, metadata; Checkable for filter chips. */
 const meta = {
-  title: 'Primitives/Tag',
+  title: 'Data Display/Tag',
   component: Tag,
   tags: ['autodocs'],
 } satisfies Meta<typeof Tag>;

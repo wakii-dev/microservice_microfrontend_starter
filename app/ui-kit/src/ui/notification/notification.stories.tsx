@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { notification } from './index';
 
+/** Rich toast with title + description — static API, 4.5s. */
 const meta = { title: 'Feedback/Notification', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

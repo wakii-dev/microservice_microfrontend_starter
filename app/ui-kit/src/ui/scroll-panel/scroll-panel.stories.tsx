@@ -2,6 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ScrollPanel } from './index';
 
+/** Scrollable container with a slim custom scrollbar and fixed height. */
 const meta = {
   title: 'Primitives/ScrollPanel',
   component: ScrollPanel,
@@ -14,7 +15,7 @@ type Story = StoryObj;
 const LINES = Array.from({ length: 40 }, (_, i) => `Dòng ${i + 1} — nội dung demo cuộn`);
 
 export const CoBan: Story = {
-  name: 'Cơ bản — height 200px, scrollbar mảnh',
+  name: 'Basic — 200px height, slim scrollbar',
   render: () => (
     <ScrollPanel className="w-80">
       <div className="flex flex-col gap-1 text-body text-ink2">
@@ -25,7 +26,7 @@ export const CoBan: Story = {
 };
 
 export const Cao: Story = {
-  name: 'Height tuỳ chỉnh — 350px',
+  name: 'Custom height — 350px',
   render: () => (
     <ScrollPanel height="350px" className="w-96">
       <div className="flex flex-col gap-1 text-body text-ink2">

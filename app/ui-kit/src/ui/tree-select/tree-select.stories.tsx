@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { TreeSelect, type TreeNode } from './index';
 
+/** Pick one leaf from a hierarchy — searchable, clearable, path shown as 'A / B'. */
 const meta = {
   title: 'Forms/TreeSelect',
   component: TreeSelect,
@@ -79,11 +80,6 @@ export const DeepPath: Story = {
   args: { ariaLabel: 'Org unit', treeData: ORG_TREE, value: 'fe' },
 };
 
-export const Disabled: Story = {
-  name: 'Disabled — panel won’t open, s3 background',
-  args: { ariaLabel: 'Department (disabled)', treeData: DEPARTMENTS, value: 'fe-ui', disabled: true },
-};
-
 export const NoSearch: Story = {
   name: 'searchable=false — panel without search box',
   args: { ariaLabel: 'Department', treeData: DEPARTMENTS, searchable: false, placeholder: 'Select department…' },
@@ -92,6 +88,11 @@ export const NoSearch: Story = {
 export const NoClear: Story = {
   name: 'clearable=false — has value but no × button',
   args: { ariaLabel: 'Department', treeData: DEPARTMENTS, value: 'be-node', clearable: false },
+};
+
+export const Disabled: Story = {
+  name: 'Disabled — panel won’t open, s3 background',
+  args: { ariaLabel: 'Department (disabled)', treeData: DEPARTMENTS, value: 'fe-ui', disabled: true },
 };
 
 export const DarkTheme: Story = {

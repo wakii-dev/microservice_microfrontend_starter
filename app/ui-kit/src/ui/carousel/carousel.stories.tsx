@@ -12,6 +12,7 @@ import 'swiper/css/pagination';
 
 // No `component` in meta (items is a required ReactNode[]) — render-only stories,
 // same pattern as pagination.stories.
+/** Sliding content rail — hero, media strip, onboarding steps. */
 const meta = { title: 'Data Display/Carousel', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;

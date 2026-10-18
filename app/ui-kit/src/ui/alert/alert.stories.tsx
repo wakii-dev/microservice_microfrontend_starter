@@ -2,8 +2,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Alert } from './index';
 
+/** Inline status banner that stays in the page flow — filled by default. */
 const meta = {
-  title: 'Primitives/Alert',
+  title: 'Feedback/Alert',
   component: Alert,
   tags: ['autodocs'],
   argTypes: { type: { control: 'select', options: ['success', 'info', 'warning', 'error'] } },

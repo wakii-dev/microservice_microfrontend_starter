@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Result } from './index';
 import { Button } from '../button/index';
 
+/** Full-area status page — icon + title + actions per status. */
 const meta = { title: 'Feedback/Result', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

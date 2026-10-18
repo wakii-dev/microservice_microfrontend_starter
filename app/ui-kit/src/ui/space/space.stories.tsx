@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Space } from './index';
 
+/** Spacing wrapper — horizontal/vertical gap between children. */
 const meta = { title: 'Primitives/Space', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -54,7 +55,7 @@ export const Sizes: Story = {
 };
 
 export const Wrap: Story = {
-  name: 'Wrap — flex-wrap nhiều item',
+  name: 'Wrap — flex-wrap with many items',
   render: () => (
     <Space wrap className="w-96">
       {Array.from({ length: 10 }, (_, i) => (

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Dropdown, type DropdownItem } from './index';
 import { Button } from '../button/index';
 
+/** Button-triggered action menu with role=menu keyboard nav. */
 const meta = { title: 'Navigation/Dropdown', component: Dropdown, tags: ['autodocs'] } satisfies Meta<typeof Dropdown>;
 export default meta;
 type S = StoryObj<typeof meta>;

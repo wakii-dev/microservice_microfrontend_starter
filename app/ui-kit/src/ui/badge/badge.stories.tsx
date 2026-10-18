@@ -4,8 +4,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge, type BadgeVariant } from './index';
 
+/** Small count/status marker for icons and labels. */
 const meta = {
-  title: 'Primitives/Badge',
+  title: 'Data Display/Badge',
   component: Badge,
   tags: ['autodocs'],
   argTypes: {

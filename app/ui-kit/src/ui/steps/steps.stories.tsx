@@ -5,6 +5,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Steps } from './index';
 
+/** Horizontal wizard progress header — done/current/waiting. */
 const meta = { title: 'Navigation/Steps', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

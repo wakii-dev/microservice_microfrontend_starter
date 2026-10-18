@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Menubar } from './index';
 
+/** Horizontal menubar with hover dropdowns. */
 const meta = { title: 'Navigation/Menubar', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

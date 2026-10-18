@@ -5,8 +5,9 @@ import { Button } from '../button/index';
 import { Icon } from '../icons/index';
 import { Skeleton } from './index';
 
+/** Loading placeholder bones — text/row/card/circle/button variants. */
 const meta = {
-  title: 'Primitives/Skeleton',
+  title: 'Feedback/Skeleton',
   component: Skeleton,
   tags: ['autodocs'],
   argTypes: {

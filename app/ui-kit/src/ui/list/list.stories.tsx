@@ -27,6 +27,7 @@ function renderTask(task: TaskItem) {
   );
 }
 
+/** Repeating rows from data — renderItem, pagination, loading skeleton. */
 const meta = {
   title: 'Data Display/List',
   component: List,

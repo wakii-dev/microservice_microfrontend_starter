@@ -4,6 +4,7 @@ import { Typography } from './index';
 
 const { Title, Text, Paragraph } = Typography;
 
+/** Text primitives — Title/Text/Paragraph with type colors. */
 const meta = {
   title: 'Primitives/Typography',
   
@@ -27,7 +28,7 @@ export const CacCapTitle: Story = {
 };
 
 export const TextKieuMau: Story = {
-  name: 'Text — type màu + strong',
+  name: 'Text — color types + strong',
   render: () => (
     <div className="flex flex-col gap-2">
       <Text>Text mặc định (default)</Text>
@@ -54,7 +55,7 @@ export const TextTrangTri: Story = {
 };
 
 export const ParagraphMacDinh: Story = {
-  name: 'Paragraph — đoạn văn',
+  name: 'Paragraph — body block',
   render: () => (
     <Paragraph>
       Đoạn văn bản dài — Typography giữ metrics antd: fontSize 14, lineHeight thoáng,

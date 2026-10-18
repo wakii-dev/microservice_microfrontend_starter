@@ -8,7 +8,7 @@ import { CountUp } from './index';
 
 // Meta WITHOUT `component` — value is a required prop, CSF would force args on
 // render-only stories (image.stories pattern).
-const meta = { title: 'Motion/CountUp', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Theming & Motion/CountUp', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

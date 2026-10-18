@@ -11,24 +11,10 @@ const fmt = (d?: Date | null) => (d ? d.toLocaleDateString('vi-VN') : '—');
 /** Basic — current month, no selection. */
 export const Basic: S = {};
 
-/** Controlled — useState demo: click a day → selected + shown below. */
-export const Controlled: S = {
-  render: () => <CalendarControlledDemo />,
-};
-
 /** LocaleEN — English weekday/month labels. */
 export const LocaleEN: S = {
   name: 'Locale EN',
   args: { locale: 'en' },
-};
-
-/** DarkTheme — month grid on dark canvas. */
-export const DarkTheme: S = {
-  render: () => (
-    <div data-bp-theme="dark" className="w-[320px] rounded-xl bg-canvas p-4">
-      <Calendar />
-    </div>
-  ),
 };
 
 function CalendarControlledDemo() {
@@ -61,18 +47,32 @@ function DayHoverDemo() {
   );
 }
 
-/** DayHover — onDayHover fires as the pointer moves across days (drives DatePicker range preview). */
-export const DayHover: S = {
-  name: 'DayHover — onDayHover readout (drives range preview)',
-  render: () => <DayHoverDemo />,
-};
-
 /** Bare — no outer border/padding; embed inside panels or cards. */
 export const Bare: S = {
   name: 'Bare — borderless embed',
   render: () => (
     <div className="w-[320px] rounded-xl border border-line bg-s1 p-3">
       <Calendar bare now={NOW} />
+    </div>
+  ),
+};
+
+/** DayHover — onDayHover fires as the pointer moves across days (drives DatePicker range preview). */
+export const DayHover: S = {
+  name: 'DayHover — onDayHover readout (drives range preview)',
+  render: () => <DayHoverDemo />,
+};
+
+/** Controlled — useState demo: click a day → selected + shown below. */
+export const Controlled: S = {
+  render: () => <CalendarControlledDemo />,
+};
+
+/** DarkTheme — month grid on dark canvas. */
+export const DarkTheme: S = {
+  render: () => (
+    <div data-bp-theme="dark" className="w-[320px] rounded-xl bg-canvas p-4">
+      <Calendar />
     </div>
   ),
 };

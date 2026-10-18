@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AvatarGroup } from './index';
 
+/** Stacked avatars with overflow folded into a +N pill. */
 const meta = {
   title: 'Data Display/AvatarGroup',
   component: AvatarGroup,

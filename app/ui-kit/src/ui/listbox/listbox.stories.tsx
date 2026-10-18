@@ -13,6 +13,7 @@ const PEOPLE = [
 
 /** Basic — inline list, preselected value. */
 export const MacDinh: S = {
+  name: 'Basic — selected row',
   args: { options: PEOPLE, value: 'alice' },
 };
 

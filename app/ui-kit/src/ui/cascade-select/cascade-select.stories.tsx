@@ -109,11 +109,6 @@ export const Preselected: Story = {
   render: () => <PreselectedDemo />,
 };
 
-/** Empty — options=[]: panel opens with nothing to pick (edge). */
-export const Empty: Story = {
-  args: { options: [], placeholder: 'Nothing to pick…' },
-};
-
 /** DarkTheme — trigger + open panel on dark canvas. */
 export const DarkTheme: Story = {
   render: () => (
@@ -123,4 +118,9 @@ export const DarkTheme: Story = {
       </div>
     </div>
   ),
+};
+
+/** Empty — options=[]: panel opens with nothing to pick (edge). */
+export const Empty: Story = {
+  args: { options: [], placeholder: 'Nothing to pick…' },
 };

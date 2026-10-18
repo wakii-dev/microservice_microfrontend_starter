@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Icon } from '../icons/index';
 import { Segmented } from './index';
+/** Compact single-choice switcher without content panels. */
 const meta = { title: 'Navigation/Segmented', component: Segmented, tags: ['autodocs'] } satisfies Meta<typeof Segmented>;
 export default meta;
 type S = StoryObj<typeof meta>;

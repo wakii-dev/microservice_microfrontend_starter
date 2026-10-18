@@ -4,8 +4,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Modal } from './index';
 
+/** Blocking confirm/dialog — portal, focus trap, ESC/mask cancel. */
 const meta = {
-  title: 'Primitives/Modal',
+  title: 'Feedback/Modal',
   component: Modal,
   tags: ['autodocs'],
 } satisfies Meta<typeof Modal>;

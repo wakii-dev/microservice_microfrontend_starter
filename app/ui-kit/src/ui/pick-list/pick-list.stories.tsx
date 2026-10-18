@@ -44,11 +44,6 @@ export const WithInitialTarget: Story = {
   args: { source: [STACKS[0], STACKS[1]], target: [STACKS[2]] },
 };
 
-/** Empty — empty source column (min-height keeps the panel shape). */
-export const Empty: Story = {
-  args: { source: [], target: STACKS },
-};
-
 /** DarkTheme — panels on dark canvas. */
 export const DarkTheme: Story = {
   render: () => (
@@ -56,4 +51,9 @@ export const DarkTheme: Story = {
       <PickList source={STACKS.slice(0, 2)} target={[]} onChange={() => {}} />
     </div>
   ),
+};
+
+/** Empty — empty source column (min-height keeps the panel shape). */
+export const Empty: Story = {
+  args: { source: [], target: STACKS },
 };

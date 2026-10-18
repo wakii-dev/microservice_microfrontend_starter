@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ContextMenu, type ContextMenuItem } from './index';
 
+/** Right-click menu positioned at the pointer, full keyboard nav. */
 const meta = { title: 'Navigation/ContextMenu', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

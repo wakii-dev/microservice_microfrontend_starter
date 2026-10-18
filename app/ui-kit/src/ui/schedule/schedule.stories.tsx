@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Schedule } from './index';
+/** FullCalendar dayGrid month view — heavy, subpath `@wakii/ui-kit/schedule`. */
 const meta = { title: 'Data Display/Schedule', component: Schedule, tags: ['autodocs'] } satisfies Meta<typeof Schedule>;
 export default meta;
 type S = StoryObj<typeof meta>;

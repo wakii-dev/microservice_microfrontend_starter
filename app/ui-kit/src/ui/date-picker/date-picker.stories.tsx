@@ -16,7 +16,6 @@ const pad = (n: number) => n.toString().padStart(2, '0');
 const fmt = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 
 export const Basic: S = { args: { placeholder: 'Pick a date…' } };
-export const Disabled: S = { args: { disabled: true, placeholder: 'Disabled' } };
 
 /** PrefixIcon — calendar glyph before the value (antd prefix). */
 export const PrefixIcon: S = {
@@ -24,15 +23,18 @@ export const PrefixIcon: S = {
   args: { placeholder: 'Due date…', prefix: <Icon name="calendar" size={14} /> },
 };
 
+/** Controlled — useState demo: picked date shown below. */
+export const Controlled: S = {
+  render: () => <ControlledDemo />,
+};
+
+/** Disabled — trigger locked. */
+export const Disabled: S = { args: { disabled: true, placeholder: 'Disabled' } };
+
 /** DisabledRange — both from/to inputs locked (antd RangePicker disabled). */
 export const DisabledRange: S = {
   name: 'Disabled range — locked from/to',
   args: { range: true as const, disabled: true },
-};
-
-/** Controlled — useState demo: picked date shown below. */
-export const Controlled: S = {
-  render: () => <ControlledDemo />,
 };
 
 function RangeDemo() {
@@ -82,17 +84,6 @@ export const LocaleEN: S = {
   ),
 };
 
-export const DarkTheme: S = {
-  name: 'DarkTheme — single + range + time',
-  render: () => (
-    <div data-bp-theme="dark" className="grid w-96 gap-3 rounded-xl bg-canvas p-4">
-      <DatePicker />
-      <DatePicker range />
-      <TimePicker />
-    </div>
-  ),
-};
-
 /** PlaceholderContrast — empty vs filled trigger side by side: placeholder now uses
  * `text-ink` (readable), panel opens with `min-w-[300px]` and roomier footer
  * buttons ("Today" px-3 py-1.5, OK synced). */
@@ -119,3 +110,14 @@ function ControlledDemo() {
     </div>
   );
 }
+
+export const DarkTheme: S = {
+  name: 'DarkTheme — single + range + time',
+  render: () => (
+    <div data-bp-theme="dark" className="grid w-96 gap-3 rounded-xl bg-canvas p-4">
+      <DatePicker />
+      <DatePicker range />
+      <TimePicker />
+    </div>
+  ),
+};

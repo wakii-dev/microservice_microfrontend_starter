@@ -2,6 +2,7 @@
 // Tree manages expanded state internally (uncontrolled — no controlled prop).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Tree } from './index';
+/** Expand/collapse hierarchy — chevron rotate, pre-expanded keys. */
 const meta = { title: 'Data Display/Tree', component: Tree, tags: ['autodocs'] } satisfies Meta<typeof Tree>;
 export default meta;
 type S = StoryObj<typeof meta>;

@@ -5,7 +5,7 @@ import { Parallax } from './index';
 
 // Meta WITHOUT `component` — children is required, CSF would force args on
 // render-only stories (image.stories pattern).
-const meta = { title: 'Motion/Parallax', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Theming & Motion/Parallax', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

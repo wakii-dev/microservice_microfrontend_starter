@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Progress } from './index';
 
+/** Line progress bar — percent, status colors, clamped 0–100. */
 const meta = { title: 'Feedback/Progress', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

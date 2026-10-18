@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Select } from './index';
 
 const meta = {
-  title: 'Primitives/Select',
+  title: 'Forms/Select',
   component: Select,
   tags: ['autodocs'],
 } satisfies Meta<typeof Select>;
@@ -30,9 +30,6 @@ export const Selected: Story = {
 };
 export const Placeholder: Story = {
   args: { ariaLabel: 'Parity select — placeholder', options: OPTIONS, placeholder: 'Chọn trạng thái…' },
-};
-export const Disabled: Story = {
-  args: { ariaLabel: 'Parity select — disabled', options: OPTIONS, value: 'todo', disabled: true },
 };
 
 // ── Coverage audit additions (antd Select parity) — EN demos ────────────────────
@@ -91,6 +88,11 @@ export const OptionGroups: Story = {
       },
     ],
   },
+};
+
+/** Disabled — trigger locked, no panel. */
+export const Disabled: Story = {
+  args: { ariaLabel: 'Parity select — disabled', options: OPTIONS, value: 'todo', disabled: true },
 };
 
 /** Loading — spinner replaces the option list (antd loading). */

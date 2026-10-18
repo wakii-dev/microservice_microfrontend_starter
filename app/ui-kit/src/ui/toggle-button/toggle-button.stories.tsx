@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ToggleButton } from './index';
 
+/** Button with a pressed state — `checked` surfaces as `aria-pressed`. */
 const meta = { title: 'Forms/ToggleButton', component: ToggleButton, tags: ['autodocs'] } satisfies Meta<typeof ToggleButton>;
 export default meta;
 type S = StoryObj<typeof meta>;

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Splitter } from './index';
+/** Two-pane drag resizer — horizontal/vertical, percent size. */
 const meta = { title: 'Navigation/Splitter', component: Splitter, tags: ['autodocs'] } satisfies Meta<typeof Splitter>;
 export default meta;
 type S = StoryObj<typeof meta>;

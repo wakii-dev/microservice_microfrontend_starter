@@ -5,8 +5,9 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Pagination } from './index';
 
+/** Page controls — ellipsis jump ±5, prev/next edge states. */
 const meta = {
-  title: 'Primitives/Pagination',
+  title: 'Navigation/Pagination',
   component: Pagination,
   tags: ['autodocs'],
 } satisfies Meta<typeof Pagination>;

@@ -10,7 +10,7 @@ import { KanbanBoard, type KanbanColumnData } from './index';
 
 // CSF render-only: meta KHÔNG gắn `component` — component có required props +
 // story chỉ render() ⇒ StoryObj suy args BẮT BUỘC → TS2322 (pattern image.stories).
-const meta = { title: 'Data Display/Kanban', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Domain/Kanban', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj;
 

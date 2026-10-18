@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { ScrollTop } from './index';
 
+/** Floating button that appears past a scroll threshold. */
 const meta = { title: 'Navigation/ScrollTop', component: ScrollTop, tags: ['autodocs'] } satisfies Meta<typeof ScrollTop>;
 export default meta;
 type S = StoryObj<typeof meta>;

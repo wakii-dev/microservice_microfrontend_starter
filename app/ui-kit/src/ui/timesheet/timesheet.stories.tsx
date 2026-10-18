@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Timesheet, type TimesheetRow } from './index';
 
-const meta = { title: 'Data Display/Timesheet', component: Timesheet, tags: ['autodocs'] } satisfies Meta<typeof Timesheet>;
+const meta = { title: 'Domain/Timesheet', component: Timesheet, tags: ['autodocs'] } satisfies Meta<typeof Timesheet>;
 export default meta;
 type S = StoryObj<typeof meta>;
 

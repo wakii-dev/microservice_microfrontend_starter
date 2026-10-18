@@ -8,7 +8,7 @@ import { Input } from '../ui/input/index.js';
 import { Button } from '../ui/button/index.js';
 import { message } from '../ui/message/index.js';
 
-const meta = { title: 'Hooks/Form', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Theming & Motion/Hooks/Form', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 

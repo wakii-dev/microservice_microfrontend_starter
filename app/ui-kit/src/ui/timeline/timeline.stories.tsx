@@ -2,6 +2,7 @@
 // Timeline is a pure display component (items read-only) — no controlled story.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Timeline } from './index';
+/** Vertical activity feed — dot + text + time per entry. */
 const meta = { title: 'Data Display/Timeline', component: Timeline, tags: ['autodocs'] } satisfies Meta<typeof Timeline>;
 export default meta;
 type S = StoryObj<typeof meta>;

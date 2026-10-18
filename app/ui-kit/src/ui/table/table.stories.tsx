@@ -22,7 +22,7 @@ const COLS = [
   { key: 'priority', title: 'Priority', sortable: true, filterable: true, dataType: 'number' as const, filterMatchMode: 'gte' as const, align: 'right' as const },
 ];
 
-const meta = { title: 'Data Display/Table (DataTable)', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Data Display/Table', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj;
 

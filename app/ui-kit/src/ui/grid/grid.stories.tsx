@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Col, Row } from './index';
 
+/** CSS-grid layout utility — columns, gap, span as props. */
 const meta = { title: 'Primitives/Grid', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

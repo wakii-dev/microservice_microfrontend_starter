@@ -5,8 +5,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Popover } from './index';
 
+/** Floating panel anchored to a trigger — rich content slot. */
 const meta = {
-  title: 'Primitives/Popover',
+  title: 'Feedback/Popover',
   component: Popover,
   tags: ['autodocs'],
 } satisfies Meta<typeof Popover>;

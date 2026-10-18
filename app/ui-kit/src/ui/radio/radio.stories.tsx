@@ -19,6 +19,12 @@ export const Basic: S = {
   },
 };
 
+/** Single — standalone Radio without a group. */
+export const Single: S = {
+  args: { options: [] },
+  render: () => <Radio checked onChange={() => {}}>Standalone radio</Radio>,
+};
+
 /** WithDisabled — one option locked (per-option disabled). */
 export const WithDisabled: S = {
   name: 'With disabled option',
@@ -50,12 +56,6 @@ export const GroupDisabled: S = {
 export const Controlled: S = {
   args: { options: [] },
   render: () => <RadioGroupControlledDemo />,
-};
-
-/** Single — standalone Radio without a group. */
-export const Single: S = {
-  args: { options: [] },
-  render: () => <Radio checked onChange={() => {}}>Standalone radio</Radio>,
 };
 
 /** DarkTheme — group on dark canvas. */

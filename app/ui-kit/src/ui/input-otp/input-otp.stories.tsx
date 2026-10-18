@@ -12,13 +12,13 @@ export const Basic: S = { args: { length: 6, ariaLabel: 'OTP code' } };
 /** FourDigits — length=4 variant. */
 export const FourDigits: S = { args: { length: 4, ariaLabel: 'PIN code' } };
 
+/** Disabled — all cells locked. */
+export const Disabled: S = { name: 'Disabled', args: { length: 6, value: '123456', disabled: true, ariaLabel: 'Locked OTP' } };
+
 /** Controlled — useState demo: joined value displayed under the cells. */
 export const Controlled: S = {
   render: () => <InputOtpControlledDemo />,
 };
-
-/** Disabled — all cells locked. */
-export const Disabled: S = { name: 'Disabled', args: { length: 6, value: '123456', disabled: true, ariaLabel: 'Locked OTP' } };
 
 /** DarkTheme — cells on dark canvas. */
 export const DarkTheme: S = {

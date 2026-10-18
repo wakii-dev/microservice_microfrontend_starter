@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Divider } from './index';
 
+/** Horizontal/vertical rule — optional text label embedded in the line. */
 const meta = { title: 'Primitives/Divider', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

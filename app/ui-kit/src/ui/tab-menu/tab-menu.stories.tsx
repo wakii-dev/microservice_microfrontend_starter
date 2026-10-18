@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { TabMenu } from './index';
 
+/** Tab-style navigation — links or panels by activeKey. */
 const meta = { title: 'Navigation/TabMenu', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

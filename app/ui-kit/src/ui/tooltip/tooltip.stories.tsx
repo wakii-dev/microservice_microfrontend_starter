@@ -5,7 +5,8 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Tooltip } from './index';
 
-const meta = { title: 'Primitives/Tooltip', tags: ['autodocs'] } satisfies Meta;
+/** Hover/focus hint bubble — portal-free, wraps the trigger in place. */
+const meta = { title: 'Feedback/Tooltip', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

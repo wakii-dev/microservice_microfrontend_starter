@@ -4,8 +4,9 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Accordion } from './index';
 
+/** Accordion — stacked panels, one header per section (PrimeReact Panel style). */
 const meta = {
-  title: 'Primitives/Accordion',
+  title: 'Data Display/Accordion',
   component: Accordion,
   tags: ['autodocs'],
 } satisfies Meta<typeof Accordion>;
@@ -62,6 +63,7 @@ export const Controlled: Story = {
   },
 };
 
+/** DisabledItem — header locked, click does nothing. */
 export const DisabledItem: Story = {
   name: 'Disabled item — header locked, click does nothing',
   render: () => (

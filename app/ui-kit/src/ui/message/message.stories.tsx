@@ -3,8 +3,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { message } from './index';
 
+/** Transient global toast — static API, 3s auto-dismiss. */
 const meta = {
-  title: 'Primitives/Message',
+  title: 'Feedback/Message',
   tags: ['autodocs'],
 } satisfies Meta;
 export default meta;

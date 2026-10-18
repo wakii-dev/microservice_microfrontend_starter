@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Affix } from './index';
 
 const meta = {
-  title: 'Primitives/Affix',
+  title: 'Navigation/Affix',
   component: Affix,
   tags: ['autodocs'],
   argTypes: {

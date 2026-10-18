@@ -6,7 +6,7 @@ import { Reveal, type RevealDirection } from './index';
 
 // Meta WITHOUT `component` — children is required, CSF would force args on
 // render-only stories (image.stories pattern).
-const meta = { title: 'Motion/Reveal', tags: ['autodocs'] } satisfies Meta;
+const meta = { title: 'Theming & Motion/Reveal', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

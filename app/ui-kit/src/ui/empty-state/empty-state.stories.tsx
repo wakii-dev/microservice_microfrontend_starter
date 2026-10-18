@@ -2,8 +2,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { EmptyState } from './index';
 
+/** Placeholder for no-data sections — icon, title, action slot. */
 const meta = {
-  title: 'Primitives/EmptyState',
+  title: 'Data Display/EmptyState',
   component: EmptyState,
   tags: ['autodocs'],
 } satisfies Meta<typeof EmptyState>;

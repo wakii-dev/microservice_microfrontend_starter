@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Descriptions } from './index';
 
+/** Label:value readout grid for entity detail views. */
 const meta = { title: 'Data Display/Descriptions', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

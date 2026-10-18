@@ -5,6 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Drawer } from './index';
 
+/** Side panel for detail/forms — portal, focus trap, scroll lock. */
 const meta = { title: 'Feedback/Drawer', component: Drawer, tags: ['autodocs'] } satisfies Meta<typeof Drawer>;
 export default meta;
 type Story = StoryObj<typeof meta>;

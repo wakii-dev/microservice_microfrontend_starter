@@ -5,6 +5,7 @@ import { Card } from './index';
 import { Button } from '../button/index';
 import { Tag } from '../tag/index';
 
+/** Grouped content panel with head / body / actions slots. */
 const meta = { title: 'Data Display/Card', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

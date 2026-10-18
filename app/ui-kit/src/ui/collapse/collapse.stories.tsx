@@ -3,6 +3,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Collapse } from './index';
 
+/** Progressive disclosure panels — several can stay open at once. */
 const meta = { title: 'Data Display/Collapse', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

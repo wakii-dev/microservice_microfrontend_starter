@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SpeedDial } from './index';
 // Không set component (icon/actions required → story buộc args) — render-only stories.
+/** FAB that radiates quick actions on open. */
 const meta = { title: 'Navigation/SpeedDial', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;

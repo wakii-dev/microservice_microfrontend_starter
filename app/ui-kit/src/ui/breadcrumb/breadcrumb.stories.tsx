@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Breadcrumb } from './index';
 import { Icon } from '../icons/index';
 
+/** Hierarchy trail of links to the current page. */
 const meta = { title: 'Navigation/Breadcrumb', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

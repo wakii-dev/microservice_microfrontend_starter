@@ -4,6 +4,7 @@ import { Sidebar } from './index';
 import { Menu, type MenuItemData } from '../menu/index';
 import { Icon } from '../icons/index.js';
 
+/** App sidebar — brand + menu + footer, collapsible to icon-only. */
 const meta = { title: 'Navigation/Sidebar', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;

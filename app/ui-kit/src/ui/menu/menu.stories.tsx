@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu, type MenuItemData } from './index';
 import { Icon } from '../icons/index.js';
 
+/** Vertical/horizontal nav menu with nested submenus. */
 const meta = { title: 'Navigation/Menu', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;

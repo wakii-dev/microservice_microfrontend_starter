@@ -4,6 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PanelMenu } from './index';
 import { Icon } from '../icons/index';
 
+/** Vertical accordion menu — group headers, leaf actions. */
 const meta = { title: 'Navigation/PanelMenu', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;

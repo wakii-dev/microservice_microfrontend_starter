@@ -18,6 +18,11 @@ export const Basic: Story = {
   args: { value: ['react', 'typescript'], placeholder: 'Add tech…' },
 };
 
+/** Disabled — input + remove buttons hidden. */
+export const Disabled: Story = {
+  args: { value: ['locked', 'tags'], disabled: true },
+};
+
 /** Controlled — useState demo: values shown as JSON. */
 export const Controlled: Story = {
   render: () => <ChipsControlledDemo />,
@@ -26,11 +31,6 @@ export const Controlled: Story = {
 /** Empty — no values: only the placeholder input shows. */
 export const Empty: Story = {
   args: { value: [], placeholder: 'Add first tag…' },
-};
-
-/** Disabled — input + remove buttons hidden. */
-export const Disabled: Story = {
-  args: { value: ['locked', 'tags'], disabled: true },
 };
 
 /** DarkTheme — chips + input on dark canvas. */

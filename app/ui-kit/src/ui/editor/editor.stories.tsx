@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Editor } from './index';
 
+/** Rich-text editor (Tiptap) — toolbar + HTML output, subpath `@wakii/ui-kit/editor`. */
 const meta = { title: 'Forms/Editor', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;

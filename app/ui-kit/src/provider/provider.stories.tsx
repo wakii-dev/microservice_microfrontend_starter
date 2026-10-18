@@ -4,7 +4,7 @@ import { Button } from '../ui/button/index';
 import { UiKitProvider } from './index';
 
 const meta = {
-  title: 'Theming/UiKitProvider',
+  title: 'Theming & Motion/UiKitProvider',
   component: UiKitProvider,
   tags: ['autodocs'],
 } satisfies Meta<typeof UiKitProvider>;

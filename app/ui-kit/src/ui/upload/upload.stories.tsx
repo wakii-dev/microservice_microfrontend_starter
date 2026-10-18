@@ -1,10 +1,11 @@
-// upload.stories.tsx — Primitives/Upload (batch ③ worker B): Upload cơ bản, file status
+// upload.stories.tsx — Forms/Upload (batch ③ worker B): Upload cơ bản, file status
 // done/error qua beforeUpload Promise, Dropzone thường/disabled/maxCount.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Upload, UploadDropzone } from './index.js';
 
+/** File upload — button and dropzone variants with per-file status (done/error). */
 const meta = {
-  title: 'Primitives/Upload',
+  title: 'Forms/Upload',
   component: Upload,
   tags: ['autodocs'],
   parameters: {
@@ -21,12 +22,12 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const UploadCoBan: Story = {
-  name: 'Upload cơ bản',
+  name: 'Basic upload',
   render: () => <Upload multiple accept=".pdf,.png,.jpg,.docx" />,
 };
 
 export const UploadFileStatus: Story = {
-  name: 'Upload file status (done/error)',
+  name: 'File status — done / error',
   render: () => (
     <Upload
       multiple
@@ -41,17 +42,17 @@ export const UploadFileStatus: Story = {
 };
 
 export const DropzoneCoBan: Story = {
-  name: 'Dropzone cơ bản',
+  name: 'Dropzone — basic',
   render: () => <UploadDropzone multiple />,
 };
 
 export const DropzoneDisabled: Story = {
-  name: 'Dropzone disabled',
+  name: 'Dropzone — disabled',
   render: () => <UploadDropzone disabled />,
 };
 
 export const DropzoneMaxCount: Story = {
-  name: 'Dropzone maxCount=3',
+  name: 'Dropzone — maxCount 3',
   render: () => <UploadDropzone multiple maxCount={3} />,
 };
 

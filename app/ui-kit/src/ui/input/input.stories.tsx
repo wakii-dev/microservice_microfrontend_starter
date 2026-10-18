@@ -5,7 +5,7 @@ import { Input, Textarea } from './index';
 import { Icon } from '../icons/index';
 
 const meta = {
-  title: 'Primitives/Input',
+  title: 'Forms/Input',
   component: Input,
   tags: ['autodocs'],
   argTypes: {

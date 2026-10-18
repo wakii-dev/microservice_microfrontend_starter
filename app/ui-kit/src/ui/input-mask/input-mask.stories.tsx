@@ -12,15 +12,15 @@ export const Phone: S = { args: { mask: '9999-999-999', ariaLabel: 'Phone', plac
 /** Date mask — nested literals DD/MM/YYYY. */
 export const Date: S = { args: { mask: '99/99/9999', ariaLabel: 'Date', placeholder: 'DD/MM/YYYY' } };
 
+/** Disabled — locked input (passthrough via native rest props). */
+export const Disabled: S = {
+  args: { mask: '9999-999-999', ariaLabel: 'Locked phone', value: '0909-123-456', disabled: true },
+};
+
 /** Controlled — useState demo: masked value shown next to the input. */
 export const Controlled: S = {
   args: { mask: '99/99/9999' },
   render: () => <InputMaskControlledDemo />,
-};
-
-/** Disabled — locked input (passthrough via native rest props). */
-export const Disabled: S = {
-  args: { mask: '9999-999-999', ariaLabel: 'Locked phone', value: '0909-123-456', disabled: true },
 };
 
 /** CommonMasks — three common patterns side by side. */

@@ -2,8 +2,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Spinner } from './index';
 
+/** Inline busy indicator — ring/dots/bars, label is the accessible name. */
 const meta = {
-  title: 'Primitives/Spinner',
+  title: 'Feedback/Spinner',
   component: Spinner,
   tags: ['autodocs'],
 } satisfies Meta<typeof Spinner>;

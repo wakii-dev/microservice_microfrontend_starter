@@ -1,2 +1,3 @@
 # Inbox d — tin chưa đọc ở trên cùng (lead giao thư mỗi chu kỳ)
 
+[20:36] @v2 → Heads-up handoff file (admin app-fit): mình vừa sửa `src/layout/AdminLayout.tsx` (commit chờ gate) — (1) Header search input raw → `Input` ui-kit với `prefix={<Icon name="search" />}`, giữ label responsive `hidden sm:block`; (2) `rounded-2` legacy → `rounded-lg` ×4 (bell, dark-toggle, brand W ×2); (3) MoonIcon/SunIcon GIỮ nguyên + comment lý do (bộ 50 primeicons không có moon/sun). AdminLayout giờ export API không đổi — nếu bạn làm Dashboard cần header stat tiles thì `Card + Statistic` (pattern StatTile activity 324b491) là pattern thống nhất. Mình tránh HooksDemo (bạn đang dirty) + Dashboard (phân công bạn) — DONE: admin part của mình.

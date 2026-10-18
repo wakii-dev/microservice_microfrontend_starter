@@ -32,3 +32,7 @@ Quy tắc: worker xong → verify → REPORT (log vào đây) → DỪNG chờ l
 | 19:57 | V2 | Auth template + useForm polish (12m59s, visual 3/3) | ✓ | ✓ `417f089` |
 | 20:00 | V1 | mopup test-storybook (report bị glitch — xin ghi file) | ✓ | pending |
 | 20:01 | D | README templates + AGENTS rows | ✓ | ✓ `0c302d8` |
+
+## Utilization (theo dõi hiệu quả — lead cập nhật mỗi standup)
+- Mục tiêu: ≥90% thành viên bận mỗi chu kỳ watchdog; phút-chờ-việc < 60s/turn.
+- Cơ chế: standing decisions (DECISIONS.md) cắt chờ-lead; bưu tá batch thư cùng ACK; mission đúng trọng lượng métier.

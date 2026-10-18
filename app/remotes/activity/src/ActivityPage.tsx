@@ -9,7 +9,7 @@ import '@wakii-dev/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Skeleton, Spinner } from '@wakii-dev/ui-kit';
+import { Alert, Button, EmptyState, Icon, Skeleton, Spinner } from '@wakii-dev/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -58,7 +58,12 @@ export function ActivityPage() {
     <section aria-label="Activity feed và thống kê" className="grid gap-6 max-md:gap-4">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <h1 className="m-0 text-h1">Activity</h1>
-        <Button type="default" disabled={loading} onClick={() => void load()}>
+        <Button
+          type="default"
+          disabled={loading}
+          onClick={() => void load()}
+          icon={loading ? undefined : <Icon name="refresh" />}
+        >
           {loading && <Spinner label="Đang tải activity" />}
           Làm mới
         </Button>
@@ -106,7 +111,15 @@ export function ActivityPage() {
           <Skeleton variant="row" count={4} />
         ) : items.length === 0 && !feedError ? (
           <EmptyState
-            action={<a className="text-accent-hi no-underline hover:underline" href="/tasks">Đi tới Tasks</a>}
+            action={
+              <a
+                className="inline-flex items-center gap-1 text-accent-hi no-underline hover:underline"
+                href="/tasks"
+              >
+                Đi tới Tasks
+                <Icon name="arrow-right" size={12} />
+              </a>
+            }
             description="Tạo một task ở trang Tasks để thấy event tại đây."
             title="Chưa có hoạt động nào"
           />

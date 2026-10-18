@@ -66,9 +66,11 @@ export function Popconfirm({
             className="block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
           >
             <span className="flex items-start gap-2">
+              {/* Contrast: chữ ĐEN trên gold --st-doing (antd gold-pattern — trắng chỉ ~1.6:1);
+                  trắng giữ nguyên trên --st-fail/--st-done (đỏ/xanh đậm đủ tương phản) */}
               <span
                 aria-hidden="true"
-                className={`grid size-4 shrink-0 place-items-center rounded-pill text-[10px] font-bold text-white ${danger ? 'bg-st-fail' : 'bg-st-doing'}`}
+                className={`grid size-4 shrink-0 place-items-center rounded-pill text-[10px] font-bold ${danger ? 'bg-st-fail text-white' : 'bg-st-doing text-ink'}`}
               >
                 !
               </span>

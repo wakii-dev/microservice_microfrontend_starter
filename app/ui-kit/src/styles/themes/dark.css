@@ -1,8 +1,14 @@
 /* Dark theme — GIÁ TRỊ = direction B "Linear-referenced dark" cũ của VU-53 (archive
  * thành theme phụ sau decision antd-look 2026-10-17). Bật: đặt data-bp-theme="dark"
  * trên <html>/<body> scope (switching do UiKitProvider — phase theming).
- * Chỉ override giá trị — var names KHÔNG đổi. */
-[data-bp-theme='dark'] {
+ * Chỉ override giá trị — var names KHÔNG đổi.
+ * Selector 2 NHÁNH (regression F1 2026-10-18 — html path no-op):
+ *  - `[data-bp-theme='dark']` generic (0,1,0): wrapper node/body — docs rule 2 "node bao".
+ *  - `html[data-bp-theme='dark']` (0,1,1): đặt trên <html> phải THẮNG tie specificity với
+ *    `:root` (0,1,0, tokens.css đứng sau @import) — không có nhánh này html path là no-op.
+ *  (Nhánh :root[data-bp-theme] thừa — chỉ html mới là :root, đã cover bởi html[...].) */
+[data-bp-theme='dark'],
+html[data-bp-theme='dark'] {
   /* Bậc bề mặt (depth bằng surface, KHÔNG box-shadow) */
   --c-canvas: #010102;
   --c-s1: #0f1011;
@@ -12,6 +18,8 @@
   --ink: #f7f8f8;
   --ink2: #d0d6e0;
   --ink3: #8a8f98;
+  /* Tooltip surface — sáng hơn canvas để bubble tách nền (antd dark colorBgSpotlight) */
+  --tooltip-bg: #424242;
   /* Viền */
   --line: #23252a;
   --line2: #2b2d33;

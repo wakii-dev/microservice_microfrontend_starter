@@ -103,3 +103,18 @@ describe('Tooltip — describedby wiring (worker H)', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('hint');
   });
 });
+
+describe('Tooltip — token surface (dark-safety, lead decision 2026-10-18)', () => {
+  it('bubble + arrow dùng token --tooltip-bg (không hardcode bg-black/85)', () => {
+    render(
+      <Tooltip title="hint">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    const bubble = screen.getByRole('tooltip');
+    expect(bubble.className).toContain('bg-[var(--tooltip-bg)]');
+    expect(bubble.className).not.toContain('bg-black/85');
+    expect((bubble.querySelector('span[aria-hidden]') as HTMLElement).className).toContain('bg-[var(--tooltip-bg)]');
+  });
+});

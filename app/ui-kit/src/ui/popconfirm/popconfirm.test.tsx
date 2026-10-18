@@ -104,3 +104,24 @@ describe('Popconfirm', () => {
     expect(onCancel).not.toHaveBeenCalled();
   });
 });
+
+describe('Popconfirm — icon contrast (gold pattern, lead decision 2026-10-18)', () => {
+  it('icon "!" trên --st-doing chữ INK; danger trên --st-fail chữ TRẮNG', () => {
+    const { rerender } = render(
+      <Popconfirm open title="?" onCancel={vi.fn()}>
+        <button>T</button>
+      </Popconfirm>,
+    );
+    const icon = document.querySelector('.bg-st-doing')!;
+    expect(icon.className).toContain('text-ink');
+    expect(icon.className).not.toContain('text-white');
+    rerender(
+      <Popconfirm open danger title="?" onCancel={vi.fn()}>
+        <button>T</button>
+      </Popconfirm>,
+    );
+    const dangerIcon = document.querySelector('.bg-st-fail')!;
+    expect(dangerIcon.className).toContain('bg-st-fail');
+    expect(dangerIcon.className).toContain('text-white');
+  });
+});

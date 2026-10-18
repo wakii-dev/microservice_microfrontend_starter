@@ -53,6 +53,9 @@
   --scrim-2: rgba(0, 0, 0, 0.3); /* nav button trên ảnh — rest */
   --scrim-3: rgba(0, 0, 0, 0.5); /* nav button trên ảnh — hover/active bullet */
   --scrim-4: rgba(0, 0, 0, 0.8); /* backdrop toàn màn (image preview) */
+  /* Tooltip surface (antd colorBgSpotlight): light = spotlight đen; dark override
+     sáng hơn (#424242) để bubble tách khỏi canvas tối — phán quyết lead 2026-10-18. */
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
   /* Z-index overlay scale — thang dùng chung cho floating surfaces (antd-like:
      dropdown < popover < modal < toast < tooltip). Component dùng z-[var(--z-*)],
      cấm hardcode số (batch ⑩ 2026-10-18). */

@@ -1,4 +1,4 @@
-// Tooltip — bubble hint khi hover/focus (antd look: nền spotlight bg-black/85,
+// Tooltip — bubble hint khi hover/focus (antd look: nền spotlight --tooltip-bg,
 // trắng 14px, radius 8, padding 6px 8px, max-width 250, mũi tên 8px vuông xoay 45°.
 // Placement 'top' (default). Portal-free: absolute trong wrapper relative.
 // A11y: bubble id + trigger aria-describedby (cloneElement), ESC đóng khi đang mở.
@@ -43,14 +43,14 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
         <span
           role="tooltip"
           id={bubbleId}
-          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-black/85 px-2 py-1.5 text-body text-white animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] ${
+          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-[var(--tooltip-bg)] px-2 py-1.5 text-body text-white animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] ${
             placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
           }`}
         >
           {title}
           <span
             aria-hidden="true"
-            className={`absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-black/85 ${
+            className={`absolute left-1/2 size-2 -translate-x-1/2 rotate-45 bg-[var(--tooltip-bg)] ${
               placement === 'top' ? 'top-[calc(100%-4px)]' : 'bottom-[calc(100%-4px)]'
             }`}
           />

@@ -80,3 +80,13 @@ function IconsDemo() {
     </div>
   );
 }
+
+/** DarkTheme — rail + back bar trên dark canvas (tokens cascade). */
+export const DarkTheme: Story = {
+  name: 'Dark theme — nav on dark canvas',
+  render: () => (
+    <div data-bp-theme="dark" className="w-fit rounded-xl bg-canvas p-4">
+      <SlideMenu items={PROJECTS} ariaLabel="Projects menu" className="w-64" />
+    </div>
+  ),
+};

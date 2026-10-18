@@ -75,6 +75,18 @@ toàn bộ case. Danh sách dưới = còn thiếu thật, xếp theo giá trị
 `Terminal` · `Fieldset/Panel` (Card phủ phần lớn) · `DeferredContent` · motion primitives
 (`<Fade>/<Zoom>` wrapper — keyframes đã có trong tokens).
 
+### P2-CHUẨN-HÓA 2026-10-18 (user: "vẫn chưa đủ") — full-catalog diff, sóng xây mới
+
+| Thiếu | Benchmark | Giá trị | Owner |
+|---|---|---|---|
+| `Layout` (Header/Content/Footer/Sider wiring) | antd Layout | CAO — app shell thật | W7 |
+| `Form.List` (Field.Array dynamic add/remove) | antd Form.List | CAO — form động | W6 |
+| `TreeTable` | PrimeReact | medium — cây dữ liệu bảng | D |
+| `OrgChart` + `TriStateCheckbox` | PrimeReact | medium + nhỏ | V2 |
+| `MegaMenu` + `SlideMenu` | PrimeReact | medium — nav advanced | W9 |
+| `Fade/Zoom/Collapse` transitions + `Backdrop` | MUI transitions | medium — motion composable | W8 |
+| `BottomNavigation` + `FloatButton` + `Fieldset` + `Terminal` + `DeferredContent` | MUI/antd/PrimeReact | nhỏ — mobile/utility | V1 (sau taxonomy) |
+
 ### Case-coverage OCD (song song component mới)
 
 Mỗi component hiện có: đối chiếu trang docs antd/MUI/PrimeReact tương ứng, liệt kê

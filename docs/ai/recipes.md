@@ -1,4 +1,4 @@
-# AI Recipes — 14 công thức UI dùng `@wakii/ui-kit`
+# AI Recipes — 18 công thức UI dùng `@wakii/ui-kit`
 
 Code dưới dùng **API thật đã verify theo source** (audit 2026-10-18). Import gốc:
 
@@ -533,6 +533,55 @@ Ghi chú: `onSearch` là **trigger-style** (Enter/click) — muốn lọc live t
 
 ---
 
+## 14. KanbanTaskBoard — KanbanBoard + Tag + Avatar + WIP-limit
+
+```tsx
+import { useState } from 'react';
+import { Avatar, KanbanBoard, type KanbanColumnData } from '@wakii/ui-kit';
+
+const INITIAL: KanbanColumnData[] = [
+  {
+    key: 'todo',
+    title: 'Cần làm',
+    cards: [
+      { key: 't1', title: 'Sửa token contrast', description: 'Dark mode lệch 1 chỗ', tag: 'design' },
+      { key: 't2', title: 'Outbox retry', left: <Avatar size={24}>B</Avatar> },
+    ],
+  },
+  { key: 'doing', title: 'Đang làm', wipLimit: 2, cards: [{ key: 't3', title: 'Rate-limit gateway', tag: 'infra' }] },
+  { key: 'done', title: 'Xong', cards: [] },
+];
+
+export function KanbanTaskBoard() {
+  const [columns, setColumns] = useState(INITIAL);
+  return (
+    <KanbanBoard
+      columns={columns}
+      onCardMove={(cardKey, from, to, toIndex) => {
+        setColumns((prev) => {
+          const card = prev.flatMap((c) => c.cards).find((c) => c.key === cardKey);
+          if (!card) return prev;
+          return prev.map((col) => {
+            const cards = col.cards.filter((c) => c.key !== cardKey);
+            if (col.key === from) return { ...col, cards };
+            if (col.key === to) {
+              const next = [...cards];
+              next.splice(toIndex, 0, card); // toIndex = vị trí SAU khi card rời nguồn
+              return { ...col, cards: next };
+            }
+            return col;
+          });
+        });
+      }}
+    />
+  );
+}
+```
+
+Ghi chú: **controlled** — board không giữ state, mọi move (kéo chuột HOẶC keyboard) chỉ bắn `onCardMove(cardKey, fromColKey, toColKey, toIndex)`; `toIndex` là vị trí **cuối** trong cột đích sau khi card rời nguồn → dùng đúng công thức remove-then-splice như trên. `tag` tự render `Tag`, slot `left` cho `Avatar` assignee; card hoàn toàn khác → `renderCard(card, columnKey)`. Keyboard đầy đủ: Tab tới card → Space nhặt → ↑↓ đổi vị trí, ←→ đổi cột → Enter thả, Esc hủy — aria-live tự thông báo "Đã chuyển X tới cột Y, vị trí Z". Cột `wipLimit` đầy **từ chối** drop từ cột khác (viền `border-st-fail` + aria-live) nhưng vẫn cho đổi thứ tự trong chính cột đó (count không đổi). ⚠️ Native HTML5 DnD **không hỗ trợ touch** (mobile) — hướng nâng cấp tương lai là peer-dep dnd-kit, đừng tự viết pointer engine.
+
+---
+
 ## 15. WeeklyTimesheet — Timesheet log giờ tuần + Statistic tổng
 
 ```tsx
@@ -582,6 +631,218 @@ export function WeeklyTimesheetPage() {
 ```
 
 Ghi chú: tuần **luôn bắt đầu Thứ 2** cả vi/en — `week` nhận bất kỳ Date nào trong tuần; nav prev/next bắn `onWeekChange` (Date = Thứ 2 tuần mới) và grid tự replay fade-in. Ô nhập clamp **0–24, step 0.5**; xoá ô → `onCellChange(…, null)` — state `rows` là nguồn sự thật, footer tổng cột + grand tự tính lại (bỏ `editable` → readonly text). Cột T7/CN đã nền nhẹ sẵn; `locale="en"` đổi headers + nhãn tuần sang `Oct 19–25, 2026`. Đang fetch → `loading` thay thân bảng bằng skeleton (header + nhãn tuần giữ nguyên). Tổng tuần trên `Statistic` tính consumer-side từ `rows` (tabular-nums built in).
+
+## 16. LandingAlive — Reveal + Parallax hero + CountUp KPI (Statistic + Grid)
+
+```tsx
+import { CountUp, Parallax, Reveal, Col, Row, Statistic } from '@wakii/ui-kit';
+
+type Kpi = { title: string; value: number; decimals?: number; suffix: string };
+
+const KPIS: Kpi[] = [
+  { title: 'Tasks completed', value: 1284, suffix: 'tasks' },
+  { title: 'On-time rate', value: 96.4, decimals: 1, suffix: '%' },
+  { title: 'Active teams', value: 327, suffix: 'teams' },
+];
+
+export function LandingAlive() {
+  return (
+    <div className="flex flex-col gap-10">
+      {/* Hero — ảnh trôi chậm hơn trang (speed 0.3 + scale nhẹ); tự tắt khi reduced-motion */}
+      <Parallax speed={0.3} scale className="overflow-hidden rounded-xl">
+        <img src="/hero.jpg" alt="Product hero" className="aspect-video w-full object-cover" />
+      </Parallax>
+
+      {/* KPI row — card trôi vào lệch pha, số đếm ease-out trong Statistic */}
+      <Row gutter={[24, 24]}>
+        {KPIS.map((kpi, i) => (
+          <Col key={kpi.title} xs={24} md={8}>
+            <Reveal direction="up" delay={i * 150}>
+              <div className="h-full rounded-xl border border-line bg-s1 p-5">
+                <Statistic
+                  title={kpi.title}
+                  value={<CountUp value={kpi.value} decimals={kpi.decimals} />}
+                  suffix={kpi.suffix}
+                />
+              </div>
+            </Reveal>
+          </Col>
+        ))}
+      </Row>
+
+      {/* Feature pair — vào lần lượt từ 2 bên */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Reveal direction="left">
+          <div className="rounded-xl border border-line bg-s1 p-5 text-body text-ink2">
+            Real-time qua Kafka — activity feed cập nhật tức thì.
+          </div>
+        </Reveal>
+        <Reveal direction="right">
+          <div className="rounded-xl border border-line bg-s1 p-5 text-body text-ink2">
+            Module Federation — remote độc lập deploy, shell ghép runtime.
+          </div>
+        </Reveal>
+      </div>
+    </div>
+  );
+}
+```
+
+Ghi chú: **an toàn a11y có sẵn** — `Parallax` tự tắt khi `prefers-reduced-motion` (qua `useMediaQuery`), animation Reveal/CountUp rơi về tức thì nhờ block global; không cần nhánh UI riêng. `Reveal once` mặc định chỉ chạy 1 lần (IO disconnect sau khi vào) — thêm `once={false}` nếu muốn replay khi cuộn lại. `CountUp` đổi `value` giữa chừng sẽ animate tiếp **từ số đang hiển thị** (hợp poll/refresh số liệu); `decimals`/`format` định dạng hiển thị (`format={(n) => n.toLocaleString('vi-VN')}` cho grouping). `Parallax` chỉ track cửa sổ — đặt ngoài container `overflow: hidden` cuộn riêng. Tất cả 0 deps, chỉ animate `transform`/`opacity` (GPU).
+
+## 17. DynamicEmailsForm — useForm + useFieldArray (mảng động + zod validate từng row)
+
+Form động kiểu antd `Form.List`: danh sách email thêm/xoá/đảo, zod validate **từng row** qua
+path lồng `emails.<i>.email`. `nameAt` đặt name đúng path → focus-first-invalid của
+`form.handleSubmit` tự vào đúng ô sai.
+
+```tsx
+import { useState } from 'react';
+import { z } from 'zod';
+import { Button, Field, Input, useForm, useFieldArray } from '@wakii/ui-kit';
+
+const schema = z.object({
+  emails: z
+    .array(z.object({ email: z.string().email('Email không hợp lệ') }))
+    .min(1, 'Cần ít nhất 1 email'),
+});
+type InviteForm = z.infer<typeof schema>;
+type EmailRow = InviteForm['emails'][number];
+
+export function DynamicEmailsForm({ onInvite }: { onInvite: (emails: string[]) => Promise<void> }) {
+  const form = useForm<InviteForm>({ schema, mode: 'onChange', initialValues: { emails: [{ email: '' }] } });
+  const arr = useFieldArray<InviteForm, 'emails', EmailRow>(form, 'emails');
+  const [sending, setSending] = useState(false);
+
+  return (
+    <form
+      className="flex w-96 flex-col gap-2"
+      onSubmit={form.handleSubmit(async (d) => {
+        setSending(true);
+        try {
+          await onInvite(d.emails.map((r) => r.email));
+        } finally {
+          setSending(false);
+        }
+      })}
+    >
+      {arr.fields.map((row, i) => (
+        <Field key={i} label={i === 0 ? 'Email người nhận' : undefined} htmlFor={`inv-${i}`}
+          error={form.errors[`emails.${i}.email`]}>
+          <div className="flex gap-2">
+            <Input id={`inv-${i}`} name={arr.nameAt(i, 'email')} placeholder="name@company.vn"
+              value={row.email} invalid={!!form.errors[`emails.${i}.email`]}
+              onChange={(e) => arr.update(i, { email: e.target.value })} />
+            <Button type="text" aria-label={`Xoá email ${i + 1}`} onClick={() => arr.remove(i)}>×</Button>
+          </div>
+        </Field>
+      ))}
+      <div className="flex items-center gap-2">
+        <Button type="default" onClick={() => arr.append({ email: '' })}>+ Thêm email</Button>
+        <Button type="text" disabled={arr.count < 2} onClick={() => arr.swap(0, arr.count - 1)}>Đảo đầu–cuối</Button>
+        <Button htmlType="submit" type="primary" loading={sending}>Gửi mời</Button>
+      </div>
+    </form>
+  );
+}
+```
+
+Ghi chú: **path lồng** — zod issues tự map thành `errors['emails.<i>.email']` (useForm join
+`'.'`), `Field error=` đọc đúng key đó. **Lỗi đi theo row**: mỗi op cấu trúc (`append`/
+`remove`/`move`/`swap`/`update`) rebuild errors từ snapshot mới — xoá row giữa thì lỗi dồn
+index đúng. **`mode: 'onChange'`** để validate từng row khi gõ (lỗi tự tắt khi sửa đúng);
+`nameAt(i, key)` đặt name attr → submit sai tự focus ô đầu tiên. Mỗi event chỉ gọi **1 op**
+(hook thuần closure — 2 op liên tiếp trong 1 handler thì op sau thấy state cũ). Reorder
+nhiều row: `move(from, to)` là insert-at kiểu RHF; `swap` đổi chỗ 2 row.
+
+---
+
+## 18. NavAppĐaCấp — Menubar vs MegaMenu vs SlideMenu: khi nào cái nào
+
+Ba mức nav ngang — chọn theo ĐỘ SÂU + ĐỘ RỘNG nội dung:
+
+| | `Menubar` | `MegaMenu` | `SlideMenu` |
+|---|---|---|---|
+| Cấu trúc | dropdown **1 cấp** gọn | panel **multi-column** (group = cột → leaf) | các **cấp trượt ngang**, đệ quy không giới hạn |
+| Khi nào | app header ít mục, mỗi mục vài action | landing/app header nhiều NHÓM chức năng (sản phẩm, tài nguyên, quản trị) | panel hẹp / mobile / hamburger / cây phân loại sâu |
+| Mở/đóng | hover | hover HOẶC click · ESC/click-ngoài/leave | click vào cấp · back bar / ESC |
+| Không dùng khi | cần panel nhóm nhiều cột → MegaMenu | không gian hẹp (mobile) → SlideMenu | top bar desktop nhiều cột song song → MegaMenu |
+
+```tsx
+import { useState } from 'react';
+import { Card, MegaMenu, SlideMenu, type MegaMenuItem, type SlideMenuItem } from '@wakii/ui-kit';
+
+const MEGA: MegaMenuItem[] = [
+  {
+    key: 'product',
+    label: 'Sản phẩm',
+    children: [
+      {
+        key: 'work',
+        label: 'Workspace',
+        items: [
+          { key: 'board', label: 'Board' },
+          { key: 'list', label: 'List view' },
+        ],
+      },
+      {
+        key: 'insight',
+        label: 'Insights',
+        items: [
+          { key: 'charts', label: 'Charts' },
+          { key: 'reports', label: 'Reports' },
+        ],
+      },
+    ],
+  },
+  { key: 'pricing', label: 'Giá', onClick: () => console.log('pricing') },
+];
+
+const SLIDE: SlideMenuItem[] = [
+  {
+    key: 'projects',
+    label: 'Dự án',
+    children: [
+      {
+        key: 'active',
+        label: 'Đang chạy',
+        children: [{ key: 'vu53', label: 'VU-53 redesign' }],
+      },
+      { key: 'archived', label: 'Lưu trữ' },
+    ],
+  },
+  { key: 'settings', label: 'Cài đặt' },
+];
+
+export function NavAppDaCap({ isMobile }: { isMobile: boolean }) {
+  const [lastPick, setLastPick] = useState('—');
+  return isMobile ? (
+    // Mobile/panel hẹp: SlideMenu — cấp sâu trong footer drawer
+    <Card title="Menu">
+      <SlideMenu items={SLIDE} ariaLabel="Menu chính" className="w-full" />
+    </Card>
+  ) : (
+    // Desktop: MegaMenu làm top bar — nhóm chức năng duyệt theo cột
+    <Card title="Sản phẩm & more">
+      <MegaMenu
+        items={MEGA.map((m) =>
+          m.key === 'pricing'
+            ? { ...m, onClick: () => setLastPick('pricing') }
+            : m,
+        )}
+        className="rounded-lg"
+      />
+      <p className="m-0 mt-3 text-meta text-ink3">Đã chọn: {lastPick}</p>
+    </Card>
+  );
+}
+```
+
+Ghi chú: cả 3 cùng ngôn ngữ nav — item `key`/`label`/`onClick`, `danger` đỏ, đóng bằng ESC.
+MegaMenu panel là `role=menu` + `role=menuitem`, trigger có `aria-expanded`; SlideMenu trang ẩn
+`inert` + `aria-hidden` (không phá tab order), back bar kèm nhãn cấp cha. Menubar/MegaMenu mở
+theo hover (desktop) — với touch cứ click. Cần nav đa cấp DỌC trong sidebar → dùng `Menu`
+(đa cấp) hoặc `Sidebar` + `MenuCompactContext`, không nhét SlideMenu vào sidebar.
 
 ---
 

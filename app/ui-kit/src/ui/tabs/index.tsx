@@ -104,11 +104,12 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
         })}
       </div>
       <div
+        key={active?.key}
         id={`${baseId}-panel`}
         role="tabpanel"
         aria-labelledby={active ? `${baseId}-tab-${active.key}` : undefined}
         tabIndex={0}
-        className={`pt-4${classNames?.panel ? ` ${classNames.panel}` : ''}`}
+        className={`animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] pt-4${classNames?.panel ? ` ${classNames.panel}` : ''}`}
       >
         {active?.children}
       </div>

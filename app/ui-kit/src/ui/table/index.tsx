@@ -618,10 +618,22 @@ export function Table<T extends object>({
                         </td>
                       ))}
                     </tr>
-                    {isExpanded && (expandable || rowExpansion) && (
-                      <tr key={`${k}-ex`}>
-                        <td colSpan={columns.length + extraCols} className="border-b border-line2 bg-s3 p-4">
-                          {expandable ? expandable.expandedRowRender(record, rowIndex) : rowExpansion!(record)}
+                    {(expandable || rowExpansion) && canExpand && (
+                      <tr key={`${k}-ex`} aria-hidden={!isExpanded || undefined} className={isExpanded ? undefined : 'pointer-events-none'}>
+                        <td colSpan={columns.length + extraCols} className="bg-s3 p-0">
+                          {/* 3-tier clip (pattern Collapse): grid 0fr↔1fr > min-h-0 overflow-hidden >
+                              content (border + padding nằm SẠCH trong clip — không padding-leak) */}
+                          <div
+                            className={`grid min-h-0 overflow-hidden transition-[grid-template-rows] duration-200 ease-[var(--ease-enter)] ${
+                              isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                            }`}
+                          >
+                            <div className="min-h-0 overflow-hidden">
+                              <div className="border-b border-line2 p-4">
+                                {expandable ? expandable.expandedRowRender(record, rowIndex) : rowExpansion!(record)}
+                              </div>
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     )}

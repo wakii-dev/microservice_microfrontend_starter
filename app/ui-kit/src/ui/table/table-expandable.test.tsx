@@ -32,7 +32,9 @@ describe('Table — expandable (antd API)', () => {
     const buttons = screen.getAllByRole('button', { name: 'Mở rộng dòng' });
     expect(buttons).toHaveLength(3);
     buttons.forEach((b) => expect(b).toHaveAttribute('aria-expanded', 'false'));
-    expect(screen.queryByText('Detail 1')).toBeNull();
+    // Animation 0fr↔1fr: row thu là có trong DOM nhưng bọc aria-hidden (0fr clip)
+    const hidden = screen.getByText('Detail 1').closest('[aria-hidden="true"]');
+    expect(hidden).not.toBeNull();
   });
 
   it('click chevron → aria-expanded=true + expandedRowRender hiện; click lần nữa → thu lại', async () => {
@@ -50,7 +52,8 @@ describe('Table — expandable (antd API)', () => {
     expect(screen.getByText('Detail Add CI')).toBeInTheDocument();
     await userEvent.setup().click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('Detail Add CI')).toBeNull();
+    // thu lại → vẫn trong DOM nhưng aria-hidden (grid 0fr) — animation 2 chiều
+    expect(screen.getByText('Detail Add CI').closest('[aria-hidden="true"]')).not.toBeNull();
   });
 
   it('chevron-down + xoay 90 khi mở (class rotate-90)', async () => {
@@ -100,7 +103,8 @@ describe('Table — expandable (antd API)', () => {
       />,
     );
     expect(screen.getByText('Detail 2')).toBeInTheDocument();
-    expect(screen.queryByText('Detail 1')).toBeNull();
+    // row 1 thu (0fr aria-hidden) — row 2 mở (không aria-hidden)
+    expect(screen.getByText('Detail 1').closest('[aria-hidden="true"]')).not.toBeNull();
     expect(screen.getAllByRole('button', { name: 'Mở rộng dòng' })[1]).toHaveAttribute('aria-expanded', 'true');
   });
 

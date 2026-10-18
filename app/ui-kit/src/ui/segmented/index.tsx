@@ -9,13 +9,16 @@ export interface SegmentedProps {
   value?: string;
   /** Callback khi chọn tuỳ chọn khác. */
   onChange?: (value: string) => void;
+  /** Nhãn a11y cho radiogroup (aria-label). */
+  ariaLabel?: string;
   className?: string;
 }
 
-export function Segmented({ options, value, onChange, className }: SegmentedProps) {
+export function Segmented({ options, value, onChange, ariaLabel, className }: SegmentedProps) {
   return (
     <div
       role="radiogroup"
+      aria-label={ariaLabel}
       className={`inline-flex items-center gap-1 rounded-lg bg-s3 p-1${className ? ` ${className}` : ''}`}
     >
       {options.map((option) => {

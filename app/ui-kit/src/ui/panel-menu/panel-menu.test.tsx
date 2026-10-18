@@ -24,14 +24,16 @@ describe('PanelMenu — expand/collapse + selection', () => {
     },
   ];
 
-  it('click group → children hiện; click lần nữa → ẩn', async () => {
+  it('click group → children hiện; click lần nữa → ẩn (grid 0fr + aria-hidden)', async () => {
     const user = userEvent.setup();
     render(<PanelMenu items={items} />);
-    expect(screen.queryByText('Tasks')).toBeNull();
+    // luôn render (animation 0fr↔1fr): ban đầu bọc aria-hidden
+    expect(screen.getByText('Tasks').closest('[aria-hidden="true"]')).not.toBeNull();
     await user.click(screen.getByRole('button', { name: /Manage/ }));
     expect(screen.getByText('Tasks')).toBeInTheDocument();
+    expect(screen.getByText('Tasks').closest('[aria-hidden="true"]')).toBeNull();
     await user.click(screen.getByRole('button', { name: /Manage/ }));
-    expect(screen.queryByText('Tasks')).toBeNull();
+    expect(screen.getByText('Tasks').closest('[aria-hidden="true"]')).not.toBeNull();
   });
 
   it('leaf onClick (không children) → callback', async () => {

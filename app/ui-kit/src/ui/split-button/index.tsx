@@ -112,7 +112,7 @@ export function SplitButton({
             e.stopPropagation();
             setOpen((o) => !o);
           }}
-          className={`ml-1.5 flex -mr-1.5 cursor-pointer items-center self-stretch py-1 pl-1.5${open ? ' bg-black/5' : ''}`}
+          className="ml-1.5 flex -mr-1.5 cursor-pointer items-center self-stretch py-1 pl-1.5"
         >
           <Icon name="chevron-down" size={14} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </span>

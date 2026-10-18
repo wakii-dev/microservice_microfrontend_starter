@@ -20,7 +20,7 @@
 // nên toggle imperative qua classList trên ref nút — không re-render.
 import { useMemo, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Keyboard, Pagination } from 'swiper/modules';
+import { Autoplay, Keyboard } from 'swiper/modules';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { Icon } from '../icons/index.js';
 // CSS swiper đã chuyển sang src/entries/carousel.ts (subpath '@wakii/ui-kit/carousel') —
@@ -37,7 +37,7 @@ export interface CarouselProps {
   autoplayInterval?: number;
   /** Dừng autoplay khi hover (swiper pauseOnMouseEnter). */
   pauseOnHover?: boolean;
-  /** Bullet indicators dưới (swiper Pagination — clickable). */
+  /** Indicators dưới — ô vuông Pagination-style (số trang, click slideTo). */
   indicators?: boolean;
   /** Nút prev/next custom (ẩn khi items ≤ 1; mờ ở đầu/cuối non-loop). */
   navigators?: boolean;
@@ -57,6 +57,16 @@ export interface CarouselProps {
 const BTN_CLS =
   'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-[background-color,transform] hover:bg-scrim-3 active:scale-95';
 
+// Indicator bullet — ngôn ngữ Pagination (ô vuông h-8 min-w-8 rounded-lg, SỐ TRANG
+// trong ô). Active đổi bằng classList imperative (không setState từ swiper events —
+// doctrine đầu file): border-none bg-accent font-medium text-white + aria-current.
+// hover:bg-s3 chỉ nằm ở bộ INACTIVE — active bị hover đè (specificity :hover 0,2,0
+// thắng utility 0,1,0) sẽ thành trắng-trên-trắng (bug đã bắt ở verify :6006).
+const BULLET_CLS =
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
+const BULLET_INACTIVE = ['border', 'border-line', 'bg-transparent', 'text-ink', 'hover:bg-s3'];
+const BULLET_ACTIVE = ['border-none', 'bg-accent', 'font-medium', 'text-white'];
+
 export function Carousel({
   items,
   circular = false,
@@ -75,7 +85,21 @@ export function Carousel({
   const swiperRef = useRef<SwiperInstance | null>(null);
   const prevBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
+  const bulletsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const navEnabled = navigators && items.length > 1;
+
+  /** Active bullet — imperative qua classList + aria-current (doctrine: không
+   * setState từ swiper events; same pattern syncEdge). */
+  const syncActive = (s: SwiperInstance) => {
+    bulletsRef.current.forEach((el, i) => {
+      if (!el) return;
+      const active = i === s.realIndex;
+      for (const cls of BULLET_INACTIVE) el.classList.toggle(cls, !active);
+      for (const cls of BULLET_ACTIVE) el.classList.toggle(cls, active);
+      if (active) el.setAttribute('aria-current', 'true');
+      else el.removeAttribute('aria-current');
+    });
+  };
 
   // Memoize config objects — swiper/react so params theo reference (xem note đầu file).
   const autoplayConfig = useMemo(
@@ -86,21 +110,6 @@ export function Carousel({
     [autoplay, autoplayInterval, pauseOnHover],
   );
   const keyboardConfig = useMemo(() => ({ enabled: keyboard }), [keyboard]);
-  const paginationConfig = useMemo(
-    () =>
-      indicators
-        ? {
-            clickable: true,
-            renderBullet: (_index: number, className: string) =>
-              // Important HẬU TỐ (TW v4) — swiper.css là unlayered nên thắng mọi utility
-              // thường; tiền tố `!` cũ là syntax v3 → no-op (bullet trượt default swiper).
-              // Bullet trung tính theo scrim token; active đậm hơn qua variant class
-              // swiper tự gắn (chuỗi class nằm trong source để Tailwind quét).
-              `<span class="${className} size-2! rounded-pill! bg-scrim-2! opacity-100! [&.swiper-pagination-bullet-active]:bg-scrim-3!"></span>`,
-          }
-        : false,
-    [indicators],
-  );
 
   const heightStyle = height ?? (orientation === 'vertical' ? 300 : undefined);
 
@@ -114,20 +123,21 @@ export function Carousel({
   return (
     <div className={`relative${className ? ` ${className}` : ''}`}>
       <Swiper
-        modules={[Autoplay, Keyboard, Pagination]}
+        modules={[Autoplay, Keyboard]}
         slidesPerView={itemsPerView}
         spaceBetween={0}
         loop={circular}
         direction={orientation}
         autoplay={autoplayConfig}
         keyboard={keyboardConfig}
-        pagination={paginationConfig}
         onSwiper={(swiper) => {
           swiperRef.current = swiper;
           syncEdge(swiper);
+          syncActive(swiper);
         }}
         onSlideChange={(swiper) => {
           syncEdge(swiper);
+          syncActive(swiper);
           onSlideChange?.(swiper.realIndex);
         }}
         style={heightStyle !== undefined ? { height: heightStyle } : undefined}
@@ -136,6 +146,27 @@ export function Carousel({
           <SwiperSlide key={i}>{item}</SwiperSlide>
         ))}
       </Swiper>
+
+      {/* Indicators — ô vuông Pagination-style, số trang trong ô; click slideTo(i) */}
+      {indicators && items.length > 1 && (
+        <div className="mt-3 flex items-center justify-center gap-2">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              ref={(el) => {
+                bulletsRef.current[i] = el;
+              }}
+              type="button"
+              aria-label={`Chuyển tới trang ${i + 1}`}
+              aria-current={i === 0 ? 'true' : undefined}
+              className={`${BULLET_CLS} ${i === 0 ? BULLET_ACTIVE.join(' ') : BULLET_INACTIVE.join(' ')}`}
+              onClick={() => swiperRef.current?.slideTo(i)}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
 
       {navEnabled && (
         <>

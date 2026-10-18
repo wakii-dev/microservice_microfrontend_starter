@@ -56,6 +56,23 @@ export const CircularLoop: S = {
   ),
 };
 
+/** Indicators — Pagination-style square bullets with page numbers; click to slide. */
+export const Indicators: S = {
+  name: 'Indicators — Pagination-style square bullets (click to slide)',
+  render: () => (
+    <Carousel
+      navigators={false}
+      className="w-96"
+      items={[
+        <Slide key="1" label="Slide 1" />,
+        <Slide key="2" label="Slide 2" tone="bg-accent/10" />,
+        <Slide key="3" label="Slide 3" tone="bg-accent/20" />,
+        <Slide key="4" label="Slide 4" tone="bg-accent/30" />,
+      ]}
+    />
+  ),
+};
+
 export const AutoplayPauseOnHover: S = {
   name: 'Autoplay + pause on hover',
   render: () => (

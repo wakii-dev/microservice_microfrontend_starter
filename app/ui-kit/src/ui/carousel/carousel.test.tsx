@@ -59,14 +59,37 @@ describe('Carousel — render & navigators', () => {
 });
 
 describe('Carousel — indicators', () => {
-  it('mặc định có bullet container', () => {
+  it('mặc định: ô vuông Pagination-style, số trang trong ô + active ở đầu', () => {
     renderCarousel();
-    expect(document.querySelector('.swiper-pagination')).not.toBeNull();
+    const bullets = screen.getAllByRole('button', { name: /Chuyển tới trang/ });
+    expect(bullets).toHaveLength(3);
+    expect(bullets[0]).toHaveClass('h-8', 'min-w-8', 'rounded-lg');
+    // slide 0 active lúc init: bg-accent + border-none, KHÔNG hover:bg-s3
+    expect(bullets[0]).toHaveClass('bg-accent', 'border-none', 'font-medium', 'text-white');
+    expect(bullets[0]).not.toHaveClass('hover:bg-s3');
+    expect(bullets[0]).toHaveTextContent('1');
+    expect(bullets[0]).toHaveAttribute('aria-current', 'true');
+    expect(bullets[1]).toHaveClass('border-line', 'hover:bg-s3');
+    expect(bullets[1]).not.toHaveAttribute('aria-current');
   });
 
-  it('indicators=false → không có bullet', () => {
+  it('indicators=false → không render indicator', () => {
     renderCarousel({ indicators: false });
-    expect(document.querySelector('.swiper-pagination')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Chuyển tới trang/ })).toBeNull();
+  });
+
+  it('click bullet → slideTo đúng index + active class/aria-current chuyển (regression chấm tròn)', () => {
+    renderCarousel();
+    const bullets = screen.getAllByRole('button', { name: /Chuyển tới trang/ });
+    fireEvent.click(bullets[2]);
+    expect(getSwiper().realIndex).toBe(2);
+    expect(bullets[2]).toHaveClass('bg-accent', 'font-medium', 'text-white', 'border-none');
+    expect(bullets[2]).toHaveAttribute('aria-current', 'true');
+    expect(bullets[0]).not.toHaveClass('bg-accent');
+    expect(bullets[0]).not.toHaveAttribute('aria-current');
+    // active KHÔNG mang hover:bg-s3 — :hover (0,2,0) thắng bg-accent (0,1,0) khi
+    // chuột đè lên bullet active → trắng-trên-trắng (regression verify :6006)
+    expect(bullets[2]).not.toHaveClass('hover:bg-s3');
   });
 });
 

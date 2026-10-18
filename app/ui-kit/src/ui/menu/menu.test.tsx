@@ -203,6 +203,45 @@ describe('Menu — compact (sidebar icon-only, fix ⑥ 2026-10-18)', () => {
     expect(trigger.querySelectorAll('svg')).toHaveLength(1); // chevron đã ẩn khi compact
   });
 
+
+  it('compact: con ẨN mặc định trong collapse — bấm cha mở ra, icon thẳng cột cha (không indent)', () => {
+    render(
+      <MenuCompactContext.Provider value={true}>
+        <Menu items={threeLevels} />
+      </MenuCompactContext.Provider>,
+    );
+    const trigger = screen.getByRole('menuitem', { name: 'Quản lý' });
+    const wrapperOf = (name: string) =>
+      screen.getByRole('menuitem', { name }).closest('ul')!.parentElement!.parentElement!;
+    // mặc định con ẪN (wrapper 0fr) — nằm trong collapse như mode thường
+    expect(wrapperOf('Công việc').className).toContain('[grid-template-rows:0fr]');
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(wrapperOf('Công việc').className).toContain('[grid-template-rows:1fr]');
+    // mở ra: icon con thẳng CỘT cha — nested ul items-center, KHÔNG ml-4
+    const nested = screen.getByRole('menuitem', { name: 'Công việc' }).closest('ul')!;
+    expect(nested).toHaveClass('items-center');
+    expect(nested).not.toHaveClass('ml-4');
+    expect(screen.getByRole('menuitem', { name: 'Công việc' })).toHaveClass('size-8');
+    // item con không có icon → chữ cái đầu đại diện (ô vuông không trống)
+    expect(screen.getByRole('menuitem', { name: 'Công việc' }).textContent).toContain('C');
+  });
+
+  it('compact: parent CÓ aria-expanded (con ẩn mặc định — bấm cha mở)', () => {
+    render(
+      <MenuCompactContext.Provider value={true}>
+        <Menu items={threeLevels} />
+      </MenuCompactContext.Provider>,
+    );
+    const trigger = screen.getByRole('menuitem', { name: 'Quản lý' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'true');
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('expanded giữ layout cũ: px-3 gap-2, không dot', () => {
     render(<Menu items={threeLevels} />);
     const item = screen.getByRole('menuitem', { name: 'Dashboard' });

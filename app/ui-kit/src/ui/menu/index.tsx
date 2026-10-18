@@ -94,19 +94,20 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
           </span>
         );
 
+
         return (
           <li role="none" key={item.key} className={`relative${compact ? ' flex flex-col items-center' : ''}`}>
             {hasChildren ? (
               <button
                 type="button"
                 role="menuitem"
-                aria-haspopup="true"
                 aria-expanded={open}
+                aria-haspopup="true"
                 disabled={item.disabled}
                 className={itemCls(item.disabled ? 'disabled' : 'normal', compact)}
                 onClick={() => !item.disabled && toggle(item.key)}
               >
-                {item.icon && (
+                {item.icon ? (
                   <span aria-hidden="true" className="relative flex size-4 shrink-0 items-center justify-center text-base leading-none">
                     {item.icon}
                     {/* Compact: chấm nhỏ góc phải icon cha = còn con (fix ⑥-6). */}
@@ -114,6 +115,13 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                       <span aria-hidden="true" className="absolute -bottom-1 -right-1 size-1 rounded-full bg-ink3" />
                     )}
                   </span>
+                ) : (
+                  compact && (
+                    <span aria-hidden="true" className="relative flex size-4 shrink-0 items-center justify-center text-[10px] font-semibold leading-none">
+                      {typeof item.label === 'string' ? item.label.trim().charAt(0).toUpperCase() : '•'}
+                      <span aria-hidden="true" className="absolute -bottom-1 -right-1 size-1 rounded-full bg-ink3" />
+                    </span>
+                  )
                 )}
                 {label}
                 {!compact && (
@@ -139,19 +147,29 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                   onSelect?.(item.key);
                 }}
               >
-                {item.icon && (
+                {item.icon ? (
                   <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center text-base leading-none">
                     {item.icon}
                   </span>
+                ) : (
+                  compact && (
+                    /* Compact không có icon → chữ cái đầu làm đại diện (ô vuông
+                     * không được trống — mọi icon thẳng hàng cột, yêu cầu user). */
+                    <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center text-[10px] font-semibold leading-none">
+                      {typeof item.label === 'string' ? item.label.trim().charAt(0).toUpperCase() : '•'}
+                    </span>
+                  )
                 )}
                 {label}
               </button>
             )}
 
             {hasChildren && vertical && (
-              /* Expand/collapse CSS thuần: grid-template-rows 0fr→1fr + opacity. */
+              /* Expand/collapse CSS thuần: grid-template-rows 0fr→1fr + opacity.
+               * Compact (user 2026-10-18): con ẪN mặc định như thường, bấm cha
+               * mở ra — nhưng KHÔNG indent ml-4, icon con thẳng cột icon cha. */
               <div
-                className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                className={`grid min-h-0 overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out ${
                   open ? '[grid-template-rows:1fr] opacity-100' : '[grid-template-rows:0fr] opacity-0'
                 }`}
               >
@@ -160,7 +178,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                     items={item.children!}
                     mode={mode}
                     depth={depth + 1}
-                    ulCls="ml-4 flex flex-col gap-1"
+                    ulCls={compact ? 'flex flex-col items-center gap-1' : 'ml-4 flex flex-col gap-1'}
                     selectedKey={selectedKey}
                     onSelect={onSelect}
                     openKeys={openKeys}

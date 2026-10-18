@@ -64,3 +64,29 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: accordion + disabled) ──
+
+export const AccordionMode: Story = {
+  name: 'Accordion mode — opening a panel closes the others (accordion prop)',
+  render: () => (
+    <div className="w-[480px]">
+      <Collapse accordion items={items} />
+    </div>
+  ),
+};
+
+export const DisabledItem: Story = {
+  name: 'Disabled item — header locked, panel stays closed',
+  render: () => (
+    <div className="w-[480px]">
+      <Collapse
+        items={[
+          ...items.slice(0, 1),
+          { key: 'locked', label: 'Locked panel (no permission)', children: 'Hidden content', disabled: true },
+          ...items.slice(1),
+        ]}
+      />
+    </div>
+  ),
+};

@@ -63,3 +63,31 @@ describe('InputNumber — blur sync clamp (user feedback: MinMaxClamp "chưa đ�
     expect(input).toHaveValue(7);
   });
 });
+
+describe('InputNumber — matrix gaps (a11y/disabled/invalid/className)', () => {
+  it('stepper buttons có accessible name "Tăng"/"Giảm" (a11y)', () => {
+    render(<InputNumber ariaLabel="n" value={5} />);
+    expect(screen.getByRole('button', { name: 'Tăng' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Giảm' })).toBeInTheDocument();
+  });
+
+  it('disabled → input + 2 stepper khoá, không phát onChange', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<InputNumber ariaLabel="n" disabled onChange={onChange} />);
+    const input = screen.getByLabelText('n');
+    expect(input).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Tăng' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('invalid → viền đỏ class (không đụng behavior)', () => {
+    render(<InputNumber ariaLabel="n" invalid value={-1} />);
+    expect(screen.getByLabelText('n').closest('span')!.className).toContain('border-st-fail');
+  });
+
+  it('className passthrough ra wrapper', () => {
+    const { container } = render(<InputNumber ariaLabel="n" className="marker" />);
+    expect(container.firstElementChild).toHaveClass('marker');
+  });
+});

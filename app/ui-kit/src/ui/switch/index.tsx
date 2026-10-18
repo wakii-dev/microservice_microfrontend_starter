@@ -57,7 +57,7 @@ export function Switch({
         setPopping(true);
       }}
       {...rest}
-      className={`group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
+      className={`group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-accent/40 ${
         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
       } ${track} ${checked ? '' : 'bg-ink/25'}${className ? ` ${className}` : ''}`}
     >

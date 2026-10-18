@@ -14,6 +14,8 @@ export function Mention({ value: valueProp, onChange, suggestions = [], placehol
   const value = valueProp ?? internal;
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStart, setMentionStart] = useState(0);
+  // Keyboard nav suggestion list (↑↓ + Enter/Esc) — focus giữ trong textarea.
+  const [activeIdx, setActiveIdx] = useState(0);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   const matches = mentionQuery !== null
@@ -40,14 +42,28 @@ export function Mention({ value: valueProp, onChange, suggestions = [], placehol
     <div className={`relative${className ? ` ${className}` : ''}`}>
       <textarea
         ref={ref} value={value} placeholder={placeholder}
-        className="w-full rounded-2 border border-line bg-s2 p-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
-        onChange={(e) => { setInternal(e.target.value); onChange?.(e.target.value); detectMention(e.target.value, e.target.selectionStart); }}
+        className="w-full rounded-lg border border-line bg-s2 p-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
+        onChange={(e) => { setInternal(e.target.value); onChange?.(e.target.value); detectMention(e.target.value, e.target.selectionStart); setActiveIdx(0); }}
+        onKeyDown={(e) => {
+          if (mentionQuery !== null && matches.length > 0) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault();
+              const dir = e.key === 'ArrowDown' ? 1 : -1;
+              setActiveIdx((i) => (i + dir + matches.length) % matches.length);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              selectMention(matches[activeIdx]);
+            } else if (e.key === 'Escape') {
+              setMentionQuery(null);
+            }
+          }
+        }}
       />
       {mentionQuery !== null && matches.length > 0 && (
-        <ul className="absolute z-30 m-0 list-none rounded-3 border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]" style={{ bottom: '100%', left: 0 }}>
-          {matches.map((s) => (
+        <ul role="listbox" aria-label="Gợi ý mention" className="absolute z-[var(--z-popover)] m-0 list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]" style={{ bottom: '100%', left: 0 }}>
+          {matches.map((s, i) => (
             <li key={s}>
-              <button type="button" className="w-full cursor-pointer rounded-2 border-none bg-transparent px-3 py-1.5 text-left text-body text-ink hover:bg-s3"
+              <button type="button" role="option" aria-selected={i === activeIdx} className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink ${i === activeIdx ? 'bg-s3' : 'hover:bg-s3'}`}
                 onClick={() => selectMention(s)}>@{s}</button>
             </li>
           ))}

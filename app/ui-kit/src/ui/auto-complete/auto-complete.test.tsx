@@ -72,3 +72,23 @@ describe('AutoComplete', () => {
     expect(screen.getAllByRole('option')).toHaveLength(8);
   });
 });
+
+describe('AutoComplete — matrix gaps (a11y/props)', () => {
+  it('a11y — role=combobox, aria-expanded đổi khi mở, aria-controls trỏ listbox', async () => {
+    const user = userEvent.setup();
+    render(<AutoComplete suggestions={SUGGESTIONS} />);
+    const input = screen.getByRole('combobox', { name: 'Autocomplete' });
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    await user.type(input, 'học');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    const listId = input.getAttribute('aria-controls');
+    expect(listId).toBeTruthy();
+    expect(screen.getByRole('listbox')).toHaveAttribute('id', listId!);
+  });
+
+  it('placeholder + className passthrough', () => {
+    const { container } = render(<AutoComplete suggestions={SUGGESTIONS} placeholder="Tìm việc…" className="marker" />);
+    expect(screen.getByRole('combobox', { name: 'Autocomplete' })).toHaveAttribute('placeholder', 'Tìm việc…');
+    expect(container.firstElementChild).toHaveClass('marker');
+  });
+});

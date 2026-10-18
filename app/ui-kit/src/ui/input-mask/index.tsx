@@ -32,7 +32,7 @@ export function InputMask({ mask, value: valueProp, onChange, ariaLabel, classNa
         const masked = applyMask(e.target.value, mask);
         setInternal(masked); onChange?.(masked);
       }}
-      className={`h-8 w-full rounded-2 border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none${className ? ` ${className}` : ''}`}
+      className={`h-8 w-full rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none${className ? ` ${className}` : ''}`}
       {...rest}
     />
   );

@@ -3,6 +3,7 @@
 // searchable theo label + đường dẫn · clearable. ARIA combobox/listbox như
 // Select; parent render group header (không role=option, không chọn được).
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface TreeNode {
   value: string;
@@ -145,9 +146,9 @@ export function TreeSelect({
       if (node.children && node.children.length > 0) {
         return (
           <li key={node.value} role="presentation">
-            <div className="flex h-8 cursor-default items-center justify-between rounded-2 px-3 text-label font-semibold text-ink2">
+            <div className="flex h-8 cursor-default items-center justify-between rounded-lg px-3 text-label font-semibold text-ink2">
               {node.label}
-              <span aria-hidden="true" className="text-ink3">▸</span>
+              <span aria-hidden="true" className="text-ink3"><Icon name="chevron-right" size={12} /></span>
             </div>
             <ul role="presentation" className="m-0 list-none p-0">
               {renderLevel(node.children, depth + 1)}
@@ -167,9 +168,9 @@ export function TreeSelect({
             onMouseEnter={() => setActive(flatIndex)}
             onClick={() => commit(visibleLeaves[flatIndex])}
             style={{ paddingLeft: 12 + depth * 16 }}
-            className={`flex h-8 cursor-pointer items-center rounded-2 pr-3 text-body ${
+            className={`flex h-8 cursor-pointer items-center rounded-lg pr-3 text-body ${
               isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-s3'
-            } ${isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : ''}`}
+            } ${isActive && !isSelected ? 'bg-s3' : ''}`}
           >
             {node.label}
           </div>
@@ -190,7 +191,7 @@ export function TreeSelect({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={onTriggerKeyDown}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
         } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
       >
@@ -199,23 +200,22 @@ export function TreeSelect({
         </span>
         <span className="flex shrink-0 items-center gap-0.5">
           {clearable && hasValue && !disabled && (
-            <span
-              role="button"
+            <button
+              type="button"
               aria-label="Xoá"
-              tabIndex={0}
               onClick={(e) => { e.stopPropagation(); clearValue(); }}
-              className="cursor-pointer text-ink3 hover:text-ink"
+              className="cursor-pointer rounded-pill border-none bg-transparent p-0 text-ink3 hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
             >
-              ×
-            </span>
+              <Icon name="times" size={12} />
+            </button>
           )}
-          <span aria-hidden="true" className={`text-ink3 transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+          <span aria-hidden="true" className={`text-ink3 transition-transform ${open ? 'rotate-180' : ''}`}><Icon name="chevron-down" size={12} /></span>
         </span>
       </button>
 
       {open && (
-        <span className="absolute left-0 top-full mt-1 z-30 block w-full min-w-[160px]">
-          <span className="block overflow-hidden rounded-3 border border-line bg-s2 shadow-[var(--shadow-pop)]">
+        <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
+          <span className="block overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
             {searchable && (
               <span className="block border-b border-line2 p-2">
                 <input

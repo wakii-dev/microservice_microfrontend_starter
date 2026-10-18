@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { Calendar } from '../calendar/index.js';
 import { TimeSpinner, type TimeParts } from '../time-picker/index.js';
 import { useDateLocale, type DateLocaleInput } from './locale.js';
+import { Icon } from '../icons/index.js';
 
 export interface DatePickerBaseProps {
   placeholder?: string;
@@ -133,11 +134,11 @@ export function DatePicker(props: DatePickerProps) {
     setOpen(false);
   };
 
-  const displayTime = (d: Date) => (showTime ? ` ${pad(time.h)}:${pad(time.m)}` : '');
+  const displayTime = () => (showTime ? ` ${pad(time.h)}:${pad(time.m)}` : '');
 
   // ── Trigger ──────────────────────────────────────────────────────────────
   // Single: 1 field button (behavior cũ). Range: wrapper viền + 2 nửa from/to.
-  const triggerCls = `inline-flex h-8 w-full cursor-pointer items-center gap-2 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+  const triggerCls = `inline-flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
     open ? 'border-accent-hi' : 'border-line hover:border-accent'
   } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`;
 
@@ -154,9 +155,9 @@ export function DatePicker(props: DatePickerProps) {
           onClick={openPanel}
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
-          <span className={from ? '' : 'text-ink4'}>{from ? `${fmt(from)}${displayTime(from)}` : placeholder ?? loc.rangeFrom}</span>
+          <span className={from ? '' : 'text-ink4'}>{from ? `${fmt(from)}${displayTime()}` : placeholder ?? loc.rangeFrom}</span>
         </button>
-        <span aria-hidden="true" className="text-ink3">→</span>
+        <span aria-hidden="true" className="text-ink3"><Icon name="arrow-right" size={12} /></span>
         <button
           type="button"
           aria-label={loc.rangeTo}
@@ -164,9 +165,9 @@ export function DatePicker(props: DatePickerProps) {
           onClick={openPanel}
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
-          <span className={to ? '' : 'text-ink4'}>{to ? `${fmt(to)}${displayTime(to)}` : placeholder ?? loc.rangeTo}</span>
+          <span className={to ? '' : 'text-ink4'}>{to ? `${fmt(to)}${displayTime()}` : placeholder ?? loc.rangeTo}</span>
         </button>
-        <span aria-hidden="true" className="ml-auto shrink-0 text-ink3">📅</span>
+        <span aria-hidden="true" className="ml-auto shrink-0 text-ink3"><Icon name="calendar" size={14} /></span>
       </span>
     );
   } else {
@@ -182,10 +183,10 @@ export function DatePicker(props: DatePickerProps) {
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
           <span className={single ? 'tabular-nums' : 'text-ink4'}>
-            {single ? `${fmt(single)}${displayTime(single)}` : placeholder ?? loc.placeholder}
+            {single ? `${fmt(single)}${displayTime()}` : placeholder ?? loc.placeholder}
           </span>
         </button>
-        <span aria-hidden="true" className="ml-auto shrink-0 text-ink3">📅</span>
+        <span aria-hidden="true" className="ml-auto shrink-0 text-ink3"><Icon name="calendar" size={14} /></span>
       </span>
     );
   }
@@ -194,7 +195,7 @@ export function DatePicker(props: DatePickerProps) {
     <span ref={ref} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
       {trigger}
       {open && createPortal(
-        <div className="fixed inset-0 z-50" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[var(--z-popover)]" onClick={() => setOpen(false)}>
           <div
             className="absolute animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]"
             style={{ left: ref.current?.getBoundingClientRect().left ?? 0, top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 4 }}

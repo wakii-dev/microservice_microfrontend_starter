@@ -15,13 +15,13 @@ export function ColorPicker({ value = '#1677ff', onChange, presets = PRESETS, cl
   return (
     <div className={`inline-flex flex-col gap-2${className ? ` ${className}` : ''}`}>
       <button type="button" aria-label="Chọn màu" onClick={() => setOpen((o) => !o)}
-        className="size-8 cursor-pointer rounded-2 border border-line" style={{ background: value }} />
+        className="size-8 cursor-pointer rounded-lg border border-line focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none" style={{ background: value }} />
       {open && (
-        <div className="inline-flex flex-col gap-2 rounded-3 border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]">
+        <div className="relative z-[var(--z-popover)] inline-flex flex-col gap-2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]">
           <div className="grid grid-cols-4 gap-1">
             {presets.map((c) => (
               <button key={c} type="button" aria-label={c} onClick={() => onChange?.(c)}
-                className={`size-7 cursor-pointer rounded-2 border ${value === c ? 'border-accent border-2' : 'border-line'}`}
+                className={`size-7 cursor-pointer rounded-lg border ${value === c ? 'border-accent border-2' : 'border-line'}`}
                 style={{ background: c }} />
             ))}
           </div>

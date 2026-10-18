@@ -3,14 +3,11 @@
 // editor qua editorRef. Type qua editorRef (PM handleBeforeInput trong jsdom
 // không đáng tin — commands là API chính thức).
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Editor as TiptapEditor } from '@tiptap/react';
 import { Editor } from './index.js';
 
 afterEach(cleanup);
-
-type Props = Parameters<typeof Editor>[0];
 
 const pm = () => {
   const el = document.querySelector('.ProseMirror');

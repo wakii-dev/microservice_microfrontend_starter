@@ -1,6 +1,7 @@
 // Password — Input password + toggle hiện/ẩn + strength meter.
 import { useState } from 'react';
 import { Input } from '../input/index';
+import { Icon } from '../icons/index.js';
 
 export interface PasswordProps {
   value?: string;
@@ -50,7 +51,7 @@ export function Password({ value: valueProp, onChange, placeholder, showStrength
           onClick={() => setVisible((v) => !v)}
           className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-label text-ink3"
         >
-          {visible ? '🙈' : '👁'}
+          <Icon name={visible ? 'eye-slash' : 'eye'} size={16} />
         </button>
       </div>
       {showStrength && value && (

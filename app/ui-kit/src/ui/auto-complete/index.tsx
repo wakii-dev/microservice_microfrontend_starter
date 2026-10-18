@@ -1,5 +1,5 @@
 // AutoComplete — Select editable standalone: input + suggestion dropdown.
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { useId, useState } from 'react';
 
 export interface AutoCompleteOption { label: string; value: string }
 
@@ -34,10 +34,10 @@ export function AutoComplete({ value: valueProp, onChange, onSelect, suggestions
           if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); }
           if (e.key === 'Escape') setOpen(false);
         }}
-        className="h-8 w-full rounded-2 border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
+        className="h-8 w-full rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
       />
       {open && matches.length > 0 && (
-        <ul id={listId} role="listbox" className="absolute left-0 top-full z-30 m-0 mt-1 w-full list-none overflow-hidden rounded-3 border border-line bg-s2 shadow-[var(--shadow-pop)]">
+        <ul id={listId} role="listbox" className="absolute left-0 top-full z-[var(--z-popover)] m-0 mt-1 w-full list-none overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
           {matches.map((s) => (
             <li key={s.value} role="option" aria-selected={value === s.value}>
               <button type="button"

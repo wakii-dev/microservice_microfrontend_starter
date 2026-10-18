@@ -1,5 +1,4 @@
-// Switch stories — batch ⑳: CoBan / Small / WithLabels (ON-OFF cross-fade) /
-// Disabled / DarkTheme.
+// Switch stories — Basic / Small / WithLabels (ON-OFF cross-fade) / Disabled / DarkTheme.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Switch } from './index';
@@ -13,8 +12,8 @@ function Toggle({ initial = false }: { initial?: boolean }) {
   return <Switch checked={on} onChange={setOn} aria-label="Toggle demo" />;
 }
 
-export const CoBan: S = {
-  name: 'Cơ bản — gradient + spring pop',
+export const Basic: S = {
+  name: 'Basic — gradient + spring pop',
   render: () => <Toggle />,
 };
 
@@ -28,21 +27,23 @@ export const Small: S = {
   ),
 };
 
+function WithLabelsDemo() {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="flex items-center gap-3">
+      <Switch checked={on} onChange={setOn} checkedChildren="ON" unCheckedChildren="OFF" aria-label="With labels" />
+      <span className="text-meta text-ink2">{on ? 'On' : 'Off'}</span>
+    </div>
+  );
+}
+
 export const WithLabels: S = {
   name: 'WithLabels — ON/OFF cross-fade 150ms',
-  render: () => {
-    const [on, setOn] = useState(true);
-    return (
-      <div className="flex items-center gap-3">
-        <Switch checked={on} onChange={setOn} checkedChildren="ON" unCheckedChildren="OFF" aria-label="With labels" />
-        <span className="text-meta text-ink2">{on ? 'Bật' : 'Tắt'}</span>
-      </div>
-    );
-  },
+  render: () => <WithLabelsDemo />,
 };
 
 export const Disabled: S = {
-  name: 'Disabled — phẳng, không shadow handle',
+  name: 'Disabled — flat, no handle shadow',
   render: () => (
     <div className="flex items-center gap-3">
       <Switch disabled aria-label="Disabled off" />
@@ -53,8 +54,8 @@ export const Disabled: S = {
 
 export const DarkTheme: S = {
   name: 'Dark theme',
-  /* Nền bg-s2 (dark = xám đậm dịu) như switch nằm trên card thật — KHÔNG
-   * bg-canvas near-black gây vạt đen gắt trên canvas sáng (feedback user). */
+  /* Soft bg-s2 card (dark = muted gray) like a real card surface — not a harsh
+   * near-black box on the light canvas (user feedback). */
   render: () => (
     <div data-bp-theme="dark" className="inline-flex items-center gap-4 rounded-xl bg-s2 p-4">
       <Switch checked aria-label="Dark 1" />
@@ -62,4 +63,19 @@ export const DarkTheme: S = {
       <Switch checked size="small" aria-label="Dark 3" />
     </div>
   ),
+};
+
+function ControlledDemo() {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Switch checked={on} onChange={setOn} />
+      <p className="m-0 font-mono text-meta text-ink3">checked: <strong className="text-ink">{String(on)}</strong></p>
+    </div>
+  );
+}
+
+/** Controlled — useState demo: flip updates state. */
+export const Controlled: S = {
+  render: () => <ControlledDemo />,
 };

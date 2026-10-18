@@ -1,4 +1,5 @@
-// Stories PickList — Forms. 2 cột chuyển item qua lại (Transfer lite).
+// PickList stories — two-column transfer (Transfer lite): pick in a column, then
+// move with the chevron buttons; listboxes are keyboard-navigable (↑↓ + Enter/Space).
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PickList } from './index';
@@ -19,24 +20,40 @@ const STACKS = [
   { label: 'Angular', value: 'angular' },
 ];
 
-function ControlledDemo() {
+/** Basic — controlled: pick items → move ›/‹; picked list shown below. */
+function BasicDemo() {
   const [source, setSource] = useState(STACKS);
   const [target, setTarget] = useState<typeof STACKS>([]);
   return (
-    <div>
-      <PickList
-        source={source}
-        target={target}
-        onChange={(s, t) => { setSource(s); setTarget(t); }}
-      />
-      <p className="mt-2 text-meta text-ink3">
-        đã chọn: {target.map((t) => t.label).join(', ') || '—'}
-      </p>
-    </div>
+      <div className="max-w-[560px]">
+        <PickList source={source} target={target} onChange={(s, t) => { setSource(s); setTarget(t); }} />
+        <p className="mt-2 font-mono text-meta text-ink3">
+          picked: <strong className="text-ink">{target.map((t) => t.label).join(', ') || '—'}</strong>
+        </p>
+      </div>
   );
 }
 
-export const CoBan: Story = {
-  name: 'Cơ bản — pick › chuyển sang, ‹ chuyển về',
-  render: () => <ControlledDemo />,
+export const Basic: Story = {
+  render: () => <BasicDemo />,
+};
+
+/** WithInitialTarget — start with items already moved. */
+export const WithInitialTarget: Story = {
+  name: 'With initial target',
+  args: { source: [STACKS[0], STACKS[1]], target: [STACKS[2]] },
+};
+
+/** Empty — empty source column (min-height keeps the panel shape). */
+export const Empty: Story = {
+  args: { source: [], target: STACKS },
+};
+
+/** DarkTheme — panels on dark canvas. */
+export const DarkTheme: Story = {
+  render: () => (
+    <div data-bp-theme="dark" className="max-w-[560px] rounded-xl bg-canvas p-4">
+      <PickList source={STACKS.slice(0, 2)} target={[]} onChange={() => {}} />
+    </div>
+  ),
 };

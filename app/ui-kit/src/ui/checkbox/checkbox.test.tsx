@@ -39,3 +39,21 @@ describe('Checkbox — branch phụ', () => {
     expect(screen.getByText('x')).toHaveClass('marker');
   });
 });
+
+describe('Checkbox — matrix gaps (disabled/controlled/className)', () => {
+  it('disabled → không toggle được, không gọi onChange', async () => {
+    const onChange = vi.fn();
+    render(<Checkbox disabled onChange={onChange}>Khoá</Checkbox>);
+    const box = screen.getByRole('checkbox');
+    expect(box).toBeDisabled();
+    await userEvent.setup().click(box);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('controlled — checked prop điều khiển hiển thị', () => {
+    const { rerender } = render(<Checkbox checked={false} onChange={vi.fn()}>c</Checkbox>);
+    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    rerender(<Checkbox checked onChange={vi.fn()}>c</Checkbox>);
+    expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+});

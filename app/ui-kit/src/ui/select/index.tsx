@@ -145,9 +145,9 @@ export function Select({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={(e) => { if (!editable) onKeyDown(e); }}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
-        } ${disabled ? 'cursor-not-allowed bg-[rgba(0,0,0,0.04)] text-ink4' : 'text-ink'}`}
+        } ${disabled ? 'cursor-not-allowed bg-ink/5 text-ink4' : 'text-ink'}`}
       >
         <span className="min-w-0 truncate">
           {multiple && visibleChips.length > 0 ? (
@@ -183,7 +183,7 @@ export function Select({
 
       {open && (
         <span className="absolute left-0 top-full mt-1 z-30 block w-full min-w-[160px]">
-          <span className="block overflow-hidden rounded-3 border border-line bg-s2 shadow-[var(--shadow-pop)]">
+          <span className="block overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
             {/* Filter input */}
             {filterable && (
               <span className="block border-b border-line2 p-2">
@@ -251,8 +251,8 @@ export function Select({
                         aria-disabled={option.disabled || undefined}
                         onMouseEnter={() => setActive(i)}
                         onClick={() => !option.disabled && commit(option.value)}
-                        className={`flex h-8 cursor-pointer items-center rounded-2 px-3 text-body ${
-                          isSelected ? 'bg-[#e6f4ff] font-semibold text-accent' : 'text-ink hover:bg-s3'
+                        className={`flex h-8 cursor-pointer items-center rounded-lg px-3 text-body ${
+                          isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-s3'
                         } ${isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : ''} ${option.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                       >
                         {multiple && (

@@ -2,11 +2,12 @@
 // tăng/giảm từng trường (Giờ/Phút) + nút nhanh "Bây giờ". Value nhận Date|string
 // ('HH:mm'); onChange luôn phát Date — GIỮ phần ngày khi input là Date, ngày
 // 1970-01-01 khi input là string (time thuần). Panel portal giống DatePicker.
-// Design: trigger theo pattern Input (border-line, focus accent, rounded-2 h-8),
+// Design: trigger theo pattern Input (border-line, focus accent, rounded-lg h-8),
 // panel bg-s2 border shadow-pop, nút nhanh active bg-accent text-white.
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useDateLocale, type DateLocaleInput } from '../date-picker/locale.js';
+import { Icon } from '../icons/index.js';
 
 export interface TimeParts {
   h: number;
@@ -102,15 +103,15 @@ export function TimePicker({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
+        className={`inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
         } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
       >
         <span className={value !== undefined ? 'tabular-nums' : 'text-ink4'}>{value !== undefined ? `${pad(parts.h)}:${pad(parts.m)}` : placeholder}</span>
-        <span aria-hidden="true" className="ml-auto text-ink3">🕐</span>
+        <span aria-hidden="true" className="ml-auto text-ink3"><Icon name="clock" size={14} /></span>
       </button>
       {open && createPortal(
-        <div className="fixed inset-0 z-50" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[var(--z-popover)]" onClick={() => setOpen(false)}>
           <div
             className="absolute w-[180px] animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)] rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]"
             style={{ left: ref.current?.getBoundingClientRect().left ?? 0, top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 4 }}

@@ -14,8 +14,21 @@ type S = StoryObj<typeof meta>;
 const pad = (n: number) => n.toString().padStart(2, '0');
 const fmt = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
 
-export const MacDinh: S = { args: { placeholder: 'Chọn ngày…' } };
+export const Basic: S = { args: { placeholder: 'Pick a date…' } };
 export const Disabled: S = { args: { disabled: true, placeholder: 'Disabled' } };
+
+/** Controlled — useState demo: picked date shown below. */
+export const Controlled: S = {
+  render: () => {
+    const [d, setD] = useState<Date | undefined>();
+    return (
+      <div className="grid max-w-[320px] gap-3">
+        <DatePicker value={d} onChange={(x) => setD(x)} placeholder="Pick a date…" />
+        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{d ? d.toLocaleDateString('vi-VN') : '—'}</strong></p>
+      </div>
+    );
+  },
+};
 
 function RangeDemo() {
   const [range, setRange] = useState<[Date, Date] | undefined>();
@@ -30,7 +43,7 @@ function RangeDemo() {
 }
 
 export const DatePickerRange: S = {
-  name: 'DatePicker Range (from → to, hover preview)',
+  name: 'Range — from → to, hover preview',
   render: () => <RangeDemo />,
 };
 
@@ -47,12 +60,12 @@ function TimeDemo() {
 }
 
 export const DatePickerTime: S = {
-  name: 'DatePicker Time (showTime + OK)',
+  name: 'With time — showTime + OK confirm',
   render: () => <TimeDemo />,
 };
 
 export const LocaleEN: S = {
-  name: 'Locale EN (DateLocaleProvider + prop locale)',
+  name: 'Locale EN — DateLocaleProvider + locale prop',
   render: () => (
     <div className="grid w-[380px] gap-4">
       <DateLocaleProvider locale="en">
@@ -65,7 +78,7 @@ export const LocaleEN: S = {
 };
 
 export const DarkTheme: S = {
-  name: 'Dark theme — single + range + time',
+  name: 'DarkTheme — single + range + time',
   render: () => (
     <div data-bp-theme="dark" className="grid w-96 gap-3 rounded-xl bg-canvas p-4">
       <DatePicker />

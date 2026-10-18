@@ -1,5 +1,10 @@
 // CascadeSelect — chọn có phân cấp (antd Cascader lite).
+// Audit fix 2026-10-18: ▸/› ký tự → Icon; z-30 → token --z-popover; panel
+// inset-x-0 (fix "panel lệch trái" — trước đây width theo content, left-anchored
+// trong khi trigger full-width); aria-expanded/haspopup + role listbox/option;
+// focus-visible ring trên trigger.
 import { useState } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface CascadeOption {
   label: string; value: string;
@@ -17,6 +22,9 @@ export interface CascadeSelectProps {
 export function CascadeSelect({ options, value = [], onChange, placeholder = 'Chọn…', className }: CascadeSelectProps) {
   const [open, setOpen] = useState(false);
   const [level, setLevel] = useState(0);
+  // Keyboard nav (a11y listbox): ↑↓ chuyển active, Enter chọn, Esc đóng — focus
+  // giữ trên trigger, highlight qua activeIdx (panel ngắn, không cần scrollIntoView).
+  const [activeIdx, setActiveIdx] = useState(0);
 
   let current = options;
   for (let i = 0; i < value.length; i++) {
@@ -27,23 +35,42 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
 
   return (
     <div className={`relative inline-flex w-full${className ? ` ${className}` : ''}`}>
-      <button type="button" onClick={() => setOpen((o) => !o)}
-        className="inline-flex h-8 w-full items-center justify-between rounded-2 border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="listbox"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const dir = e.key === 'ArrowDown' ? 1 : -1;
+            setOpen(true);
+            setActiveIdx((i) => (i + dir + current.length) % current.length);
+          } else if (e.key === 'Enter' && open) {
+            e.preventDefault();
+            const opt = current[activeIdx];
+            if (opt) {
+              const next = [...value.slice(0, level), opt.value];
+              if (opt.children) { setLevel(level + 1); onChange?.(next); }
+              else { onChange?.(next); setOpen(false); setLevel(0); }
+            }
+          } else if (e.key === 'Escape' && open) {
+            setOpen(false); setLevel(0);
+          }
+        }}
+        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none">
         <span className={value.length > 0 ? '' : 'text-ink4'}>{value.length > 0 ? value.join(' / ') : placeholder}</span>
-        <span className="text-ink3">▸</span>
+        <span aria-hidden="true" className="text-ink3"><Icon name="chevron-right" size={12} /></span>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-30 mt-1 flex gap-px overflow-hidden rounded-3 border border-line bg-s2 shadow-[var(--shadow-pop)]">
+        <div role="listbox" aria-label={placeholder}
+          className="absolute inset-x-0 top-full z-[var(--z-popover)] mt-1 flex gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
           {current.map((option) => (
-            <button key={option.value} type="button"
+            <button key={option.value} type="button" role="option" aria-selected={value[value.length - 1] === option.value}
               onClick={() => {
                 const next = [...value.slice(0, level), option.value];
                 if (option.children) { setLevel(level + 1); onChange?.(next); }
                 else { onChange?.(next); setOpen(false); setLevel(0); }
               }}
-              className={`block w-full min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink hover:bg-s3`}>
+              className={`block w-full min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-s3'}`}>
               {option.label}
-              {option.children && <span className="float-right text-ink3">›</span>}
+              {option.children && <span aria-hidden="true" className="float-right text-ink3"><Icon name="chevron-right" size={12} /></span>}
             </button>
           ))}
         </div>

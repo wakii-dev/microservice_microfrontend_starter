@@ -91,7 +91,8 @@ describe('Switch — batch ⑳ redesign (iOS/MUI-grade)', () => {
     const sw = screen.getByRole('switch', { name: 'fv' });
     expect(sw.className).toContain('focus-visible:ring-2');
     expect(sw.className).toContain('focus-visible:ring-accent/40');
-    expect(sw.className).toContain('focus-visible:ring-offset-2');
+    // KHÔNG ring-offset — khe trắng quanh track tạo cảm giác viền đôi (feedback user ảnh)
+    expect(sw.className).not.toContain('ring-offset');
     expect(sw.className).not.toContain('focus-visible:outline');
   });
 });

@@ -33,18 +33,18 @@ function CoBanDemo() {
   );
 }
 
-export const TimePickerCoBan: Story = {
-  name: 'TimePicker cơ bản',
+export const Basic: Story = {
+  name: 'Basic',
   render: () => <CoBanDemo />,
 };
 
-export const TimePickerGiaTriDate: Story = {
-  name: 'TimePicker value Date (giữ phần ngày)',
+export const WithDateValue: Story = {
+  name: 'With Date value — date part preserved',
   render: () => <TimePicker value={new Date(2026, 9, 18, 8, 30)} />,
 };
 
-export const TimePickerLocaleEN: Story = {
-  name: 'TimePicker locale EN',
+export const LocaleEN: Story = {
+  name: 'Locale EN',
   render: () => <TimePicker locale="en" />,
 };
 
@@ -55,4 +55,22 @@ export const DarkTheme: Story = {
       <TimePicker />
     </div>
   ),
+};
+
+/** Disabled — trigger locked. */
+export const Disabled: Story = {
+  args: { disabled: true, value: '08:30' },
+};
+
+/** Controlled — string value 'HH:mm' demo. */
+export const Controlled: Story = {
+  render: () => {
+    const [t, setT] = useState<string>('09:00');
+    return (
+      <div className="grid w-[260px] gap-3">
+        <TimePicker value={t} onChange={(d) => setT(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`)} />
+        <p className="m-0 font-mono text-meta text-ink3">value: <strong className="text-ink">{t}</strong></p>
+      </div>
+    );
+  },
 };

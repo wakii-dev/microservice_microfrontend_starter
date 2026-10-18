@@ -59,7 +59,7 @@ function ChevronRightIcon() {
 const CELL =
   'aspect-square w-full flex items-center justify-center rounded-lg border-none text-body select-none cursor-pointer transition-colors';
 const NAV_CLS =
-  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3';
+  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none';
 
 export function Calendar({ value, onChange, now = new Date(), locale, range, onDayHover, bare = false, className }: CalendarProps) {
   const loc = useDateLocale(locale);
@@ -80,8 +80,12 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
         : { lo: previewEnd, hi: range.start }
       : null;
 
-  const prev = () => { viewM === 0 ? (setViewM(11), setViewY((y) => y - 1)) : setViewM((m) => m - 1); };
-  const next = () => { viewM === 11 ? (setViewM(0), setViewY((y) => y + 1)) : setViewM((m) => m + 1); };
+  const prev = () => {
+    if (viewM === 0) { setViewM(11); setViewY((y) => y - 1); } else { setViewM((m) => m - 1); }
+  };
+  const next = () => {
+    if (viewM === 11) { setViewM(0); setViewY((y) => y + 1); } else { setViewM((m) => m + 1); }
+  };
 
   return (
     <div

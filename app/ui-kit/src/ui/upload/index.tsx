@@ -3,18 +3,13 @@
 // Promise → 'uploading' (Progress) → 'done'/'error'. UploadDropzone (kéo-thả) chia sẻ props/logic
 // qua upload-core; Logic chọn file nằm ở useUploadController (upload-core.tsx).
 import { Button } from '../button/index';
+import { Icon } from '../icons/index.js';
 import { UploadFileList, useUploadController, type UploadProps } from './upload-core.js';
-import { UploadDropzone } from './upload-dropzone.js';
 
 export { UploadDropzone } from './upload-dropzone.js';
 export type { UploadItem, UploadProps, UploadStatus } from './upload-core.js';
 
-const TRIGGER_ICON = (
-  <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-    <path d="M12 16V4m0 0L8 8m4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1" strokeLinecap="round" />
-  </svg>
-);
+const TRIGGER_ICON = <Icon name="upload" size={14} />;
 
 export function Upload(props: UploadProps) {
   const { accept, multiple, disabled, showList = true, className, children } = props;

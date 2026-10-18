@@ -111,25 +111,27 @@ export const Sizes: Story = {
 /** Demo — shows the picked keys (useState). */
 export const Demo: Story = {
   name: 'Demo — selected key display (useState)',
-  render: () => {
-    const [selected, setSelected] = useState<string[]>([]);
-    const push = (msg: string) => setSelected((prev) => [...prev.slice(-2), msg]);
-    return (
-      <div className="flex flex-col gap-3">
-        <ul className="m-0 list-none p-0 text-meta text-ink2">
-          {selected.length === 0 ? <li>No action yet.</li> : selected.map((line, i) => <li key={i}>{line}</li>)}
-        </ul>
-        <SplitButton
-          label="Save task"
-          items={[
-            { key: 'save-run', label: 'Save + run', icon: <Icon name="check-circle" size={14} /> },
-            { key: 'sep', label: '', separator: true },
-            { key: 'save-draft', label: 'Save draft', icon: <Icon name="pencil" size={14} /> },
-          ]}
-          onClick={() => push('click: Save task')}
-          onItemClick={(key) => push(`item: ${key}`)}
-        />
-      </div>
-    );
-  },
+  render: () => <SplitButtonDemo />,
 };
+
+function SplitButtonDemo() {
+  const [selected, setSelected] = useState<string[]>([]);
+  const push = (msg: string) => setSelected((prev) => [...prev.slice(-2), msg]);
+  return (
+    <div className="flex flex-col gap-3">
+      <ul className="m-0 list-none p-0 text-meta text-ink2">
+        {selected.length === 0 ? <li>No action yet.</li> : selected.map((line, i) => <li key={i}>{line}</li>)}
+      </ul>
+      <SplitButton
+        label="Save task"
+        items={[
+          { key: 'save-run', label: 'Save + run', icon: <Icon name="check-circle" size={14} /> },
+          { key: 'sep', label: '', separator: true },
+          { key: 'save-draft', label: 'Save draft', icon: <Icon name="pencil" size={14} /> },
+        ]}
+        onClick={() => push('click: Save task')}
+        onItemClick={(key) => push(`item: ${key}`)}
+      />
+    </div>
+  );
+}

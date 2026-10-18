@@ -2,9 +2,12 @@
 // + meta phải mono (assignee UUID rút gọn + createdAt vi-VN) + actions (select/sửa/xoá).
 // Busy per-item: Spinner THAY badge + disable select/actions khi PATCH/DELETE đang bay.
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
+// ui-kit useForm + zod (app-fit migration 2026-10-18, thay react-hook-form): reset(task)
+// mỗi lần mở edit (đúng giá trị hiện tại); chỉ gửi field THAY ĐỔI; lỗi (onSave false)
+// → giữ nguyên form + draft.
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Button, Icon, Input, Popconfirm, Spinner } from '@wakii/ui-kit';
+import { z } from 'zod';
+import { Button, Icon, Input, Popconfirm, Spinner, useForm } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -16,6 +19,12 @@ interface TaskItemProps {
   onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<boolean>;
   onDelete: (task: Task) => Promise<void>;
 }
+
+const editSchema = z.object({
+  title: z.string().trim().min(1),
+  description: z.string(),
+});
+type EditValues = z.infer<typeof editSchema>;
 
 /** UUID rút gọn 8 ký tự đầu — tooltip giữ full (KHÔNG resolve tên qua /api/users). */
 function shortUuid(id: string): string {
@@ -39,10 +48,11 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  // RHF: draft edit inline — reset(task) mỗi lần mở edit (đúng giá trị hiện tại);
-  // chỉ gửi field THAY ĐỔI; lỗi (onSave false) → giữ nguyên form + draft.
-  const { register, handleSubmit, reset, getValues } = useForm({
-    defaultValues: { title: task.title, description: task.description ?? '' },
+  // ui-kit useForm: draft edit inline — reset(task) mỗi lần mở edit (đúng giá trị
+  // hiện tại); chỉ gửi field THAY ĐỔI; lỗi (onSave false) → giữ form + draft.
+  const form = useForm<EditValues>({
+    schema: editSchema,
+    initialValues: { title: task.title, description: task.description ?? '' },
   });
 
   async function run(action: () => Promise<void>) {
@@ -55,17 +65,16 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   }
 
   function startEdit() {
-    reset({ title: task.title, description: task.description ?? '' });
+    form.reset({ title: task.title, description: task.description ?? '' });
     setConfirming(false);
     setEditing(true);
   }
 
-  function saveEdit() {
-    const values = getValues();
-    const title = values.title.trim();
-    if (!title || busy) return;
-    // Chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1); description rỗng
-    // gửi '' — contract cho phép, user xoá được mô tả.
+  const saveEdit = form.handleSubmit((values) => {
+    if (busy) return;
+    const title = values.title; // zod đã trim — rỗng → lỗi schema, không tới đây
+    // Chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1); description giữ
+    // RAW (không trim) — so khớp đúng draft user, rỗng gửi '' xoá được mô tả.
     const patch: { title?: string; description?: string } = {};
     if (title !== task.title) patch.title = title;
     if ((task.description ?? '') !== values.description) patch.description = values.description;
@@ -77,7 +86,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
       const ok = await onSave(task, patch);
       if (ok) setEditing(false);
     });
-  }
+  });
 
   return (
     <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-3 border border-line bg-s2 p-3 px-4 transition-colors hover:bg-s3 max-md:grid-cols-1">
@@ -91,18 +100,23 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
 
       <div className="tsk-item__main">
         {editing ? (
-          <form className="flex w-full flex-row flex-wrap gap-2" onSubmit={handleSubmit(saveEdit)}>
+          <form className="flex w-full flex-row flex-wrap gap-2" onSubmit={saveEdit}>
             <Input
               className="min-w-0 flex-1"
               aria-label={`Sửa tiêu đề task ${task.title}`}
+              name="title"
               required
               maxLength={200}
-              {...register('title')}
+              invalid={!!form.errors.title}
+              value={form.values.title}
+              onChange={form.handleChange('title')}
             />
             <Input
               className="min-w-0 flex-1"
               aria-label={`Sửa mô tả task ${task.title}`}
-              {...register('description')}
+              name="description"
+              value={form.values.description}
+              onChange={form.handleChange('description')}
             />
             <Button type="primary" htmlType="submit" disabled={busy} icon={<Icon name="check" />}>
               Lưu

@@ -1,6 +1,6 @@
 // ui-kit — barrel export design-system primitives (tách khỏi fe-shared, ADR-0009).
-// CSS đi kèm: tokens + base qua subpath '@wakii-dev/ui-kit/styles/*.css'; Tailwind v4
-// utilities qua '@wakii-dev/ui-kit/styles/tailwind.css' (app import 1 lần).
+// CSS đi kèm: tokens + base qua subpath '@wakii/ui-kit/styles/*.css'; Tailwind v4
+// utilities qua '@wakii/ui-kit/styles/tailwind.css' (app import 1 lần).
 export {
   Badge,
   type BadgeVariant,

@@ -1,19 +1,87 @@
-// Editor peer-dep — test fallback (Tiptap chưa cài trong test env).
-import { cleanup, render, screen } from '@testing-library/react';
+// Editor tests — jsdom + Tiptap v3 thật: .ProseMirror tồn tại, typing → onChange
+// HTML, toolbar toggleBold → active state, placeholder lúc trống, undo, imperative
+// editor qua editorRef. Type qua editorRef (PM handleBeforeInput trong jsdom
+// không đáng tin — commands là API chính thức).
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-// Engine đã vào devDeps → mock reject để mô phỏng consumer CHƯA cài (peer-dep fallback path)
-vi.mock('@tiptap/react', async () => { throw new Error('not installed'); });
-vi.mock('@tiptap/starter-kit', async () => { throw new Error('not installed'); });
+import type { Editor as TiptapEditor } from '@tiptap/react';
 import { Editor } from './index.js';
+
 afterEach(cleanup);
 
-describe('Editor', () => {
-  it('fallback khi Tiptap chưa cài', async () => {
-    render(<Editor fallback={<p>Cài Tiptap</p>} />);
-    expect(await screen.findByText(/Cài Tiptap/, {}, { timeout: 3000 })).toBeInTheDocument();
+type Props = Parameters<typeof Editor>[0];
+
+const pm = () => {
+  const el = document.querySelector('.ProseMirror');
+  if (!el) throw new Error('.ProseMirror chưa mount');
+  return el as HTMLElement;
+};
+
+const waitForMounted = () => waitFor(() => expect(document.querySelector('.ProseMirror')).toBeInTheDocument());
+
+describe('Editor — render', () => {
+  it('render → .ProseMirror tồn tại + contentEditable + content khởi tạo', async () => {
+    render(<Editor content="<p>Xin chào</p>" />);
+    await waitForMounted();
+    expect(pm()).toHaveAttribute('contenteditable', 'true');
+    expect(pm()).toHaveTextContent('Xin chào');
   });
-  it('loading state trước khi resolve', () => {
-    render(<Editor />);
-    expect(screen.getByText(/Đang tải/)).toBeInTheDocument();
+
+  it('trống + placeholder → bubble placeholder hiện', async () => {
+    render(<Editor placeholder="Viết gì đó…" />);
+    await waitForMounted();
+    expect(screen.getByText('Viết gì đó…')).toBeInTheDocument();
+  });
+});
+
+describe('Editor — onChange + commands', () => {
+  it('insertContent (commands API) → onChange nhận HTML chứa text', async () => {
+    // jsdom: userEvent.type vào ProseMirror không cập nhật PM state (thiếu
+    // elementFromPoint) — giả lập qua editor instance như spec cho phép
+    const onChange = vi.fn();
+    let editor: TiptapEditor | null = null;
+    render(<Editor onChange={onChange} editorRef={(ed) => (editor = ed as TiptapEditor)} />);
+    await waitForMounted();
+    editor!.commands.insertContent('abc');
+    await vi.waitFor(() => {
+      expect(onChange).toHaveBeenCalled();
+    });
+    expect(String(onChange.mock.calls.at(-1)?.[0])).toContain('abc');
+  });
+
+  it('toolbar toggleBold sau selectAll → onChange wrap <strong>', async () => {
+    const onChange = vi.fn();
+    let editor: TiptapEditor | null = null;
+    render(<Editor content="<p>hello</p>" onChange={onChange} editorRef={(ed) => (editor = ed as TiptapEditor)} />);
+    await waitForMounted();
+    editor!.commands.selectAll();
+    const boldBtn = screen.getByRole('button', { name: 'Đậm' });
+    expect(boldBtn).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(boldBtn);
+    expect(editor!.isActive('bold')).toBe(true);
+    expect(boldBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(boldBtn).toHaveClass('bg-s3');
+    expect(editor!.getHTML()).toContain('<strong>hello</strong>');
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('toggleHeading H2 → isActive heading level 2', async () => {
+    let editor: TiptapEditor | null = null;
+    render(<Editor content="<p>tiêu đề</p>" editorRef={(ed) => (editor = ed as TiptapEditor)} />);
+    await waitForMounted();
+    fireEvent.click(screen.getByRole('button', { name: 'Tiêu đề 2' }));
+    expect(editor!.isActive('heading', { level: 2 })).toBe(true);
+    expect(editor!.getHTML()).toContain('<h2>');
+  });
+
+  it('undo → trả về nội dung trước đó', async () => {
+    let editor: TiptapEditor | null = null;
+    render(<Editor content="<p>gốc</p>" editorRef={(ed) => (editor = ed as TiptapEditor)} />);
+    await waitForMounted();
+    fireEvent.click(screen.getByRole('button', { name: 'Tiêu đề 2' }));
+    expect(editor!.getHTML()).toContain('<h2>');
+    fireEvent.click(screen.getByRole('button', { name: 'Hoàn tác' }));
+    expect(editor!.getHTML()).not.toContain('<h2>');
   });
 });

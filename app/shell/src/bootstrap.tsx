@@ -7,8 +7,11 @@ import { registerBuildtimeRemoteUrls } from './remote-urls';
 // Shell LÀM CHỦ global (kiến trúc SF-1, base.css header): tokens + base import ở entry
 // — app.css (tailwind utilities, layered) + styles.css (scoped sh-*, unlayered) import
 // SAU để thắng base khi cùng specificity.
-import '@wakii-dev/ui-kit/styles/tokens.css';
-import '@wakii-dev/ui-kit/styles/base.css';
+import '@wakii/ui-kit/styles/tokens.css';
+import '@wakii/ui-kit/styles/base.css';
+// Dark theme (batch ⑰): host import LÀM CHỦ — data-bp-theme trên <html> (NavBar
+// toggle) cascade xuống mọi remote mount point, remotes không cần import riêng.
+import '@wakii/ui-kit/styles/themes/dark.css';
 import './app.css';
 
 registerBuildtimeRemoteUrls();

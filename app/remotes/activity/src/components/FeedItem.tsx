@@ -1,8 +1,10 @@
 // Feed item entry (SF-4, hand-off §4): «userName» + badge action + «taskTitle» đậm,
 // time mono vi-VN bên phải. Dot màu action nằm trong Badge primitive (không thêm dot rail).
+// Badge GIỮ thay Tag: Tag là chip trung tính không variant — mất mapping màu per-action
+// (created=accent, deleted=ink3, assignmentFailed=st-fail…) mà tests khóa contract dot-var.
 // User-display fields render TRỰC TIẾP từ response (spec slice mục 2 — không tự bịa placeholder).
-import { Badge } from '@wakii-dev/ui-kit';
-import type { BadgeVariant } from '@wakii-dev/ui-kit';
+import { Badge } from '@wakii/ui-kit';
+import type { BadgeVariant } from '@wakii/ui-kit';
 import type { ActivityFeedItem } from '../api';
 import { formatTime } from './time';
 

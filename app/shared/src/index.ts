@@ -1,4 +1,4 @@
-// fe-shared — barrel export (LOGIC ONLY — design system đã tách sang @wakii-dev/ui-kit,
+// fe-shared — barrel export (LOGIC ONLY — design system đã tách sang @wakii/ui-kit,
 // ADR-0009 2026-10-17: primitives + tokens/base css sống ở ui-kit, imports UI đổi thẳng)
 export { ApiClient, ApiError, type ApiClientOptions } from './api-client.js';
 export { decodeErrorEnvelope, type ErrorEnvelope } from './error-envelope.js';

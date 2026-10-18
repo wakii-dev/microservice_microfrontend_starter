@@ -1,28 +1,34 @@
-// Button — antd look (decision 2026-10-17): type primary|default|text + danger boolean.
+// Button — antd look, modernize pass (vision-audit 2026-10-18: phẳng/thấp/radius nhỏ,
+// secondary mất định nghĩa trên nền trắng): mặc định h-9 (36px antd middle), rounded-lg
+// 8px, font-medium + tracking nhẹ, default variant bg-s2 + border-line rõ (hover bg-s3),
+// primary hover accent-hi, focus ring accent/40 + offset canvas, active scale 0.98,
+// loading → Spinner 3.5 inline + cursor-wait. Disabled dùng token --bg-disabled (dark-safe).
+// API GIỮ NGUYÊN (type/danger/icon/htmlType/block/disabled) — chỉ thêm/nâng visual,
+// không break consumers (không ai trong repo truyền size=).
 // Map từ style cũ của repo: .tsk-btn--primary → type=primary · .tsk-btn/.sh-btn →
 // type=default · .tsk-btn--ghost/.sh-btn--ghost → type=text · .tsk-btn--danger →
 // type=primary+danger · .tsk-btn--danger-ghost → type=text+danger.
-// API theo antd: `type` = variant, `htmlType` = HTML button type. Tailwind utilities
-// (@theme inline trong styles/tailwind.css) — hover antd: primary sáng accent-hi,
-// default đổi chữ+viền sang accent.
+// API theo antd: `type` = variant, `htmlType` = HTML button type.
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
 
 export type ButtonType = 'primary' | 'default' | 'text';
+export type ButtonSize = 'small' | 'middle' | 'large';
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   /** Variant visual — antd Button type. */
   type?: ButtonType;
   /** HTML button type (antd htmlType) — mặc định 'button' an toàn trong form. */
   htmlType?: 'button' | 'submit' | 'reset';
+  /** Đỏ (nguy hiểm) — với type=primary nền đặc, type=text chữ đỏ, type=default rơi về variant default. */
   danger?: boolean;
-  /** antd size: small (h-6) / middle (h-8) / large (h-10). */
-  size?: 'small' | 'middle' | 'large';
-  /** Loading — Spinner thay nội dung + disable (antd loading). */
+  /** antd size: small (h-8) / middle (h-9, mặc định) / large (h-10). */
+  size?: ButtonSize;
+  /** Loading — Spinner 3.5 inline thay icon + disable + cursor-wait (antd loading). */
   loading?: boolean;
   /** Full-width (antd block). */
   block?: boolean;
-  /** Icon trước nhãn (antd icon). */
+  /** Icon trước nhãn (antd icon) — ẩn khi loading (Spinner thay). */
   icon?: ReactNode;
   children?: ReactNode;
   /** Append sau structural classes (pattern antd). */
@@ -30,17 +36,17 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const BASE =
-  'inline-flex cursor-pointer items-center justify-center gap-1 rounded-2 border transition-all focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent disabled:cursor-not-allowed disabled:border-line disabled:bg-[rgba(0,0,0,0.04)] disabled:text-ink4 active:scale-[0.97] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
+  'inline-flex items-center justify-center gap-1 rounded-lg border font-medium tracking-[0.01em] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-[var(--bg-disabled)] disabled:text-ink4 active:scale-[0.98] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
 
-const SIZE = {
-  small: 'h-6 px-2 text-label',
-  middle: 'h-8 px-[15px] text-body',
-  large: 'h-10 px-4 text-body',
+const SIZE: Record<ButtonSize, string> = {
+  small: 'h-8 px-3 text-label',
+  middle: 'h-9 px-4 text-body',
+  large: 'h-10 px-5 text-body',
 } as const;
 
 const VARIANTS: Record<ButtonType, string> = {
   'primary': 'border-accent bg-accent text-white hover:border-accent-hi hover:bg-accent-hi',
-  'default': 'border-line bg-s2 text-ink hover:border-accent hover:text-accent',
+  'default': 'border-line bg-s2 text-ink hover:bg-s3',
   'text': 'border-transparent bg-transparent text-ink hover:bg-s3',
 };
 
@@ -63,14 +69,16 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
+  // cursor tách khỏi BASE — loading cần cursor-wait đè cursor-pointer (cùng specificity,
+  // đặt điều kiện thay vì append sau để không phụ thuộc thứ tự CSS utilities).
   return (
     <button
       type={htmlType}
       disabled={disabled || loading}
-      className={`${BASE} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${className ? ` ${className}` : ''}`}
+      className={`${BASE} ${loading ? 'cursor-wait' : 'cursor-pointer'} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${className ? ` ${className}` : ''}`}
       {...rest}
     >
-      {loading && <Spinner size="small" label="" className="-ml-1" aria-hidden="true" />}
+      {loading && <Spinner size="default" label="" className="-ml-1" aria-hidden="true" />}
       {!loading && icon}
       {children}
     </button>

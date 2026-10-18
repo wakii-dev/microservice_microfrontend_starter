@@ -102,7 +102,7 @@ const form = useForm({ schema, mode: 'onBlur' });
 | Registry | Package | Audience |
 |---|---|---|
 | **npmjs.org** | [`@wakii/ui-kit`](https://www.npmjs.com/package/@wakii/ui-kit) | Public — no auth needed |
-| **GitHub Packages** | `@wakii-dev/ui-kit` | Org-internal — add `@wakii-dev:registry=https://npm.pkg.github.com` to `.npmrc` |
+| **GitHub Packages** | `@wakii/ui-kit` | Org-internal — add `@wakii-dev:registry=https://npm.pkg.github.com` to `.npmrc` |
 
 Heavy engines are **optional peer dependencies** — install them only if you use the subpath:
 `@wakii/ui-kit/carousel` → `swiper` · `chart` → `chart.js` · `useForm` → `zod` · schedule → `@fullcalendar/*` · editor → `@tiptap/*`

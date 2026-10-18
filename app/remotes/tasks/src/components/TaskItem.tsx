@@ -4,7 +4,7 @@
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Input, Popconfirm, Spinner } from '@wakii-dev/ui-kit';
+import { Button, Icon, Input, Popconfirm, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';
@@ -104,10 +104,10 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
               aria-label={`Sửa mô tả task ${task.title}`}
               {...register('description')}
             />
-            <Button type="primary" htmlType="submit" disabled={busy}>
+            <Button type="primary" htmlType="submit" disabled={busy} icon={<Icon name="check" />}>
               Lưu
             </Button>
-            <Button type="text" disabled={busy} onClick={() => setEditing(false)}>
+            <Button type="text" disabled={busy} onClick={() => setEditing(false)} icon={<Icon name="times" />}>
               Huỷ
             </Button>
           </form>
@@ -152,6 +152,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
               aria-label={`Sửa task ${task.title}`}
               disabled={busy}
               onClick={startEdit}
+              icon={<Icon name="pencil" />}
             >
               Sửa
             </Button>
@@ -171,6 +172,7 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
                 aria-label={`Xoá task ${task.title}`}
                 disabled={busy}
                 onClick={() => setConfirming(true)}
+                icon={<Icon name="trash" />}
               >
                 Xoá
               </Button>

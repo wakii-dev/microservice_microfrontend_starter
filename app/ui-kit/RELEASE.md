@@ -15,10 +15,10 @@ pnpm test && pnpm typecheck        # 540 tests phải xanh
 # bump version trong package.json (vd 0.1.4 → 0.2.0 / 1.0.0)
 ```
 
-## 2. Publish GitHub Packages (chính thức — tên @wakii-dev/ui-kit, hiện trên repo)
+## 2. Publish GitHub Packages (chính thức — tên @wakii/ui-kit, hiện trên repo)
 
 ```bash
-GH_PACKAGES_TOKEN=ghp_xxx pnpm --filter "@wakii-dev/ui-kit" publish --no-git-checks
+GH_PACKAGES_TOKEN=ghp_xxx pnpm --filter "@wakii/ui-kit" publish --no-git-checks
 ```
 
 ## 3. Publish npmjs.org (public — tên @wakii/ui-kit)
@@ -45,7 +45,7 @@ git add -A && git commit -m "release: <version>" && git push   # PR → merge ma
 | Registry | Package | Ai cài |
 |---|---|---|
 | npmjs.org | `@wakii/ui-kit` | Mọi người — `npm i @wakii/ui-kit`, không cần auth |
-| GitHub Packages | `@wakii-dev/ui-kit` | Org — `.npmrc` thêm `@wakii-dev:registry=https://npm.pkg.github.com` + token |
+| GitHub Packages | `@wakii/ui-kit` | Org — `.npmrc` thêm `@wakii-dev:registry=https://npm.pkg.github.com` + token |
 
 GitHub ép scope = owner (`wakii-dev`); npmjs theo org `wakii` — khác tên là chủ ý, cùng nội dung.
 Vercel production URL: https://storybook-static-khaki-two.vercel.app

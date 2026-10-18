@@ -1,6 +1,6 @@
 {
-  "name": "@wakii-dev/ui-kit",
-  "version": "0.2.0",
+  "name": "@wakii/ui-kit",
+  "version": "0.2.2",
   "description": "Design system của Wakii — tokens + Tailwind v4 + 90 React components + hooks (antd/PrimeReact parity), dark theme, motion. Storybook: https://storybook-static-khaki-two.vercel.app",
   "type": "module",
   "main": "./src/index.ts",
@@ -22,8 +22,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "build": "tsup && pnpm build:css",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "storybook": "node scripts/stamp-build.cjs && storybook dev -p 6006",
+    "build-storybook": "node scripts/stamp-build.cjs && storybook build",
     "test-storybook": "test-storybook",
     "build:css": "tailwindcss -i src/styles/ui-kit.css -o dist/ui-kit.css --minify"
   },
@@ -87,8 +87,7 @@
       "./styles/base.css": "./src/styles/base.css",
       "./styles/tailwind.css": "./src/styles/tailwind.css",
       "./styles/themes/dark.css": "./src/styles/themes/dark.css"
-    },
-    "registry": "https://npm.pkg.github.com"
+    }
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",

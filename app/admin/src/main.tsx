@@ -4,9 +4,9 @@
 // (reset) + tailwind utilities. 1 lần ở root.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import '@wakii-dev/ui-kit/styles/tokens.css';
-import '@wakii-dev/ui-kit/styles/themes/dark.css';
-import '@wakii-dev/ui-kit/styles/base.css';
+import '@wakii/ui-kit/styles/tokens.css';
+import '@wakii/ui-kit/styles/themes/dark.css';
+import '@wakii/ui-kit/styles/base.css';
 import './styles.css';
 import { App } from './App.js';
 

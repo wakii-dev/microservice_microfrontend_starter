@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
+import { Icon } from '@wakii/ui-kit';
 
 /**
  * Dashboard chào (spec slice mục 4): greeting + quick links 2 remote + demo hints.
@@ -22,12 +23,18 @@ export function HomePage() {
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
         <Link className="flex flex-col gap-2 rounded-3 border border-line bg-s2 p-6 text-inherit no-underline transition-colors hover:border-line2 hover:bg-s3" to="/tasks">
-          <h2>Tasks</h2>
-          <p>Quản lý công việc — tạo, sửa, đổi status, filter.</p>
+          <span aria-hidden="true" className="text-accent">
+            <Icon name="check-circle" size={20} />
+          </span>
+          <h2 className="m-0">Tasks</h2>
+          <p className="m-0">Quản lý công việc — tạo, sửa, đổi status, filter.</p>
         </Link>
         <Link className="flex flex-col gap-2 rounded-3 border border-line bg-s2 p-6 text-inherit no-underline transition-colors hover:border-line2 hover:bg-s3" to="/activity">
-          <h2>Activity</h2>
-          <p>Feed sự kiện real-time (Kafka) — mọi thao tác ở Tasks đều phản ánh về đây.</p>
+          <span aria-hidden="true" className="text-accent">
+            <Icon name="clock" size={20} />
+          </span>
+          <h2 className="m-0">Activity</h2>
+          <p className="m-0">Feed sự kiện real-time (Kafka) — mọi thao tác ở Tasks đều phản ánh về đây.</p>
         </Link>
       </div>
 

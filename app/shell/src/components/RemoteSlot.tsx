@@ -1,6 +1,6 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { type LoadRemoteModuleOptions, type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@wakii/fe-shared';
-import { Button, Skeleton } from '@wakii-dev/ui-kit';
+import { Button, Icon, Skeleton } from '@wakii/ui-kit';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.
@@ -28,7 +28,12 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
             Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
             xuống). Vui lòng thử lại.
           </p>
-          <Button onClick={this.props.onRetry}>Thử lại</Button>
+          <Button onClick={this.props.onRetry}>
+            <span className="inline-flex items-center gap-1.5">
+              <Icon name="refresh" size={14} />
+              Thử lại
+            </span>
+          </Button>
         </div>
       );
     }

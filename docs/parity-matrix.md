@@ -29,10 +29,10 @@ batch ship (cột "Mức" ý kiến review, không phải cam kết API).
 | Modal / Drawer / Notification / Message / Popconfirm | antd | đủ dùng | feedback family; Message static API `message.success()` |
 | Tooltip | antd | đủ dùng | placement top/bottom, trigger hover + focus |
 | Progress / Statistic / Result / Steps / Space / Divider / Descriptions / Collapse / Card / Breadcrumb / Image / Tag / Badge / Avatar | antd | đủ dùng | display family; Result 404/500, AvatarGroup max "+N" |
-| Carousel | PrimeReact API + Swiper engine | đủ dùng | peer-dep swiper qua subpath `@wakii-dev/ui-kit/carousel`; nút nav direct slide API (v14-safe) |
-| Chart | Chart.js | đủ dùng | subpath `@wakii-dev/ui-kit/chart` |
-| Schedule | FullCalendar | đủ dùng | subpath `@wakii-dev/ui-kit/schedule`; peer optional (fallback khi chưa cài) |
-| Editor | Tiptap | đủ dùng | subpath `@wakii-dev/ui-kit/editor` |
+| Carousel | PrimeReact API + Swiper engine | đủ dùng | peer-dep swiper qua subpath `@wakii/ui-kit/carousel`; nút nav direct slide API (v14-safe) |
+| Chart | Chart.js | đủ dùng | subpath `@wakii/ui-kit/chart` |
+| Schedule | FullCalendar | đủ dùng | subpath `@wakii/ui-kit/schedule`; peer optional (fallback khi chưa cài) |
+| Editor | Tiptap | đủ dùng | subpath `@wakii/ui-kit/editor` |
 | TreeSelect | antd TreeSelect (lite) | đủ dùng | data cây đệ quy, chỉ chọn leaf, trigger hiện đường dẫn |
 | AvatarGroup | antd Avatar.Group | đủ dùng | stack overlap `-ml-2` + ring, max → pill "+N" tooltip |
 | Hooks ×16 | usehooks.com | đủ dùng | useDebounce/useThrottle/useToggle/useLocalStorage/useSessionStorage/useMediaQuery/useWindowSize/useHover/useClickAway/useKeyPress/useTimeout/useCountdown/useCopyToClipboard/usePrevious/useDefault/useLockBodyScroll |

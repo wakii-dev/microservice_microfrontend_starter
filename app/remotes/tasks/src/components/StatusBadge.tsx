@@ -2,7 +2,7 @@
 // (todo/doing/done/failed — semantics màu GIỮ NGUYÊN), Tag là chip trung tính không
 // variant. Wrapper giữ accessible name contract "Trạng thái task <title>" trên
 // role="status" (context pack boundary: KHÔNG đổi aria-label bộ tasks).
-import { Badge } from '@wakii-dev/ui-kit';
+import { Badge } from '@wakii/ui-kit';
 import type { TaskStatusExtended } from '../api';
 import { STATUS_LABELS, STATUS_VARIANTS } from './status';
 

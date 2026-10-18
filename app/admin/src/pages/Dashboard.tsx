@@ -7,7 +7,7 @@
 // - Cột phải: Timeline + EmptyState stacked flex-1 — hai card CAO ĐỀU
 // - Headers: chart + timeline cùng pattern title trái + Tag phải
 // Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
-import { Button, Card, Chart, EmptyState, Icon, Tag, Timeline, message, type ChartConfig } from '@wakii-dev/ui-kit';
+import { Button, Card, Chart, EmptyState, Icon, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },

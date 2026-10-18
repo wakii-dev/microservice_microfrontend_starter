@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Button, Icon, useLocalStorage } from '@wakii-dev/ui-kit';
+import { Button, Icon, useLocalStorage } from '@wakii/ui-kit';
 import { auth } from '../api';
 
 /* Dark toggle toàn host (batch ⑰ — pattern AdminLayout): data-bp-theme trên

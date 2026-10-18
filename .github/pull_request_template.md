@@ -11,7 +11,7 @@
 ## Cách verify (bắt buộc)
 
 <!-- Lệnh đã chạy + kết quả. Ví dụ:
-- `pnpm --filter shell test` → 43/43; `pnpm --filter @wakii-dev/ui-kit build-storybook` → PASS
+- `pnpm --filter shell test` → 43/43; `pnpm --filter @wakii/ui-kit build-storybook` → PASS
 - `bash scripts/smoke/e2e.sh` → PASS 8/8 (compose 10 services)
 - Local repro bug trước fix → EXIT=1, sau fix → EXIT=0
 -->

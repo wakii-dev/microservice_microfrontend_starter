@@ -4,7 +4,7 @@
 // Edit inline 2 mode + confirm xoá 2 bước — busy/editing/confirming là state CỤC BỘ item.
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Icon, Input, Popconfirm, Spinner } from '@wakii-dev/ui-kit';
+import { Button, Icon, Input, Popconfirm, Spinner } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { StatusBadge } from './StatusBadge';
 import { StatusSelect } from './StatusSelect';

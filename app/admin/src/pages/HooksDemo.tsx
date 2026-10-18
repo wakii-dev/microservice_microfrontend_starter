@@ -1,6 +1,6 @@
 // HooksDemo — showcase 6 hooks UI: useDebounce (input live), useCountdown
 // (start/stop/reset), useCopyToClipboard, useWindowSize, useHover, useKeyPress
-// (batch ⑦). Import thẳng từ barrel '@wakii-dev/ui-kit'.
+// (batch ⑦). Import thẳng từ barrel '@wakii/ui-kit'.
 import { useState } from 'react';
 import {
   Badge,
@@ -14,7 +14,7 @@ import {
   useHover,
   useKeyPress,
   useWindowSize,
-} from '@wakii-dev/ui-kit';
+} from '@wakii/ui-kit';
 
 function DebounceCard() {
   const [text, setText] = useState('');

@@ -1,6 +1,6 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { type LoadRemoteModuleOptions, type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@wakii/fe-shared';
-import { Button, Icon, Skeleton } from '@wakii-dev/ui-kit';
+import { Button, Icon, Skeleton } from '@wakii/ui-kit';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.

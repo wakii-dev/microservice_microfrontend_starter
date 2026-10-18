@@ -13,7 +13,7 @@ Bộ phận nổi bật nhất của boilerplate: design system **90+ components
 [![tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#)
 
 - 📖 **Storybook live:** https://storybook-static-khaki-two.vercel.app
-- 📦 **npmjs:** `npm i @wakii/ui-kit` · **GitHub Packages:** `@wakii-dev/ui-kit` (org nội bộ)
+- 📦 **npmjs:** `npm i @wakii/ui-kit` · **GitHub Packages:** `@wakii/ui-kit` (org nội bộ)
 - 🖥️ **Admin showcase:** `app/admin` (Vite SPA — Sidebar+Menu, DataTable virtual, zod forms, upload, hooks demo; `pnpm --filter ./app/admin dev` → :5173)
 - Chi tiết + quickstart: [app/ui-kit/README.md](app/ui-kit/README.md)
 
@@ -143,7 +143,7 @@ platform/           # compose (health-gated), postgres init, nginx, conventions/
 services/           # node-svc / spring-svc / go-svc / auth-svc — impl hoàn chỉnh, README standalone từng svc
 app/
   shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
-  ui-kit/           # @wakii/ui-kit (npm) = @wakii-dev/ui-kit (GitHub Packages) — 90+ components + 17 hooks,
+  ui-kit/           # @wakii/ui-kit (npm) = @wakii/ui-kit (GitHub Packages) — 90+ components + 17 hooks,
                     #   tokens + Tailwind v4 + Storybook 9 (ADR-0009), dist CSS compiled, 540 behavior tests
   admin/            # showcase SPA (Vite) — Sidebar+Menu đa cấp, DataTable virtual, zod forms, upload, hooks demo
   shell/            # MF host (Rspack) — login, nav, remote slots

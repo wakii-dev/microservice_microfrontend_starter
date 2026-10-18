@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Icon } from '@wakii-dev/ui-kit';
+import { Icon } from '@wakii/ui-kit';
 
 /**
  * Dashboard chào (spec slice mục 4): greeting + quick links 2 remote + demo hints.

@@ -2,7 +2,7 @@ import { useMemo, useState, KeyboardEvent, useRef } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
-import { Button, Field, Input, useForm } from '@wakii-dev/ui-kit';
+import { Button, Field, Input, useForm } from '@wakii/ui-kit';
 import { auth } from '../api';
 
 type AuthMode = 'login' | 'register';

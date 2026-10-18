@@ -14,7 +14,7 @@ import {
   Switch,
   Tag,
   message,
-} from '@wakii-dev/ui-kit';
+} from '@wakii/ui-kit';
 
 export function ComponentsDemo() {
   const [switchOn, setSwitchOn] = useState(true);

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
-    "@wakii-dev/ui-kit": "workspace:*",
+    "@wakii/ui-kit": "workspace:*",
     "@wakii/fe-shared": "workspace:*",
     "motion": "^12",
     "react": "catalog:",

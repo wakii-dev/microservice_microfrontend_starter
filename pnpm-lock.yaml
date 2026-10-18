@@ -38,7 +38,7 @@ importers:
 
   app/admin:
     dependencies:
-      '@wakii-dev/ui-kit':
+      '@wakii/ui-kit':
         specifier: workspace:*
         version: link:../ui-kit
       chart.js:
@@ -102,12 +102,12 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.3(react@19.3.0)
-      '@wakii-dev/ui-kit':
-        specifier: workspace:*
-        version: link:../../ui-kit
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
+      '@wakii/ui-kit':
+        specifier: workspace:*
+        version: link:../../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -166,12 +166,12 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.3(react@19.3.0)
-      '@wakii-dev/ui-kit':
-        specifier: workspace:*
-        version: link:../../ui-kit
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../../shared
+      '@wakii/ui-kit':
+        specifier: workspace:*
+        version: link:../../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -240,12 +240,12 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.104.3(react@19.3.0)
-      '@wakii-dev/ui-kit':
-        specifier: workspace:*
-        version: link:../ui-kit
       '@wakii/fe-shared':
         specifier: workspace:*
         version: link:../shared
+      '@wakii/ui-kit':
+        specifier: workspace:*
+        version: link:../ui-kit
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

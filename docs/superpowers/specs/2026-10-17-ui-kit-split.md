@@ -12,12 +12,12 @@ catalog sống.
 
 ## Quyết định (đã duyệt)
 
-1. **Package mới `app/ui-kit` (`@wakii-dev/ui-kit`)**: `src/ui/*` (Badge/EmptyState/Skeleton/
+1. **Package mới `app/ui-kit` (`@wakii/ui-kit`)**: `src/ui/*` (Badge/EmptyState/Skeleton/
    Spinner) + `src/styles/{tokens,base}.css`. `app/shared` giữ 4 file logic (READ-LOCKED
    không đổi nội dung).
 2. **Consumption QUA SOURCE** — giống fe-shared: main/types → src/, không build, không
    runtime dep (react types do consumer cung cấp; devDeps react chỉ cho test).
-3. **Consumers đổi thẳng import** — không re-export cầu: UI stuff từ `@wakii-dev/ui-kit`,
+3. **Consumers đổi thẳng import** — không re-export cầu: UI stuff từ `@wakii/ui-kit`,
    logic từ `@wakii/fe-shared`. 3 consumers (shell, remote-tasks, remote-activity).
 4. **Storybook 9 + Vite builder trong ui-kit** (kèm luôn, không phase sau): stories cho
    4 primitives (đủ variants/states) + trang docs tokens. KHÔNG: stories cho MF views,
@@ -33,7 +33,7 @@ catalog sống.
 
 - `pnpm install --frozen-lockfile` PASS; 3 FE suites + typecheck + build xanh từ paths mới
 - `bash scripts/smoke/e2e.sh` PASS trên compose rebuild (shell render primitives từ ui-kit)
-- `pnpm --filter @wakii-dev/ui-kit build-storybook` PASS trong CI; stories cover mọi variants
+- `pnpm --filter @wakii/ui-kit build-storybook` PASS trong CI; stories cover mọi variants
 - fe-shared standalone typecheck (copy-dir) vẫn PASS — không còn TS6142 sau khi ui/*
   rời đi; ui-kit standalone typecheck PASS với pattern @types/react
 - Scaffold: project mới nhận ui-kit + storybook build được (CI scaffold-verify che build shell)

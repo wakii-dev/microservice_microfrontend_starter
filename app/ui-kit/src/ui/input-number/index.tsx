@@ -84,16 +84,22 @@ export function InputNumber({
         }}
         className="h-8 min-w-0 flex-1 border-none bg-transparent px-3 text-body text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
+      {/* Stepper — 2 nút xếp dọc fill nửa control (h-1/2, tổng đúng chiều cao input,
+          không khe/overshoot). KHÔNG radius riêng: chỉ góc NGOÀI bo theo radius control
+          (up = top-right, down = bottom-right; container overflow-hidden clip theo
+          rounded-lg nên lying flush viền — góc trong = 0). Divider giữa = hairline
+          border-t border-line (border-box nên vẫn fit 100%). active dùng opacity thay
+          scale — scale co nút làm hở viền (user feedback 2026-10-18). */}
       <span className={`flex flex-col border-l ${invalid ? 'border-st-fail' : 'border-line'} ${disabled ? 'opacity-50' : ''}`}>
         <button
           type="button" aria-label="Tăng" disabled={disabled} onClick={() => bump(step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center border-none bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:scale-95"
+          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:opacity-70"
         >
           <ChevronUpIcon />
         </button>
         <button
           type="button" aria-label="Giảm" disabled={disabled} onClick={() => bump(-step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center border-t border-line bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:scale-95"
+          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:opacity-70"
         >
           <ChevronDownIcon />
         </button>

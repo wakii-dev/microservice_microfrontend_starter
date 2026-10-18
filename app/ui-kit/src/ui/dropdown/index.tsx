@@ -128,7 +128,7 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
                     onItemClick?.(item.key);
                     setOpen(false);
                   }}
-                  className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
+                  className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
                     item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'
                   } ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                 >

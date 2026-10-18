@@ -2,27 +2,23 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu, type MenuItemData } from './index';
+import { Icon } from '../icons/index.js';
 
 const meta = { title: 'Navigation/Menu', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 
-// Icon SVG 14px stroke currentColor — inherits item color (ink/white/disabled).
-function IconHome() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 6.5L7 2l5 4.5V12H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
-}
+// IconFolder/IconFile: SVG tạm — primeicons bộ 48 chưa có 'folder'/'file'
+// (audit V2 2026-10-18: chờ quyết định thêm icon, không tự sửa path tay).
 function IconFolder() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 3h3.5L7 5h5v6H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
 }
 function IconFile() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2h4l2 2v8H4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M8 2v2h2" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
 }
-function IconUsers() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><circle cx="5" cy="5" r="2" stroke="currentColor" strokeWidth="1.3"/><path d="M2 11.5c0-1.7 1.3-3 3-3s3 1.3 3 3M9 3.5a2 2 0 010 3.8M9.5 8.7c1.5.3 2.5 1.4 2.5 2.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>;
-}
 
 const baCap: MenuItemData[] = [
-  { key: 'home', label: 'Home', icon: <IconHome /> },
+  { key: 'home', label: 'Home', icon: <Icon name="home" size={14} /> },
   {
     key: 'manage',
     label: 'Manage',
@@ -31,7 +27,7 @@ const baCap: MenuItemData[] = [
       {
         key: 'accounts',
         label: 'Accounts',
-        icon: <IconUsers />,
+        icon: <Icon name="users" size={14} />,
         children: [
           { key: 'accounts-list', label: 'List', icon: <IconFile /> },
           { key: 'accounts-roles', label: 'Roles', icon: <IconFile /> },

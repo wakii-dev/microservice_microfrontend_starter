@@ -138,7 +138,7 @@ export function DatePicker(props: DatePickerProps) {
 
   // ── Trigger ──────────────────────────────────────────────────────────────
   // Single: 1 field button (behavior cũ). Range: wrapper viền + 2 nửa from/to.
-  const triggerCls = `inline-flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
+  const triggerCls = `inline-flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
     open ? 'border-accent-hi' : 'border-line hover:border-accent'
   } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`;
 

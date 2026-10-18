@@ -100,7 +100,7 @@ export function SplitButton({
             setOpen(true);
           }
         }}
-        className={`inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border ${shellBorder} ${SIZE[size]} ${mainCls} border-0 font-medium tracking-[0.01em] outline-none transition-all duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas`}
+        className={`inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border ${shellBorder} ${SIZE[size]} ${mainCls} border-0 font-medium tracking-[0.01em] outline-none transition-all duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40 `}
       >
         {label}
         {/* Vùng chevron: span click riêng BÊN TRONG nút — stopPropagation để không

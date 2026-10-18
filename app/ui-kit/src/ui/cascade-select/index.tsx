@@ -56,7 +56,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
             setOpen(false); setLevel(0);
           }
         }}
-        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none">
+        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none">
         <span className={value.length > 0 ? '' : 'text-ink4'}>{value.length > 0 ? value.join(' / ') : placeholder}</span>
         <span aria-hidden="true" className="text-ink3"><Icon name="chevron-right" size={12} /></span>
       </button>

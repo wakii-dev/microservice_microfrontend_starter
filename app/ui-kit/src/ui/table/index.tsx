@@ -85,7 +85,7 @@ function FilterMenu({ col, filter, onChange }: {
         aria-label={`Lọc ${typeof col.title === 'string' ? col.title : col.key}`}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex cursor-pointer items-center border-none bg-transparent p-0 text-ink3 transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${activeCount > 0 ? 'text-accent' : ''}`}
+        className={`inline-flex cursor-pointer items-center border-none bg-transparent p-0 text-ink3 transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${activeCount > 0 ? 'text-accent' : ''}`}
       >
         {activeCount > 0
           ? <FilterFillIcon className="text-accent" />
@@ -106,7 +106,7 @@ function FilterMenu({ col, filter, onChange }: {
                   <button
                     type="button"
                     aria-label={`Xoá điều kiện ${i + 1}`}
-                    className="ml-1 cursor-pointer border-none bg-transparent p-0 text-ink3 hover:text-st-fail active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+                    className="ml-1 cursor-pointer border-none bg-transparent p-0 text-ink3 hover:text-st-fail active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
                     onClick={() => onChange({ ...filter, constraints: filter.constraints.filter((_, j) => j !== i) })}
                   >
                     <FilterSlashIcon className="inline size-3" />
@@ -153,7 +153,7 @@ function FilterMenu({ col, filter, onChange }: {
             </span>
             <button
               type="button"
-              className="cursor-pointer border-none bg-transparent p-0 text-accent hover:underline active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+              className="cursor-pointer border-none bg-transparent p-0 text-accent hover:underline active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
               onClick={() => onChange({ ...filter, constraints: [...filter.constraints, { value: '', matchMode: col.filterMatchMode ?? 'contains' }] })}
             >
               + Thêm
@@ -162,14 +162,14 @@ function FilterMenu({ col, filter, onChange }: {
           <span className="flex items-center justify-between border-t border-line2 pt-2">
             <button
               type="button"
-              className="cursor-pointer border-none bg-transparent p-0 text-body text-ink3 hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+              className="cursor-pointer border-none bg-transparent p-0 text-body text-ink3 hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
               onClick={() => onChange({ constraints: [{ value: '', matchMode: col.filterMatchMode ?? 'contains' }], operator: 'and' })}
             >
               Clear
             </button>
             <button
               type="button"
-              className="cursor-pointer rounded-lg border-none bg-accent px-3 py-1 text-label font-semibold text-white hover:bg-accent-hi active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+              className="cursor-pointer rounded-lg border-none bg-accent px-3 py-1 text-label font-semibold text-white hover:bg-accent-hi active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
               onClick={() => setOpen(false)}
             >
               Apply
@@ -458,7 +458,7 @@ export function Table<T extends object>({
                         <button
                           type="button"
                           onClick={(e) => headerClick(col, e)}
-                          className={`inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-semibold text-inherit transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${isActiveSort ? 'text-accent' : ''}`}
+                          className={`inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 font-semibold text-inherit transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${isActiveSort ? 'text-accent' : ''}`}
                         >
                           {col.title}
                           <span aria-hidden="true" className={`text-[10px] ${isActiveSort ? 'text-accent' : 'text-ink3 opacity-40'}`}>
@@ -571,7 +571,7 @@ export function Table<T extends object>({
                               if (n.has(k)) n.delete(k); else n.add(k);
                               return n;
                             })}
-                            className="cursor-pointer border-none bg-transparent text-ink3 transition-transform hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+                            className="cursor-pointer border-none bg-transparent text-ink3 transition-transform hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
                           >
                             <span className={`inline-grid place-items-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
                               <Icon name="chevron-right" size={12} />

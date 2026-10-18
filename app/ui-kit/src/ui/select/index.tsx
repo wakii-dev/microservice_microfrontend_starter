@@ -183,7 +183,7 @@ export function Select({
       </button>
 
       {open && (
-        <span className="absolute left-0 top-full mt-1 z-30 block w-full min-w-[160px]">
+        <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
           <span className="block overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
             {/* Filter input */}
             {filterable && (

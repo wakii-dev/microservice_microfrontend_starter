@@ -2,14 +2,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Sidebar } from './index';
 import { Menu, type MenuItemData } from '../menu/index';
+import { Icon } from '../icons/index.js';
 
 const meta = { title: 'Navigation/Sidebar', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 
-function IconHome() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 6.5L7 2l5 4.5V12H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
-}
+// IconFolder/IconFile: SVG tạm — primeicons bộ 48 chưa có 'folder'/'file'
+// (audit V2 2026-10-18: chờ quyết định thêm icon, không tự sửa path tay).
 function IconFolder() {
   return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 3h3.5L7 5h5v6H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
 }
@@ -18,7 +18,7 @@ function IconFile() {
 }
 
 const items: MenuItemData[] = [
-  { key: 'home', label: 'Home', icon: <IconHome /> },
+  { key: 'home', label: 'Home', icon: <Icon name="home" size={14} /> },
   {
     key: 'manage',
     label: 'Manage',

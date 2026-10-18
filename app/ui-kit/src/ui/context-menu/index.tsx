@@ -67,7 +67,7 @@ export function ContextMenu({ items, children, onItemClick, className }: Context
           ) : (
             <li key={item.key}>
               <button type="button" role="menuitem" aria-disabled={item.disabled || undefined} disabled={item.disabled} onClick={() => { onItemClick?.(item.key); setPos(null); }}
-                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'} ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}>
+                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'} ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}>
                 {item.label}
               </button>
             </li>

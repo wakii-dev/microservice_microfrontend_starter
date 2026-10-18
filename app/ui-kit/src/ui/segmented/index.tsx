@@ -27,7 +27,7 @@ export function Segmented({ options, value, onChange, className }: SegmentedProp
             role="radio"
             aria-checked={isActive}
             onClick={() => onChange?.(option.value)}
-            className={`cursor-pointer rounded-lg border-none px-3 py-1 text-body transition-colors active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
+            className={`cursor-pointer rounded-lg border-none px-3 py-1 text-body transition-colors active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
               isActive
                 ? 'bg-s2 text-ink shadow-sm'
                 : 'bg-transparent text-ink2 hover:text-ink'

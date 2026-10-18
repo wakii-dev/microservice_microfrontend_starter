@@ -13,8 +13,11 @@ const CONFIG: Record<string, { icon: string; color: string; defaultTitle: string
 };
 
 export interface ResultProps {
+  /** Trạng thái — icon + màu + title mặc định theo status. */
   status?: ResultStatus;
+  /** Tiêu đề (bỏ qua → dùng defaultTitle theo status). */
   title?: ReactNode;
+  /** Dòng phụ dưới tiêu đề. */
   subTitle?: ReactNode;
   /** Nút actions (vd Quay lại trang chủ). */
   extra?: ReactNode;

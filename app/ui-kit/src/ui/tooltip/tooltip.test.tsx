@@ -78,3 +78,28 @@ describe('Tooltip — ESC (a11y batch ⑫ worker C)', () => {
     expect(screen.queryByRole('tooltip')).toBeNull();
   });
 });
+
+describe('Tooltip — describedby wiring (worker H)', () => {
+  it('open → bubble có id, trigger nhận aria-describedby trỏ đúng; đóng → bỏ attr', () => {
+    render(
+      <Tooltip title="hint">
+        <button>T</button>
+      </Tooltip>,
+    );
+    const trigger = screen.getByRole('button', { name: 'T' });
+    expect(trigger).not.toHaveAttribute('aria-describedby');
+    fireEvent.focus(trigger);
+    const bubble = screen.getByRole('tooltip');
+    expect(bubble).toHaveAttribute('id');
+    expect(trigger).toHaveAttribute('aria-describedby', bubble.id);
+    fireEvent.blur(trigger);
+    expect(trigger).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('children không phải element (text node) → vẫn render, không cloneElement lỗi', () => {
+    render(<Tooltip title="hint">plain text</Tooltip>);
+    const wrapper = screen.getByText('plain text'); // text nằm trực tiếp trong wrapper span
+    fireEvent.mouseEnter(wrapper);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('hint');
+  });
+});

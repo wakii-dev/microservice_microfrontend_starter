@@ -29,4 +29,28 @@ describe('Segmented — branch phụ (Tier 5 sweep)', () => {
     expect(container.firstElementChild).toHaveClass('marker');
     expect(screen.getByRole('radio', { name: 'Tuần' }).className).toContain('shadow');
   });
+
+  it('role=radiogroup + mọi radio khác aria-checked=false', () => {
+    render(<Segmented options={OPTIONS} value="day" onChange={vi.fn()} />);
+    const group = screen.getByRole('radiogroup');
+    expect(group).toBeInTheDocument();
+    const radios = screen.getAllByRole('radio');
+    expect(radios).toHaveLength(2);
+    expect(radios[1]).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('uncontrolled (không value) → không item nào active; click vẫn onChange payload', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Segmented options={OPTIONS} onChange={onChange} />);
+    expect(screen.getByRole('radio', { name: 'Ngày' })).toHaveAttribute('aria-checked', 'false');
+    await user.click(screen.getByRole('radio', { name: 'Tuần' }));
+    expect(onChange).toHaveBeenCalledWith('week');
+  });
+
+  it('options rỗng → radiogroup trống, không radio', () => {
+    render(<Segmented options={[]} onChange={vi.fn()} />);
+    expect(screen.getByRole('radiogroup')).toBeInTheDocument();
+    expect(screen.queryByRole('radio')).toBeNull();
+  });
 });

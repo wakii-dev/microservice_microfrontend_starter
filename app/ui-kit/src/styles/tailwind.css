@@ -38,6 +38,11 @@
   --color-line2: var(--line2);
   --color-accent: var(--accent);
   --color-accent-hi: var(--accent-hi);
+  /* Scrim — phủ đen trên media/backdrop (theme-independent, xem tokens.css) */
+  --color-scrim-1: var(--scrim-1);
+  --color-scrim-2: var(--scrim-2);
+  --color-scrim-3: var(--scrim-3);
+  --color-scrim-4: var(--scrim-4);
   /* Trạng thái task */
   --color-st-todo: var(--st-todo);
   --color-st-doing: var(--st-doing);
@@ -47,6 +52,7 @@
   --text-meta: var(--fs-meta);
   --text-label: var(--fs-label);
   --text-body: var(--fs-body);
+  --text-h3: var(--fs-h3);
   --text-h2: var(--fs-h2);
   --text-h1: var(--fs-h1);
   /* Shadow layered */

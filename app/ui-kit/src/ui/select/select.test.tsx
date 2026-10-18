@@ -132,3 +132,22 @@ describe('Select — branch phụ (Tier 5 sweep)', () => {
     expect(screen.queryByRole('listbox')).toBeNull();
   });
 });
+
+describe('Select — polish (check icon + menu min-height)', () => {
+  it('single selected → Icon check 12px bên phải, giữ bg selected; menu có min-height', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="S" options={OPTIONS} value="in_progress" />);
+    await user.click(screen.getByRole('combobox', { name: 'S' }));
+    const selected = screen.getByRole('option', { name: 'Đang làm' });
+    // bg selected giữ nguyên
+    expect(selected.className).toContain('bg-accent/10');
+    // Icon check (svg) nằm trong option selected — bên phải label
+    const icon = selected.querySelector('svg');
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute('width')).toBe('12');
+    // option KHÔNG selected không có check
+    expect(screen.getByRole('option', { name: 'Cần làm' }).querySelector('svg')).toBeNull();
+    // menu min-height cho ít options
+    expect(screen.getByRole('listbox').className).toContain('min-h-[104px]');
+  });
+});

@@ -1,4 +1,4 @@
-// PanelMenu stories — vertical accordion menu (icon + children + leaf onClick).
+// PanelMenu stories — accordion + icons / leaf selection demo.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PanelMenu } from './index';
@@ -8,60 +8,62 @@ const meta = { title: 'Navigation/PanelMenu', tags: ['autodocs'] } satisfies Met
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const CoBan: Story = {
-  name: 'Cơ bản — accordion + icon',
+export const Basic: Story = {
+  name: 'Basic — accordion + icons',
   render: () => (
     <PanelMenu
       className="w-64"
       items={[
         {
-          key: 'ql',
-          label: 'Quản lý',
+          key: 'manage',
+          label: 'Manage',
           icon: <Icon name="menu-bars" size={14} />,
           children: [
-            { key: 'tasks', label: 'Công việc' },
-            { key: 'users', label: 'Thành viên' },
+            { key: 'tasks', label: 'Tasks' },
+            { key: 'users', label: 'Members' },
           ],
         },
         {
-          key: 'bc',
-          label: 'Báo cáo',
+          key: 'reports',
+          label: 'Reports',
           icon: <Icon name="calendar" size={14} />,
-          children: [{ key: 'weekly', label: 'Hàng tuần' }],
+          children: [{ key: 'weekly', label: 'Weekly' }],
         },
       ]}
     />
   ),
 };
 
-export const DemoChon: Story = {
-  name: 'Demo — chọn leaf + item gốc onClick',
-  render: () => {
-    const [selected, setSelected] = useState<string | null>(null);
+function SelectionDemoInner() {
+  const [selected, setSelected] = useState<string | null>(null);
     return (
       <div className="flex flex-col gap-3">
-        <span className="text-meta text-ink2">Đang xem: {selected ?? '—'}</span>
+        <span className="text-meta text-ink2">Viewing: {selected ?? '—'}</span>
         <PanelMenu
           className="w-64"
           items={[
             {
               key: 'home',
-              label: 'Trang chủ',
+              label: 'Home',
               icon: <Icon name="home" size={14} />,
-              onClick: () => setSelected('Trang chủ'),
+              onClick: () => setSelected('Home'),
             },
             {
               key: 'settings',
-              label: 'Cài đặt',
+              label: 'Settings',
               icon: <Icon name="settings" size={14} />,
               children: [
-                { key: 'profile', label: 'Hồ sơ' },
-                { key: 'security', label: 'Bảo mật' },
+                { key: 'profile', label: 'Profile' },
+                { key: 'security', label: 'Security' },
               ],
             },
           ]}
         />
       </div>
     );
-  },
+}
+
+export const SelectionDemo: Story = {
+  name: 'Demo — leaf select + root onClick',
+  render: () => <SelectionDemoInner />,
 };

@@ -19,3 +19,16 @@ describe('SpeedDial', () => {
     expect(screen.queryByLabelText('Action A')).toBeNull();
   });
 });
+
+describe('SpeedDial — FAB state', () => {
+  it('aria-expanded flip + FAB xoay 45deg khi mở', async () => {
+    const user = userEvent.setup();
+    render(<SpeedDial icon="+" actions={[{ key: 'a', icon: 'A', label: 'Action A' }]} />);
+    const fab = screen.getByRole('button', { name: 'Thao tác' });
+    expect(fab).toHaveAttribute('aria-expanded', 'false');
+    expect(fab.className).not.toContain('rotate-45');
+    await user.click(fab);
+    expect(fab).toHaveAttribute('aria-expanded', 'true');
+    expect(fab.className).toContain('rotate-45');
+  });
+});

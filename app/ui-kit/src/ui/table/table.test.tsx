@@ -194,6 +194,21 @@ describe('Table — scroll + variants + expansion', () => {
     expect(container.querySelector('td')?.className).not.toContain('border-b');
   });
 
+  it('zebra: striped → hàng chẵn (rowIndex lẻ) bg-s3/40; hàng lẻ + không striped → không tint', () => {
+    const striped = render(<Table columns={COLS} dataSource={DATA} rowKey="id" striped />);
+    const rows = striped.container.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(3);
+    expect(rows[0].className).not.toContain('bg-s3/40');
+    expect(rows[1].className).toContain('bg-s3/40');
+    expect(rows[2].className).not.toContain('bg-s3/40');
+    striped.unmount();
+    // không striped → không hàng nào tint
+    const plain = render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
+    plain.container.querySelectorAll('tbody tr').forEach((tr) => {
+      expect(tr.className).not.toContain('bg-s3/40');
+    });
+  });
+
   it('row expansion — expander toggle + rowExpansion render', async () => {
     const user = userEvent.setup();
     render(

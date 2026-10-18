@@ -1,20 +1,25 @@
-// Popconfirm — bubble confirm nhỏ bám trigger (antd look: icon warning tròn, title 14
-// semibold?, nút small Huỷ/default + OK primary; radius 8, shadow popover, mũi tên).
+// Popconfirm — bubble confirm nhỏ bám trigger (style matrix 2026-10-18: bubble
+// rounded-xl, shadow var(--shadow-pop); icon warning tròn, nút small Huỷ/default + OK primary).
 // Controlled (open) — TaskItem xoá dùng; ESC = cancel.
-import { useEffect, type ReactNode } from 'react';
+import { cloneElement, isValidElement, useEffect, type ReactElement, type ReactNode } from 'react';
 import { Button } from '../button/index';
 
 export interface PopconfirmProps {
+  /** Controlled mở/đóng bubble. */
   open: boolean;
   /** Nội dung câu hỏi (antd title). */
   title: ReactNode;
   /** Mô tả phụ (antd description). */
   description?: ReactNode;
+  /** Nhãn nút xác nhận (mặc định 'OK'). */
   okText?: string;
+  /** Nhãn nút huỷ (mặc định 'Huỷ'). */
   cancelText?: string;
   /** Nút OK đỏ (confirm xoá). */
   danger?: boolean;
+  /** Xác nhận = click OK (ESC không gọi). */
   onConfirm?: () => void;
+  /** Huỷ = click Huỷ / ESC. */
   onCancel?: () => void;
   /** Trigger element — bọc trong span relative (bubble absolute bên dưới). */
   children: ReactNode;
@@ -40,12 +45,24 @@ export function Popconfirm({
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onCancel]);
 
+  // Trigger được wire aria-haspopup/aria-expanded (cloneElement) — SR biết bubble đang mở
+  const trigger = isValidElement(children)
+    ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+        'aria-haspopup': 'dialog',
+        'aria-expanded': open,
+      })
+    : children;
+
   return (
     <span className="relative inline-flex">
-      {children}
+      {trigger}
       {open && (
-        <span className="absolute bottom-[calc(100%+10px)] left-0 z-30 w-max max-w-xs">
-          <span className="block rounded-3 border border-line bg-s2 p-3 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]">
+        <span className="absolute bottom-[calc(100%+10px)] left-0 z-[var(--z-popover)] w-max max-w-xs">
+          <span
+            role="dialog"
+            aria-label={typeof title === 'string' ? title : undefined}
+            className="block rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]"
+          >
             <span className="flex items-start gap-2">
               <span
                 aria-hidden="true"
@@ -55,7 +72,7 @@ export function Popconfirm({
               </span>
               <span>
                 <span className="block text-body font-medium text-ink">{title}</span>
-                {description && <span className="mt-1 block text-meta text-ink2">{description}</span>}
+                {description && <span className="mt-1 block text-label text-ink2">{description}</span>}
                 <span className="mt-2 flex items-center justify-end gap-2">
                   <Button
                     size="small"

@@ -3,6 +3,7 @@
 // · editable · keyboard đầy đủ · ARIA listbox/combobox chuẩn WAI-ARIA.
 // GIỮ NGUYÊN: ariaLabel contract + a11y hơn antd (button+listbox thay span+click).
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Icon } from '../icons/index.js';
 import { Spinner } from '../spinner/index';
 
 export interface SelectOption {
@@ -233,7 +234,7 @@ export function Select({
               <span className="block p-3 text-center text-body text-ink3">Không có kết quả</span>
             ) : (
               <ul ref={listRef} id={listId} role="listbox" aria-label={ariaLabel}
-                className="m-0 max-h-60 list-none overflow-auto p-1">
+                className="m-0 max-h-60 min-h-[104px] list-none overflow-auto p-1">
                 {filteredFlat.map((option, i) => {
                   const isSelected = selectedValues.includes(option.value);
                   const isActive = i === active;
@@ -260,7 +261,11 @@ export function Select({
                             {isSelected && <span className="grid size-full place-items-center text-[8px] font-bold text-white">✓</span>}
                           </span>
                         )}
-                        {option.label}
+                        {/* label chiếm phần còn — check icon selected bám mép phải (single; multiple có checkbox riêng) */}
+                        <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                        {!multiple && isSelected && (
+                          <Icon name="check" size={12} className="shrink-0 text-accent" />
+                        )}
                       </div>
                     </li>
                   );

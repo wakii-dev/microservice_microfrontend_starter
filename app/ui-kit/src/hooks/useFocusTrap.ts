@@ -35,7 +35,13 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;
       const focusable = getFocusableElements(container);
-      if (focusable.length === 0) return;
+      if (focusable.length === 0) {
+        // Dialog không focusable nào bên trong (vd image preview chỉ có img) —
+        // giữ focus trên container, KHÔNG cho Tab thoát ra ngoài (WAI-ARIA modal).
+        e.preventDefault();
+        container.focus();
+        return;
+      }
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       const current = document.activeElement;

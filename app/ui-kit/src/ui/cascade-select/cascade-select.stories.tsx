@@ -34,56 +34,61 @@ const TREE: CascadeOption[] = [
   { label: 'Da Nang', value: 'dn' },
 ];
 
+function BasicDemo() {
+  const [value, setValue] = useState<string[]>([]);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <CascadeSelect options={TREE} value={value} onChange={setValue} placeholder="Pick a location…" />
+      <p className="m-0 font-mono text-meta text-ink3">
+        path: <strong className="text-ink">{value.length > 0 ? value.join(' / ') : '—'}</strong>
+      </p>
+    </div>
+  );
+}
+
 /** Basic — controlled: pick level 0 → child → leaf; path shown below. */
 export const Basic: Story = {
-  render: () => {
-    const [value, setValue] = useState<string[]>([]);
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <CascadeSelect options={TREE} value={value} onChange={setValue} placeholder="Pick a location…" />
-        <p className="m-0 font-mono text-meta text-ink3">
-          path: <strong className="text-ink">{value.length > 0 ? value.join(' / ') : '—'}</strong>
-        </p>
-      </div>
-    );
-  },
+  render: () => <BasicDemo />,
 };
+
+const DEEP_TREE: CascadeOption[] = [
+  {
+    label: 'North',
+    value: 'north',
+    children: [
+      {
+        label: 'Hanoi',
+        value: 'hn',
+        children: [
+          { label: 'Ba Dinh', value: 'hn-bd' },
+          { label: 'Tay Ho', value: 'hn-th' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Center',
+    value: 'center',
+    children: [{ label: 'Da Nang', value: 'dn', children: [{ label: 'Hai Chau', value: 'dn-hc' }] }],
+  },
+];
+
+function DeepTreeDemo() {
+  const [value, setValue] = useState<string[]>([]);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <CascadeSelect options={DEEP_TREE} value={value} onChange={setValue} placeholder="Pick region → city → ward…" />
+      <p className="m-0 font-mono text-meta text-ink3">
+        path: <strong className="text-ink">{value.length > 0 ? value.join(' / ') : '—'}</strong>
+      </p>
+    </div>
+  );
+}
 
 /** WithDeepTree — 3 levels (region → city → ward) for nested navigation. */
 export const WithDeepTree: Story = {
   name: 'With deep tree — 3 levels',
-  render: () => {
-    const [value, setValue] = useState<string[]>([]);
-    const deep: CascadeOption[] = [
-      {
-        label: 'North',
-        value: 'north',
-        children: [
-          {
-            label: 'Hanoi',
-            value: 'hn',
-            children: [
-              { label: 'Ba Dinh', value: 'hn-bd' },
-              { label: 'Tay Ho', value: 'hn-th' },
-            ],
-          },
-        ],
-      },
-      {
-        label: 'Center',
-        value: 'center',
-        children: [{ label: 'Da Nang', value: 'dn', children: [{ label: 'Hai Chau', value: 'dn-hc' }] }],
-      },
-    ];
-    return (
-      <div className="grid max-w-[320px] gap-3">
-        <CascadeSelect options={deep} value={value} onChange={setValue} placeholder="Pick region → city → ward…" />
-        <p className="m-0 font-mono text-meta text-ink3">
-          path: <strong className="text-ink">{value.length > 0 ? value.join(' / ') : '—'}</strong>
-        </p>
-      </div>
-    );
-  },
+  render: () => <DeepTreeDemo />,
 };
 
 /** Empty — options=[]: panel opens with nothing to pick (edge). */

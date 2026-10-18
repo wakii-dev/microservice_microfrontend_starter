@@ -3,8 +3,11 @@
 import type { ReactNode } from 'react';
 
 export interface SegmentedProps {
+  /** Các tuỳ chọn — value phải khả định duy nhất. */
   options: Array<{ label: ReactNode; value: string }>;
+  /** Tuỳ chọn đang chọn (controlled). */
   value?: string;
+  /** Callback khi chọn tuỳ chọn khác. */
   onChange?: (value: string) => void;
   className?: string;
 }
@@ -13,7 +16,7 @@ export function Segmented({ options, value, onChange, className }: SegmentedProp
   return (
     <div
       role="radiogroup"
-      className={`inline-flex items-center gap-1 rounded-2 bg-s3 p-1${className ? ` ${className}` : ''}`}
+      className={`inline-flex items-center gap-1 rounded-lg bg-s3 p-1${className ? ` ${className}` : ''}`}
     >
       {options.map((option) => {
         const isActive = option.value === value;
@@ -24,9 +27,9 @@ export function Segmented({ options, value, onChange, className }: SegmentedProp
             role="radio"
             aria-checked={isActive}
             onClick={() => onChange?.(option.value)}
-            className={`cursor-pointer rounded-2 border-none px-3 py-1 text-body transition-colors ${
+            className={`cursor-pointer rounded-lg border-none px-3 py-1 text-body transition-colors active:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
               isActive
-                ? 'bg-s2 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                ? 'bg-s2 text-ink shadow-sm'
                 : 'bg-transparent text-ink2 hover:text-ink'
             }`}
           >

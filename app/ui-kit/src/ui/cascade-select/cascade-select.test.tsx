@@ -114,3 +114,19 @@ describe('CascadeSelect — keyboard nav (audit fix)', () => {
     expect(screen.queryByText('Hà Nội')).toBeNull();
   });
 });
+
+describe('CascadeSelect — panel align giữa trigger (polish)', () => {
+  it('panel width theo content + căn giữa (left-1/2 -translate-x-1/2), không full-width', () => {
+    render(<CascadeSelect options={TREE} />);
+    fireEvent.click(screen.getByText('Chọn…').closest('button')!);
+    const panel = screen.getByRole('listbox');
+    expect(panel.className).toContain('left-1/2');
+    expect(panel.className).toContain('-translate-x-1/2');
+    expect(panel.className).toContain('w-max');
+    expect(panel.className).not.toContain('inset-x-0');
+    // option không còn w-full (width theo label, min-w giữ vùng chạm)
+    const opt = screen.getByText('Hà Nội').closest('button')!;
+    expect(opt.className).not.toContain('w-full');
+    expect(opt.className).toContain('min-w-[140px]');
+  });
+});

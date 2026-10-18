@@ -18,7 +18,7 @@ export function Title({ level = 1, children, className, style }: TitleProps) {
   return (
     <Tag
       className={className}
-      style={{ fontSize: TITLE_SIZE[level], fontWeight: 600, lineHeight: 1.25, marginBottom: '0.5em', color: 'var(--ink)', ...style }}
+      style={{ fontSize: TITLE_SIZE[level], fontWeight: level === 1 ? 700 : 600, lineHeight: 1.25, marginBottom: '0.5em', color: 'var(--ink)', ...style }}
     >
       {children}
     </Tag>

@@ -1,4 +1,4 @@
-# Changelog — wakii-ui-kit
+# Changelog — @wakii/ui-kit
 
 Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh số hướng SemVer.
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
@@ -18,7 +18,7 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 - **useForm** native + peer-dep **zod ^4**: `values/errors/touched`, mode `onSubmit|onBlur|onChange`, submit sai → focus field đầu — 9 tests. (`375baae`)
 - **Upload + UploadDropzone** — drag-drop, beforeUpload guard, danh sách file remove — 14 tests + 5 stories. (`55288b1`)
 - **Field** — wrapper label + control + error/hint với id `aria-describedby` suy từ `htmlFor`. (`5615a9b`)
-- **Subpath exports** component nặng (tách CSS khỏi barrel chính): `wakii-ui-kit/carousel`, `./chart`, `./schedule`, `./editor`. (`5615a9b`, `463cef4`)
+- **Subpath exports** component nặng (tách CSS khỏi barrel chính): `@wakii/ui-kit/carousel`, `./chart`, `./schedule`, `./editor`. (`5615a9b`, `463cef4`)
 - **Z-index scale tokens**: `--z-dropdown < --z-popover < --z-modal < --z-toast < --z-tooltip`. (`5615a9b`)
 - **Icon** — 48 icon path data gốc primeicons 7.0.0 (`size`/`className`/`aria-hidden`), refactor chevron 5 component dùng bộ chung. (`463cef4`)
 - **List** (antd pattern: loading Skeleton + empty EmptyState + pagination client), **AvatarGroup** (stack overlap + max "+N"), **TreeSelect** (searchable, chọn leaf, trigger hiện đường dẫn) — 28 tests. (`530a4a1`)

@@ -87,3 +87,20 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** PlaceholderContrast — empty vs filled trigger side by side: placeholder now uses
+ * `text-ink` (readable), panel opens with `min-w-[300px]` and roomier footer
+ * buttons ("Today" px-3 py-1.5, OK synced). */
+export const PlaceholderContrast: S = {
+  name: 'Placeholder contrast + polished footer',
+  render: () => (
+    <div className="grid max-w-[320px] gap-3">
+      <DatePicker placeholder="Pick a date…" />
+      <DatePicker value={new Date(2026, 9, 18)} placeholder="Pick a date…" />
+      <p className="m-0 text-meta text-ink3">
+        Empty trigger shows the placeholder at full ink contrast; open either to see the
+        wider panel and the bigger "Today" button.
+      </p>
+    </div>
+  ),
+};

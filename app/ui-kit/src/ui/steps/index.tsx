@@ -35,11 +35,11 @@ export function Steps({ items, current, className }: StepsProps) {
           );
         const titleColor = state === 'waiting' ? 'text-ink3' : state === 'current' ? 'text-accent' : 'text-ink';
         return (
-          <li key={i} className={`flex flex-1 items-start gap-2 ${i < items.length - 1 ? 'after:mx-3 after:mt-3.5 after:h-px after:flex-1 after:bg-line2 after:content-[""]' : ''}`}>
+          <li key={i} aria-current={state === 'current' ? 'step' : undefined} className={`flex flex-1 items-start gap-2 ${i < items.length - 1 ? 'after:mx-3 after:mt-3.5 after:h-px after:flex-1 after:bg-line2 after:content-[""]' : ''}`}>
             {dot}
             <div className="flex flex-col">
               <span className={`text-body font-medium ${titleColor}`}>{step.title}</span>
-              {step.description && <span className="text-meta text-ink3">{step.description}</span>}
+              {step.description && <span className="text-label text-ink3">{step.description}</span>}
             </div>
           </li>
         );

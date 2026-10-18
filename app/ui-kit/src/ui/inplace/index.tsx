@@ -1,5 +1,6 @@
 // Inplace — click-to-edit toggle (antd lite).
 import { useState, type ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface InplaceProps {
   /** Nội dung hiển thị khi đóng. */
@@ -18,11 +19,11 @@ export function Inplace({ display, children, onClose, className }: InplaceProps)
         <span className="inline-flex items-center gap-2">
           {children}
           <button type="button" aria-label="Đóng" onClick={() => { setOpen(false); onClose?.(); }}
-            className="cursor-pointer border-none bg-transparent text-label text-ink3 hover:text-ink">✕</button>
+            className="cursor-pointer border-none bg-transparent text-label text-ink3 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"><Icon name="times" size={12} /></button>
         </span>
       ) : (
         <button type="button" onClick={() => setOpen(true)}
-          className="cursor-pointer rounded-2 border border-dashed border-line bg-transparent px-2 py-1 text-body text-ink2 transition-colors hover:border-accent hover:text-ink">
+          className="cursor-pointer rounded-lg border border-dashed border-line bg-transparent px-2 py-1 text-body text-ink2 transition-colors hover:border-accent hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none">
           {display}
         </button>
       )}

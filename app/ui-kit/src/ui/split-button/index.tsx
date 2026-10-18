@@ -78,7 +78,7 @@ export function SplitButton({
       : 'border-line';
   const mainCls = solid
     ? danger
-      ? 'bg-st-fail text-white hover:bg-[#ff7875]'
+      ? 'bg-st-fail text-white hover:bg-st-fail/85'
       : 'bg-accent text-white hover:bg-accent-hi'
     : type === 'text'
       ? danger

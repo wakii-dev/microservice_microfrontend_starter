@@ -26,6 +26,8 @@ export interface MenuProps {
 }
 
 /** Sidebar collapsed → Menu icon-only (label fade). Sidebar set qua provider. */
+// Context + util là public API có chủ đích (fast-refresh warning chấp nhận)
+// eslint-disable-next-line react-refresh/only-export-components
 export const MenuCompactContext = createContext(false);
 
 function ChevronRightIcon() {
@@ -50,6 +52,7 @@ function itemCls(kind: 'normal' | 'selected' | 'disabled', compact: boolean): st
 }
 
 /** Đường đi các key submenu cha của selectedKey (không gồm leaf) — auto-open lần đầu. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function findPath(items: MenuItemData[], selected?: string, trail: string[] = []): string[] | null {
   if (!selected) return null;
   for (const item of items) {

@@ -119,3 +119,30 @@ describe('DatePicker — locale (batch ⑧ worker C)', () => {
     expect(onChange).toHaveBeenCalledWith(new Date(2026, 9, 15));
   });
 });
+
+describe('DatePicker — polish (placeholder contrast / panel min-w / footer buttons)', () => {
+  it('placeholder khi rỗng → text-ink (contrast fix, không còn ink4/ink2)', () => {
+    render(<DatePicker placeholder="Chọn ngày…" />);
+    const trigger = screen.getByRole('button', { name: /Chọn ngày/ });
+    const span = trigger.querySelector('span')!;
+    expect(span).toHaveClass('text-ink');
+    expect(span).not.toHaveClass('text-ink4');
+    expect(span).not.toHaveClass('text-ink2');
+  });
+
+  it('panel có min-w-[300px] (nhãn tháng/năm không bị chật)', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker />);
+    await user.click(screen.getByRole('button', { name: /Chọn ngày|Hôm nay/ }));
+    const panel = document.body.querySelector('[class*="min-w-[300px]"]');
+    expect(panel).not.toBeNull();
+  });
+
+  it('nút "Hôm nay" px-3 py-1.5 (to hơn, vẫn ghost accent)', async () => {
+    const user = userEvent.setup();
+    render(<DatePicker />);
+    await user.click(screen.getByRole('button', { name: /Chọn ngày|Hôm nay/ }));
+    const btn = screen.getByText('Hôm nay');
+    expect(btn).toHaveClass('px-3', 'py-1.5');
+  });
+});

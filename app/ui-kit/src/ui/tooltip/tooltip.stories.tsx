@@ -1,6 +1,6 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// Tooltip stories — placement top/bottom (component hỗ trợ 2 hướng, không phải
-// 4), trigger hover + focus.
+// Tooltip stories — placement top/bottom (component supports 2 directions, not 4),
+// trigger hover + focus.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Tooltip } from './index';
@@ -10,10 +10,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Top: Story = {
-  name: 'Placement top (mặc định) — hover thử',
+  name: 'Placement top (default) — try hovering',
   render: () => (
-    <Tooltip title="Đây là tooltip phía trên">
-      <Button>Hover tôi</Button>
+    <Tooltip title="This tooltip appears above">
+      <Button>Hover me</Button>
     </Tooltip>
   ),
 };
@@ -21,8 +21,8 @@ export const Top: Story = {
 export const Bottom: Story = {
   name: 'Placement bottom',
   render: () => (
-    <Tooltip title="Tooltip phía dưới" placement="bottom">
-      <Button>Hover tôi</Button>
+    <Tooltip title="This tooltip appears below" placement="bottom">
+      <Button>Hover me</Button>
     </Tooltip>
   ),
 };
@@ -31,13 +31,33 @@ export const Trigger: Story = {
   name: 'Trigger — hover + focus (keyboard Tab)',
   render: () => (
     <div className="flex gap-4">
-      <Tooltip title="Nút focus được — Tab tới đây sẽ hiện bubble">
+      <Tooltip title="Focusable button — Tab here shows the bubble">
         <Button>Focus/hover</Button>
       </Tooltip>
-      <Tooltip title="Link cũng nhận focus" placement="bottom">
+      <Tooltip title="Links receive focus too" placement="bottom">
         <a href="#" className="text-accent no-underline">
-          Link demo
+          Demo link
         </a>
+      </Tooltip>
+    </div>
+  ),
+};
+
+export const LongContent: Story = {
+  name: 'Long content — max-width 250px wrap',
+  render: () => (
+    <Tooltip title="Long hint text to show wrapping: this task syncs through the gateway, retries 3 times, then parks the event in the DLQ for inspection.">
+      <Button>Hover for long hint</Button>
+    </Tooltip>
+  ),
+};
+
+export const DarkTheme: Story = {
+  name: 'DarkTheme — black bubble same in both themes (antd)',
+  render: () => (
+    <div data-bp-theme="dark" className="p-4">
+      <Tooltip title="Dark scope tooltip">
+        <Button>Hover me (dark)</Button>
       </Tooltip>
     </div>
   ),

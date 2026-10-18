@@ -45,7 +45,6 @@ function TagBase({ children, icon, closable = false, onClose, className }: TagPr
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-// eslint-disable-next-line react-refresh/only-export-components
 function Checkable({ checked, onChange, icon, children, className }: CheckableTagProps) {
   return (
     <button

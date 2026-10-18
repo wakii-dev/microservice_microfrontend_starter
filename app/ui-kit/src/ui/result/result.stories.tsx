@@ -1,5 +1,5 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// Result stories — success/error/404 (icon theo status; không có prop custom icon).
+// Result stories — success/error/404 (icon per status; no custom icon prop).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Result } from './index';
 import { Button } from '../button/index';
@@ -9,37 +9,73 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Success: Story = {
-  name: 'Success — + extra actions',
+  name: 'Success — with extra actions',
   render: () => (
     <Result
       status="success"
-      title="Tạo task thành công"
-      subTitle="Task FE-42 đã vào backlog sprint 12."
-      extra={<Button type="primary">Xem task</Button>}
+      title="Task created"
+      subTitle="Task FE-42 is now in the sprint 12 backlog."
+      extra={<Button type="primary">View task</Button>}
     />
   ),
 };
 
 export const Error: Story = {
-  name: 'Error — lỗi gán assignee',
+  name: 'Error — assignee failure',
   render: () => (
     <Result
       status="error"
-      title="Gán thất bại"
-      subTitle="fail@demo.local không nhận được task — sự kiện đã vào DLQ."
-      extra={<Button>Thử lại</Button>}
+      title="Assignment failed"
+      subTitle="fail@demo.local did not receive the task — event went to the DLQ."
+      extra={<Button>Retry</Button>}
     />
   ),
 };
 
-export const KhongTimThay: Story = {
-  name: '404 — Không tìm thấy trang',
+export const NotFound: Story = {
+  name: '404 — page not found',
   render: () => (
     <Result
       status="404"
       title="404"
-      subTitle="Trang bạn tìm không tồn tại hoặc đã bị xoá."
-      extra={<Button type="primary">Về trang chủ</Button>}
+      subTitle="The page you are looking for does not exist or was deleted."
+      extra={<Button type="primary">Back to home</Button>}
     />
+  ),
+};
+
+export const ServerError: Story = {
+  name: '500 — server error',
+  render: () => (
+    <Result
+      status="500"
+      title="500"
+      subTitle="node-svc is not responding — on-call has been paged."
+      extra={<Button>Retry</Button>}
+    />
+  ),
+};
+
+export const WarningInfo: Story = {
+  name: 'Warning + Info — secondary statuses',
+  render: () => (
+    <div className="flex gap-8">
+      <Result status="warning" title="Due soon" subTitle="3 tasks due within 24h." />
+      <Result status="info" title="Scheduled maintenance" subTitle="Today 22:00–23:00." />
+    </div>
+  ),
+};
+
+export const DarkTheme: Story = {
+  name: 'DarkTheme — dark ink + status colors',
+  render: () => (
+    <div data-bp-theme="dark" className="p-4">
+      <Result
+        status="success"
+        title="Task created"
+        subTitle="Task FE-42 is now in the sprint 12 backlog (dark scope)."
+        extra={<Button type="primary">View task</Button>}
+      />
+    </div>
   ),
 };

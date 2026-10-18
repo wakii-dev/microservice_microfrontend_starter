@@ -1,8 +1,10 @@
 // CascadeSelect — chọn có phân cấp (antd Cascader lite).
 // Audit fix 2026-10-18: ▸/› ký tự → Icon; z-30 → token --z-popover; panel
-// inset-x-0 (fix "panel lệch trái" — trước đây width theo content, left-anchored
-// trong khi trigger full-width); aria-expanded/haspopup + role listbox/option;
+// inset-x-0 (fix "panel lệch trái"); aria-expanded/haspopup + role listbox/option;
 // focus-visible ring trên trigger.
+// Polish 2026-10-18: panel căn GIỮA trigger — width theo content (w-max, left-1/2
+// -translate-x-1/2) thay vì inset-x-0 full-width; option bỏ w-full (width theo label,
+// min-w giữ cột chạm được).
 import { useState } from 'react';
 import { Icon } from '../icons/index.js';
 
@@ -60,7 +62,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
       </button>
       {open && (
         <div role="listbox" aria-label={placeholder}
-          className="absolute inset-x-0 top-full z-[var(--z-popover)] mt-1 flex gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
           {current.map((option) => (
             <button key={option.value} type="button" role="option" aria-selected={value[value.length - 1] === option.value}
               onClick={() => {
@@ -68,7 +70,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
                 if (option.children) { setLevel(level + 1); onChange?.(next); }
                 else { onChange?.(next); setOpen(false); setLevel(0); }
               }}
-              className={`block w-full min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-s3'}`}>
+              className={`block min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-s3'}`}>
               {option.label}
               {option.children && <span aria-hidden="true" className="float-right text-ink3"><Icon name="chevron-right" size={12} /></span>}
             </button>

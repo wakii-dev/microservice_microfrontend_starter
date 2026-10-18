@@ -1,5 +1,5 @@
-// Dropdown — trigger + menu overlay (antd look: menu radius 8, shadow popover,
-// item h-8 px-3 hover fill-quaternary, danger = đỏ; divider giữa nhóm key '---').
+// Dropdown — trigger + menu overlay (style matrix 2026-10-18: menu rounded-xl,
+// shadow var(--shadow-pop); item hover bg-s3, danger = đỏ; divider giữa nhóm key '---').
 // Đóng: click item / ESC / click ngoài (document listener).
 // A11y (batch ⑫ worker C): role=menu/menuitem, ArrowUp/Down/Home/End đi giữa
 // item, mở bằng keyboard (Enter/Space/ArrowDown) → focus item đầu, ESC → đóng
@@ -16,7 +16,9 @@ export interface DropdownItem {
 export interface DropdownProps {
   /** Trigger element (click để mở). */
   trigger: ReactNode;
+  /** Item menu — key '---' render divider. */
   items: DropdownItem[];
+  /** Callback khi click item (không gọi với item disabled). */
   onItemClick?: (key: string) => void;
   className?: string;
 }
@@ -109,7 +111,7 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
           ref={menuRef}
           role="menu"
           onKeyDown={onMenuKey}
-          className="absolute right-0 z-30 mt-1 min-w-[120px] list-none rounded-3 border border-line bg-s2 p-1 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]"
+          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]"
         >
           {items.map((item) =>
             item.key === '---' ? (
@@ -126,8 +128,8 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
                     onItemClick?.(item.key);
                     setOpen(false);
                   }}
-                  className={`w-full cursor-pointer rounded-2 border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors ${
-                    item.danger ? 'text-st-fail hover:bg-st-fail/12' : 'text-ink hover:bg-s3'
+                  className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
+                    item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'
                   } ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                 >
                   {item.label}

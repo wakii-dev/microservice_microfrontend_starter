@@ -51,8 +51,7 @@ describe('Tabs', () => {
     expect(screen.getByRole('tabpanel')).toBeInTheDocument();
   });
 
-  it('classNames slots (antd v5) — wrapper/tablist/tab/panel đúng element, merge sau default', () => {
-    const { container } = render(
+  it('classNames slots (antd v5) — wrapper/tablist/tab/panel đúng element, merge sau default', () => {    const { container } = render(
       <Tabs
         items={ITEMS}
         activeKey="t1"
@@ -65,5 +64,14 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Tab một' })).toHaveClass('tt');
     expect(screen.getByRole('tabpanel')).toHaveClass('tp');
     expect(screen.getByRole('tabpanel')).toHaveClass('pt-4');
+  });
+
+  it('inactive tab opacity-65 (hover về 100); active tab full opacity', () => {
+    render(<Tabs items={ITEMS} activeKey="t1" />);
+    const active = screen.getByRole('tab', { name: 'Tab một' });
+    const inactive = screen.getByRole('tab', { name: 'Tab hai' });
+    expect(inactive.className).toContain('opacity-65');
+    expect(inactive.className).toContain('hover:opacity-100');
+    expect(active.className).not.toContain('opacity-65');
   });
 });

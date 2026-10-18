@@ -551,7 +551,7 @@ export function Table<T extends object>({
                       style={virtualOn ? { height: rowHeight } : undefined}
                       aria-selected={hasSelection ? isSelected : undefined}
                       className={`${borderCls} transition-colors duration-150 ${
-                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3' : ''
+                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3/40' : ''
                       } hover:bg-s3 ${selectionMode === 'single' ? 'cursor-pointer' : ''}${classNames?.row ? ` ${classNames.row}` : ''}`}
                       onClick={() => selectionMode === 'single' && emitSelection([keyOf(record)])}
                     >

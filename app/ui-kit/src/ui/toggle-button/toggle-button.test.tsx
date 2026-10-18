@@ -12,3 +12,27 @@ describe('ToggleButton', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
+
+describe('ToggleButton — matrix (props thật: checked/onChange/disabled/className)', () => {
+  it('checked=true → click → onChange(false) (flip ngược)', async () => {
+    const onChange = vi.fn();
+    render(<ToggleButton checked onChange={onChange}>Bật</ToggleButton>);
+    expect(screen.getByRole('button', { name: 'Bật' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Bật' }));
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it('disabled → không bấm được, không gọi onChange', async () => {
+    const onChange = vi.fn();
+    render(<ToggleButton disabled onChange={onChange}>Khoá</ToggleButton>);
+    const btn = screen.getByRole('button', { name: 'Khoá' });
+    expect(btn).toBeDisabled();
+    await userEvent.setup().click(btn);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('className passthrough', () => {
+    render(<ToggleButton className="marker">c</ToggleButton>);
+    expect(screen.getByRole('button', { name: 'c' })).toHaveClass('marker');
+  });
+});

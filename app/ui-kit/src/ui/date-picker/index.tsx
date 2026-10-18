@@ -155,7 +155,7 @@ export function DatePicker(props: DatePickerProps) {
           onClick={openPanel}
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
-          <span className={from ? '' : 'text-ink4'}>{from ? `${fmt(from)}${displayTime()}` : placeholder ?? loc.rangeFrom}</span>
+          <span className={from ? '' : 'text-ink'}>{from ? `${fmt(from)}${displayTime()}` : placeholder ?? loc.rangeFrom}</span>
         </button>
         <span aria-hidden="true" className="text-ink3"><Icon name="arrow-right" size={12} /></span>
         <button
@@ -165,7 +165,7 @@ export function DatePicker(props: DatePickerProps) {
           onClick={openPanel}
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
-          <span className={to ? '' : 'text-ink4'}>{to ? `${fmt(to)}${displayTime()}` : placeholder ?? loc.rangeTo}</span>
+          <span className={to ? '' : 'text-ink'}>{to ? `${fmt(to)}${displayTime()}` : placeholder ?? loc.rangeTo}</span>
         </button>
         <span aria-hidden="true" className="ml-auto shrink-0 text-ink3"><Icon name="calendar" size={14} /></span>
       </span>
@@ -182,7 +182,7 @@ export function DatePicker(props: DatePickerProps) {
           onClick={openPanel}
           className="min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0 text-left text-inherit"
         >
-          <span className={single ? 'tabular-nums' : 'text-ink4'}>
+          <span className={single ? 'tabular-nums' : 'text-ink'}>
             {single ? `${fmt(single)}${displayTime()}` : placeholder ?? loc.placeholder}
           </span>
         </button>
@@ -201,7 +201,7 @@ export function DatePicker(props: DatePickerProps) {
             style={{ left: ref.current?.getBoundingClientRect().left ?? 0, top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 4 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+            <div className="min-w-[300px] rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
               <div className={showTime ? 'flex items-start gap-3' : ''}>
                 <Calendar
                   now={now}
@@ -227,7 +227,7 @@ export function DatePicker(props: DatePickerProps) {
                 <button
                   type="button"
                   onClick={handleToday}
-                  className="cursor-pointer border-none bg-transparent text-label text-accent hover:underline"
+                  className="cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-label text-accent transition-colors hover:bg-accent/10"
                 >
                   {loc.today}
                 </button>
@@ -235,7 +235,7 @@ export function DatePicker(props: DatePickerProps) {
                   <button
                     type="button"
                     onClick={handleOk}
-                    className="cursor-pointer rounded-lg bg-accent px-3 py-1 text-label font-medium text-white transition-opacity hover:opacity-90"
+                    className="cursor-pointer rounded-lg bg-accent px-3 py-1.5 text-label font-medium text-white transition-opacity hover:opacity-90"
                   >
                     {loc.ok}
                   </button>

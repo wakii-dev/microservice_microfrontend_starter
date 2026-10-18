@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from '../badge/index';
+import { Button } from '../button/index';
 import { Table } from './index';
 
 interface Row { id: string; title: string; status: 'todo' | 'doing' | 'done'; priority: number }
@@ -200,6 +201,37 @@ export const DarkTheme: Story = {
       <Table columns={COLS} dataSource={DATA.slice(0, 5)} rowKey="id" striped />
     </div>
   ),
+};
+
+function ZebraDemo() {
+  return (
+    <Table
+      columns={[
+        ...COLS.slice(0, 2),
+        {
+          key: 'actions',
+          title: 'Actions',
+          align: 'right' as const,
+          // Actions column padding convention: standard Button (h-8, px tokens) —
+          // no ad-hoc link spacing inside cells.
+          render: () => (
+            <span className="inline-flex items-center gap-1">
+              <Button size="small">Edit</Button>
+              <Button size="small" type="text" danger>Delete</Button>
+            </span>
+          ),
+        },
+      ]}
+      dataSource={DATA.slice(0, 5)}
+      rowKey="id"
+      striped
+    />
+  );
+}
+
+export const Zebra: Story = {
+  name: 'Zebra — striped rows bg-s3/40 + normalized Actions column',
+  render: () => <ZebraDemo />,
 };
 
 export const CustomStyled: Story = {

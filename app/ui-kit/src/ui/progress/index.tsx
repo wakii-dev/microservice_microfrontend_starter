@@ -1,10 +1,13 @@
 // Progress — line bar (antd): trail colorFillSecondary, stroke accent; % text phải;
 // trạng thái success (xanh khi 100) / exception (đỏ).
 export interface ProgressProps {
+  /** Giá trị 0–100 (clamp khi ngoài khoảng). */
   percent: number;
   /** 'line' (mặc định) — circle bỏ backlog. */
   type?: 'line';
+  /** exception = đỏ, success/100% = xanh. */
   status?: 'normal' | 'success' | 'exception';
+  /** Hiện % bên phải track. */
   showInfo?: boolean;
   className?: string;
 }
@@ -22,7 +25,7 @@ export function Progress({ percent, status = 'normal', showInfo = true, classNam
         aria-valuemax={100}
         className="h-2 flex-1 overflow-hidden rounded-pill bg-line2"
       >
-        <div className="h-full rounded-pill transition-[width] duration-300" style={{ width: `${clamped}%`, background: barColor }} />
+        <div className="h-full rounded-pill transition-[width] duration-200" style={{ width: `${clamped}%`, background: barColor }} />
       </div>
       {showInfo && <span className={`w-10 text-right text-body ${status === 'exception' ? 'text-st-fail' : 'text-ink'}`}>{clamped}%</span>}
     </div>

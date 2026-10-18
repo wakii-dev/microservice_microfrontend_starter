@@ -37,4 +37,18 @@ describe('Steps — branch phụ', () => {
     render(<Steps items={ITEMS} current={1} />);
     expect(screen.queryByText(/Thanh toán.*description/)).toBeNull();
   });
+
+  it('a11y: aria-current="step" đúng li đang current; li khác không có', () => {
+    render(<Steps items={ITEMS} current={1} />);
+    const lis = document.querySelectorAll('ol > li');
+    expect(lis[1]).toHaveAttribute('aria-current', 'step');
+    expect(lis[0]).not.toHaveAttribute('aria-current');
+    expect(lis[2]).not.toHaveAttribute('aria-current');
+  });
+
+  it('edge: current vượt quá số step → tất cả done; current=99 không crash', () => {
+    render(<Steps items={ITEMS} current={99} />);
+    expect(screen.getAllByText('✓').length).toBe(ITEMS.length);
+    expect(document.querySelectorAll('[aria-current="step"]').length).toBe(0);
+  });
 });

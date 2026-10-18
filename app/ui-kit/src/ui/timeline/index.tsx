@@ -27,7 +27,7 @@ export function Timeline({ items, className }: TimelineProps) {
           />
           <div className="min-w-0 flex-1">
             {item.children}
-            {item.label && <span className="block text-meta text-ink3">{item.label}</span>}
+            {item.label && <span className="block text-label text-ink3">{item.label}</span>}
           </div>
         </li>
       ))}

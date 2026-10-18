@@ -5,6 +5,7 @@
 // Component chưa có trên tree lúc viết: Kanban — bỏ section, xem report mission.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { CountUp } from './ui/count-up/index';
 import {
   Alert,
   Badge,
@@ -221,17 +222,17 @@ function KitchenSinkTour() {
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12} xl={6}>
           <Card>
-            <Statistic title="Người dùng" value="1,284" suffix="+12%" valueStyle={{ color: 'var(--st-done)' }} />
+            <Statistic title="Người dùng" value={<CountUp value={1284} format={(n) => n.toLocaleString('vi-VN')} />} suffix="+12%" valueStyle={{ color: 'var(--st-done)' }} />
           </Card>
         </Col>
         <Col xs={24} md={12} xl={6}>
           <Card>
-            <Statistic title="Tasks mở" value="316" suffix="+5%" valueStyle={{ color: 'var(--st-doing)' }} />
+            <Statistic title="Tasks mở" value={<CountUp value={316} />} suffix="+5%" valueStyle={{ color: 'var(--st-doing)' }} />
           </Card>
         </Col>
         <Col xs={24} md={12} xl={6}>
           <Card>
-            <Statistic title="Quá hạn" value="18" suffix="-3" valueStyle={{ color: 'var(--st-fail)' }} />
+            <Statistic title="Quá hạn" value={<CountUp value={18} />} suffix="-3" valueStyle={{ color: 'var(--st-fail)' }} />
           </Card>
         </Col>
         <Col xs={24} md={12} xl={6}>
@@ -296,6 +297,9 @@ function KitchenSinkTour() {
           </Button>
           <div className="w-48">
             <Progress percent={progress} />
+          </div>
+          <div className="w-48" title="indeterminate — loading không biết %">
+            <Progress indeterminate />
           </div>
           <Spinner label="Đang đồng bộ" size="small" />
           <Button size="small" onClick={() => setProgress((p) => (p + 20) % 120 || 20)}>

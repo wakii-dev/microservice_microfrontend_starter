@@ -138,7 +138,12 @@ export function Badge({
   // Status-pill mode (mặc định) — dot + label trên nền 12%
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-pill py-0.5 px-2 text-meta leading-tight whitespace-nowrap text-ink2 bg-[color-mix(in_srgb,var(--_dot)_12%,transparent)] ${DOT_VAR[variant]}${className ? ` ${className}` : ''}`} role="status">
-      <span className="size-1.5 rounded-full bg-[var(--_dot)]" aria-hidden="true" />
+      <span
+        aria-hidden="true"
+        className={`size-1.5 rounded-full bg-[var(--_dot)]${
+          variant === 'failed' ? ' animate-[bp-pulse-soft_2s_ease-in-out_infinite]' : ''
+        }`}
+      />
       {children}
     </span>
   );

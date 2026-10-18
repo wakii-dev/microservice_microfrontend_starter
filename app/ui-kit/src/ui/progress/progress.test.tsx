@@ -69,3 +69,22 @@ describe('Progress', () => {
     expect(screen.getByRole('progressbar').parentElement).toHaveClass('w-40');
   });
 });
+
+describe('Progress — indeterminate (motion waves)', () => {
+  it('indeterminate → không aria-valuenow, ẩn % text, bar chạy vô hạn w-2/5', () => {
+    render(<Progress indeterminate />);
+    const bar = screen.getByRole('progressbar');
+    expect(bar).not.toHaveAttribute('aria-valuenow');
+    expect(screen.queryByText(/%/)).toBeNull();
+    const fill = bar.firstElementChild as HTMLElement;
+    expect(fill.className).toContain('animate-[bp-indeterminate_1.4s_ease-in-out_infinite]');
+    expect(fill.className).toContain('motion-reduce:animate-none');
+    expect(fill.style.width).toBe(''); // width do class, không inline (khác determinate)
+  });
+
+  it('determinate vẫn giữ aria-valuenow + % (không hồi quy)', () => {
+    render(<Progress percent={60} />);
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '60');
+    expect(screen.getByText('60%')).toBeInTheDocument();
+  });
+});

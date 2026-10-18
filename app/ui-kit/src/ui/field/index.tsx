@@ -20,7 +20,9 @@ export function Field({ label, htmlFor, error, hint, required, children, classNa
   const errorId = error && htmlFor ? `${htmlFor}-error` : undefined;
   const hintId = !error && hint && htmlFor ? `${htmlFor}-hint` : undefined;
   return (
-    <div className={className}>
+    // error xuất hiện → wrapper shake 1 lần (bp-shake 400ms; replay chỉ khi error
+    // được gỡ rồi mới hiện lại — animation gắn theo class)
+    <div className={`${error ? 'animate-[bp-shake_400ms_var(--ease-toggle)]' : ''}${className ? ` ${className}` : ''}`}>
       {label && (
         <label htmlFor={htmlFor} className="mb-1 block text-label font-medium text-ink">
           {label}

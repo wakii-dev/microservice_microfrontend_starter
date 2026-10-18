@@ -112,6 +112,63 @@
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(1); }
 }
+@keyframes bp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes bp-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes bp-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes bp-bounce-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.05); }
+  80% { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-slide-in-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  50% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+@keyframes bp-ripple {
+  from { transform: scale(0); opacity: 0.35; }
+  to { transform: scale(2.75); opacity: 0; }
+}
+@keyframes bp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* check-draw: path set pathLength=1 + stroke-dasharray:1 → offset 1→0 vẽ đúng mọi độ dài */
+@keyframes bp-check-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bp-indeterminate {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+@keyframes bp-flip {
+  from { transform: perspective(800px) rotateY(70deg); opacity: 0; }
+  to { transform: perspective(800px) rotateY(0); opacity: 1; }
+}
+@keyframes bp-odometer {
+  0% { transform: translateY(0.7em); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
 
 @theme inline {
   --animate-fade-in: bp-fade-in var(--motion-base) var(--ease-enter);

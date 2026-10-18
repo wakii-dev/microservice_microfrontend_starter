@@ -35,11 +35,20 @@ export function AvatarGroup({ items, max, size = 32, className }: AvatarGroupPro
   const hidden = items.slice(visible.length);
   const overlapCls = '-ml-2';
 
+  // Pop-in stagger: delay theo vị trí (literal class list — Tailwind quét được;
+  // vành đai >5 avatar dùng delay cuối — hiếm, overflow +N đã gộp)
+  const stagger = ['', '[animation-delay:60ms]', '[animation-delay:120ms]', '[animation-delay:180ms]', '[animation-delay:240ms]'];
+
   return (
     <div className={`flex items-center${className ? ` ${className}` : ''}`}>
       {visible.map((item, i) => (
         <Tooltip key={`${item.name}-${i}`} title={item.name} className={i > 0 ? overlapCls : undefined}>
-          <Avatar src={item.src} alt={item.name} size={size} className="ring-2 ring-s2">
+          <Avatar
+            src={item.src}
+            alt={item.name}
+            size={size}
+            className={`ring-2 ring-s2 animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]${stagger[Math.min(i, stagger.length - 1)]}`}
+          >
             {item.fallback ?? initials(item.name)}
           </Avatar>
         </Tooltip>

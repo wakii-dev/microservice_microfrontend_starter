@@ -9,6 +9,8 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 export interface ParallaxProps {
   /** Tốc độ trôi 0–1: 0 = đứng yên tương đối với viewport, 1 = trôi mạnh nhất. */
   speed?: number;
+  /** Biên trôi tối đa px (default 120; 240–360 cho chuyển động đậm — template landing). */
+  strength?: number;
   /** Phóng nhẹ theo tiến độ trôi (ảnh hero) — scale 1 → 1 + speed × 0.15. */
   scale?: boolean;
   /** Tắt hiệu ứng (children vẫn render bình thường). */
@@ -17,7 +19,7 @@ export interface ParallaxProps {
   children: ReactNode;
 }
 
-export function Parallax({ speed = 0.3, scale = false, disabled, className, children }: ParallaxProps) {
+export function Parallax({ speed = 0.3, strength = 120, scale = false, disabled, className, children }: ParallaxProps) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const active = !disabled && !reduced && speed !== 0;
@@ -33,7 +35,7 @@ export function Parallax({ speed = 0.3, scale = false, disabled, className, chil
       // tâm element lệch bao nhiêu so với tâm viewport, chuẩn hoá về -1..1
       const progress = (rect.top + rect.height / 2 - window.innerHeight / 2) / (window.innerHeight / 2);
       const clamped = Math.max(-1, Math.min(1, progress));
-      const y = -clamped * speed * 120;
+      const y = -clamped * speed * strength;
       el.style.transform = scale
         ? `translate3d(0, ${y}px, 0) scale(${1 + speed * 0.15})`
         : `translate3d(0, ${y}px, 0)`;
@@ -50,7 +52,7 @@ export function Parallax({ speed = 0.3, scale = false, disabled, className, chil
       window.removeEventListener('resize', schedule);
       if (raf) cancelAnimationFrame(raf); // huỷ frame chưa chạy — không touching node sau unmount
     };
-  }, [active, speed, scale]);
+  }, [active, speed, strength, scale]);
 
   return (
     <div ref={ref} style={active ? undefined : ({ transform: 'none' } satisfies CSSProperties)} className={className}>

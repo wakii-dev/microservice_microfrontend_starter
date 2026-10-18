@@ -119,6 +119,17 @@ describe('Parallax', () => {
     expect((container.firstElementChild as HTMLElement).style.transform).toMatch(/scale\(1\.07/);
   });
 
+  it('strength 280 → biên trôi gấp 280/120 tại cùng rect (default 120 giữ tương thích)', () => {
+    mockRect(0);
+    const { container } = render(
+      <Parallax speed={0.5} strength={280}>
+        <div>hero</div>
+      </Parallax>,
+    );
+    // progress -0.8698 × 0.5 × 280 = 121.7708 (mặc định 120 sẽ là 52.1875)
+    expect(translateYOf(container.firstElementChild as HTMLElement)).toBeCloseTo(121.7708, 2);
+  });
+
   it('cleanup: unmount → scroll không còn schedule rAF', async () => {
     mockRect(0);
     const rafSpy = vi.spyOn(window, 'requestAnimationFrame');

@@ -6,10 +6,12 @@ import { Result } from './index.js';
 afterEach(cleanup);
 
 describe('Result', () => {
-  it('success → icon tick + title mặc định', () => {
+  it('success → check-draw svg + title mặc định (motion waves: stroke vẽ tay)', () => {
     render(<Result status="success" />);
     expect(screen.getByText('Thành công')).toBeInTheDocument();
-    expect(screen.getByText('✓')).toBeInTheDocument();
+    const check = document.querySelector('[data-testid="result-check"]');
+    expect(check).not.toBeNull();
+    expect(check).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('title/subTitle/extra override + children', () => {
@@ -34,7 +36,12 @@ describe('Result', () => {
   ] as const)('status %s → defaultTitle + màu icon đúng', (status, defaultTitle, colorCls) => {
     render(<Result status={status} />);
     expect(screen.getByText(defaultTitle)).toBeInTheDocument();
-    expect(document.querySelector('.text-5xl')?.className).toContain(colorCls);
+    if (status === 'success') {
+      // success dùng check-draw svg (motion waves) — màu nằm trên svg
+      expect(document.querySelector('[data-testid="result-check"]')).toHaveClass('text-st-done');
+    } else {
+      expect(document.querySelector('.text-5xl')?.className).toContain(colorCls);
+    }
   });
 
   it('icon là aria-hidden (decorative)', () => {

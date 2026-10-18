@@ -60,8 +60,8 @@ function show(type: MessageType, content: string, durationMs = 3000, classNames?
   if (typeof el.animate === 'function') {
     el.animate(
       [
-        { opacity: 0, transform: 'translateY(-12px)' },
-        { opacity: 1, transform: 'translateY(0)' },
+        { opacity: 0, transform: 'translateY(-12px) scale(0.97)' },
+        { opacity: 1, transform: 'translateY(0) scale(1)' },
       ],
       { duration: 180, easing: 'ease-out' },
     );

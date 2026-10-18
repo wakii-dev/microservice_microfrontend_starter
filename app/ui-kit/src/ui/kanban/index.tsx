@@ -83,7 +83,7 @@ function KanbanCardView({ card, flash }: { card: KanbanCardData; flash: boolean 
   return (
     <div
       className={`rounded-xl border border-line bg-s1 p-3 transition-shadow duration-200 hover:shadow-lift${
-        flash ? ' animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]' : ''
+        flash ? ' animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]' : ''
       }`}
     >
       <div className="flex items-start gap-2">

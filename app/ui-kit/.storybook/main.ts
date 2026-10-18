@@ -14,7 +14,7 @@ const config: StorybookConfig = {
   options: {
     storySort: {
       method: 'alphabetical',
-      order: ['Introduction', 'Design Tokens', 'Motion', 'Data Display', 'Forms', 'Feedback', 'Navigation', 'Primitives', 'Hooks', 'General', 'Kitchen Sink'],
+      order: ['Introduction', 'Design Tokens', 'Theming & Motion', 'Data Display', 'Forms', 'Feedback', 'Navigation', 'Primitives', 'Hooks', 'General', 'Kitchen Sink'],
       includeName: true,
     },
   },

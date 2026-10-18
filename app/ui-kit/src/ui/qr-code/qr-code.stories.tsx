@@ -2,7 +2,7 @@
 // Matrix: basic · with-size · error-levels · value-change demo · dark theme (tokens).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { QRCode } from './index';
+import { Icon, QRCode } from '../../index';
 
 const meta = {
   title: 'Data Display/QRCode',
@@ -79,6 +79,23 @@ function ValueChangeDemo() {
     </div>
   );
 }
+
+/** WithIcon — antd excavate mode: white punch-out frame + centered icon; error level auto-raises to H (or pass your own). */
+export const WithIcon: Story = {
+  args: { value: 'https://demo.local' },
+  render: () => (
+    <div className="flex flex-wrap items-end gap-6">
+      <figure className="grid gap-2">
+        <QRCode value="https://demo.local/pay/abc" size={140} icon={<Icon name="star" size={22} className="text-ink" />} />
+        <figcaption className="text-center text-label text-ink3">auto level H</figcaption>
+      </figure>
+      <figure className="grid gap-2">
+        <QRCode value="https://demo.local/pay/abc" size={140} errorLevel="Q" icon={<span className="text-body font-bold">₫</span>} />
+        <figcaption className="text-center text-label text-ink3">explicit level Q</figcaption>
+      </figure>
+    </div>
+  ),
+};
 
 /** CustomColors — override via props (defaults are tokens: ink on s1). */
 export const CustomColors: Story = {

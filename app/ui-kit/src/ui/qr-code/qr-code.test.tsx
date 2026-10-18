@@ -112,3 +112,44 @@ describe('QRCode — component SVG', () => {
     expect(screen.getByRole('img', { name: 'Mã thanh toán' })).toBeInTheDocument();
   });
 });
+
+describe('QRCode — icon giữa (antd excavate mode, R10)', () => {
+  it('icon render trong khung punch-out giữa, role=img vẫn đúng aria', () => {
+    render(<QRCode value="https://demo.local/pay" icon={<span data-testid="logo">★</span>} />);
+    const svg = screen.getByRole('img', { name: 'QR code for https://demo.local/pay' });
+    const frame = svg.parentElement!.querySelector('span[aria-hidden="true"]')!;
+    expect(frame).toBeInTheDocument();
+    expect(frame.querySelector('[data-testid="logo"]')).not.toBeNull();
+  });
+
+  it('khung trắng punch-out: nền = bgColor, ~1/4 cạnh, absolute giữa', () => {
+    render(<QRCode value="frame" bgColor="var(--c-s1)" icon={<span>x</span>} />);
+    const svg = screen.getByRole('img');
+    const box = svg.parentElement!.querySelector('span[aria-hidden="true"]') as HTMLElement;
+    expect(box.style.background).toBe('var(--c-s1)');
+    expect(box.style.width).toBe('25%');
+    expect(box.className).toContain('absolute');
+    expect(box.className).toContain('rounded-md');
+  });
+
+  it('icon + không truyền errorLevel → matrix == level H (vendor generator verify)', () => {
+    render(<QRCode value="verify-h" icon={<span>logo</span>} />);
+    const withIcon = screen.getByRole('img').querySelector('path')!.getAttribute('d');
+    const expectedH = matrixToPath(makeQrMatrix('verify-h', 'H'));
+    expect(withIcon).toBe(expectedH); // H đúng chuẩn vendor — đủ EC bù che khuất
+  });
+
+  it('errorLevel user truyền vẫn được respect (icon + Q → matrix Q)', () => {
+    render(<QRCode value="verify-q" errorLevel="Q" icon={<span>logo</span>} />);
+    const d = screen.getByRole('img').querySelector('path')!.getAttribute('d');
+    expect(d).toBe(matrixToPath(makeQrMatrix('verify-q', 'Q')));
+    expect(d).not.toBe(matrixToPath(makeQrMatrix('verify-q', 'H')));
+  });
+
+  it('không icon → giữ hành vi cũ (M mặc định, không có punch-out)', () => {
+    render(<QRCode value="plain" />);
+    const d = screen.getByRole('img').querySelector('path')!.getAttribute('d');
+    expect(d).toBe(matrixToPath(makeQrMatrix('plain', 'M')));
+    expect(screen.getByRole('img').parentElement!.querySelector('span[aria-hidden="true"]')).toBeNull();
+  });
+});

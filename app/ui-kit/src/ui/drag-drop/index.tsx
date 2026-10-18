@@ -9,8 +9,11 @@
 // Draggable focusable, Space "nhặt" (aria-pressed), Arrows chạy giữa DropZone
 // siblings, Enter thả vào zone active, Esc hủy. Consumer onKeyDown chạy TRƯỚC
 // default và có thể preventDefault để tự điều khiển (pattern Kanban).
-// ⚠️ Hạn chế có chủ đích: native HTML5 DnD KHÔNG hỗ trợ touch (mobile) — muốn hỗ
-// trợ thì nâng cấp peer-dep dnd-kit, KHÔNG tự viết pointer engine.
+// Touch (R10, 2026-10-18): native HTML5 DnD không có trên touch → pointer fallback
+// CHỈ khi pointerType=touch (mouse đi nguyên path HTML5, không đổi): pointerdown →
+// ghost clone theo pointer (transform GPU) + elementFromPoint hit-test zone qua
+// marker [data-drop-zone] → pointerup dispatch CustomEvent dnd-pointer-drop, DropZone
+// tự lắng nghe và bắn onDrop(data) (event undefined như keyboard path).
 import {
   createContext,
   useContext,
@@ -20,12 +23,109 @@ import {
   useState,
   type DragEvent,
   type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefObject,
 } from 'react';
 
 /** MIME payload của kit — DropZone mặc định chỉ accept type này. */
 export const DRAG_MIME = 'application/x-ui-kit-dnd';
+
+// ── Pointer fallback (touch) — engine module-level, 1 drag tại 1 thời điểm ──
+
+/** CustomEvent DropZone lắng nghe để nhận payload từ pointer path. */
+const POINTER_DROP_EVENT = 'dnd-pointer-drop';
+const TOUCH_OVER_ATTR = 'data-dnd-touch-over';
+
+interface PointerDragHooks {
+  /** Gọi ở MỌI kết thúc (drop/ huỷ/ unmount) — composite tắt state dragging. */
+  onEnd(): void;
+}
+
+let activePointerDrag: { cleanup(): void } | null = null;
+
+/** Huỷ drag đang chạy (unmount Draggable giữa chừng) — idempotent. */
+function cancelActivePointerDrag(): void {
+  activePointerDrag?.cleanup();
+}
+
+function zoneOf(el: Element | null): HTMLElement | null {
+  return el?.closest<HTMLElement>('[data-drop-zone]') ?? null;
+}
+
+/** elementFromPoint bọc an toàn — jsdom không implement, trả null (no hit-test). */
+function hitTest(x: number, y: number): Element | null {
+  return typeof document.elementFromPoint === 'function' ? document.elementFromPoint(x, y) : null;
+}
+
+function startPointerDrag(
+  source: HTMLElement,
+  data: unknown,
+  start: PointerEvent,
+  hooks: PointerDragHooks,
+): void {
+  cancelActivePointerDrag(); // an toàn: 1 drag tại 1 thời điểm
+  const rect = source.getBoundingClientRect();
+  // Ghost = clone nguồn, fixed tại chỗ, theo pointer bằng transform (GPU — motion
+  // identity chỉ animate transform), pointer-events-none để elementFromPoint
+  // "xuyên qua" ghost trúng zone thật bên dưới.
+  const ghost = source.cloneNode(true) as HTMLElement;
+  ghost.setAttribute('data-dnd-ghost', '');
+  ghost.setAttribute('aria-hidden', 'true');
+  ghost.style.position = 'fixed';
+  ghost.style.left = `${rect.left}px`;
+  ghost.style.top = `${rect.top}px`;
+  ghost.style.width = `${rect.width}px`;
+  ghost.style.margin = '0';
+  ghost.style.pointerEvents = 'none';
+  ghost.style.zIndex = 'var(--z-tooltip)';
+  ghost.style.opacity = '0.9';
+  document.body.appendChild(ghost);
+  source.style.touchAction = 'none'; // chặn scroll cướp gesture khi đang kéo
+
+  let lastZone: HTMLElement | null = null;
+  const clearOver = () => {
+    lastZone?.removeAttribute(TOUCH_OVER_ATTR);
+    lastZone = null;
+  };
+
+  const onMove = (ev: PointerEvent) => {
+    ghost.style.transform = `translate3d(${ev.clientX - start.clientX}px, ${ev.clientY - start.clientY}px, 0)`;
+    const zone = zoneOf(hitTest(ev.clientX, ev.clientY));
+    if (zone !== lastZone) {
+      clearOver();
+      if (zone) {
+        zone.setAttribute(TOUCH_OVER_ATTR, '');
+        lastZone = zone;
+      }
+    }
+  };
+
+  const finish = (ev: PointerEvent | null, drop: boolean) => {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onCancel);
+    clearOver();
+    ghost.remove();
+    source.style.touchAction = '';
+    activePointerDrag = null;
+    hooks.onEnd();
+    if (drop && ev) {
+      // Hit-test LẠI lúc thả (sau khi ghost đã remove — không che target), dispatch
+      // trên zone element; DropZone tự lắng nghe và bắn onDropRef(data).
+      zoneOf(hitTest(ev.clientX, ev.clientY))?.dispatchEvent(
+        new CustomEvent(POINTER_DROP_EVENT, { detail: { data } }),
+      );
+    }
+  };
+  const onUp = (ev: PointerEvent) => finish(ev, true);
+  const onCancel = () => finish(null, false);
+
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onCancel);
+  activePointerDrag = { cleanup: () => finish(null, false) };
+}
 
 // ── Context — keyboard drag + zone registry (composite layer vd Kanban dùng) ──
 
@@ -140,6 +240,25 @@ export function Draggable({
   const [mouseDragging, setMouseDragging] = useState(false);
   const handleRef = useRef<HTMLDivElement>(null);
 
+  // Touch path: unmount giữa chừng → huỷ engine (gỡ listener + ghost).
+  useEffect(() => () => cancelActivePointerDrag(), []);
+
+  function handlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
+    // CHỈ touch — mouse đi path HTML5 draggable (không đổi behavior hiện tại).
+    if (e.pointerType !== 'touch' || disabled || activePointerDrag) return;
+    // Handle mode áp cho touch: pointerdown ngoài handle → không kéo.
+    if (handle && !handleRef.current?.contains(e.target as Node)) return;
+    e.preventDefault(); // chặn scroll/long-press cướp gesture
+    setMouseDragging(true);
+    onDragStart?.();
+    startPointerDrag(e.currentTarget, data, e.nativeEvent, {
+      onEnd: () => {
+        setMouseDragging(false);
+        onDragEnd?.();
+      },
+    });
+  }
+
   const grabbed = dnd?.keyboardDrag?.sourceId === id;
   const dragging = mouseDragging || grabbed;
 
@@ -205,6 +324,7 @@ export function Draggable({
       tabIndex={disabled ? undefined : 0}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
       className={`focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${dragClasses}${className ? ` ${className}` : ''}`}
     >
@@ -259,6 +379,21 @@ export function DropZone({
     return dnd.registerZone({ id, onDropRef });
   }, [dnd, id]);
 
+  // Touch path: engine dispatch CustomEvent trên zone element (hit-test qua marker
+  // data-drop-zone) — không cần context, standalone Draggable/DropZone vẫn hoạt động.
+  useEffect(() => {
+    const el = zoneRef.current;
+    if (!el) return;
+    const onPointerDrop = (ev: Event) => {
+      if (disabled) return;
+      const data = (ev as CustomEvent<{ data: unknown }>).detail?.data;
+      // event undefined như keyboard path — pointer không có DragEvent thật.
+      onDropRef.current?.(data);
+    };
+    el.addEventListener(POINTER_DROP_EVENT, onPointerDrop);
+    return () => el.removeEventListener(POINTER_DROP_EVENT, onPointerDrop);
+  }, [disabled]);
+
   function accepts(e: DragEvent<HTMLDivElement>) {
     if (disabled) return false;
     return Array.from(e.dataTransfer?.types ?? []).some((t) => accept.includes(t));
@@ -306,13 +441,14 @@ export function DropZone({
       ref={zoneRef}
       role={ariaLabel ? 'group' : undefined}
       aria-label={ariaLabel}
+      data-drop-zone=""
       data-dnd-over={isOver ? 'true' : undefined}
       data-dnd-active={kbActive ? 'true' : undefined}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`${isOver ? highlight : ''} ${kbActive ? 'ring-2 ring-accent/60' : ''}${className ? ` ${className}` : ''}`}
+      className={`${isOver ? highlight : ''} ${kbActive ? 'ring-2 ring-accent/60' : ''} data-[dnd-touch-over]:ring-2 data-[dnd-touch-over]:ring-accent/40 data-[dnd-touch-over]:bg-accent/10${className ? ` ${className}` : ''}`}
     >
       {children}
     </div>

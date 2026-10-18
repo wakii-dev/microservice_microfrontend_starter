@@ -79,6 +79,24 @@ export const KeyboardWalkthrough: Story = {
   render: () => <KeyboardDemo />,
 };
 
+/** TouchDemo — pointer fallback (R10): on touch devices (or DevTools device toolbar,
+ * pointerType=touch) dragging spawns a ghost that follows the finger, zones highlight
+ * via data-dnd-touch-over, and drop fires the same onCardMove payload as the HTML5
+ * mouse path — which is untouched on desktop. */
+export const TouchDemo: Story = {
+  render: () => (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-lg border border-line bg-s3 p-3 text-body text-ink2">
+        <strong className="text-ink">Touch:</strong> open on a touch device (or DevTools device
+        toolbar) and drag a card with your finger — pointer fallback spawns a ghost, zones
+        highlight on hover, drop reuses the exact <code>onCardMove</code> payload. Desktop mouse
+        keeps the native HTML5 path.
+      </div>
+      <InteractiveDemo />
+    </div>
+  ),
+};
+
 function InteractiveDemo() {
   const [columns, setColumns] = useState(INITIAL);
   const [last, setLast] = useState<string>('—');

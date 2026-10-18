@@ -24,7 +24,7 @@
     "build": "tsup && pnpm build:css",
     "storybook": "node scripts/stamp-build.cjs && storybook dev -p 6006",
     "build-storybook": "node scripts/stamp-build.cjs && storybook build",
-    "test-storybook": "test-storybook",
+    "test-storybook": "test-storybook --maxWorkers=2",
     "build:css": "tailwindcss -i src/styles/ui-kit.css -o dist/ui-kit.css --minify"
   },
   "peerDependencies": {

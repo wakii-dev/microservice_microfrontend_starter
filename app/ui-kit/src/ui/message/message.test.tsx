@@ -91,8 +91,8 @@ describe('message — đầy đủ types + WAAPI path (prod có Element.animate)
     // enter animation — keyframes translateY(-12px) → 0
     expect(animate).toHaveBeenCalledTimes(1);
     expect((animate.mock.calls[0] as unknown[])[0]).toEqual([
-      { opacity: 0, transform: 'translateY(-12px)' },
-      { opacity: 1, transform: 'translateY(0)' },
+      { opacity: 0, transform: 'translateY(-12px) scale(0.97)' },
+      { opacity: 1, transform: 'translateY(0) scale(1)' },
     ]);
 
     // auto-dismiss 3s → exit animation fade-out + onfinish → remove

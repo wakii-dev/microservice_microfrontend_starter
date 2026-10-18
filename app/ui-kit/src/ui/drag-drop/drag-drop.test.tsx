@@ -222,3 +222,131 @@ describe('Keyboard (DragDropProvider)', () => {
     expect(card).toHaveAttribute('aria-pressed', 'false');
   });
 });
+
+// ═══ Touch pointer fallback (R10) — chỉ khi pointerType=touch, HTML5 path không đổi ═══
+
+function TouchHarness({ onDrop, onDragStart, onDragEnd }: {
+  onDrop?: (data: unknown) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+}) {
+  return (
+    <div>
+      <DropZone ariaLabel="Zone A" onDrop={onDrop}>
+        <Draggable
+          data={{ id: 'card-1' }}
+          dragId="card-1"
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          <p>Card touch</p>
+        </Draggable>
+      </DropZone>
+      <DropZone ariaLabel="Zone B" onDrop={onDrop}>
+        <p>target B</p>
+      </DropZone>
+    </div>
+  );
+}
+
+describe('DragDrop — touch pointer fallback (R10)', () => {
+  /** jsdom không có elementFromPoint — gán mock thẳng, trả hàm restore. */
+  function mockHitTest(el: Element | null) {
+    const fn = vi.fn(() => el);
+    (document as unknown as { elementFromPoint?: unknown }).elementFromPoint = fn;
+    return () => {
+      delete (document as unknown as { elementFromPoint?: unknown }).elementFromPoint;
+    };
+  }
+
+  it('pointerdown touch → ghost tạo + data-dragging + onDragStart; mouse KHÔNG tạo ghost (HTML5 path giữ nguyên)', () => {
+    const onDragStart = vi.fn();
+    const { getByText } = render(
+      <Draggable data={{ id: 1 }} dragId="t1" onDragStart={onDragStart}>
+        <p>card</p>
+      </Draggable>,
+    );
+    const card = getByText('card').parentElement!;
+    // mouse → path HTML5: KHÔNG ghost, KHÔNG dragging state
+    fireEvent.pointerDown(card, { pointerType: 'mouse' });
+    expect(document.querySelector('[data-dnd-ghost]')).toBeNull();
+    expect(card.getAttribute('data-dragging')).toBeNull();
+    expect(onDragStart).not.toHaveBeenCalled();
+    // touch → engine chạy
+    fireEvent.pointerDown(card, { pointerType: 'touch', clientX: 10, clientY: 10 });
+    expect(document.querySelector('[data-dnd-ghost]')).not.toBeNull();
+    expect(card.getAttribute('data-dragging')).toBe('true');
+    expect(onDragStart).toHaveBeenCalledTimes(1);
+    fireEvent.pointerUp(document.body, { clientX: 10, clientY: 10 });
+    expect(document.querySelector('[data-dnd-ghost]')).toBeNull();
+  });
+
+  it('pointermove → ghost theo pointer (transform cập nhật) + zone hit-test bật data-dnd-touch-over', () => {
+    const { getByText } = render(<TouchHarness />);
+    const zoneB = getByText('target B').closest('[data-drop-zone]')!;
+    const card = getByText('Card touch').parentElement!;
+    const restore = mockHitTest(zoneB.querySelector('p'));
+    try {
+      fireEvent.pointerDown(card, { pointerType: 'touch', clientX: 5, clientY: 5 });
+      fireEvent.pointerMove(window, { clientX: 60, clientY: 25 });
+      const ghost = document.querySelector('[data-dnd-ghost]') as HTMLElement;
+      expect(ghost.style.transform).toContain('translate3d(55px, 20px');
+      expect(zoneB.getAttribute('data-dnd-touch-over')).toBe('');
+      fireEvent.pointerUp(window, { clientX: 60, clientY: 25 });
+      expect(zoneB.hasAttribute('data-dnd-touch-over')).toBe(false);
+    } finally {
+      restore();
+    }
+  });
+
+  it('pointerup trên zone → onDrop nhận payload (event undefined như keyboard path)', () => {
+    const onDrop = vi.fn();
+    const { getByText } = render(<TouchHarness onDrop={onDrop} />);
+    const zoneB = getByText('target B').closest('[data-drop-zone]')!;
+    const card = getByText('Card touch').parentElement!;
+    const restore = mockHitTest(zoneB.querySelector('p'));
+    try {
+      fireEvent.pointerDown(card, { pointerType: 'touch', clientX: 0, clientY: 0 });
+      fireEvent.pointerUp(window, { clientX: 99, clientY: 99 });
+      expect(onDrop).toHaveBeenCalledTimes(1);
+      expect(onDrop).toHaveBeenCalledWith({ id: 'card-1' });
+      expect(onDrop.mock.calls[0]![1]).toBeUndefined();
+    } finally {
+      restore();
+    }
+  });
+
+  it('pointerup ngoài zone (elementFromPoint null) → KHÔNG onDrop, onDragEnd vẫn bắn, ghost dọn sạch', () => {
+    const onDrop = vi.fn();
+    const onDragEnd = vi.fn();
+    const { getByText } = render(<TouchHarness onDrop={onDrop} onDragEnd={onDragEnd} />);
+    const card = getByText('Card touch').parentElement!;
+    const restore = mockHitTest(null);
+    try {
+      fireEvent.pointerDown(card, { pointerType: 'touch', clientX: 0, clientY: 0 });
+      fireEvent.pointerUp(window, { clientX: 500, clientY: 500 });
+      expect(onDrop).not.toHaveBeenCalled();
+      expect(onDragEnd).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('[data-dnd-ghost]')).toBeNull();
+    } finally {
+      restore();
+    }
+  });
+
+  it('touch path của Draggable CÓ handle: pointerdown ngoài handle không kéo', () => {
+    const onDragStart = vi.fn();
+    const { getByText } = render(
+      <Draggable
+        data={{ id: 1 }}
+        dragId="h1"
+        handle={<button type="button">grip</button>}
+        onDragStart={onDragStart}
+      >
+        <p>body</p>
+      </Draggable>,
+    );
+    fireEvent.pointerDown(getByText('body'), { pointerType: 'touch', clientX: 1, clientY: 1 });
+    expect(document.querySelector('[data-dnd-ghost]')).toBeNull();
+    expect(onDragStart).not.toHaveBeenCalled();
+  });
+});

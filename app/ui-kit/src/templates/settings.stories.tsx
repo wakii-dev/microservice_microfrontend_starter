@@ -11,6 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useCountdown } from '../hooks/useCountdown.js';
 import { UiKitProvider } from '../provider/index.js';
 import { Avatar } from '../ui/avatar/index';
+import { Badge } from '../ui/badge/index';
 import { Button } from '../ui/button/index';
 import { Card } from '../ui/card/index';
 import { Checkbox } from '../ui/checkbox/index';
@@ -24,10 +25,16 @@ import { InputOTP } from '../ui/input-otp/index';
 import { Layout } from '../ui/layout/index';
 import { Menu, type MenuItemData } from '../ui/menu/index';
 import { message } from '../ui/message/index.js';
+import { Modal } from '../ui/modal/index';
 import { Password } from '../ui/password/index';
+import { Popconfirm } from '../ui/popconfirm/index';
+import { Progress } from '../ui/progress/index';
 import { Segmented } from '../ui/segmented/index';
+import { Statistic } from '../ui/statistic/index';
 import { Switch } from '../ui/switch/index';
+import { Table } from '../ui/table/index';
 import { Tag } from '../ui/tag/index';
+import { UploadDropzone } from '../ui/upload/index';
 
 const meta = { title: 'Templates/Settings', tags: ['autodocs'] } satisfies Meta;
 export default meta;
@@ -43,6 +50,9 @@ const SECTIONS: MenuItemData[] = [
   { key: 'security', label: 'Bảo mật', icon: <Icon name="eye-slash" size={14} /> },
   { key: 'notifications', label: 'Thông báo', icon: <Icon name="bell" size={14} /> },
   { key: 'appearance', label: 'Giao diện', icon: <Icon name="settings" size={14} /> },
+  { key: 'billing', label: 'Thanh toán', icon: <Icon name="file" size={14} /> },
+  { key: 'integrations', label: 'Tích hợp', icon: <Icon name="external-link" size={14} /> },
+  { key: 'danger', label: 'Vùng nguy hiểm', icon: <Icon name="trash" size={14} /> },
 ];
 
 // ── Account — Avatar + Descriptions + Field form ──
@@ -51,14 +61,21 @@ function AccountPanel() {
   const [email, setEmail] = useState('alice@demo.local');
   return (
     <Card title="Hồ sơ">
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <Avatar size={56}>A</Avatar>
-        <div className="flex flex-col items-start gap-1">
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
           <span className="text-body font-semibold text-ink">{name}</span>
           <span className="text-meta text-ink3">Admin · Đội Frontend</span>
-          <Button size="small" onClick={() => message.info('Upload avatar — demo qua UploadDropzone')}>
-            Đổi ảnh
-          </Button>
+          {/* Avatar upload — Dropzone mini (R11: profile avatar upload) */}
+          <div className="w-full max-w-sm">
+            <UploadDropzone
+              accept="image/*"
+              maxCount={1}
+              onChange={(files) =>
+                message.success(files.length ? `Đã nhận ${files[0].name} — crop + lưu (demo).` : 'Đã xoá avatar')
+              }
+            />
+          </div>
         </div>
       </div>
       <Descriptions
@@ -271,6 +288,160 @@ function AppearancePanel() {
   );
 }
 
+// ── Billing — Statistic + Progress usage + Table invoices (SETTINGS-MAX) ──
+const INVOICES = [
+  { id: 'INV-2026-010', date: '01/10/2026', plan: 'Team · 12 seats', amount: 120, status: 'paid' },
+  { id: 'INV-2026-009', date: '01/09/2026', plan: 'Team · 10 seats', amount: 100, status: 'paid' },
+  { id: 'INV-2026-008', date: '01/08/2026', plan: 'Team · 10 seats', amount: 100, status: 'overdue' },
+];
+
+function BillingPanel() {
+  const [autoRenew, setAutoRenew] = useState(true);
+  // R11(6): demo 3 state — live / empty (đổi kỳ) / loading (đang fetch)
+  const [demo, setDemo] = useState('live');
+  return (
+    <div className="grid gap-4">
+      <Card title="Gói hiện tại — Team">
+        <div className="flex flex-wrap items-center gap-6">
+          <Statistic title="Hạn mức storage" value="86 GB" suffix="/ 100 GB" />
+          <div className="min-w-48 flex-1">
+            <Progress percent={86} status="exception" />
+            <p className="mb-0 mt-1 text-meta text-ink3">Gần hạn mức — cân nhắc nâng gói.</p>
+          </div>
+          <Statistic title="Thành viên" value={12} suffix="/ 15" />
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t border-line2 pt-4">
+          <Checkbox checked={autoRenew} onChange={setAutoRenew}>
+            Tự động gia hạn (gia hạn ngày 01 hàng tháng)
+          </Checkbox>
+          <Button type="primary" onClick={() => message.success('Đã gửi yêu cầu nâng gói (demo)')}>
+            Nâng gói
+          </Button>
+        </div>
+      </Card>
+      <Card title="Lịch sử hóa đơn">
+        <div className="mb-3">
+          <Segmented
+            aria-label="Demo state hóa đơn"
+            options={[
+              { label: 'Live', value: 'live' },
+              { label: 'Empty', value: 'empty' },
+              { label: 'Loading', value: 'loading' },
+            ]}
+            value={demo}
+            onChange={setDemo}
+          />
+        </div>
+        <Table
+          columns={[
+            { key: 'id', title: 'Số hóa đơn' },
+            { key: 'date', title: 'Ngày' },
+            { key: 'plan', title: 'Gói' },
+            { key: 'amount', title: 'Số tiền', align: 'right', dataType: 'number', render: (r: (typeof INVOICES)[number]) => <span className="tabular-nums">${r.amount}</span> },
+            {
+              key: 'status', title: 'Trạng thái',
+              render: (r: (typeof INVOICES)[number]) =>
+                r.status === 'paid' ? <Badge variant="done">Paid</Badge> : <Badge variant="failed">Overdue</Badge>,
+            },
+          ]}
+          dataSource={demo === 'empty' ? [] : INVOICES}
+          rowKey="id"
+          striped
+          loading={demo === 'loading'}
+          emptyMessage={<p className="p-6 text-body text-ink3">Chưa có hóa đơn nào trong kỳ này.</p>}
+        />
+      </Card>
+    </div>
+  );
+}
+
+// ── Integrations — Card grid + Switch + Modal connect demo (SETTINGS-MAX) ──
+const INTEGRATIONS = [
+  { key: 'github', name: 'GitHub', desc: 'Đồng bộ PR → task status', connected: true },
+  { key: 'slack', name: 'Slack', desc: 'Thông báo task vào #wakii-dev', connected: true },
+  { key: 'figma', name: 'Figma', desc: 'Attach frame vào task design', connected: false },
+];
+
+function IntegrationsPanel() {
+  const [connected, setConnected] = useState<Record<string, boolean>>(
+    Object.fromEntries(INTEGRATIONS.map((i) => [i.key, i.connected])),
+  );
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [token, setToken] = useState('');
+
+  function finishConnect(key: string) {
+    setConnected((prev) => ({ ...prev, [key]: true }));
+    setConnecting(null);
+    setToken('');
+    message.success(`Đã kết nối ${INTEGRATIONS.find((i) => i.key === key)?.name}`);
+  }
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {INTEGRATIONS.map((i) => (
+        <Card key={i.key} title={i.name}>
+          <p className="m-0 text-label text-ink3">{i.desc}</p>
+          <div className="mt-3 flex items-center justify-between">
+            {connected[i.key] ? <Badge variant="done">Đã kết nối</Badge> : <Badge variant="todo">Chưa nối</Badge>}
+            <Switch
+              checked={connected[i.key] ?? false}
+              aria-label={`Kết nối ${i.name}`}
+              onChange={(v) => (v ? setConnecting(i.key) : setConnected((prev) => ({ ...prev, [i.key]: false })))}
+            />
+          </div>
+        </Card>
+      ))}
+      <Modal
+        open={connecting !== null}
+        title={`Kết nối ${INTEGRATIONS.find((i) => i.key === connecting)?.name ?? ''}`}
+        okText="Kết nối"
+        onOk={() => (token.trim() ? finishConnect(connecting!) : message.error('Cần nhập token'))}
+        onCancel={() => setConnecting(null)}
+      >
+        <Field label="Personal access token" htmlFor="int-token" required hint="Token chỉ dùng lần, không lưu server demo.">
+          <Input
+            id="int-token"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="ghp_… / xoxb-…"
+          />
+        </Field>
+      </Modal>
+    </div>
+  );
+}
+
+// ── Danger zone — Popconfirm đỏ + gõ tên để mở khoá (SETTINGS-MAX) ──
+function DangerZonePanel() {
+  const [confirmName, setConfirmName] = useState('');
+  const armed = confirmName.trim().toLowerCase() === 'alice nguyen';
+  return (
+    <Card title="Vùng nguy hiểm">
+      <div className="grid max-w-lg gap-3">
+        <p className="m-0 text-label text-ink3">
+          Xoá tài khoản xoá luôn mọi task, token và lịch sử hoạt động. Gõ <strong className="text-ink">Alice Nguyen</strong> để
+          mở khoá nút.
+        </p>
+        <Field label="Xác nhận bằng tên tài khoản" htmlFor="danger-confirm">
+          <Input id="danger-confirm" value={confirmName} onChange={(e) => setConfirmName(e.target.value)} placeholder="Alice Nguyen" />
+        </Field>
+        <div>
+          <Popconfirm
+            open={armed}
+            title="Xoá tài khoản vĩnh viễn?"
+            description="Không thể hoàn tác — toàn bộ data mất."
+            okText="Xoá tài khoản" danger
+            onConfirm={() => message.error('Tài khoản đã xoá (demo — không thật)')}
+            onCancel={() => setConfirmName('')}
+          >
+            <Button danger disabled={!armed}>Xoá tài khoản</Button>
+          </Popconfirm>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function SettingsTemplate() {
   const [section, setSection] = useState('account');
   return (
@@ -292,6 +463,9 @@ function SettingsTemplate() {
           {section === 'security' && <SecurityPanel />}
           {section === 'notifications' && <NotificationsPanel />}
           {section === 'appearance' && <AppearancePanel />}
+          {section === 'billing' && <BillingPanel />}
+          {section === 'integrations' && <IntegrationsPanel />}
+          {section === 'danger' && <DangerZonePanel />}
         </div>
       </Layout.Content>
       <Layout.Footer>© 2026 Wakii Admin — Template demo</Layout.Footer>

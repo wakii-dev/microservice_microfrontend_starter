@@ -113,7 +113,7 @@ export function Popover({
         <div
           role="dialog"
           aria-labelledby={title ? panelTitleId : undefined}
-          className={`absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)] ${
+          className={`absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)] ${
             placement === 'top' ? 'bottom-[calc(100%+10px)]' : 'top-[calc(100%+10px)]'
           }${className ? ` ${className}` : ''}`}
         >

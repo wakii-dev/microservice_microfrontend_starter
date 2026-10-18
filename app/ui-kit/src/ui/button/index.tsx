@@ -9,8 +9,16 @@
 // type=default · .tsk-btn--ghost/.sh-btn--ghost → type=text · .tsk-btn--danger →
 // type=primary+danger · .tsk-btn--danger-ghost → type=text+danger.
 // API theo antd: `type` = variant, `htmlType` = HTML button type.
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
+
+/** Ripple click — span overlay scale từ điểm chạm (bp-ripple, motion identity). */
+interface Ripple {
+  x: number;
+  y: number;
+  size: number;
+  id: number;
+}
 
 export type ButtonType = 'primary' | 'default' | 'text';
 export type ButtonSize = 'small' | 'middle' | 'large';
@@ -66,18 +74,52 @@ export function Button({
   className,
   children,
   disabled,
+  onPointerDown,
   ...rest
 }: ButtonProps) {
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
+
+  // Ripple click (motion waves): spawn span tại điểm chạm, animationend tự prune.
+  // Reduced-motion: animation rơi 0.01ms → span invisible ngay + end-event vẫn fire.
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const seq = useRef(0);
+
+  function handlePointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
+    onPointerDown?.(e);
+    if (disabled || loading) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 2;
+    const id = seq.current++;
+    setRipples((prev) => [
+      ...prev.slice(-3), // cap 4 ripple — spam click không tích tụ
+      { x: e.clientX - rect.left - size / 2, y: e.clientY - rect.top - size / 2, size, id },
+    ]);
+  }
+
+  function pruneRipple(id: number) {
+    setRipples((prev) => prev.filter((r) => r.id !== id));
+  }
   // cursor tách khỏi BASE — loading cần cursor-wait đè cursor-pointer (cùng specificity,
   // đặt điều kiện thay vì append sau để không phụ thuộc thứ tự CSS utilities).
   return (
     <button
       type={htmlType}
       disabled={disabled || loading}
-      className={`${BASE} ${loading ? 'cursor-wait' : 'cursor-pointer'} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${className ? ` ${className}` : ''}`}
+      onPointerDown={handlePointerDown}
+      className={`${BASE} relative overflow-hidden ${loading ? 'cursor-wait' : 'cursor-pointer'} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${className ? ` ${className}` : ''}`}
       {...rest}
     >
+      {ripples.map((r) => (
+        <span
+          key={r.id}
+          aria-hidden="true"
+          onAnimationEnd={() => pruneRipple(r.id)}
+          className={`pointer-events-none absolute rounded-pill animate-[bp-ripple_500ms_var(--ease-exit)] ${
+            type === 'primary' || danger ? 'bg-white/30' : 'bg-accent/20'
+          }`}
+          style={{ left: r.x, top: r.y, width: r.size, height: r.size }}
+        />
+      ))}
       {loading && <Spinner size="default" label="" className="-ml-1" aria-hidden="true" />}
       {!loading && icon}
       {children}

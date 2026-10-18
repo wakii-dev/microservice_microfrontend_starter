@@ -14,9 +14,14 @@ import {
   Field,
   Icon,
   Input,
+  InputOTP,
   Link,
   Parallax,
   Password,
+  Result,
+  Switch,
+  Tour,
+  useCountdown,
   useFieldArray,
   useForm,
 } from '../index';
@@ -44,6 +49,8 @@ function SignInCard() {
   const [submitting, setSubmitting] = useState(false);
   const [remembered, setRemembered] = useState(false);
   const [done, setDone] = useState<string | null>(null);
+  const [capsOn, setCapsOn] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
 
   return (
     <div className="flex w-full max-w-[400px] flex-col gap-4">
@@ -54,11 +61,13 @@ function SignInCard() {
       <form
         noValidate
         className="grid gap-3"
+        onKeyUp={(e) => setCapsOn(e.getModifierState?.('CapsLock') ?? false)}
         onSubmit={form.handleSubmit(async (data) => {
           setSubmitting(true);
           await new Promise((r) => setTimeout(r, 1200)); // demo API call
           setSubmitting(false);
           setDone(data.email);
+          setTourOpen(true); // onboarding 3 bước chạy thật sau login
         })}
       >
         <Field label="Email" htmlFor="signin-email" required error={form.errors.email}>
@@ -83,6 +92,11 @@ function SignInCard() {
             ariaLabel="Mật khẩu"
           />
         </Field>
+        {capsOn && (
+          <span role="status" className="flex items-center gap-1.5 text-meta text-st-doing">
+            <Icon name="exclamation-triangle" size={12} /> Caps Lock đang bật
+          </span>
+        )}
         <div className="flex items-center justify-between">
           <Checkbox checked={remembered} onChange={setRemembered}>
             <span className="text-meta text-ink3">Ghi nhớ tôi</span>
@@ -105,6 +119,15 @@ function SignInCard() {
           Đăng nhập thành công (demo) — {done}
         </div>
       )}
+      <Tour
+        open={tourOpen}
+        onClose={() => setTourOpen(false)}
+        steps={[
+          { title: 'Chào mừng 👋', description: 'Đây là form auth ghép từ Field + Input + Password + useForm — validation chạy bằng zod schema.' },
+          { title: 'Bảo mật sẵn', description: 'Password có showStrength, OTP 2FA và quên mật khẩu dùng InputOTP + useCountdown — xem các story bên dưới.' },
+          { title: 'Dark 1 click', description: 'Toolbar Theme trên Storybook đổi data-bp-theme — cả trang cascade theo token, không cần code riêng.' },
+        ]}
+      />
     </div>
   );
 }
@@ -290,3 +313,113 @@ export const SplitLayout: Story = {
     </div>
   ),
 };
+
+// ── Motion-max additions (2026-10-18): forgot-password (OTP + countdown thật) ·
+// magic-link · SSO buttons ──
+
+/** ForgotPassword — 2 bước: email → mã OTP 6 số; resend dùng useCountdown 30s thật. */
+export const ForgotPassword: Story = {
+  name: 'Forgot password — InputOTP + useCountdown resend',
+  render: () => <ForgotPasswordDemo />,
+};
+
+function ForgotPasswordDemo() {
+  const [email, setEmail] = useState('alice@demo.local');
+  const [sent, setSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [reset, setReset] = useState(false);
+  const cooldown = useCountdown(30);
+
+  return (
+    <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
+      <div>
+        <div className="text-h2 font-bold text-ink">Quên mật khẩu</div>
+        <div className="text-body text-ink3">Nhập email — chúng tôi gửi mã xác nhận 6 số.</div>
+      </div>
+      {reset ? (
+        <Result status="success" title="Đã đặt lại" subTitle="Mật khẩu mới đã gửi vào email của bạn." />
+      ) : (
+        <>
+          <Field label="Email" htmlFor="forgot-email" required>
+            <Input
+              id="forgot-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={sent}
+            />
+          </Field>
+          {sent && (
+            <Field label="Mã xác nhận" required hint="Mã demo — nhập bất kỳ 6 số">
+              <InputOTP length={6} value={otp} onChange={setOtp} ariaLabel="Mã xác nhận quên mật khẩu" />
+            </Field>
+          )}
+          <div className="flex items-center gap-2">
+            {!sent ? (
+              <Button type="primary" disabled={!email.includes('@')} onClick={() => { setSent(true); cooldown.start(); }}>
+                Gửi mã
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="small"
+                  disabled={cooldown.isRunning}
+                  onClick={() => { cooldown.reset(); cooldown.start(); }}
+                >
+                  {cooldown.isRunning ? `Gửi lại sau ${cooldown.seconds}s` : 'Gửi lại mã'}
+                </Button>
+                <Button type="primary" size="small" disabled={otp.length < 6} onClick={() => setReset(true)}>
+                  Xác nhận
+                </Button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** MagicLink — không mật khẩu: email → link đăng nhập gửi vào hộp thư. */
+export const MagicLink: Story = {
+  name: 'Magic link — passwordless email',
+  render: () => <MagicLinkDemo />,
+};
+
+function MagicLinkDemo() {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  if (sent) {
+    return (
+      <div className="w-full max-w-[400px]">
+        <Result
+          status="info"
+          title="Kiểm tra hộp thư"
+          subTitle={`Chúng tôi đã gửi link đăng nhập một lần tới ${email || 'email của bạn'}. Link hết hạn sau 15 phút.`}
+          extra={<Button onClick={() => setSent(false)}>Dùng email khác</Button>}
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
+      <div>
+        <div className="text-h2 font-bold text-ink">Đăng nhập bằng link</div>
+        <div className="text-body text-ink3">Không cần mật khẩu — một link, một lần dùng.</div>
+      </div>
+      <Field label="Email" htmlFor="magic-email" required>
+        <Input id="magic-email" type="email" placeholder="name@company.vn" value={email} onChange={(e) => setEmail(e.target.value)} />
+      </Field>
+      <Button type="primary" icon={<Icon name="external-link" size={14} />} disabled={!email.includes('@')} onClick={() => setSent(true)}>
+        Gửi magic link
+      </Button>
+      <Divider>hoặc</Divider>
+      <div className="grid gap-2">
+        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với Google</Button>
+        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với Microsoft</Button>
+        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với GitHub</Button>
+      </div>
+      <span className="text-center text-meta text-ink3">Bộ Icon kit không có brand glyph — nút SSO dùng external-link đại diện (rule 9).</span>
+    </div>
+  );
+}

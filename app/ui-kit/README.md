@@ -1,5 +1,8 @@
 # wakii-ui-kit — design system (tokens + base + primitives + hooks)
 
+📖 **Storybook (Vercel): https://storybook-static-khaki-two.vercel.app** — 301 stories toàn bộ components/hooks, dark theme, autodocs.
+📦 **npm: [`wakii-ui-kit`](https://www.npmjs.com/package/wakii-ui-kit)** — `npm i wakii-ui-kit` (heavy engines qua subpath: `wakii-ui-kit/carousel`...).
+
 Design system của boilerplate: **tokens.css** (màu/spacing/radius/shadow/z-index — CSS
 custom props), **base.css** (reset + global `bp-*` primitives css), **Tailwind v4**
 (`styles/tailwind.css` — `@theme inline` map thẳng tokens, utilities dùng trong toàn bộ

@@ -34,7 +34,7 @@ describe('ScrollPanel', () => {
     );
     const panel = container.firstElementChild as HTMLElement;
     expect(panel).toHaveClass('overflow-auto');
-    expect(panel).toHaveClass('rounded-3');
+    expect(panel).toHaveClass('rounded-xl');
     expect(panel.className).toContain('scrollbar-width:thin');
     expect(panel).toHaveClass('mt-4');
   });

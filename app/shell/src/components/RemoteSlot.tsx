@@ -23,7 +23,7 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
   render() {
     if (this.state.error) {
       return (
-        <div role="alert" className="flex flex-col items-start gap-4 rounded-3 border border-line bg-s2 p-6">
+        <div role="alert" className="flex flex-col items-start gap-4 rounded-xl border border-line bg-s2 p-6">
           <p className="m-0 text-ink2">
             Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
             xuống). Vui lòng thử lại.

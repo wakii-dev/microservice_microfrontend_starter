@@ -2,7 +2,7 @@ import { useMemo, useState, KeyboardEvent, useRef } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { z } from 'zod';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
-import { Button, Field, Input, useForm } from '@wakii/ui-kit';
+import { Button, Field, Icon, Input, useForm } from '@wakii/ui-kit';
 import { auth } from '../api';
 
 type AuthMode = 'login' | 'register';
@@ -72,22 +72,13 @@ export function LoginPage() {
 
   return (
     <section className="flex min-h-[calc(100vh-100px)] items-center justify-center">
-      <div className="w-full max-w-[340px] rounded-3 border border-line bg-s2 p-8">
+      <div className="w-full max-w-[340px] rounded-xl border border-line bg-s2 p-8">
         <div className="mb-4 flex items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="flex size-7 items-center justify-center rounded-2 bg-accent"
+            className="flex size-7 items-center justify-center rounded-2 bg-accent text-white"
           >
-            <svg
-              viewBox="0 0 16 16"
-              className="size-3"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              <path d="M3 4.5h7M3 8h10M3 11.5h5" />
-            </svg>
+            <Icon name="menu-bars" size={12} />
           </span>
           <span className="text-h1 font-semibold tracking-tight text-ink">Boilerplate</span>
         </div>
@@ -199,7 +190,7 @@ export function LoginPage() {
           {error && (
             <p
               role="alert"
-              className="rounded-1 border border-st-fail bg-[color-mix(in_srgb,var(--st-fail)_10%,transparent)] px-2.5 py-1.5 text-meta text-st-fail"
+              className="rounded-1 border border-st-fail bg-st-fail/10 px-2.5 py-1.5 text-meta text-st-fail"
             >
               {error}
             </p>

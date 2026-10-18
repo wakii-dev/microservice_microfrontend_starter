@@ -1,14 +1,18 @@
-// Chart peer-dep — jsdom không có canvas 2D → test fallback + config passthrough.
+// Chart peer-dep — jsdom không có canvas 2D → test fallback + interop resolve + config
+// passthrough (mock Chart class bắt shape config thay vì đo pixel).
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Chart } from './index.js';
 afterEach(cleanup);
+
+const CONFIG = { type: 'bar' as const, labels: ['T1', 'T2'], datasets: [{ label: 'd', data: [1, 2] }] };
 
 describe('Chart', () => {
   it('không fallback → render canvas', () => {
     const { container } = render(<Chart config={{ type: 'bar', labels: [], datasets: [] }} />);
     expect(container.querySelector('canvas')).toBeInTheDocument();
   });
+
   it('fallback CHỈ hiện khi import chart.js fail — truyền fallback không chặn canvas', async () => {
     vi.doMock('chart.js/auto', () => Promise.reject(new Error('no chart.js')));
     const { Chart: ChartMocked } = await import('./index.js');
@@ -16,6 +20,47 @@ describe('Chart', () => {
     await vi.waitFor(() => {
       expect(screen.getByText('No chart')).toBeInTheDocument();
     });
+    vi.doUnmock('chart.js/auto');
+  });
+
+  it('interop ESM thuần: named Chart export → resolve mod.Chart', async () => {
+    const ChartStub = vi.fn(() => ({ destroy: vi.fn() }));
+    vi.doMock('chart.js/auto', () =>
+      Promise.resolve({ Chart: ChartStub, default: ChartStub, __esModule: true }));
+    const { Chart: ChartMocked } = await import('./index.js');
+    render(<ChartMocked config={CONFIG} />);
+    await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
+    vi.doUnmock('chart.js/auto');
+  });
+
+  it('interop default-only (một số bundler): mod.default là Chart class → vẫn vẽ', async () => {
+    const ChartStub = vi.fn((_canvas?: unknown, _config?: unknown) => ({ destroy: vi.fn() }));
+    vi.doMock('chart.js/auto', () => Promise.resolve({ default: ChartStub, __esModule: true }));
+    const { Chart: ChartMocked } = await import('./index.js');
+    render(<ChartMocked config={CONFIG} />);
+    await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
+    vi.doUnmock('chart.js/auto');
+  });
+
+  it('config wrap ĐÚNG shape chart.js v4: { type, data: { labels, datasets } } — gốc của bug "canvas mounted alpha=0"', async () => {
+    const ChartStub = vi.fn((_canvas?: unknown, _config?: unknown) => ({ destroy: vi.fn() }));
+    vi.doMock('chart.js/auto', () => Promise.resolve({ Chart: ChartStub, __esModule: true }));
+    const { Chart: ChartMocked } = await import('./index.js');
+    render(<ChartMocked config={CONFIG} />);
+    await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
+    const cfg = ChartStub.mock.calls[0]?.[1];
+    expect(cfg).toMatchObject({ type: 'bar', data: { labels: ['T1', 'T2'], datasets: [{ label: 'd', data: [1, 2] }] } });
+    // labels/datasets KHÔNG còn nằm top-level (shape sai cũ)
+    expect(cfg).not.toHaveProperty('labels');
+    vi.doUnmock('chart.js/auto');
+  });
+
+  it('Chart class không resolve được (module rỗng) → fallback, KHÔNG để canvas trắng câm lặng', async () => {
+    vi.doMock('chart.js/auto', () => Promise.resolve({}));
+    const { Chart: ChartMocked } = await import('./index.js');
+    render(<ChartMocked config={CONFIG} fallback={<p>Chart lỗi</p>} />);
+    await vi.waitFor(() => expect(screen.getByText('Chart lỗi')).toBeInTheDocument());
+    expect(screen.queryByRole('img')).toBeNull();
     vi.doUnmock('chart.js/auto');
   });
 });

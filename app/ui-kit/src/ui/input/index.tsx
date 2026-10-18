@@ -3,6 +3,7 @@
 // (affix pattern antd — wrapper mang viền, input trần bên trong) + allowClear
 // (controlled: cần value + onChange) + passthrough native props.
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import { SearchInput } from './input-search';
 
 const FIELD_BASE =
   'w-full rounded-lg border bg-s2 text-body text-ink placeholder:text-ink4 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-ink4';
@@ -32,7 +33,7 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   className?: string;
 }
 
-export function Input({
+function InputBase({
   invalid = false,
   size = 'middle',
   prefix,
@@ -84,6 +85,10 @@ export function Input({
     </span>
   );
 }
+
+/** Input composite antd — `Input.Search` (input + nút search: onSearch/enterButton/loading — xem `input-search.tsx`). */
+// eslint-disable-next-line react-refresh/only-export-components
+export const Input = Object.assign(InputBase, { Search: SearchInput });
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   invalid?: boolean;

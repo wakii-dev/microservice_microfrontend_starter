@@ -105,6 +105,17 @@ export interface TableClassNames {
   cell?: string;
 }
 
+/** Cấu hình expandable rows — API antd Table `expandable` (docs/parity-matrix.md Gap P0).
+ *  Cột expander tự inject (chevron-down xoay 90 khi mở) — không cần cột `expander` thủ công. */
+export interface TableExpandableConfig<T> {
+  /** Nội dung row con khi mở (antd expandedRowRender). */
+  expandedRowRender: (record: T, index: number) => ReactNode;
+  /** Row mở sẵn lúc mount, uncontrolled (antd defaultExpandedRowKeys). */
+  defaultExpandedRowKeys?: Array<string>;
+  /** false → row đó không render nút expand (antd rowExpandable). */
+  rowExpandable?: (record: T) => boolean;
+}
+
 /** Props của Table — data grid client-side (sort/filter/paginate/selection/virtual). */
 export interface TableProps<T> {
   columns: Array<TableColumn<T>>;
@@ -136,6 +147,8 @@ export interface TableProps<T> {
   loading?: boolean;
   emptyMessage?: ReactNode;
   rowExpansion?: (record: T) => ReactNode;
+  /** Expandable rows kiểu antd (Gap P0) — cột expander tự inject, ưu tiên hơn `rowExpansion` khi cùng có. */
+  expandable?: TableExpandableConfig<T>;
   /** Filter placement: 'menu' (funnel icon — PrimeReact signature) | 'row' (input row). */
   filterPlacement?: 'menu' | 'row';
   /** Nút export CSV trong toolbar. */

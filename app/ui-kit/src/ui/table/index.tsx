@@ -29,7 +29,7 @@ import type {
   SortMeta, SortOrder, FilterMatchMode, FilterOperator,
   FilterConstraint, TableColumn, TableProps, TableVirtualConfig,
 } from './types';
-export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps, TableVirtualConfig, TableClassNames } from './types';
+export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps, TableVirtualConfig, TableClassNames, TableExpandableConfig } from './types';
 import { STRING_MODES, NUMBER_MODES, matchConstraint } from './types';
 // eslint-disable-next-line react-refresh/only-export-components
 export { STRING_MODES, NUMBER_MODES, matchConstraint };
@@ -207,6 +207,7 @@ export function Table<T extends object>({
   loading = false,
   emptyMessage,
   rowExpansion,
+  expandable,
   filterPlacement = 'menu',
   csvExport = false,
   csvFilename = 'export',
@@ -220,7 +221,10 @@ export function Table<T extends object>({
   const [pageSize, setPageSize] = useState(pageSizeProp);
   const [page, setPage] = useState(1);
   const [internalSelected, setInternalSelected] = useState<string[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  // expandable.defaultExpandedRowKeys → mở sẵn lúc mount (uncontrolled, chỉ đọc lần đầu)
+  const [expandedKeys, setExpandedKeys] = useState<Set<string>>(
+    () => new Set(expandable?.defaultExpandedRowKeys ?? []),
+  );
   const [colWidths, setColWidths] = useState<Record<string, number>>({});
   const [scrollTop, setScrollTop] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -382,7 +386,7 @@ export function Table<T extends object>({
     document.addEventListener('mouseup', onUp);
   }
 
-  const hasExpander = columns.some((c) => c.expander);
+  const hasExpander = columns.some((c) => c.expander) || expandable !== undefined;
   const hasSelection = selectionMode === 'checkbox';
   const extraCols = (hasSelection ? 1 : 0) + (hasExpander ? 1 : 0);
   const cellPad = SIZE_CLS[size];
@@ -545,6 +549,7 @@ export function Table<T extends object>({
                 const k = keyOf(record);
                 const isSelected = hasSelection && selectedKeys.includes(k);
                 const isExpanded = expandedKeys.has(k);
+                const canExpand = expandable ? (expandable.rowExpandable ? expandable.rowExpandable(record) : true) : true;
                 return (
                   <Fragment key={k}>
                     <tr
@@ -562,21 +567,24 @@ export function Table<T extends object>({
                       )}
                       {hasExpander && (
                         <td className={`${cellPad} ${borderCls}${classNames?.cell ? ` ${classNames.cell}` : ''}`}>
-                          <button
-                            type="button"
-                            aria-expanded={isExpanded}
-                            aria-label="Mở rộng dòng"
-                            onClick={() => setExpandedKeys((p) => {
-                              const n = new Set(p);
-                              if (n.has(k)) n.delete(k); else n.add(k);
-                              return n;
-                            })}
-                            className="cursor-pointer border-none bg-transparent text-ink3 transition-transform hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
-                          >
-                            <span className={`inline-grid place-items-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
-                              <Icon name="chevron-right" size={12} />
-                            </span>
-                          </button>
+                          {canExpand && (
+                            <button
+                              type="button"
+                              aria-expanded={isExpanded}
+                              aria-label="Mở rộng dòng"
+                              onClick={() => setExpandedKeys((p) => {
+                                const n = new Set(p);
+                                if (n.has(k)) n.delete(k); else n.add(k);
+                                return n;
+                              })}
+                              className="cursor-pointer border-none bg-transparent text-ink3 transition-transform hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+                            >
+                              {/* expandable (antd) → chevron-down; legacy rowExpansion giữ chevron-right. Cả hai xoay 90 khi mở */}
+                              <span className={`inline-grid place-items-center transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+                                <Icon name={expandable ? 'chevron-down' : 'chevron-right'} size={12} />
+                              </span>
+                            </button>
+                          )}
                         </td>
                       )}
                       {columns.map((col) => (
@@ -588,10 +596,10 @@ export function Table<T extends object>({
                         </td>
                       ))}
                     </tr>
-                    {isExpanded && rowExpansion && (
+                    {isExpanded && (expandable || rowExpansion) && (
                       <tr key={`${k}-ex`}>
                         <td colSpan={columns.length + extraCols} className="border-b border-line2 bg-s3 p-4">
-                          {rowExpansion(record)}
+                          {expandable ? expandable.expandedRowRender(record, rowIndex) : rowExpansion!(record)}
                         </td>
                       </tr>
                     )}

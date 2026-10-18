@@ -27,16 +27,27 @@ import { Icon } from '../icons/index.js';
 // barrel chính '@wakii/ui-kit' không kéo CSS nặng nữa (batch ⑩ 2026-10-18).
 
 export interface CarouselProps {
+  /** Slide contents — mỗi phần tử 1 slide (key React nên đặt). */
   items: React.ReactNode[];
+  /** Loop qua cuối về đầu (swiper loop mode). */
   circular?: boolean;
+  /** Tự chạy — swiper Autoplay (config memo theo reference, xem note đầu file). */
   autoplay?: boolean;
+  /** Delay mỗi slide ms (default 4000). */
   autoplayInterval?: number;
+  /** Dừng autoplay khi hover (swiper pauseOnMouseEnter). */
   pauseOnHover?: boolean;
+  /** Bullet indicators dưới (swiper Pagination — clickable). */
   indicators?: boolean;
+  /** Nút prev/next custom (ẩn khi items ≤ 1; mờ ở đầu/cuối non-loop). */
   navigators?: boolean;
+  /** Điều khiển bàn phím ← → ↑ ↓ (swiper Keyboard). */
   keyboard?: boolean;
+  /** Số slide mỗi view (default 1). */
   itemsPerView?: number;
+  /** Chiều trượt (default horizontal). */
   orientation?: 'horizontal' | 'vertical';
+  /** Callback mỗi lần đổi slide — nhận realIndex (loop-safe). */
   onSlideChange?: (index: number) => void;
   /** Chiều cao container (bắt buộc thực tế cho vertical — default 300px). */
   height?: number | string;
@@ -44,7 +55,7 @@ export interface CarouselProps {
 }
 
 const BTN_CLS =
-  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-[rgba(0,0,0,0.3)] p-1.5 text-white transition-colors hover:bg-[rgba(0,0,0,0.5)]';
+  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-[background-color,transform] hover:bg-scrim-3 active:scale-95';
 
 export function Carousel({
   items,
@@ -81,7 +92,11 @@ export function Carousel({
         ? {
             clickable: true,
             renderBullet: (_index: number, className: string) =>
-              `<span class="${className} !size-2 !rounded-pill !bg-[rgba(0,0,0,0.2)]"></span>`,
+              // Important HẬU TỐ (TW v4) — swiper.css là unlayered nên thắng mọi utility
+              // thường; tiền tố `!` cũ là syntax v3 → no-op (bullet trượt default swiper).
+              // Bullet trung tính theo scrim token; active đậm hơn qua variant class
+              // swiper tự gắn (chuỗi class nằm trong source để Tailwind quét).
+              `<span class="${className} size-2! rounded-pill! bg-scrim-2! opacity-100! [&.swiper-pagination-bullet-active]:bg-scrim-3!"></span>`,
           }
         : false,
     [indicators],

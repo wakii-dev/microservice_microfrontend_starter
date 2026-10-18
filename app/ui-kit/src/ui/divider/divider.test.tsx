@@ -26,6 +26,24 @@ describe('Divider', () => {
     render(<Divider>hoặc</Divider>);
     expect(screen.getByText('hoặc')).toBeInTheDocument();
   });
+
+  it('vertical → margin 0 8px, không chiếm dòng (inline-block)', () => {
+    render(<Divider type="vertical" />);
+    const el = screen.getByRole('separator');
+    expect(el).toHaveStyle({ margin: '0 8px' });
+    expect(el.className).toContain('inline-block');
+  });
+
+  it('with text → outer role=separator + text-label (style matrix meta=label)', () => {
+    render(<Divider>hoặc</Divider>);
+    const el = screen.getByRole('separator');
+    expect(el.className).toContain('text-label');
+  });
+
+  it('className passthrough cả 3 variant', () => {
+    const { container } = render(<Divider className="marker" />);
+    expect(container.querySelector('div[role="separator"]')).toHaveClass('marker');
+  });
 });
 
 describe('Divider — combo branch (Tier 5 sweep)', () => {

@@ -45,4 +45,49 @@ describe('Card', () => {
     expect(screen.getByText('B').parentElement).toHaveClass('border-l');
     expect(screen.getByText('A').parentElement).not.toHaveClass('border-l');
   });
+
+  it('cover → render TRƯỚC head (banner trên title)', () => {
+    render(
+      <Card title="T" cover={<div data-testid="cover" />}>
+        <span>body</span>
+      </Card>,
+    );
+    const card = screen.getByTestId('cover').parentElement!;
+    const first = card.firstElementChild;
+    expect(first).toHaveAttribute('data-testid', 'cover');
+    // head (title) nằm sau cover
+    expect(card.textContent).toContain('T');
+  });
+
+  it('actions=[] → không render ul (không hàng rỗng)', () => {
+    const { container } = render(
+      <Card actions={[]} title="T">
+        <span>body</span>
+      </Card>,
+    );
+    expect(container.querySelector('ul')).toBeNull();
+  });
+
+  it('không title/extra → không head, body là nội dung đầu', () => {
+    const { container } = render(
+      <Card>
+        <span data-testid="only-body">x</span>
+      </Card>,
+    );
+    expect(screen.queryByText('T')).toBeNull();
+    expect(container.firstElementChild).not.toHaveClass('border-b');
+    expect(screen.getByTestId('only-body')).toBeInTheDocument();
+  });
+
+  it('hoverable → đầy đủ hover lift (bg-s3 + shadow + translate, style matrix)', () => {
+    render(
+      <Card hoverable className="marker">
+        <span>x</span>
+      </Card>,
+    );
+    const cls = screen.getByText('x').closest('.marker')!.className;
+    expect(cls).toContain('hover:bg-s3');
+    expect(cls).toContain('hover:shadow-[var(--shadow-lift)]');
+    expect(cls).toContain('hover:-translate-y-px');
+  });
 });

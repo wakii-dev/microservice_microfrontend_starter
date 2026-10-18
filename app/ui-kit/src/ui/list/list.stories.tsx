@@ -1,4 +1,4 @@
-// Stories List — Data Display. Parity antd List (renderItem/divider/bordered/
+// List stories — Data Display. antd List parity (renderItem/divider/bordered/
 // pagination/loading skeleton/empty→EmptyState).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { List } from './index';
@@ -10,12 +10,12 @@ interface TaskItem {
 }
 
 const TASKS: TaskItem[] = [
-  { id: 't1', title: 'Thiết kế contract tasks API', status: 'Xong' },
-  { id: 't2', title: 'Scaffold node-svc', status: 'Xong' },
-  { id: 't3', title: 'Outbox pattern cho task-events', status: 'Đang làm' },
-  { id: 't4', title: 'Saga compensation assign', status: 'Đang làm' },
-  { id: 't5', title: 'e2e smoke 15 bước', status: 'Cần làm' },
-  { id: 't6', title: 'Saga demo fail@demo.local', status: 'Cần làm' },
+  { id: 't1', title: 'Design tasks API contract', status: 'Done' },
+  { id: 't2', title: 'Scaffold node-svc', status: 'Done' },
+  { id: 't3', title: 'Outbox pattern for task-events', status: 'Doing' },
+  { id: 't4', title: 'Saga compensation on assign', status: 'Doing' },
+  { id: 't5', title: 'e2e smoke — 15 steps', status: 'Todo' },
+  { id: 't6', title: 'Saga demo fail@demo.local', status: 'Todo' },
 ];
 
 function renderTask(task: TaskItem) {
@@ -36,22 +36,22 @@ export default meta;
 
 type Story = StoryObj;
 
-export const ListCoBan: Story = {
-  name: 'Cơ bản — divider + header/footer',
+export const Basic: Story = {
+  name: 'Basic — divider + header/footer',
   render: () => (
     <div className="w-96">
       <List
         items={TASKS}
         renderItem={renderTask}
         rowKey={(t) => t.id}
-        header="Việc của tôi"
-        footer={`Tổng ${TASKS.length} việc`}
+        header="My work"
+        footer={`${TASKS.length} tasks total`}
       />
     </div>
   ),
 };
 
-export const ListLoadingEmpty: Story = {
+export const LoadingEmpty: Story = {
   name: 'Loading skeleton + Empty',
   render: () => (
     <div className="flex w-96 flex-col gap-6">
@@ -61,14 +61,14 @@ export const ListLoadingEmpty: Story = {
       </div>
       <div>
         <p className="mb-2 text-label text-ink3">Empty</p>
-        <List items={[]} renderItem={renderTask} emptyText="Chưa có việc nào" bordered />
+        <List items={[]} renderItem={renderTask} emptyText="No tasks yet" bordered />
       </div>
     </div>
   ),
 };
 
-export const ListPhanTrang: Story = {
-  name: 'Bordered + phân trang',
+export const Pagination: Story = {
+  name: 'Bordered + pagination',
   render: () => (
     <div className="w-96">
       <List
@@ -82,6 +82,31 @@ export const ListPhanTrang: Story = {
   ),
 };
 
+export const RichContent: Story = {
+  name: 'Rich content — row as complex node (avatar + tag)',
+  render: () => (
+    <div className="w-96">
+      <List
+        items={TASKS}
+        rowKey={(t) => t.id}
+        header="Assignments"
+        footer={`${TASKS.length} tasks total`}
+        renderItem={(task) => (
+          <span className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2">
+              <span className="grid size-6 place-items-center rounded-pill bg-accent/10 text-meta font-semibold text-accent">
+                {task.title.charAt(0)}
+              </span>
+              <span className="text-body text-ink">{task.title}</span>
+            </span>
+            <span className="text-meta text-ink3">{task.status}</span>
+          </span>
+        )}
+      />
+    </div>
+  ),
+};
+
 export const DarkTheme: Story = {
   name: 'Dark theme',
   render: () => (
@@ -90,8 +115,8 @@ export const DarkTheme: Story = {
         items={TASKS}
         renderItem={renderTask}
         rowKey={(t) => t.id}
-        header="Việc của tôi"
-        footer={`Tổng ${TASKS.length} việc`}
+        header="My work"
+        footer={`${TASKS.length} tasks total`}
       />
     </div>
   ),

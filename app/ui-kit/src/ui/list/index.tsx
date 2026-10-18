@@ -52,7 +52,7 @@ export function List<T>({
 
   return (
     <div
-      className={`${bordered ? 'rounded-3 border border-line bg-s2' : ''}${className ? ` ${className}` : ''}`}
+      className={`${bordered ? 'rounded-xl border border-line bg-s2' : ''}${className ? ` ${className}` : ''}`}
     >
       {header && (
         <div className="border-b border-line2 px-4 py-3 text-label font-semibold text-ink2">

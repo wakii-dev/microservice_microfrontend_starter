@@ -4,11 +4,15 @@
 import { useState, type ReactNode } from 'react';
 
 export interface AvatarProps {
+  /** Nội dung hiển thị khi không có src (chữ cái/initials) — fontSize scale theo size. */
   children?: ReactNode;
-  /** Ảnh src — khi có render <img>. */
+  /** Ảnh src — khi có render <img> (fade-in khi load xong). */
   src?: string;
+  /** Alt của <img> — nên đặt tên người dùng. */
   alt?: string;
+  /** Kích thước vuông px (antd default 32). */
   size?: number;
+  /** circle (mặc định) | square (radius --r-2). */
   shape?: 'circle' | 'square';
   className?: string;
 }

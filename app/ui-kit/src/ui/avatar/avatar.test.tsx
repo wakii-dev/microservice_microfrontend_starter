@@ -20,9 +20,17 @@ describe('Avatar', () => {
     expect((container.firstElementChild as HTMLElement).style.borderRadius).toBe('var(--r-2)');
   });
 
-  it('src → img', () => {
+  it('src → img (src + alt passthrough)', () => {
     render(<Avatar src="/a.png" alt="me" />);
     expect(screen.getByRole('img')).toHaveAttribute('src', '/a.png');
+    expect(screen.getByRole('img')).toHaveAttribute('alt', 'me');
+  });
+
+  it('src không alt → alt rỗng (decorative — img rơi vào role presentation, không nhiễu screen reader)', () => {
+    const { container } = render(<Avatar src="/a.png" />);
+    const img = container.querySelector('img');
+    expect(img).toHaveAttribute('alt', '');
+    expect(img).not.toHaveAttribute('role');
   });
 });
 

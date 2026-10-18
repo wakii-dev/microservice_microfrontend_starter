@@ -41,4 +41,38 @@ describe('Collapse — branch phụ (Tier 5 sweep)', () => {
     await user.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'true');
   });
+
+  it('keyboard: focus header → Enter mở (button native)', async () => {
+    const user = userEvent.setup();
+    render(<Collapse items={ITEMS} />);
+    const btn = screen.getByRole('button', { name: 'Panel A' });
+    btn.focus();
+    await user.keyboard('{Enter}');
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard(' ');
+    expect(btn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('mặc định tất cả đóng (grid-rows-[0fr]); defaultActiveKeys chỉ mở đúng panel', () => {
+    const { container } = render(<Collapse items={ITEMS} defaultActiveKeys={['b']} />);
+    const wrappers = container.querySelectorAll('.grid');
+    expect(wrappers[0]).toHaveClass('grid-rows-[0fr]');
+    expect(wrappers[1]).toHaveClass('grid-rows-[1fr]');
+  });
+
+  it('items rỗng → chỉ container, không panel', () => {
+    const { container } = render(<Collapse items={[]} />);
+    expect(container.querySelector('button')).toBeNull();
+  });
+
+  it('label ReactNode + className passthrough', () => {
+    const { container } = render(
+      <Collapse
+        className="marker"
+        items={[{ key: 'a', label: <strong>Label đậm</strong>, children: 'nội dung' }]}
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass('marker');
+    expect(screen.getByText('Label đậm').tagName).toBe('STRONG');
+  });
 });

@@ -34,7 +34,7 @@ describe('Chart', () => {
   });
 
   it('interop default-only (một số bundler): mod.default là Chart class → vẫn vẽ', async () => {
-    const ChartStub = vi.fn((_canvas?: unknown, _config?: unknown) => ({ destroy: vi.fn() }));
+    const ChartStub = vi.fn(() => ({ destroy: vi.fn() }));
     vi.doMock('chart.js/auto', () => Promise.resolve({ default: ChartStub, __esModule: true }));
     const { Chart: ChartMocked } = await import('./index.js');
     render(<ChartMocked config={CONFIG} />);
@@ -43,12 +43,13 @@ describe('Chart', () => {
   });
 
   it('config wrap ĐÚNG shape chart.js v4: { type, data: { labels, datasets } } — gốc của bug "canvas mounted alpha=0"', async () => {
-    const ChartStub = vi.fn((_canvas?: unknown, _config?: unknown) => ({ destroy: vi.fn() }));
+    const ChartStub = vi.fn(() => ({ destroy: vi.fn() }));
     vi.doMock('chart.js/auto', () => Promise.resolve({ Chart: ChartStub, __esModule: true }));
     const { Chart: ChartMocked } = await import('./index.js');
     render(<ChartMocked config={CONFIG} />);
     await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
-    const cfg = ChartStub.mock.calls[0]?.[1];
+    // vi.fn() zero-param → mock.calls tuple rỗng về type; cast để đọc arg truyền vào
+    const cfg = (ChartStub.mock.calls[0] as unknown[] | undefined)?.[1];
     expect(cfg).toMatchObject({ type: 'bar', data: { labels: ['T1', 'T2'], datasets: [{ label: 'd', data: [1, 2] }] } });
     // labels/datasets KHÔNG còn nằm top-level (shape sai cũ)
     expect(cfg).not.toHaveProperty('labels');
@@ -62,5 +63,25 @@ describe('Chart', () => {
     await vi.waitFor(() => expect(screen.getByText('Chart lỗi')).toBeInTheDocument());
     expect(screen.queryByRole('img')).toBeNull();
     vi.doUnmock('chart.js/auto');
+  });
+
+  it('unmount → destroy() chart instance (không leak canvas)', async () => {
+    const destroy = vi.fn();
+    const ChartStub = vi.fn(() => ({ destroy }));
+    vi.doMock('chart.js/auto', () => Promise.resolve({ Chart: ChartStub, __esModule: true }));
+    const { Chart: ChartMocked } = await import('./index.js');
+    const { unmount } = render(<ChartMocked config={CONFIG} />);
+    await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
+    unmount();
+    expect(destroy).toHaveBeenCalledTimes(1);
+    vi.doUnmock('chart.js/auto');
+  });
+
+  it('height prop → inline style container; className passthrough', () => {
+    const { container } = render(<Chart config={{ type: 'bar', labels: [], datasets: [] }} height={180} className="marker" />);
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.style.height).toBe('180px');
+    expect(wrapper).toHaveClass('marker');
+    expect(wrapper.querySelector('canvas')).not.toBeNull();
   });
 });

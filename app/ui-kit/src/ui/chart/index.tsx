@@ -95,7 +95,7 @@ export function Chart({ config, height = 260, className, fallback }: ChartProps)
   }, [stableConfig, failed]);
 
   if (failed && fallback !== undefined) return <>{fallback}</>;
-  if (failed) return <div style={{ height }} className={`grid place-items-center rounded-lg border border-dashed border-line text-meta text-ink3${className ? ` ${className}` : ''}`}>chart.js chưa cài — pnpm add chart.js</div>;
+  if (failed) return <div style={{ height }} className={`grid place-items-center rounded-lg border border-dashed border-line text-label text-ink3${className ? ` ${className}` : ''}`}>chart.js chưa cài — pnpm add chart.js</div>;
 
   return (
     <div style={{ height, position: 'relative' }} className={className}>

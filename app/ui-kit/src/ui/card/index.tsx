@@ -29,9 +29,9 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`overflow-hidden rounded-3 bg-s2 ${bordered ? 'border border-line' : ''} ${
+      className={`overflow-hidden rounded-xl bg-s2 ${bordered ? 'border border-line' : ''} ${
         hoverable
-          ? 'cursor-pointer transition-shadow hover:border-transparent hover:shadow-[var(--shadow-lift)] hover:-translate-y-px'
+          ? 'cursor-pointer transition-shadow hover:border-transparent hover:bg-s3 hover:shadow-[var(--shadow-lift)] hover:-translate-y-px'
           : ''
       }${className ? ` ${className}` : ''}`}
     >

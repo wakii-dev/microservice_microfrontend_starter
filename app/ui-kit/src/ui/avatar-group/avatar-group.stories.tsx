@@ -1,5 +1,5 @@
-// Stories AvatarGroup — Data Display. Parity antd Avatar.Group (overlap, max →
-// +N, tooltip tên).
+// AvatarGroup stories — Data Display. antd Avatar.Group parity (overlap, max →
+// +N pill, name tooltip).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AvatarGroup } from './index';
 
@@ -20,18 +20,18 @@ const TEAM = [
   { src: 'https://i.pravatar.cc/150?img=5', name: 'Giang Vo' },
 ];
 
-export const AvatarGroupMax: Story = {
-  name: 'Max 3 — dư gộp +N (hover xem tên)',
+export const Max: Story = {
+  name: 'Max 3 — overflow folds into +N (hover for names)',
   args: { items: TEAM, max: 3 },
 };
 
-export const Du: Story = {
-  name: 'Không max — đủ 5 avatar',
+export const Full: Story = {
+  name: 'No max — all 5 avatars',
   args: { items: TEAM },
 };
 
 export const Fallback: Story = {
-  name: 'Không src — initials/fallback',
+  name: 'No src — initials/fallback',
   args: {
     items: [
       { name: 'An Nguyen' },
@@ -41,12 +41,17 @@ export const Fallback: Story = {
   },
 };
 
+export const Size48: Story = {
+  name: 'Size 48 — larger avatars, overlap ring still even',
+  args: { items: TEAM, max: 4, size: 48 },
+};
+
 export const DarkTheme: Story = {
   name: 'Dark theme',
   args: { items: TEAM, max: 3 },
-  render: () => (
+  render: (args) => (
     <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
-      <AvatarGroup items={TEAM} max={3} />
+      <AvatarGroup {...args} />
     </div>
   ),
 };

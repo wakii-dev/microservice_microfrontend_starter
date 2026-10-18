@@ -1,7 +1,7 @@
-// Chart stories — matrix đầy đủ (user yêu cầu "show ĐẦY ĐỦ case"): Line 1/2 dataset,
-// Bar đơn/nhóm 3 màu, Pie, Doughnut, Radar, Mixed bar+line, Colors custom, Height,
-// Options passthrough + Fallback/EmptyData (edge). Tiêu chuẩn verify: alpha pixel
-// canvas > 5% cho mọi story có data (EmptyData trống CÓ CHỦ ĐÍCH, Fallback không canvas).
+// Chart stories — full case matrix: Line 1/2 datasets, single/grouped Bar, Pie,
+// Doughnut, Radar, Mixed bar+line, Colors custom, Height, Options passthrough +
+// Fallback/EmptyData (edges). Verify standard: canvas alpha > 5% for every story
+// with data (EmptyData is intentionally blank, Fallback has no canvas).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Chart } from './index';
 import type { ChartConfig } from './index';
@@ -10,7 +10,7 @@ const meta = { title: 'Data Display/Chart', component: Chart, tags: ['autodocs']
 export default meta;
 type S = StoryObj<typeof meta>;
 
-// Palette ui-kit (tokens light) — story demo màu tường minh, không trích từ token runtime.
+// ui-kit palette (light tokens) — explicit demo colors, not runtime tokens.
 const ACCENT = '#5e6ad2';
 const ACCENT_HI = '#828fff';
 const DOING = '#f2c94c';
@@ -18,22 +18,22 @@ const DONE = '#3fb950';
 const FAIL = '#f06a6a';
 const INK3 = '#8a8f98';
 
-const MONTHS = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 
-/** Bar đơn — 1 dataset, default height 260. */
+/** Single Bar — 1 dataset, default height 260. */
 export const Bar: S = {
   args: {
     config: {
       type: 'bar',
       labels: MONTHS,
-      datasets: [{ label: 'Doanh thu', data: [12, 19, 3, 15, 9, 17], backgroundColor: ACCENT }],
+      datasets: [{ label: 'Revenue', data: [12, 19, 3, 15, 9, 17], backgroundColor: ACCENT }],
     },
   },
 };
 
-/** Bar nhóm — 3 dataset màu riêng so sánh 3 năm trên cùng labels. */
-export const BarNhom: S = {
-  name: 'Bar — nhóm 3 dataset',
+/** Grouped Bar — 3 colored datasets comparing 3 years on shared labels. */
+export const BarGrouped: S = {
+  name: 'Bar — grouped 3 datasets',
   args: {
     config: {
       type: 'bar',
@@ -47,20 +47,20 @@ export const BarNhom: S = {
   },
 };
 
-/** Line đơn — 1 dataset có fill nhẹ qua backgroundColor bán phần. */
+/** Single Line — 1 dataset with a soft area fill via semi-transparent backgroundColor. */
 export const Line: S = {
   args: {
     config: {
       type: 'line',
       labels: MONTHS,
-      datasets: [{ label: 'Tăng trưởng', data: [5, 9, 7, 12, 14, 11], borderColor: ACCENT, backgroundColor: 'rgba(94,106,210,0.15)' }],
+      datasets: [{ label: 'Growth', data: [5, 9, 7, 12, 14, 11], borderColor: ACCENT, backgroundColor: 'rgba(94,106,210,0.15)' }],
     },
   },
 };
 
-/** Line 2 dataset — so sánh 2 chuỗi trên cùng trục (viền khác màu, no fill). */
-export const LineHaiDataset: S = {
-  name: 'Line — 2 dataset so sánh',
+/** Two-series Line — compare 2 series on one axis (distinct borders, no fill). */
+export const LineTwoDatasets: S = {
+  name: 'Line — 2 datasets compared',
   args: {
     config: {
       type: 'line',
@@ -73,29 +73,29 @@ export const LineHaiDataset: S = {
   },
 };
 
-/** Pie — backgroundColor là MẢNG, mỗi slice một màu (cùng độ dài labels). */
+/** Pie — backgroundColor is an ARRAY, one color per slice (same length as labels). */
 export const Pie: S = {
   args: {
     config: {
       type: 'pie',
-      labels: ['Todo', 'Đang làm', 'Xong', 'Fail'],
+      labels: ['Todo', 'In progress', 'Done', 'Failed'],
       datasets: [{ label: 'Tasks', data: [8, 5, 11, 2], backgroundColor: [INK3, DOING, DONE, FAIL] }],
     },
   },
 };
 
-/** Doughnut — như Pie nhưng lỗ giữa (cutout default chart.js). */
+/** Doughnut — same as Pie with a center hole (chart.js default cutout). */
 export const Doughnut: S = {
   args: {
     config: {
       type: 'doughnut',
       labels: ['API', 'UI', 'E2E', 'Docs'],
-      datasets: [{ label: 'Chi phí', data: [40, 25, 20, 15], backgroundColor: [ACCENT, ACCENT_HI, DOING, INK3] }],
+      datasets: [{ label: 'Cost', data: [40, 25, 20, 15], backgroundColor: [ACCENT, ACCENT_HI, DOING, INK3] }],
     },
   },
 };
 
-/** Radar — 2 dataset đa trục (fill 0.4) + height 320 cho polygon đủ thở. */
+/** Radar — 2 multi-axis datasets (0.4 fill) + height 320 so the polygon breathes. */
 export const Radar: S = {
   args: {
     config: {
@@ -110,23 +110,23 @@ export const Radar: S = {
   render: (args) => <Chart {...args} height={320} />,
 };
 
-/** Mixed — bar + line CÙNG labels (per-dataset type override, chart.js v4). */
+/** Mixed — bar + line on SHARED labels (per-dataset type override, chart.js v4). */
 export const Mixed: S = {
-  name: 'Mixed — bar + line cùng trục',
+  name: 'Mixed — bar + line on one axis',
   args: {
     config: {
       type: 'bar',
       labels: MONTHS,
       datasets: [
-        { label: 'Task tạo mới', data: [12, 19, 3, 15, 9, 17], backgroundColor: ACCENT },
-        { label: 'Task xoá', data: [4, 3, 5, 2, 6, 3], backgroundColor: FAIL },
-        { type: 'line', label: 'Tồn cuối kỳ', data: [10, 22, 18, 28, 24, 35], borderColor: DOING },
+        { label: 'Tasks created', data: [12, 19, 3, 15, 9, 17], backgroundColor: ACCENT },
+        { label: 'Tasks deleted', data: [4, 3, 5, 2, 6, 3], backgroundColor: FAIL },
+        { type: 'line', label: 'End-of-period stock', data: [10, 22, 18, 28, 24, 35], borderColor: DOING },
       ],
     },
   },
 };
 
-/** Colors custom — backgroundColor/borderColor truyền tay qua ChartDataset. */
+/** Colors custom — hand-set backgroundColor/borderColor via ChartDataset. */
 export const ColorsCustom: S = {
   name: 'Colors — custom backgroundColor/borderColor',
   args: {
@@ -146,7 +146,7 @@ export const ColorsCustom: S = {
   },
 };
 
-/** Height — prop `height` (px) điều khiển chiều cao container: 160 vs 400. */
+/** Height — the `height` prop (px) controls the container height: 160 vs 400. */
 export const Height: S = {
   name: 'Height — 160 vs 400',
   args: { config: { type: 'bar', labels: [], datasets: [] } },
@@ -155,14 +155,14 @@ export const Height: S = {
       <div className="w-[320px]">
         <p className="m-0 mb-2 font-mono text-meta text-ink3">height=160</p>
         <Chart
-          config={{ type: 'bar', labels: MONTHS, datasets: [{ label: 'Thấp', data: [5, 9, 7, 12, 14, 11], backgroundColor: ACCENT_HI }] }}
+          config={{ type: 'bar', labels: MONTHS, datasets: [{ label: 'Short', data: [5, 9, 7, 12, 14, 11], backgroundColor: ACCENT_HI }] }}
           height={160}
         />
       </div>
       <div className="w-[320px]">
         <p className="m-0 mb-2 font-mono text-meta text-ink3">height=400</p>
         <Chart
-          config={{ type: 'bar', labels: MONTHS, datasets: [{ label: 'Cao', data: [5, 9, 7, 12, 14, 11], backgroundColor: ACCENT }] }}
+          config={{ type: 'bar', labels: MONTHS, datasets: [{ label: 'Tall', data: [5, 9, 7, 12, 14, 11], backgroundColor: ACCENT }] }}
           height={400}
         />
       </div>
@@ -170,14 +170,14 @@ export const Height: S = {
   ),
 };
 
-/** Options passthrough — config.options truyền thẳng chart.js: legend bottom + trục y beginAtZero. */
+/** Options passthrough — config.options goes straight to chart.js: bottom legend + y beginAtZero. */
 export const OptionsPassthrough: S = {
   name: 'Options — legend bottom + y beginAtZero',
   args: {
     config: {
       type: 'bar',
       labels: MONTHS,
-      datasets: [{ label: 'Đơn hàng', data: [0, 4, 9, 3, 12, 8], backgroundColor: DONE }],
+      datasets: [{ label: 'Orders', data: [0, 4, 9, 3, 12, 8], backgroundColor: DONE }],
       options: {
         plugins: { legend: { position: 'bottom' } },
         scales: { y: { beginAtZero: true } },
@@ -186,10 +186,10 @@ export const OptionsPassthrough: S = {
   },
 };
 
-/** Fallback — chart.js KHÔNG cài / import lỗi → fallback thay canvas. Demo đi ĐÚNG
- * đường failed thật: type lạ + dataset → chart.js throw lúc tra controller →
- * `failed` → fallback render (cần dataset mới chạm controller lookup — type lạ
- * không đủ). */
+/** Fallback — chart.js NOT installed / import error → fallback replaces the canvas.
+ * Walks the component's REAL failed path: unknown type + dataset → chart.js throws
+ * during controller lookup → `failed` → fallback renders (a dataset is needed to
+ * reach the controller lookup — unknown type alone is not enough). */
 export const Fallback: S = {
   args: {
     config: {
@@ -199,14 +199,32 @@ export const Fallback: S = {
     } as unknown as ChartConfig,
     fallback: (
       <p className="m-0 grid place-items-center rounded-lg border border-dashed border-line p-6 text-meta text-ink3">
-        chart.js chưa cài / init lỗi — đây là fallback thật của component
+        chart.js not installed / init error — this is the component's real fallback
       </p>
     ),
   },
 };
 
-/** EmptyData — labels/datasets rỗng: canvas vẫn mount (chart hợp lệ chưa có data),
- * trống là ĐÚNG — không phải bug vẽ. */
+/** EmptyData — empty labels/datasets: canvas still mounts (a valid chart with no
+ * data yet); blank is CORRECT behavior — not a rendering bug. */
 export const EmptyData: S = {
   args: { config: { type: 'line', labels: [], datasets: [] } },
+};
+
+/** DarkTheme — chart on a dark canvas (chart.js default grey legend/ticks stay legible).
+ * Dataset colors are the explicit demo palette — kept for both themes. */
+export const DarkTheme: S = {
+  name: 'Dark theme — doughnut on dark canvas',
+  args: {
+    config: {
+      type: 'doughnut',
+      labels: ['Todo', 'In progress', 'Done', 'Failed'],
+      datasets: [{ label: 'Tasks', data: [8, 5, 11, 2], backgroundColor: [INK3, DOING, DONE, FAIL] }],
+    },
+  },
+  render: (args) => (
+    <div data-bp-theme="dark" className="w-[420px] rounded-xl bg-canvas p-4">
+      <Chart {...args} height={280} />
+    </div>
+  ),
 };

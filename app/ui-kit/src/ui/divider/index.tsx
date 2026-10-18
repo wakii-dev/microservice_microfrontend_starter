@@ -3,7 +3,9 @@
 import type { ReactNode } from 'react';
 
 export interface DividerProps {
+  /** horizontal (mặc định) | vertical — vertical là span inline cao 0.9em. */
   type?: 'horizontal' | 'vertical';
+  /** Viền đứt (antd dashed) — mặc định liền. */
   dashed?: boolean;
   /** Text giữa đường kẻ (chỉ horizontal). */
   children?: ReactNode;
@@ -25,7 +27,7 @@ export function Divider({ type = 'horizontal', dashed = false, children, classNa
     return (
       <div
         role="separator"
-        className={`flex items-center text-meta text-ink3${className ? ` ${className}` : ''}`}
+        className={`flex items-center text-label text-ink3${className ? ` ${className}` : ''}`}
         style={{ margin: '16px 0' }}
       >
         <span className={`flex-1 border-t ${dashed ? 'border-dashed border-line' : 'border-solid border-line2'}`} />

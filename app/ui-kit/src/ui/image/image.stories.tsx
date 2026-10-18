@@ -1,6 +1,7 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// UiImage stories — ảnh click preview overlay (ESC/ click đóng). Ảnh data-URI
-// offline-safe. Fallback: component chưa có prop fallback (chỉ src/alt/width).
+// UiImage stories — click image to open preview overlay (ESC / click closes).
+// Offline-safe data-URI images. Focus is trapped in the overlay; closing returns
+// focus to the thumbnail.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { UiImage } from './index';
 
@@ -13,17 +14,27 @@ function svgImg(label: string, c1: string, c2: string) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-export const CoBan: Story = {
-  name: 'Cơ bản — ảnh + fade-in khi load',
-  render: () => <UiImage src={svgImg('Ảnh demo', '#1677ff', '#389e0d')} alt="Ảnh demo gradient" width={360} />,
+export const Basic: Story = {
+  name: 'Basic — image with fade-in on load',
+  render: () => <UiImage src={svgImg('Demo image', '#1677ff', '#389e0d')} alt="Gradient demo image" width={360} />,
 };
 
 export const Preview: Story = {
-  name: 'Preview — click ảnh → overlay, ESC/click đóng',
+  name: 'Preview — click image → overlay; ESC / click closes',
   render: () => (
     <div className="flex flex-col gap-2">
-      <UiImage src={svgImg('Click để phóng', '#531dab', '#1677ff')} alt="Ảnh preview demo" width={360} />
-      <span className="text-meta text-ink3">Click ảnh → overlay toàn màn; ESC hoặc click overlay để đóng.</span>
+      <UiImage src={svgImg('Click to zoom', '#531dab', '#1677ff')} alt="Preview demo image" width={360} />
+      <span className="text-meta text-ink3">Click image → full-screen overlay; ESC or click overlay closes it. Focus is trapped inside, and returns to the thumbnail on close.</span>
+    </div>
+  ),
+};
+
+export const Sizes: Story = {
+  name: 'Sizes — width as number (px) vs CSS string',
+  render: () => (
+    <div className="flex items-start gap-4">
+      <UiImage src={svgImg('240px', '#1677ff', '#389e0d')} alt="240 px image" width={240} />
+      <UiImage src={svgImg('50%', '#d48806', '#cf1322')} alt="50% image" width="50%" />
     </div>
   ),
 };

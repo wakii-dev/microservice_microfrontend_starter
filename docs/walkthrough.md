@@ -135,6 +135,31 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
 
 > CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
 
+### 4c. Storybook — design system sống (Templates + 129 titles)
+
+UI của shell/remotes build từ `@wakii/ui-kit` — xem toàn bộ + thử template ghép sẵn:
+
+```bash
+pnpm --filter @wakii/ui-kit storybook   # → http://localhost:6006 (script tự stamp version)
+```
+
+Số liệu thật (index Storybook 2026-10-18): **129 titles · 623 story exports**, trong đó
+nhóm **Templates** — 6 template "trang thật" (controlled state sống, không phải mock render):
+
+| Template | Story path (`?path=/story/…`) | Ghép từ |
+|----------|-------------------------------|---------|
+| Dashboard admin | `templates-dashboard--dashboard` | `Layout` (Sider+Header) + Row/Col + Card/Statistic + Table + Timeline + Chart |
+| Kanban project | `templates-kanban-project--project-board` | `KanbanBoard` (4 cột + WIP limit) + Segmented/Input.Search/Select filter + `Timesheet` + `message` toast khi move |
+| CRUD table | `templates-crud-table--full-demo` | `Table` (sort 3-state/selection/expandable/fixed header/summary) + `Drawer` form (useForm+zod) + `Popconfirm` + `message` |
+| Auth | `templates-auth--sign-in` · `--sign-up` · `--split-layout` | `useForm` + zod + Field/Input/Button + `Layout` split |
+| Landing | `templates-landing--landing-alive` | `Parallax` + `Reveal` + `CountUp`/`Statistic` + `Grid` |
+| Settings | `templates-settings--settings` | `Tabs` + `Switch` + `Field` + live theme toggle |
+
+Mẹo: toolbar Storybook có **toggle dark** (`data-bp-theme` trên body preview — mọi component
+theo token nên cả index đổi theme 1 click). AI agents đọc [AGENTS.md](../AGENTS.md) +
+[docs/ai/recipes.md](ai/recipes.md) — bản đồ khi-dùng + 12 recipe copy-chạy. Chi tiết
+Templates: `app/ui-kit/README.md` § Templates.
+
 ## 5. Copy/scaffold project mới
 
 ```bash
@@ -153,3 +178,27 @@ Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playb
 | `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
 | `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
 | `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
+
+## 7. Hành trình team — app-fit 4 apps + tài liệu nội bộ (2026-10-18)
+
+**App-fit**: 4 app FE đã migrate hết sang `@wakii/ui-kit` (tokens + components qua source):
+
+| App | Đã fit |
+|-----|--------|
+| `app/shell` (MF host :3000) | layout + nav + tokens từ phiên trước |
+| `app/remotes/tasks` (:4001) | `TaskForm`/`TaskItem` chuyển `useForm` + zod + `Field`/`Input`/`Textarea` (+`useFieldArray` sẵn trong kit), `TaskList` giữ contract (EmptyState ở page level) |
+| `app/remotes/activity` (:4002) | `ActivityPage` + `StatTile` → `Card`/`Statistic` ui-kit |
+| `app/admin` | dashboard layout `Grid`/`Card`/`Statistic` giữ stat-intent |
+
+**Templates**: 6 trang mẫu ghép sẵn trong Storybook (bảng §4) — copy điểm khởi đầu cho
+trang thật; recipes kèm tại [docs/ai/recipes.md](ai/recipes.md).
+
+**Hướng tới 0.3.0**: megagate 32 commits (241416f..HEAD) đã gate xanh — release notes
+draft soạn sẵn tại [`docs/superpowers/specs/2026-10-18-0.3.0-release-notes.md`](superpowers/specs/2026-10-18-0.3.0-release-notes.md) — merge PR là chốt release
+(ui-kit consumed qua source nên "release" = điểm merge, xem CHANGELOG head).
+
+**Tài liệu nội bộ team (local-only, gitignored — không vào PR)**: `docs/team/` chứa
+[RULES.md](team/RULES.md) (hiến phần vận hành: vai trò, vòng làm việc, thang tin cậy
+T1→T3, sở hữu file), `TEAM.md` (roster + standup + report log), `DECISIONS.md`
+(tiền-duyệt), `inbox/` (thư peer-to-peer), `CHANNEL.md`. Bản tóm tắt in-repo cho
+session mới: [CLAUDE.md](../CLAUDE.md) § "Team protocol".

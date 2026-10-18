@@ -8,9 +8,11 @@ import { Badge } from '../badge/index.js';
 import { Tag } from '../tag/index.js';
 import { KanbanBoard, type KanbanColumnData } from './index';
 
-const meta = { title: 'Data Display/Kanban', component: KanbanBoard, tags: ['autodocs'] } satisfies Meta;
+// CSF render-only: meta KHÔNG gắn `component` — component có required props +
+// story chỉ render() ⇒ StoryObj suy args BẮT BUỘC → TS2322 (pattern image.stories).
+const meta = { title: 'Data Display/Kanban', tags: ['autodocs'] } satisfies Meta;
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 const INITIAL: KanbanColumnData[] = [
   {

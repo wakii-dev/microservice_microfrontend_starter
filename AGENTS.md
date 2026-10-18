@@ -159,6 +159,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 - ❌ `!important`/`!bg-…` trừ khi override CSS third-party
 - ❌ State kéo theo re-render churn cho thư viện so-tham-chiếu-theo-reference (vd swiper/react) — dùng imperative ref + classList
 - ❌ Story file 0 `export const` (indexer drop — phải có ≥1 story mỗi file)
+- ❌ Story meta gắn `component:` khi story chỉ có `render: () => …` và component có required props — StoryObj suy `args` BẮT BUỘC → TS2322 chặn push. Fix: meta không gắn `component` (`satisfies Meta` không generic — pattern `image.stories`); chỉ gắn `component:` khi mọi story truyền đủ `args`
 - ❌ Meta gắn `component` khi component có required props → CSF ép `args` lên mọi story, story render-only lỗi TS — render-only dùng meta không `component` (`satisfies Meta`), story theo args thì gắn `component` + `args` đầy đủ (image vs galleria.stories)
 
 ## Ghi nhớ vận hành

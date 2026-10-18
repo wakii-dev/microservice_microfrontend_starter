@@ -5,9 +5,11 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon } from '../icons/index.js';
 import { DragDropProvider, Draggable, DropZone } from './index';
 
-const meta = { title: 'Primitives/DragDrop', component: Draggable, tags: ['autodocs'] } satisfies Meta;
+// CSF render-only: meta KHÔNG gắn `component` — component có required props +
+// story chỉ render() ⇒ StoryObj suy args BẮT BUỘC → TS2322 (pattern image.stories).
+const meta = { title: 'Primitives/DragDrop', tags: ['autodocs'] } satisfies Meta;
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
 function DroppedLog() {
   const [dropped, setDropped] = useState<unknown>(null);
@@ -17,7 +19,7 @@ function DroppedLog() {
         <Draggable data={{ id: 1, label: 'Design tokens' }} draggingClass="shadow-lift">
           <div className="w-48 rounded-xl border border-line bg-s2 p-3 text-body text-ink">Drag me — Design tokens</div>
         </Draggable>
-        <DropZone ariaLabel="Drop here" onDrop={setDropped} className="grid min-h-32 w-64 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
+        <DropZone ariaLabel="Drop here" onDrop={(d) => setDropped(String(d))} className="grid min-h-32 w-64 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
           Drop here
         </DropZone>
       </div>
@@ -57,7 +59,7 @@ function HandleOnlyDemo() {
             Body text does not start a drag — only the grip does.
           </div>
         </Draggable>
-        <DropZone ariaLabel="Handle target" onDrop={setDropped} className="grid min-h-32 w-56 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
+        <DropZone ariaLabel="Handle target" onDrop={(d) => setDropped(String(d))} className="grid min-h-32 w-56 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
           Drop target
         </DropZone>
       </div>
@@ -107,35 +109,37 @@ export const AcceptFilter: Story = {
 
 /** KeyboardWorkflow — Space grabs, arrows move the active zone, Enter drops, Esc cancels. */
 export const KeyboardWorkflow: Story = {
-  render: () => {
-    const [log, setLog] = useState<string[]>([]);
-    const push = (zone: string) => (data: unknown) => setLog((l) => [`dropped ${JSON.stringify(data)} → ${zone}`, ...l].slice(0, 4));
-    return (
-      <DragDropProvider>
-        <div className="flex flex-col gap-3">
-          <div className="rounded-lg border border-line bg-s3 p-3 text-body text-ink2">
-            <strong className="text-ink">Keyboard:</strong> Tab to the card → <kbd className="text-accent">Space</kbd> grab →{' '}
-            <kbd className="text-accent">Arrows</kbd> pick a zone → <kbd className="text-accent">Enter</kbd> drop →{' '}
-            <kbd className="text-accent">Esc</kbd> cancel.
-          </div>
-          <div className="flex items-start gap-6">
-            <Draggable data={101} dragId="kb-card">
-              <div className="w-44 rounded-xl border border-line bg-s2 p-3 text-body text-ink">Task #101</div>
-            </Draggable>
-            <DropZone ariaLabel="Backlog" onDrop={push('Backlog')} className="grid min-h-28 w-44 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
-              Backlog
-            </DropZone>
-            <DropZone ariaLabel="Doing" onDrop={push('Doing')} className="grid min-h-28 w-44 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
-              Doing
-            </DropZone>
-          </div>
-          <ul className="m-0 list-none p-0 text-meta text-ink3">
-            {log.map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
-          </ul>
-        </div>
-      </DragDropProvider>
-    );
-  },
+  render: () => <KeyboardWorkflowDemo />,
 };
+
+function KeyboardWorkflowDemo() {
+  const [log, setLog] = useState<string[]>([]);
+  const push = (zone: string) => (data: unknown) => setLog((l) => [`dropped ${JSON.stringify(data)} → ${zone}`, ...l].slice(0, 4));
+  return (
+    <DragDropProvider>
+      <div className="flex flex-col gap-3">
+        <div className="rounded-lg border border-line bg-s3 p-3 text-body text-ink2">
+          <strong className="text-ink">Keyboard:</strong> Tab to the card → <kbd className="text-accent">Space</kbd> grab →{' '}
+          <kbd className="text-accent">Arrows</kbd> pick a zone → <kbd className="text-accent">Enter</kbd> drop →{' '}
+          <kbd className="text-accent">Esc</kbd> cancel.
+        </div>
+        <div className="flex items-start gap-6">
+          <Draggable data={101} dragId="kb-card">
+            <div className="w-44 rounded-xl border border-line bg-s2 p-3 text-body text-ink">Task #101</div>
+          </Draggable>
+          <DropZone ariaLabel="Backlog" onDrop={push('Backlog')} className="grid min-h-28 w-44 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
+            Backlog
+          </DropZone>
+          <DropZone ariaLabel="Doing" onDrop={push('Doing')} className="grid min-h-28 w-44 place-items-center rounded-xl border border-dashed border-line text-meta text-ink3">
+            Doing
+          </DropZone>
+        </div>
+        <ul className="m-0 list-none p-0 text-meta text-ink3">
+          {log.map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      </div>
+    </DragDropProvider>
+  );
+}

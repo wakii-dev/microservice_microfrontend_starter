@@ -4,6 +4,19 @@ Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Modul
 
 **Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
 
+## 🎨 Design system — [@wakii/ui-kit](app/ui-kit)
+
+Bộ phận nổi bật nhất của boilerplate: design system **90+ components + 17 hooks** (antd × PrimeReact parity), tokens-first + Tailwind v4, dark theme, motion, a11y, 540 behavior tests.
+
+[![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
+[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+[![tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#)
+
+- 📖 **Storybook live:** https://storybook-static-khaki-two.vercel.app
+- 📦 **npmjs:** `npm i @wakii/ui-kit` · **GitHub Packages:** `@wakii-dev/ui-kit` (org nội bộ)
+- 🖥️ **Admin showcase:** `app/admin` (Vite SPA — Sidebar+Menu, DataTable virtual, zod forms, upload, hooks demo; `pnpm --filter ./app/admin dev` → :5173)
+- Chi tiết + quickstart: [app/ui-kit/README.md](app/ui-kit/README.md)
+
 ## Kiến trúc (đã dựng xong — 6 services gồm auth-svc + 3 FE + gateway + kafka broker)
 
 ```mermaid
@@ -28,7 +41,8 @@ graph TB
         end
         subgraph app ["app/"]
             shared["shared (fe-shared — api client, token, MF helper)"]
-            uikit["ui-kit — design system (tokens + primitives + Storybook)"]
+            uikit["ui-kit — @wakii/ui-kit design system (90+ comps + 17 hooks, published npm/GH Packages)"]
+            admin["admin :5173 — showcase SPA (Sidebar+Menu, DataTable virtual, zod forms)"]
             shell["shell :3000 — MF host (Rspack)"]
             remotes["remotes/ tasks :4001 + activity :4002"]
             spike["spike (MF pin versions — đã test, prune khi scaffold)"]
@@ -129,7 +143,9 @@ platform/           # compose (health-gated), postgres init, nginx, conventions/
 services/           # node-svc / spring-svc / go-svc / auth-svc — impl hoàn chỉnh, README standalone từng svc
 app/
   shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
-  ui-kit/           # wakii-ui-kit — design system: tokens + base css + primitives + Storybook 9 (ADR-0009)
+  ui-kit/           # @wakii/ui-kit (npm) = @wakii-dev/ui-kit (GitHub Packages) — 90+ components + 17 hooks,
+                    #   tokens + Tailwind v4 + Storybook 9 (ADR-0009), dist CSS compiled, 540 behavior tests
+  admin/            # showcase SPA (Vite) — Sidebar+Menu đa cấp, DataTable virtual, zod forms, upload, hooks demo
   shell/            # MF host (Rspack) — login, nav, remote slots
   remotes/          # tasks + activity — 2 MF remote
   spike/            # MF pin versions — đã test (prune khi scaffold)

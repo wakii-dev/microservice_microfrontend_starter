@@ -1,4 +1,6 @@
 // SplitButton stories — batch ⑱: CoBan / WithIcons+separator / DangerItem / demo.
+// Unity shell 2026-10-18: thêm UnityTones (4 tông cạnh nhau) + Sizes — soát mắt
+// "1 thể thống nhất" (1 border wrapper, vạch phân cách nội bộ, không seam).
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SplitButton } from './index';
@@ -38,6 +40,74 @@ export const WithIcons: Story = {
       ]}
       onItemClick={(key) => console.log('export:', key)}
     />
+  ),
+};
+
+/** UnityTones — 4 tông cạnh nhau để soát mắt khối liên tục: primary (border-accent
+ * + divider trắng mờ), default (border-line + divider line), text ghost, danger
+ * solid (border-st-fail). Mở menu từng cái xem hover overlay không vỡ nền. */
+export const UnityTones: Story = {
+  name: 'Unity — 4 tông liền khối (primary/default/text/danger)',
+  render: () => (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <SplitButton
+        label="Lưu task"
+        items={[
+          { key: 'save-run', label: 'Lưu + chạy' },
+          { key: 'save-draft', label: 'Lưu nháp' },
+        ]}
+      />
+      <SplitButton
+        type="default"
+        label="Lưu task"
+        items={[
+          { key: 'save-run', label: 'Lưu + chạy' },
+          { key: 'save-draft', label: 'Lưu nháp' },
+        ]}
+      />
+      <SplitButton
+        type="text"
+        label="Lưu task"
+        items={[
+          { key: 'save-run', label: 'Lưu + chạy' },
+          { key: 'save-draft', label: 'Lưu nháp' },
+        ]}
+      />
+      <SplitButton
+        danger
+        label="Xoá dữ liệu"
+        items={[
+          { key: 'soft', label: 'Xoá mềm (archive)' },
+          { key: 'sep', label: '', separator: true },
+          { key: 'hard', label: 'Xoá vĩnh viễn', danger: true },
+        ]}
+      />
+    </div>
+  ),
+};
+
+/** Sizes — small h-8 / middle h-9 (mặc định) / large h-10, đồng bộ Button. */
+export const Sizes: Story = {
+  name: 'Sizes (h-8 / h-9 / h-10)',
+  render: () => (
+    <div style={{ display: 'grid', gap: 12 }}>
+      {(['small', 'middle', 'large'] as const).map((s) => (
+        <div key={s} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <span style={{ width: 48, fontSize: 12, opacity: 0.6 }}>{s}</span>
+          <SplitButton
+            size={s}
+            label="Lưu task"
+            items={[{ key: 'save-draft', label: 'Lưu nháp' }]}
+          />
+          <SplitButton
+            size={s}
+            type="default"
+            label="Xuất"
+            items={[{ key: 'csv', label: 'Xuất CSV', icon: <Icon name="download" size={14} /> }]}
+          />
+        </div>
+      ))}
+    </div>
   ),
 };
 

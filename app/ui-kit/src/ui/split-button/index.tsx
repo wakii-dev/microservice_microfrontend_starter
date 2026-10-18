@@ -1,12 +1,17 @@
 // SplitButton — primary action + dropdown secondary (antd Dropdown.Button).
-// Batch ⑱ chuẩn hoá theo design system: trigger phụ = Icon chevron-down xoay
-// 180° khi open (transition); menu đóng qua useClickAway (ref container) + ESC
-// (useKeyPress); ArrowDown mở + focus item đầu; motion bp-zoom-in origin-top-left
-// (--motion-fast); a11y role menu/menuitem + aria-haspopup='menu' + aria-expanded;
-// z-token --z-dropdown thay z-30 hardcode. Items: icon + danger + separator.
+// Unity shell 2026-10-18 (feedback user: 2 component Button rời → lộ seam, không
+// "1 thể thống nhất"): KHÔNG còn dùng Button — 2 <button> trần trong 1 wrapper
+// liên tục: MỘT border duy nhất trên wrapper (primary: border-accent · danger
+// solid: border-st-fail · default: border-line · text: transparent), rounded-lg +
+// overflow-hidden; focus ring (has-[:focus-visible]) + hover lift/shadow + active
+// scale đặt trên WRAPPER; vạch phân cách nội bộ = span w-px cùng tông (solid:
+// white/20, default/text: line) — không gap, không double-border. Hover từng phần:
+// main accent-hi (solid) / bg-s3 (default), chevron overlay color-mix 10–15% cùng
+// tông → nền luôn liền mạch. Behavior batch ⑱ GIỮ NGUYÊN: useClickAway + ESC
+// (useKeyPress) + ArrowDown focus-first + a11y role menu/menuitem + aria-haspopup/
+// aria-expanded + motion bp-zoom-in (--motion-fast) + z --z-dropdown.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button } from '../button/index';
-import type { ButtonType } from '../button/index';
+import type { ButtonSize, ButtonType } from '../button/index';
 import { Icon } from '../icons/index.js';
 import { useClickAway } from '../../hooks/useClickAway.js';
 import { useKeyPress } from '../../hooks/useKeyPress.js';
@@ -24,18 +29,36 @@ export interface SplitButtonProps {
   label: string;
   type?: ButtonType;
   danger?: boolean;
+  /** antd size — đồng bộ Button: small h-8 / middle h-9 (mặc định) / large h-10. */
+  size?: ButtonSize;
   items: SplitButtonItem[];
   onClick?: () => void;
   onItemClick?: (key: string) => void;
   className?: string;
 }
 
+/** Height/padding đồng bộ Button (middle mặc định h-9) — chevron hẹp hơn main. */
+const SIZE: Record<ButtonSize, { main: string; chevron: string }> = {
+  small: { main: 'h-8 px-3 text-label', chevron: 'h-8 px-1.5' },
+  middle: { main: 'h-9 px-4 text-body', chevron: 'h-9 px-1.5' },
+  large: { main: 'h-10 px-5 text-body', chevron: 'h-10 px-2' },
+};
+
 const ITEM_NORMAL =
   'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors hover:bg-s3';
 const ITEM_DANGER =
   'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-st-fail transition-colors hover:bg-st-fail/12';
 
-export function SplitButton({ label, type = 'primary', danger, items, onClick, onItemClick, className }: SplitButtonProps) {
+export function SplitButton({
+  label,
+  type = 'primary',
+  danger,
+  size = 'middle',
+  items,
+  onClick,
+  onItemClick,
+  className,
+}: SplitButtonProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useClickAway<HTMLSpanElement>(() => setOpen(false));
   const menuRef = useRef<HTMLUListElement>(null);
@@ -52,31 +75,71 @@ export function SplitButton({ label, type = 'primary', danger, items, onClick, o
     }
   }, [open]);
 
+  // Tông visual theo type/danger (map cũ: danger chỉ đổi tông khi primary/text).
+  const solid = type === 'primary';
+  const shellBorder = solid
+    ? danger
+      ? 'border-st-fail'
+      : 'border-accent'
+    : type === 'text'
+      ? 'border-transparent'
+      : 'border-line';
+  const mainCls = solid
+    ? danger
+      ? 'bg-st-fail text-white hover:bg-[#ff7875]'
+      : 'bg-accent text-white hover:bg-accent-hi'
+    : type === 'text'
+      ? danger
+        ? 'bg-transparent text-st-fail hover:bg-st-fail/12'
+        : 'bg-transparent text-ink hover:bg-s3'
+      : 'bg-s2 text-ink hover:bg-s3';
+  // Chevron hover = overlay color-mix CÙNG tông (không replace nền → khối liên tục):
+  // solid trộn trắng 15% vào màu nền; default trộn ink 10% vào s2 (đen/trắng theo theme).
+  const chevronCls = solid
+    ? danger
+      ? 'bg-st-fail text-white hover:bg-[color-mix(in_srgb,white_15%,var(--st-fail))]'
+      : 'bg-accent text-white hover:bg-[color-mix(in_srgb,white_15%,var(--accent))]'
+    : type === 'text'
+      ? danger
+        ? 'bg-transparent text-st-fail hover:bg-st-fail/12'
+        : 'bg-transparent text-ink hover:bg-s3'
+      : 'bg-s2 text-ink hover:bg-[color-mix(in_srgb,var(--ink)_10%,var(--c-s2))]';
+  const dividerCls = solid ? 'bg-white/20' : 'bg-line';
+
   return (
     <span ref={containerRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
-      <Button type={type} danger={danger} className="rounded-r-none" onClick={onClick}>
-        {label}
-      </Button>
-      <Button
-        type={type}
-        danger={danger}
-        aria-label="Thêm tuỳ chọn"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        className="-ml-px rounded-l-none px-1.5"
-        onClick={() => setOpen((o) => !o)}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowDown' && !open) {
-            e.preventDefault();
-            focusFirstOnOpen.current = true;
-            setOpen(true);
-          }
-        }}
+      <span
+        className={`inline-flex overflow-hidden rounded-lg border ${shellBorder} transition-all duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:scale-[0.98] focus-visible:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/40 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-canvas`}
       >
-        <span aria-hidden="true" className={`inline-flex transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
-          <Icon name="chevron-down" size={14} />
-        </span>
-      </Button>
+        <button
+          type="button"
+          onClick={onClick}
+          className={`inline-flex cursor-pointer items-center justify-center gap-1 border-0 font-medium tracking-[0.01em] outline-none transition-colors duration-150 ${SIZE[size].main} ${mainCls}`}
+        >
+          {label}
+        </button>
+        {/* Vạch phân cách nội bộ — span 1px (không phải border) → không double-border */}
+        <span aria-hidden="true" className={`w-px shrink-0 ${dividerCls}`} />
+        <button
+          type="button"
+          aria-label="Thêm tuỳ chọn"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown' && !open) {
+              e.preventDefault();
+              focusFirstOnOpen.current = true;
+              setOpen(true);
+            }
+          }}
+          className={`inline-flex cursor-pointer items-center justify-center border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
+        >
+          <span aria-hidden="true" className={`inline-flex transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
+            <Icon name="chevron-down" size={14} />
+          </span>
+        </button>
+      </span>
       {open && (
         <ul
           ref={menuRef}

@@ -125,3 +125,57 @@ describe('SplitButton — primary action', () => {
     expect(menu()).toBeNull();
   });
 });
+
+describe('SplitButton — unity shell (feedback "1 thể thống nhất" 2026-10-18)', () => {
+  it('1 khối liên tục: border DUY NHẤT trên wrapper (rounded-lg + overflow-hidden), nút con trần không border/rounded riêng', () => {
+    const { container } = render(<SplitButton label="Lưu task" items={items} />);
+    const shell = container.querySelector('span.relative > span');
+    expect(shell).not.toBeNull();
+    expect(shell).toHaveClass('rounded-lg', 'overflow-hidden', 'border-accent');
+    const buttons = shell!.querySelectorAll('button');
+    expect(buttons).toHaveLength(2); // main + chevron — không còn component Button lồng nhau
+    for (const b of buttons) {
+      expect(b.className).not.toContain('border-l');
+      expect(b.className).not.toContain('rounded');
+    }
+    // vạch phân cách nội bộ là span w-px (không double-border)
+    expect(shell!.querySelector('span.w-px')).not.toBeNull();
+  });
+
+  it('tông wrapper theo type: primary border-accent · default border-line · text transparent', () => {
+    for (const [type, borderCls] of [
+      ['primary', 'border-accent'],
+      ['default', 'border-line'],
+      ['text', 'border-transparent'],
+    ] as const) {
+      const { container, unmount } = render(<SplitButton label="t" items={[]} type={type} />);
+      expect(container.querySelector('span.relative > span')).toHaveClass(borderCls);
+      unmount();
+    }
+  });
+
+  it('danger primary → wrapper border-st-fail (solid đỏ liền khối)', () => {
+    const { container } = render(<SplitButton label="Xoá" items={[]} danger />);
+    const shell = container.querySelector('span.relative > span');
+    expect(shell).toHaveClass('border-st-fail');
+    expect(shell!.querySelector('span.w-px')).toHaveClass('bg-white/20');
+  });
+
+  it('size áp đồng bộ cả 2 nút: small h-8 / middle h-9 (mặc định) / large h-10', () => {
+    for (const [size, cls] of [
+      ['small', 'h-8'],
+      ['middle', 'h-9'],
+      ['large', 'h-10'],
+    ] as const) {
+      render(<SplitButton label={size} items={[]} size={size} />);
+      for (const b of document.querySelectorAll('span.relative span button')) {
+        expect(b).toHaveClass(cls);
+      }
+      cleanup();
+    }
+    render(<SplitButton label="mặc định" items={[]} />);
+    for (const b of document.querySelectorAll('span.relative span button')) {
+      expect(b).toHaveClass('h-9');
+    }
+  });
+});

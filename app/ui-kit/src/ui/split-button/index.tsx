@@ -94,17 +94,18 @@ export function SplitButton({
         ? 'bg-transparent text-st-fail hover:bg-st-fail/12'
         : 'bg-transparent text-ink hover:bg-s3'
       : 'bg-s2 text-ink hover:bg-s3';
-  // Chevron hover = overlay color-mix CÙNG tông (không replace nền → khối liên tục):
-  // solid trộn trắng 15% vào màu nền; default trộn ink 10% vào s2 (đen/trắng theo theme).
+  // Chevron KHÔNG hover-overlay nền (user: "hover cũng không bị lộ") — bề mặt một nút
+  // tuyệt đối kể cả hover; hover của nút là hiệu ứng CHUNG trên wrapper. Feedback vùng
+  // chevron chỉ qua icon: nhích scale nhẹ (xem iconCls dưới), nền không đổi màu.
   const chevronCls = solid
     ? danger
-      ? 'bg-st-fail text-white hover:bg-[color-mix(in_srgb,white_15%,var(--st-fail))]'
-      : 'bg-accent text-white hover:bg-[color-mix(in_srgb,white_15%,var(--accent))]'
+      ? 'bg-st-fail text-white'
+      : 'bg-accent text-white'
     : type === 'text'
       ? danger
-        ? 'bg-transparent text-st-fail hover:bg-st-fail/12'
-        : 'bg-transparent text-ink hover:bg-s3'
-      : 'bg-s2 text-ink hover:bg-[color-mix(in_srgb,var(--ink)_10%,var(--c-s2))]';
+        ? 'bg-transparent text-st-fail'
+        : 'bg-transparent text-ink'
+      : 'bg-s2 text-ink';
   // Divider tinh tế như primary: default dùng ink/10 (mảnh, cùng tông) — KHÔNG dùng bg-line (đậm → lộ cấu trúc 2 phần)
 
   return (
@@ -134,7 +135,7 @@ export function SplitButton({
           }}
           className={`inline-flex cursor-pointer items-center justify-center border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
         >
-          <span aria-hidden="true" className={`inline-flex transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
+          <span aria-hidden="true" className={`inline-flex transition-transform duration-200 hover:scale-110 ${open ? 'rotate-180' : ''}`}>
             <Icon name="chevron-down" size={14} />
           </span>
         </button>

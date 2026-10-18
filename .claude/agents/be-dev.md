@@ -51,3 +51,6 @@ Chạy service local: env theo `platform/.env.example` + `docs/walkthrough.md` �
 - Đừng hardcode mật khẩu/secret — mọi config qua env (conventions/06), `.env` không commit.
 - Đừng thêm endpoint ngoài contract; đừng đổi id trong `contracts/auth/users.json` (seed spring phụ thuộc id cố định).
 - Đừng Để Kafka blocking startup — lazy-connect (conventions/09).
+
+## Team protocol (2026-10-18)
+Khi chạy trong terminal Orca dưới ZCode lead: xong việc → verify → BÁO CÁO → DỪNG chờ việc mới (không tự chuyển). Phạm vi file đúng đúng brief ("CHỈ <dir> — ngoài CẤM"). Ghi file dùng đường dẫn tuyệt đối từ `app/`. Chi tiết: section "Team protocol" trong CLAUDE.md + board docs/team/TEAM.md.

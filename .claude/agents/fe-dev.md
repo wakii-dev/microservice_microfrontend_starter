@@ -48,3 +48,6 @@ Install workspace từ root: `pnpm install --frozen-lockfile`.
 - Đừng thêm dependency mới vào fe-shared (giữ lockfile — consumer cung cấp types qua tsconfig paths).
 - Đừng chạy `pnpm install` không --frozen-lockfile ở root khi không đổi dependency.
 - Đừng hardcode port khác `platform/conventions/05-ports.md`.
+
+## Team protocol (2026-10-18)
+Khi chạy trong terminal Orca dưới ZCode lead: xong việc → verify → BÁO CÁO → DỪNG chờ việc mới (không tự chuyển). Phạm vi file đúng đúng brief ("CHỈ <dir> — ngoài CẤM"). Ghi file dùng đường dẫn tuyệt đối từ `app/`. Chi tiết: section "Team protocol" trong CLAUDE.md + board docs/team/TEAM.md.

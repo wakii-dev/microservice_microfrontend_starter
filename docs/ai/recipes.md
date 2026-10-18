@@ -1,4 +1,4 @@
-# AI Recipes — 18 công thức UI dùng `@wakii/ui-kit`
+# AI Recipes — 19 công thức UI dùng `@wakii/ui-kit`
 
 Code dưới dùng **API thật đã verify theo source** (audit 2026-10-18). Import gốc:
 
@@ -844,7 +844,76 @@ MegaMenu panel là `role=menu` + `role=menuitem`, trigger có `aria-expanded`; S
 theo hover (desktop) — với touch cứ click. Cần nav đa cấp DỌC trong sidebar → dùng `Menu`
 (đa cấp) hoặc `Sidebar` + `MenuCompactContext`, không nhét SlideMenu vào sidebar.
 
+## 19. MotionComposable — Transition + Reveal + Parallax cộng hưởng trên landing
+
+```tsx
+import { useState } from 'react';
+import { Button, CollapseTransition, CountUp, Parallax, Reveal, Row, Col, Statistic } from '@wakii/ui-kit';
+
+// Mỗi motion primitiveOWN đúng 1 trục, không giành transform trên CÙNG element:
+// Parallax = scroll · Reveal = viewport-enter · Transition = state in/out.
+// Kết hợp bằng CÁCH BỌC NESTED (mỗi primitive một element riêng).
+
+export function LandingMotionComposable() {
+  const [openFeature, setOpenFeature] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-12">
+      {/* 1) Hero — Parallax trôi chậm khi scroll (self-tắt khi reduced-motion) */}
+      <Parallax speed={0.3} scale className="overflow-hidden rounded-xl">
+        <img src="/hero.jpg" alt="Product hero" className="aspect-video w-full object-cover" />
+      </Parallax>
+
+      {/* 2) KPI — Reveal stagger khi cuộn tới + CountUp đếm ease-out */}
+      <Row gutter={[24, 24]}>
+        {[
+          { title: 'Tasks shipped', value: 1284, suffix: '' },
+          { title: 'Uptime', value: 99.95, decimals: 2, suffix: '%' },
+          { title: 'Teams onboard', value: 327, suffix: '+' },
+        ].map((kpi, i) => (
+          <Col key={kpi.title} xs={24} md={8}>
+            <Reveal direction="up" delay={i * 150}>
+              <div className="h-full rounded-xl border border-line bg-s1 p-5">
+                <Statistic
+                  title={kpi.title}
+                  value={<CountUp value={kpi.value} decimals={kpi.decimals} />}
+                  suffix={kpi.suffix}
+                />
+              </div>
+            </Reveal>
+          </Col>
+        ))}
+      </Row>
+
+      {/* 3) Feature card — Reveal đưa card vào, CollapseTransition mở details (state do user) */}
+      <Reveal direction="left" className="max-w-xl">
+        <div className="rounded-xl border border-line bg-s1 p-5">
+          <h3 className="m-0 text-h3 font-semibold text-ink">Zero-config motion</h3>
+          <p className="mt-1 text-body text-ink2">
+            Scroll-reveal từ Reveal, chiều cao đàn hồi từ CollapseTransition — hai primitive,
+            hai element, không xung đột transform.
+          </p>
+          <Button size="small" onClick={() => setOpenFeature((o) => !o)}>
+            {openFeature ? 'Hide details' : 'Show details'}
+          </Button>
+          {/* padding nằm trong children — tầng overflow-hidden phải clip sạch */}
+          <CollapseTransition in={openFeature}>
+            <p className="m-0 pt-3 text-body text-ink2">
+              CollapseTransition unmount sau khi exit animation chạy xong — DOM sạch,
+              không banner ẩn chiếm chỗ.
+            </p>
+          </CollapseTransition>
+        </div>
+      </Reveal>
+    </div>
+  );
+}
+```
+
+Ghi chú: quy tắc **composable** — (1) mỗi primitive bọc một element riêng, KHÔNG gộp 2 hiệu ứng lên cùng div (transform/opacity ghi đè nhau); (2) `Reveal` quản entrance, `Transition`/`CollapseTransition` quản state in/out do user, `Parallax` quản scroll — trục nào về nó; (3) reduced-motion tắt cả ba nhờ block global (`Parallax` còn tự ngắt listener qua `useMediaQuery`). `CollapseTransition` là tên barrel của `Collapse` trong `ui/transition` (trùng tên `Collapse` — xem AGENTS.md nhóm Theming & Motion).
+
 ---
+
 
 ## Bảng "khi nào dùng" — nhóm Primitives + Navigation
 

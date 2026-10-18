@@ -18,7 +18,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | Thông báo | `message.*` (toast gọn) / `notification` (có title) / `Badge` trên bell — recipe 8 |
 | Trang settings | `Tabs` + `Switch` + `Field`/`Input` — recipe 9 |
 | Landing hero | `Button` + `Tag` + `Typography` + `Divider` + `Space` — recipe 10 |
-| Landing sống động (hero trôi + block hiện dần + KPI đếm số) | `Parallax` + `Reveal` + `CountUp` trong `Statistic`/`Row`/`Col` — recipe 16 |
+| Landing sống động (hero trôi + block hiện dần + KPI đếm số + panel thu/mở) | `Parallax` + `Reveal` + `CountUp` trong `Statistic`/`Row`/`Col` — recipe 16 · kết hợp `Fade`/`Zoom`/`CollapseTransition` — recipe 17 |
 | Nav app | `Sidebar` (collapsible) + `Menu` đa cấp + `MenuCompactContext` tự icon-only |
 | Menu ngang | `Menubar` (hover dropdown) · `MegaMenu` (panel multi-column mega) · `TabMenu` (tabs nav) · `SplitButton` · `Dropdown` · `ContextMenu` |
 | Menu trượt cấp (panel/hamburger) | `SlideMenu` (translateX giữa cấp, back + ESC) — recipe 18 |
@@ -132,13 +132,16 @@ So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa c�
 | `useWindowSize` | Live viewport width/height | — (no args) | virtualized lists · breakpoint-adjacent JS logic |
 | `useLocalStorage` / `useSessionStorage` | Persistent (tab) / session state without effect boilerplate | `key` + `initialValue` | theme preference · drafts · wizard step memory |
 
-## Motion — khi nào dùng
+## Theming & Motion — khi nào dùng
 
 | Component | Use when | Most valuable prop | Common combos |
 |---|---|---|---|
 | `Parallax` | Scroll-linked drift — hero ảnh/banner landing trôi chậm hơn trang, tạo chiều sâu | `speed` (0–1; 0.3 phổ biến; `scale` phóng nhẹ theo drift) | wrap ảnh hero/section trong landing (recipe 16) · **an toàn a11y: tự tắt khi `prefers-reduced-motion`** (qua `useMediaQuery`) hoặc `disabled` · 0 deps — style ghi thẳng node, 0 re-render/frame |
 | `Reveal` | Block hiện dần khi vào viewport — section landing, card list, KPI row | `direction` (`up` mặc định — dùng keyframe `bp-slide-up-in` có sẵn; `down/left/right` = fade + transition transform) | `delay` (stagger 0/150/300ms — fill backwards giữ ẩn trong lúc trễ) · `once` mặc định true (IO disconnect sau lần đầu), `once={false}` replay mỗi lần vào · fallback hiện luôn khi môi trường không có IntersectionObserver · reduced-motion tự tắt nhờ block global |
 | `CountUp` | Đếm số ease-out cho KPI/metric — dashboard, landing stats | `value` (+ `duration` giây, mặc định 1.2; `0` = chạm đích ngay) | `decimals`/`format` (locale vi-VN, đơn vị) · `onDone` đúng 1 lần · `Statistic value={<CountUp …/>}` dashboard (recipe 16) · đổi `value` → animate tiếp từ số đang hiển thị (không nhảy về 0) · `tabular-nums` sẵn |
+| `Fade` / `Zoom` | Wrapper enter/exit kiểu MUI cho card/popover nhỏ — hiện/thu có animation thay vì biến mất cứng | `in` (exit chạy XONG mới unmount — state machine kiểu Modal) | `unmountOnExit={false}` giữ DOM, hold `opacity-0` · `duration` ms override qua inline style (class giữ literal cho Tailwind) · keyframe `bp-fade/zoom-in/out` có sẵn · reduced-motion tắt nhờ block global |
+| `CollapseTransition` | Thu/mở theo chiều cho FAQ/details panel dưới nút — height động không đo DOM | `in` | grid-rows `0fr↔1fr` (0 keyframe height) · **padding đặt SẶC trong children — tầng `overflow-hidden` phải clip sạch** · barrel đổi tên tránh trùng `Collapse` (precedent `UiImage`) · reduced-motion tắt nhờ block global |
+| `Backdrop` | Scrim toàn màn đứng sau modal/composer/loading — bấm ra ngoài để đóng | `open` + `onClick` (controlled — consumer giữ state) | nền token `--scrim-4` + `z-[var(--z-modal)]` (không `bg-black/85`) · children slot cho Spinner giữa màn · không tự portal — đặt trong portal consumer (pattern Modal/Drawer) |
 
 ## Feedback & Overlay — khi nào dùng
 

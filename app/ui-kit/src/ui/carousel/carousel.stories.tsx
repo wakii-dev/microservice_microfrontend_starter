@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Carousel } from './index';
+import { Button } from '../button/index';
+import { Tag } from '../tag/index';
 
 // CSS swiper — đã rời ui/carousel/index.tsx sang entries/carousel.ts (batch ⑩); stories
 // import component trực tiếp nên tự kéo CSS tại đây để canvas Storybook giữ style.
@@ -150,6 +152,181 @@ export const DarkTheme: S = {
     <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
       <Carousel
         items={[<Slide key="1" label="Slide 1" />, <Slide key="2" label="Slide 2" />, <Slide key="3" label="Slide 3" />]}
+      />
+    </div>
+  ),
+};
+
+/* ── Batch ⑲: mở rộng case theo yêu cầu user (giữ nguyên API component —
+ * không bịa props; breakpoints "theo container" chưa có trong API nên demo
+ * so sánh itemsPerView cố định) ── */
+
+export const ResponsiveBreakpoints: S = {
+  name: 'Responsive — so sánh itemsPerView 1/2/3/4',
+  render: () => (
+    <div className="flex flex-col gap-4">
+      {([1, 2, 3, 4] as const).map((per) => (
+        <div key={per} className="flex flex-col gap-1">
+          <span className="text-meta text-ink2">itemsPerView = {per}</span>
+          <Carousel
+            itemsPerView={per}
+            circular
+            items={Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="mr-1 grid h-20 place-items-center rounded-lg bg-s3 text-body text-ink">
+                {i + 1}
+              </div>
+            ))}
+          />
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+export const PaginationStyles: S = {
+  name: 'Pagination — bullet active màu accent',
+  render: () => (
+    <div>
+      {/* Scoped style story-level: bullet active = accent (component giữ bullet trung tính) */}
+      <style>{`.pag-accent .swiper-pagination-bullet-active{background:var(--accent) !important;opacity:1}`}</style>
+      <div className="pag-accent">
+        <Carousel
+          circular
+          items={[1, 2, 3, 4].map((i) => (
+            <div key={i} className="grid h-32 place-items-center rounded-lg bg-accent/10 text-body text-ink">
+              Slide {i}
+            </div>
+          ))}
+        />
+      </div>
+    </div>
+  ),
+};
+
+export const AutoplayDelay: S = {
+  name: 'Autoplay delay — 2s nhanh vs 8s chậm (hover pause)',
+  render: () => (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="flex flex-col gap-1">
+        <span className="text-meta text-ink2">Nhanh — 2s (hover để pause)</span>
+        <Carousel
+          autoplay
+          autoplayInterval={2000}
+          pauseOnHover
+          indicators={false}
+          items={[1, 2, 3].map((i) => (
+            <div key={i} className="grid h-24 place-items-center rounded-lg bg-accent/10 text-body text-ink">
+              Nhanh — slide {i}
+            </div>
+          ))}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="text-meta text-ink2">Chậm — 8s (disableOnInteraction=false — kéo vẫn tiếp tục chạy)</span>
+        <Carousel
+          autoplay
+          autoplayInterval={8000}
+          pauseOnHover
+          indicators={false}
+          items={[1, 2, 3].map((i) => (
+            <div key={i} className="grid h-24 place-items-center rounded-lg bg-s3 text-body text-ink">
+              Chậm — slide {i}
+            </div>
+          ))}
+        />
+      </div>
+    </div>
+  ),
+};
+
+export const SingleSlide: S = {
+  name: 'SingleSlide — 1 item (nút điều hướng tự ẩn)',
+  render: () => (
+    <Carousel
+      items={[
+        <div key="only" className="grid h-32 place-items-center rounded-lg bg-s3 text-body text-ink">
+          Duy nhất một slide — prev/next tự ẩn (items.length ≤ 1)
+        </div>,
+      ]}
+    />
+  ),
+};
+
+export const LongContent: S = {
+  name: 'LongContent — text cards + badge',
+  render: () => (
+    <Carousel
+      circular
+      itemsPerView={2}
+      items={[
+        'Deploy WEEK-42 lên production',
+        'Saga gán task: fail@demo.local → DLQ',
+        'Migration package @wakii-dev/ui-kit 0.1.2',
+        'E2E convergence 15/15 PASS',
+      ].map((title, i) => (
+        <div key={i} className="mr-1 flex flex-col gap-2 rounded-lg border border-line bg-s2 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-body font-semibold text-ink">{title}</span>
+            <Tag>{i % 2 === 0 ? 'deploy' : 'kafka'}</Tag>
+          </div>
+          <p className="m-0 text-meta text-ink2">
+            Log dài minh hoạ nội dung nhiều dòng trong slide — line-clamp do consumer
+            quyết định; slide giữ chiều cao cố định h-28 để không nhảy layout.
+          </p>
+        </div>
+      ))}
+    />
+  ),
+};
+
+export const ControlledPage: S = {
+  name: 'Controlled — nút ngoài jump tới slide',
+  render: () => {
+    const [current, setCurrent] = useState(0);
+    const boxRef = useRef<HTMLDivElement>(null);
+    const jump = (n: number) => {
+      const el = boxRef.current?.querySelector('.swiper') as (HTMLElement & { swiper?: { slideTo: (i: number) => void } }) | null;
+      el?.swiper?.slideTo(n);
+    };
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          {[0, 1, 2].map((n) => (
+            <Button key={n} size="small" type={n === current ? 'primary' : 'default'} onClick={() => jump(n)}>
+              Tới slide {n + 1}
+            </Button>
+          ))}
+          <span className="text-meta text-ink2">Đang xem: {current + 1}</span>
+        </div>
+        <div ref={boxRef}>
+          <Carousel
+            onSlideChange={setCurrent}
+            items={[0, 1, 2].map((i) => (
+              <div key={i} className="grid h-32 place-items-center rounded-lg bg-accent/10 text-h2 font-semibold text-ink">
+                {i + 1}
+              </div>
+            ))}
+          />
+        </div>
+      </div>
+    );
+  },
+};
+
+export const KeyboardHint: S = {
+  name: 'Keyboard — hint ↑↓←→ (focus vào carousel)',
+  render: () => (
+    <div className="flex flex-col gap-2">
+      <span className="text-meta text-ink2">
+        Tab vào carousel (container focusable) rồi dùng ← → để chuyển slide — keyboard=true mặc định.
+      </span>
+      <Carousel
+        circular
+        items={[1, 2, 3].map((i) => (
+          <div key={i} className="grid h-32 place-items-center rounded-lg bg-s3 text-h2 font-semibold text-ink">
+            {i + 1}
+          </div>
+        ))}
       />
     </div>
   ),

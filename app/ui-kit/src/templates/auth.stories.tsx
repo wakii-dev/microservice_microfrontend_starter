@@ -34,8 +34,15 @@ const signInSchema = z.object({
 type SignInForm = z.infer<typeof signInSchema>;
 
 function SignInCard() {
-  const form = useForm<SignInForm>({ schema: signInSchema, mode: 'onBlur' });
+  // initialValues rỗng-có-khóa: values luôn là string → zod báo message thân thiện
+  // ("Cần nhập email") thay vì "expected string, received undefined" khi submit trống.
+  const form = useForm<SignInForm>({
+    schema: signInSchema,
+    initialValues: { email: '', password: '' },
+    mode: 'onBlur',
+  });
   const [submitting, setSubmitting] = useState(false);
+  const [remembered, setRemembered] = useState(false);
   const [done, setDone] = useState<string | null>(null);
 
   return (
@@ -77,10 +84,7 @@ function SignInCard() {
           />
         </Field>
         <div className="flex items-center justify-between">
-          <Checkbox
-            checked={form.values.email ? undefined : false}
-            onChange={() => form.setValue('email', form.values.email ?? '')}
-          >
+          <Checkbox checked={remembered} onChange={setRemembered}>
             <span className="text-meta text-ink3">Ghi nhớ tôi</span>
           </Checkbox>
           <Link href="#forgot" className="text-meta">
@@ -122,7 +126,7 @@ const signUpSchema = z.object({
   emails: z
     .array(z.object({ email: z.string().email('Email không hợp lệ') }))
     .min(1, 'Cần ít nhất 1 email'),
-  terms: z.literal(true, { error: () => 'Cần đồng ý điều khoản' }),
+  terms: z.boolean().refine((v) => v === true, { message: 'Cần đồng ý điều khoản' }),
 });
 type SignUpForm = z.infer<typeof signUpSchema>;
 type EmailRow = SignUpForm['emails'][number];

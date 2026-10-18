@@ -1,5 +1,8 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../button/index';
+import { Icon } from '../icons/index';
 import { Skeleton } from './index';
 
 const meta = {
@@ -41,6 +44,43 @@ export const Composite: Story = {
       </div>
     </div>
   ),
+};
+
+function LoadingSwapDemo() {
+  const [loading, setLoading] = useState(true);
+  return (
+    <div className="w-72">
+      <Button size="small" onClick={() => setLoading((l) => !l)}>
+        {loading ? 'Load content' : 'Reset to skeleton'}
+      </Button>
+      <div className="mt-3 flex gap-3 rounded-xl border border-line bg-s2 p-4">
+        {loading ? (
+          <>
+            <Skeleton variant="circle" />
+            <div className="flex flex-1 flex-col gap-2">
+              <Skeleton variant="text" />
+              <Skeleton variant="row" />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid size-8 shrink-0 place-items-center rounded-pill bg-accent/20 text-accent">
+              <Icon name="user" size={16} />
+            </div>
+            <div>
+              <p className="m-0 text-body text-ink">Task title loaded</p>
+              <p className="m-0 text-meta text-ink3">Assignee · updated 2m ago</p>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export const LoadingSwap: Story = {
+  name: 'Loading — skeleton swaps to real content (toggle)',
+  render: () => <LoadingSwapDemo />,
 };
 
 export const DarkTheme: Story = {

@@ -17,15 +17,17 @@ export interface TreeProps {
   data: TreeNodeData[];
   /** Node mở sẵn lúc mount. */
   defaultExpandedKeys?: string[];
+  /** Đường nối cấp con — border-l trên ul group (antd showLine). */
+  showLine?: boolean;
   /** Callback click node (cả node lá lẫn node cha). */
   onNodeClick?: (key: string) => void;
   className?: string;
 }
 
-function TreeNode({ node, depth, expanded, onToggle, onClick }: {
+function TreeNode({ node, depth, expanded, onToggle, onClick, showLine }: {
   node: TreeNodeData; depth: number;
   expanded: Set<string>; onToggle: (k: string) => void;
-  onClick?: (k: string) => void;
+  onClick?: (k: string) => void; showLine?: boolean;
 }) {
   const hasChildren = node.children && node.children.length > 0;
   const isOpen = expanded.has(node.key);
@@ -38,9 +40,9 @@ function TreeNode({ node, depth, expanded, onToggle, onClick }: {
         {node.label}
       </button>
       {hasChildren && isOpen && (
-        <ul role="group" className="m-0 list-none p-0">
+        <ul role="group" className={`m-0 list-none p-0 ${showLine ? 'ml-3 border-l border-line pl-1' : ''}`}>
           {node.children!.map((child) => (
-            <TreeNode key={child.key} node={child} depth={depth + 1} expanded={expanded} onToggle={onToggle} onClick={onClick} />
+            <TreeNode key={child.key} node={child} depth={depth + 1} expanded={expanded} onToggle={onToggle} onClick={onClick} showLine={showLine} />
           ))}
         </ul>
       )}
@@ -48,7 +50,7 @@ function TreeNode({ node, depth, expanded, onToggle, onClick }: {
   );
 }
 
-export function Tree({ data, defaultExpandedKeys = [], onNodeClick, className }: TreeProps) {
+export function Tree({ data, defaultExpandedKeys = [], showLine = false, onNodeClick, className }: TreeProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(defaultExpandedKeys));
   return (
     <ul role="tree" className={`m-0 list-none p-0${className ? ` ${className}` : ''}`}>
@@ -59,7 +61,7 @@ export function Tree({ data, defaultExpandedKeys = [], onNodeClick, className }:
             if (n.has(k)) n.delete(k); else n.add(k);
             return n;
           })}
-          onClick={onNodeClick} />
+          onClick={onNodeClick} showLine={showLine} />
       ))}
     </ul>
   );

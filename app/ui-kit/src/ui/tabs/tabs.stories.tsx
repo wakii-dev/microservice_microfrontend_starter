@@ -1,6 +1,7 @@
 // Tabs stories — Default / Controlled (useState) / DisabledTab / ManyTabs / DarkTheme.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Icon } from '../icons/index';
 import { Tabs } from './index';
 const meta = { title: 'Navigation/Tabs', component: Tabs, tags: ['autodocs'] } satisfies Meta<typeof Tabs>;
 export default meta;
@@ -43,6 +44,44 @@ export const ManyTabs: S = {
   args: {
     items: [...ITEMS, { key: '4', label: 'Reports', children: <p>Reports content</p> }, { key: '5', label: 'Settings', children: <p>Settings content</p> }],
   },
+};
+
+const ICON_ITEMS = [
+  {
+    key: 'home',
+    label: (
+      <span className="flex items-center gap-1.5">
+        <Icon name="home" size={14} />
+        Overview
+      </span>
+    ),
+    children: <p>Overview content</p>,
+  },
+  {
+    key: 'users',
+    label: (
+      <span className="flex items-center gap-1.5">
+        <Icon name="users" size={14} />
+        Members
+      </span>
+    ),
+    children: <p>Members content</p>,
+  },
+  {
+    key: 'settings',
+    label: (
+      <span className="flex items-center gap-1.5">
+        <Icon name="settings" size={14} />
+        Settings
+      </span>
+    ),
+    children: <p>Settings content</p>,
+  },
+];
+
+export const IconTabs: S = {
+  name: 'Icon tabs — Icon inside ReactNode label',
+  args: { items: ICON_ITEMS },
 };
 
 export const DarkTheme: S = {

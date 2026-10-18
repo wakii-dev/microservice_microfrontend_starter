@@ -91,3 +91,42 @@ describe('Card', () => {
     expect(cls).toContain('hover:-translate-y-px');
   });
 });
+
+// ── Case-coverage audit 2026-10-18 (antd parity: loading + size) ──
+
+describe('Card — loading + size (antd parity)', () => {
+  it('loading → skeleton bones thay body, aria-busy, children ẩn', () => {
+    render(
+      <Card title="T" loading>
+        <span data-testid="real-body">nội dung thật</span>
+      </Card>,
+    );
+    expect(screen.queryByTestId('real-body')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Đang tải')).toBeInTheDocument();
+    // bones: ≥3 shimmer bone (bg-s3 overflow-hidden) trong khối busy
+    expect(screen.getByLabelText('Đang tải').querySelectorAll('.bg-s3').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('size="small" → padding dense (head + body + actions 12px)', () => {
+    render(
+      <Card title="S" size="small" actions={[<span key="a">act</span>]}>
+        <span data-testid="small-body">x</span>
+      </Card>,
+    );
+    const root = screen.getByTestId('small-body').closest('.rounded-xl')!;
+    expect(root.innerHTML).toContain('px-3 py-2'); // head
+    expect(root.innerHTML).toContain('p-3'); // body
+    expect(root.innerHTML).toContain('p-2'); // action li
+  });
+
+  it('mặc định giữ padding 24 (px-6 py-4 head / p-6 body)', () => {
+    render(
+      <Card title="D">
+        <span data-testid="d-body">x</span>
+      </Card>,
+    );
+    const root = screen.getByTestId('d-body').closest('.rounded-xl')!;
+    expect(root.innerHTML).toContain('px-6 py-4');
+    expect(root.innerHTML).toContain('p-6');
+  });
+});

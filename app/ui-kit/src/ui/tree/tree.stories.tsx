@@ -57,3 +57,28 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: showLine) ──
+
+export const ShowLine: S = {
+  name: 'Show line — connector borders on nested levels',
+  args: { data: [] },
+  render: () => (
+    <div className="w-64">
+      <Tree
+        showLine
+        defaultExpandedKeys={['src', 'src-ui']}
+        data={[
+          { key: 'src', label: 'src', children: [
+            { key: 'src-ui', label: 'ui', children: [
+              { key: 'src-ui-badge', label: 'badge' },
+              { key: 'src-ui-tree', label: 'tree' },
+            ] },
+            { key: 'src-hooks', label: 'hooks' },
+          ] },
+          { key: 'platform', label: 'platform' },
+        ]}
+      />
+    </div>
+  ),
+};

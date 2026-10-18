@@ -52,3 +52,65 @@ describe('Timeline', () => {
     expect(lis[1].className).not.toContain('before:absolute');
   });
 });
+
+// ── Case-coverage audit 2026-10-18 (antd parity: mode + pending) ──
+
+describe('Timeline — mode (antd parity)', () => {
+  const MODE_ITEMS = [
+    { key: '1', children: 'Sprint started', label: 'Mon 09:00' },
+    { key: '2', children: 'Mid review', label: 'Wed 14:00' },
+  ];
+
+  it('mode alternate: grid 3 cột; even label trái, odd content trái', () => {
+    const { container } = render(<Timeline mode="alternate" items={MODE_ITEMS} />);
+    const lis = container.querySelectorAll('li');
+    expect(lis).toHaveLength(2);
+    expect(lis[0]).toHaveClass('grid-cols-[1fr_auto_1fr]');
+    // even (i=0): cột trái = label, text-right; cột phải = children
+    expect(lis[0].children[0]).toHaveTextContent('Mon 09:00');
+    expect(lis[0].children[0]).toHaveClass('text-right');
+    expect(lis[0].children[2]).toHaveTextContent('Sprint started');
+    // odd (i=1): cột trái = children; cột phải = label
+    expect(lis[1].children[0]).toHaveTextContent('Mid review');
+    expect(lis[1].children[2]).toHaveTextContent('Wed 14:00');
+  });
+
+  it('mode left: label LUÔN ở cột trái với mọi item', () => {
+    const { container } = render(<Timeline mode="left" items={MODE_ITEMS} />);
+    const lis = container.querySelectorAll('li');
+    expect(lis[0].children[0]).toHaveTextContent('Mon 09:00');
+    expect(lis[1].children[0]).toHaveTextContent('Wed 14:00');
+    expect(lis[1].children[2]).toHaveTextContent('Mid review');
+  });
+
+  it('mode set: node cuối thật vẫn vẽ rail khi có pending', () => {
+    const { container } = render(
+      <Timeline mode="left" items={MODE_ITEMS} pending={<>loading…</>} />,
+    );
+    const lis = container.querySelectorAll('li');
+    expect(lis).toHaveLength(3); // 2 items + pending
+    expect(lis[1].querySelector('span')!.className).toContain('before:absolute');
+  });
+});
+
+describe('Timeline — pending (antd parity)', () => {
+  it('pending: item cuối dot rỗng border-line + node pending render; item cuối items có rail', () => {
+    const { container } = render(
+      <Timeline
+        items={[
+          { key: '1', children: 'Deploy finished' },
+          { key: '2', children: 'Smoke green' },
+        ]}
+        pending={<>Rolling out…</>}
+      />,
+    );
+    const lis = container.querySelectorAll('li');
+    expect(lis).toHaveLength(3);
+    // item cuối items (i=1) có rail nối xuống pending
+    expect(lis[1].className).toContain('before:absolute');
+    // pending dot: rỗng — border-line + bg-s2 (không accent)
+    const pendingDot = lis[2].querySelector('span')!;
+    expect(pendingDot).toHaveClass('border-2', 'border-line', 'bg-s2');
+    expect(lis[2]).toHaveTextContent('Rolling out…');
+  });
+});

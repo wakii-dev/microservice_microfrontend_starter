@@ -56,4 +56,22 @@ describe('Tree', () => {
     const { container } = render(<Tree data={DATA} className="marker" />);
     expect(container.querySelector('ul')).toHaveClass('marker');
   });
+
+  // ── Case-coverage audit 2026-10-18 (antd parity: showLine) ──
+
+  it('showLine → ul group có border-l connector; mặc định không có', () => {
+    const { container, rerender } = render(<Tree data={DATA} defaultExpandedKeys={['1']} showLine />);
+    const group = container.querySelector('ul[role="group"]')!;
+    expect(group).toHaveClass('border-l', 'border-line', 'ml-3');
+
+    rerender(<Tree data={DATA} defaultExpandedKeys={['1']} />);
+    expect(container.querySelector('ul[role="group"]')!).not.toHaveClass('border-l');
+  });
+
+  it('showLine: root ul không border-l (line chỉ ở cấp con)', () => {
+    const { container } = render(<Tree data={DATA} defaultExpandedKeys={['1']} showLine />);
+    const root = container.querySelector('ul[role="tree"]')!;
+    expect(root).not.toHaveClass('border-l');
+    expect(root.querySelector('ul[role="group"]')!).toHaveClass('border-l');
+  });
 });

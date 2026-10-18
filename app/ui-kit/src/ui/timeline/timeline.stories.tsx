@@ -58,3 +58,34 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: mode + pending) ──
+
+export const AlternateMode: S = {
+  name: 'Mode alternate — content alternates around the center rail',
+  args: { items: [] },
+  render: () => (
+    <Timeline
+      mode="alternate"
+      items={[
+        { key: '1', children: 'Sprint started', label: 'Mon 09:00' },
+        { key: '2', color: 'var(--st-doing)', children: 'Mid-sprint review', label: 'Wed 14:00' },
+        { key: '3', color: 'var(--st-done)', children: 'Released v1.2', label: 'Fri 18:00' },
+      ]}
+    />
+  ),
+};
+
+export const Pending: S = {
+  name: 'Pending — hollow dot continues from the last item',
+  args: { items: [] },
+  render: () => (
+    <Timeline
+      items={[
+        { key: '1', children: 'Deploy finished', label: '22:00' },
+        { key: '2', children: 'Smoke tests green', label: '22:05' },
+      ]}
+      pending={<>Rolling out to production…</>}
+    />
+  ),
+};

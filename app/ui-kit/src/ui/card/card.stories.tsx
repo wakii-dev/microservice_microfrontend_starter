@@ -96,3 +96,28 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: loading + size) ──
+
+export const Loading: Story = {
+  name: 'Loading — skeleton body while data fetches',
+  render: () => (
+    <Card title="Task #42" loading className="w-96">
+      This body is hidden while loading — skeleton text/row bones render instead.
+    </Card>
+  ),
+};
+
+export const SmallSize: Story = {
+  name: 'Small size — dense padding (antd size="small")',
+  render: () => (
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <Card title="Default" extra={<span className="text-meta">24px</span>} className="w-72">
+        Padding 24 — antd default size.
+      </Card>
+      <Card title="Small" extra={<span className="text-meta">12px</span>} size="small" className="w-72">
+        Padding 12 — antd size="small" for dense dashboards.
+      </Card>
+    </div>
+  ),
+};

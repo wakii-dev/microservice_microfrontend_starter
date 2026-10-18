@@ -21,6 +21,7 @@ import {
   Flex,
   Galleria,
   Input,
+  MegaMenu,
   Menu,
   Paragraph,
   Modal,
@@ -34,6 +35,7 @@ import {
   Row,
   Segmented,
   Select,
+  SlideMenu,
   Slider,
   Spinner,
   Statistic,
@@ -51,6 +53,8 @@ import {
   Watermark,
   message,
 } from './index';
+// OrgChart (worker V2) chưa lên barrel — import thẳng source, khỏi đụng nhánh của V2
+import { OrgChart, type OrgChartNodeData } from './ui/org-chart/index.js';
 
 const meta = {
   title: 'Domain/Kitchen Sink',
@@ -75,6 +79,73 @@ const TIMESHEET_ROWS = [
   { key: 'ks-ts1', label: 'UI redesign', meta: 'VU-53', values: [4, 6, 2, 8, 7, 0, 0] },
   { key: 'ks-ts2', label: 'Gateway spike', meta: 'VU-51', values: [2, 0, 5, 1, 3, 2, 0] },
 ];
+
+const MEGA_ITEMS = [
+  {
+    key: 'product',
+    label: 'Sản phẩm',
+    children: [
+      {
+        key: 'work',
+        label: 'Workspace',
+        items: [
+          { key: 'board', label: 'Board' },
+          { key: 'list', label: 'List view' },
+        ],
+      },
+      {
+        key: 'insight',
+        label: 'Insights',
+        items: [
+          { key: 'charts', label: 'Charts' },
+          { key: 'reports', label: 'Reports' },
+        ],
+      },
+      {
+        key: 'admin',
+        label: 'Quản trị',
+        items: [
+          { key: 'members', label: 'Members' },
+          { key: 'audit', label: 'Audit log', danger: true },
+        ],
+      },
+    ],
+  },
+  { key: 'pricing', label: 'Giá', onClick: () => message.info('Pricing (demo)') },
+];
+
+const SLIDE_ITEMS = [
+  {
+    key: 'projects',
+    label: 'Dự án',
+    children: [
+      {
+        key: 'active',
+        label: 'Đang chạy',
+        children: [{ key: 'vu53', label: 'VU-53 redesign' }],
+      },
+      { key: 'archived', label: 'Lưu trữ' },
+    ],
+  },
+  { key: 'settings', label: 'Cài đặt' },
+];
+
+const ORG_DATA: OrgChartNodeData = {
+  key: 'ceo',
+  label: 'Alice Nguyễn',
+  type: 'dept',
+  children: [
+    {
+      key: 'eng-lead',
+      label: 'Bob — FE lead',
+      children: [
+        { key: 'fe-1', label: 'Carol' },
+        { key: 'fe-2', label: 'Dave' },
+      ],
+    },
+    { key: 'ops-lead', label: 'Erin — Ops' },
+  ],
+};
 
 const GALLERY = [
   { src: 'https://picsum.photos/seed/ks-a/640/420', alt: 'Slide demo A', caption: 'Dashboard concept' },
@@ -402,6 +473,32 @@ function KitchenSinkTour() {
         </Flex>
       </Card>
 
+      {/* ═══ NAV ADVANCED ═══ */}
+      <SectionHead
+        id="ks-nav-advanced"
+        title="Nav advanced"
+        sub="MegaMenu panel đa cột · SlideMenu trượt cấp · OrgChart mini"
+      />
+      {/* MegaMenu KHÔNG bọc Card — Card overflow-hidden sẽ clip panel dropdown */}
+      <div className="rounded-xl border border-line bg-s1 p-2">
+        <MegaMenu items={MEGA_ITEMS} className="rounded-lg" />
+        <Text type="secondary" className="ml-2 text-meta">
+          Hover/click ‘Sản phẩm’ — panel 3 cột; ESC hoặc click ngoài để đóng.
+        </Text>
+      </div>
+      <Row gutter={[16, 16]} className="mt-4">
+        <Col xs={24} lg={12}>
+          <Card title="SlideMenu — trượt cấp" className="h-full">
+            <SlideMenu items={SLIDE_ITEMS} ariaLabel="Menu đa cấp" className="w-full" />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title="OrgChart mini" className="h-full">
+            <OrgChart data={ORG_DATA} selectedKey="eng-lead" />
+          </Card>
+        </Col>
+      </Row>
+
       {/* ═══ MỚI ═══ */}
       <SectionHead
         id="ks-new"
@@ -461,6 +558,7 @@ function KitchenSinkTour() {
           { target: '#ks-hero', title: 'Hero', description: 'Toàn bộ primitives cốt lõi nằm ở đây.' },
           { target: '#ks-layout', title: 'Layout', description: 'Row/Col + Flex — xương sống mọi trang.' },
           { target: '#ks-overlay', title: 'Overlay', description: 'Modal, Drawer, Popover… bấm thử từng nút.' },
+          { target: '#ks-nav-advanced', title: 'Nav advanced', description: 'MegaMenu đa cột, SlideMenu trượt cấp, OrgChart.' },
           { target: '#ks-new', title: 'Mới', description: 'Timesheet, Watermark, QRCode vừa lên đời.' },
         ]}
       />

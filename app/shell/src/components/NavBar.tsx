@@ -1,10 +1,39 @@
+import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Button } from '@wakii-dev/ui-kit';
+import { Button, Icon, useLocalStorage } from '@wakii-dev/ui-kit';
 import { auth } from '../api';
 
+/* Dark toggle toàn host (batch ⑰ — pattern AdminLayout): data-bp-theme trên
+ * <html> + useLocalStorage persist. Remote trong host ăn theo CSS cascade —
+ * remotes không cần code riêng. */
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function useHostTheme() {
+  const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('shell-theme', 'light');
+  useEffect(() => {
+    document.documentElement.setAttribute('data-bp-theme', theme);
+  }, [theme]);
+  return { theme, setTheme };
+}
+
 /**
- * App chrome (hand-off §4): brand + nav + user chip/logout — Tailwind (P3 migration).
+ * App chrome (hand-off §4): brand + nav + dark toggle + user chip/logout.
  * Active state: NavLink tự set aria-current="page" — visual = gạch accent 2px dưới
  * (after: utilities). Đọc token MỖI render (không useState cache) — login/logout
  * navigate là re-render trigger, nav cập nhật email ngay.
@@ -14,6 +43,7 @@ const NAV_LINK =
 
 export function NavBar() {
   const navigate = useNavigate();
+  const { theme, setTheme } = useHostTheme();
   const token = tokenStorage.getToken();
   const claims = token && !isExpired(token) ? readClaims(token) : null;
 
@@ -28,9 +58,7 @@ export function NavBar() {
     <header className="flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-s1 px-4 py-2 max-md:px-3">
       <span className="flex items-center gap-2 text-body font-semibold tracking-[-0.01em] text-ink">
         <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-accent">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round">
-            <path d="M3 4.5h7M3 8h10M3 11.5h5" />
-          </svg>
+          <Icon name="menu-bars" size={12} className="text-white" />
         </span>
         Boilerplate
       </span>
@@ -47,6 +75,14 @@ export function NavBar() {
         </NavLink>
       </nav>
       <div className="ml-auto flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label={theme === 'dark' ? 'Tắt dark mode' : 'Bật dark mode'}
+          className="cursor-pointer rounded-2 border-none bg-transparent p-1.5 text-ink2 transition-colors hover:bg-s3"
+        >
+          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+        </button>
         {claims ? (
           <>
             <span

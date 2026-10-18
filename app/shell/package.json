@@ -12,13 +12,14 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
-    "@wakii/fe-shared": "workspace:*",
     "@wakii-dev/ui-kit": "workspace:*",
+    "@wakii/fe-shared": "workspace:*",
     "motion": "^12",
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-hook-form": "^7",
-    "react-router": "catalog:"
+    "react-router": "catalog:",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@module-federation/enhanced": "catalog:",

@@ -1,6 +1,8 @@
-import { FormEvent, KeyboardEvent, useRef, useState } from 'react';
+import { useMemo, useState, KeyboardEvent, useRef } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
+import { z } from 'zod';
 import { ApiError, isExpired, tokenStorage } from '@wakii/fe-shared';
+import { Button, Field, Input, useForm } from '@wakii-dev/ui-kit';
 import { auth } from '../api';
 
 type AuthMode = 'login' | 'register';
@@ -10,24 +12,41 @@ const TABS: ReadonlyArray<{ id: AuthMode; label: string }> = [
   { id: 'register', label: 'Đăng ký' },
 ];
 
+/* Schema zod tiếng Việt — validation chuyển sang useForm (batch ⑰):
+ * login: chỉ bắt buộc; register: contract auth.yaml — password 8–72 (argon2 limit). */
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email bắt buộc').email('Email không hợp lệ'),
+  password: z.string().min(1, 'Mật khẩu bắt buộc'),
+});
+const registerSchema = z.object({
+  email: z.string().min(1, 'Email bắt buộc').email('Email không hợp lệ'),
+  password: z.string().min(8, 'Mật khẩu cần 8–72 ký tự.').max(72, 'Mật khẩu cần 8–72 ký tự.'),
+  displayName: z.string().min(1, 'Tên hiển thị bắt buộc'),
+});
+
+type AuthFormValues = { email: string; password: string; displayName?: string };
+
 /**
- * Login + Register (SF-4, VU-63) qua wrapper refresh-client — auth.yaml v2:
- * POST /api/auth/login|register → {user, accessToken, refreshToken} (không còn
- * tokenType/expiresIn). Wrapper lưu cặp token (access → tokenStorage, refresh →
- * localStorage['bp.rt']) — UI chỉ điều hướng. UI mới theo pattern Tailwind v4
- * hiện hành (utilities + theme vars, mirror Badge — KHÔNG css-scoped .sh-login cũ).
+ * Login + Register (SF-4, VU-63) qua wrapper refresh-client — auth.yaml v2.
+ * Batch ⑰ (VU-53): form chuyển sang useForm + zod + Field/Input/Button ui-kit —
+ * validation FE khai báo bằng schema (mode onSubmit), server error vẫn role=alert
+ * riêng phía trên nút submit. ARIA tabs + roving tabindex giữ nguyên (a11y contract).
  */
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<AuthMode>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const loginTabRef = useRef<HTMLButtonElement>(null);
   const registerTabRef = useRef<HTMLButtonElement>(null);
+
+  const schema = useMemo(() => (mode === 'login' ? loginSchema : registerSchema), [mode]);
+  const form = useForm<AuthFormValues>({
+    schema,
+    initialValues: { email: '', password: '', displayName: '' },
+    mode: 'onSubmit',
+  });
 
   // Đã login (token còn hạn) → về trang chủ
   const token = tokenStorage.getToken();
@@ -38,6 +57,8 @@ export function LoginPage() {
   function switchMode(next: AuthMode) {
     setError(null);
     setMode(next);
+    // xoá FE errors khi đổi mode (schema khác) — giữ nguyên values người dùng đang gõ
+    form.reset({ email: form.values.email, password: form.values.password, displayName: form.values.displayName });
   }
 
   // Roving tabindex ARIA tabs: ArrowLeft/Right đổi tab + focus theo selection
@@ -48,42 +69,6 @@ export function LoginPage() {
     switchMode(next);
     (next === 'login' ? loginTabRef : registerTabRef).current?.focus();
   }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    // contract: password 8–72 ký tự (argon2 input limit, auth.yaml RegisterRequest)
-    if (mode === 'register' && (password.length < 8 || password.length > 72)) {
-      setError('Mật khẩu cần 8–72 ký tự.');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      if (mode === 'login') {
-        await auth.login(email, password);
-      } else {
-        await auth.register(email, password, displayName);
-      }
-      const from = (location.state as { from?: string } | null)?.from ?? '/';
-      navigate(from, { replace: true });
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 401 && mode === 'login') {
-          setError('Email hoặc mật khẩu không đúng.');
-        } else if (err.status === 409) {
-          setError('Email này đã được đăng ký. Chuyển sang tab Đăng nhập để đăng nhập.');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Không kết nối được máy chủ đăng nhập.');
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const inputClass = 'h-[34px] px-2.5'; // nền/viền/radius từ element defaults (base.css)
 
   return (
     <section className="flex min-h-[calc(100vh-100px)] items-center justify-center">
@@ -144,45 +129,72 @@ export function LoginPage() {
         <form
           aria-labelledby={`auth-tab-${mode}`}
           className="flex flex-col gap-3"
-          onSubmit={handleSubmit}
+          onSubmit={form.handleSubmit(async (data) => {
+            setError(null);
+            setSubmitting(true);
+            try {
+              if (mode === 'login') {
+                await auth.login(data.email, data.password);
+              } else {
+                await auth.register(data.email, data.password, data.displayName!);
+              }
+              const from = (location.state as { from?: string } | null)?.from ?? '/';
+              navigate(from, { replace: true });
+            } catch (err) {
+              if (err instanceof ApiError) {
+                if (err.status === 401 && mode === 'login') {
+                  setError('Email hoặc mật khẩu không đúng.');
+                } else if (err.status === 409) {
+                  setError('Email này đã được đăng ký. Chuyển sang tab Đăng nhập để đăng nhập.');
+                } else {
+                  setError(err.message);
+                }
+              } else {
+                setError('Không kết nối được máy chủ đăng nhập.');
+              }
+            } finally {
+              setSubmitting(false);
+            }
+          })}
         >
-          <label className="flex flex-col gap-1 text-meta text-ink2">
-            Email
-            <input
+          <Field label="Email" htmlFor="auth-email" error={form.errors.email}>
+            <Input
+              id="auth-email"
               type="email"
               name="email"
               autoComplete="username"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={inputClass}
+              value={form.values.email}
+              invalid={!!form.errors.email}
+              onChange={form.handleChange('email')}
             />
-          </label>
-          <label className="flex flex-col gap-1 text-meta text-ink2">
-            Mật khẩu
-            <input
+          </Field>
+          <Field label="Mật khẩu" htmlFor="auth-password" error={form.errors.password}>
+            <Input
+              id="auth-password"
               type="password"
               name="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
+              value={form.values.password}
+              invalid={!!form.errors.password}
+              onChange={form.handleChange('password')}
             />
-          </label>
+          </Field>
           {mode === 'register' && (
-            <label className="flex flex-col gap-1 text-meta text-ink2">
-              Tên hiển thị
-              <input
+            <Field
+              label="Tên hiển thị"
+              htmlFor="auth-display-name"
+              error={form.errors.displayName}
+            >
+              <Input
+                id="auth-display-name"
                 type="text"
                 name="displayName"
                 autoComplete="name"
-                required
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className={inputClass}
+                value={form.values.displayName}
+                invalid={!!form.errors.displayName}
+                onChange={form.handleChange('displayName')}
               />
-            </label>
+            </Field>
           )}
           {error && (
             <p
@@ -192,13 +204,15 @@ export function LoginPage() {
               {error}
             </p>
           )}
-          <button
-            className="mt-1 h-7 w-full rounded-2 bg-accent text-label font-medium text-white transition-colors hover:bg-accent-hi disabled:cursor-default disabled:opacity-60"
-            type="submit"
+          <Button
+            className="mt-1 w-full"
+            htmlType="submit"
+            loading={submitting}
             disabled={submitting}
+            block
           >
-            {submitting ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
-          </button>
+            {mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
+          </Button>
         </form>
         {mode === 'login' && (
           <p className="mt-4 text-center text-meta text-ink3">

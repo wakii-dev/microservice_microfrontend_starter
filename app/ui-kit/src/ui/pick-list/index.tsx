@@ -44,7 +44,7 @@ function Panel({ title, items, picked, onPick }: PanelProps) {
       <ul
         role="listbox" aria-label={title} aria-multiselectable="true" tabIndex={0}
         onKeyDown={onKeyDown}
-        className="m-0 min-h-[200px] list-none rounded-xl border border-line bg-s2 p-2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+        className="m-0 min-h-[200px] list-none rounded-xl border border-line bg-s2 p-2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
       >
         {items.map((item, i) => (
           <li key={item.value} role="option" aria-selected={picked.has(item.value)}

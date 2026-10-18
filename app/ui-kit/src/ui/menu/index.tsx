@@ -197,7 +197,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 items={item.children!}
                 mode={mode}
                 depth={depth + 1}
-                ulCls={`absolute z-[var(--z-popover)] flex flex-col gap-1 rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] ${
+                ulCls={`absolute z-[var(--z-popover)] origin-top-left flex flex-col gap-1 rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)] ${
                   depth === 0 ? 'left-0 top-full min-w-[180px]' : 'left-full top-0 min-w-[160px]'
                 }`}
                 selectedKey={selectedKey}

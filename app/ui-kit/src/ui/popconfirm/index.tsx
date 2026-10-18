@@ -61,7 +61,7 @@ export function Popconfirm({
           <span
             role="dialog"
             aria-label={typeof title === 'string' ? title : undefined}
-            className="block rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)]"
+            className="block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
           >
             <span className="flex items-start gap-2">
               <span

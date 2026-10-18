@@ -23,7 +23,7 @@ export function Menubar({ items, className }: MenubarProps) {
             {item.label}
           </button>
           {item.children && openKey === item.key && (
-            <ul className="absolute left-0 top-full z-[var(--z-dropdown)] m-0 min-w-[160px] list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]">
+            <ul className="absolute left-0 top-full z-[var(--z-dropdown)] m-0 min-w-[160px] origin-top-left list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
               {item.children.map((sub) => (
                 <li key={sub.key}>
                   <button type="button"

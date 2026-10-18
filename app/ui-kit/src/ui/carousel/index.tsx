@@ -55,7 +55,7 @@ export interface CarouselProps {
 }
 
 const BTN_CLS =
-  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-[background-color,transform] hover:bg-scrim-3 active:scale-95';
+  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-[background-color,transform] hover:bg-scrim-3 active:scale-95';
 
 export function Carousel({
   items,

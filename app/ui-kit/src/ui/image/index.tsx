@@ -51,7 +51,7 @@ export function UiImage({ src, alt, width, className }: ImageProps) {
         role="button"
         tabIndex={0}
         aria-label={`${alt} — phóng to`}
-        className={`cursor-zoom-in rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-opacity duration-200 hover:opacity-90 active:opacity-80 ${loaded ? 'opacity-100' : 'opacity-0'}${className ? ` ${className}` : ''}`}
+        className={`cursor-zoom-in rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-opacity duration-200 hover:opacity-90 active:opacity-80 ${loaded ? 'opacity-100' : 'opacity-0'}${className ? ` ${className}` : ''}`}
         onClick={openPreview}
         onKeyDown={onImgKey}
       />

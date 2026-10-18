@@ -37,7 +37,7 @@ export function AutoComplete({ value: valueProp, onChange, onSelect, suggestions
         className="h-8 w-full rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
       />
       {open && matches.length > 0 && (
-        <ul id={listId} role="listbox" className="absolute left-0 top-full z-[var(--z-popover)] m-0 mt-1 w-full list-none overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+        <ul id={listId} role="listbox" className="absolute left-0 top-full z-[var(--z-popover)] m-0 mt-1 w-full origin-top list-none overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
           {matches.map((s) => (
             <li key={s.value} role="option" aria-selected={value === s.value}>
               <button type="button"

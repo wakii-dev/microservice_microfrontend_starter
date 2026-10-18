@@ -43,7 +43,7 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
         <span
           role="tooltip"
           id={bubbleId}
-          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-black/85 px-2 py-1.5 text-body text-white ${
+          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-black/85 px-2 py-1.5 text-body text-white animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] ${
             placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
           }`}
         >

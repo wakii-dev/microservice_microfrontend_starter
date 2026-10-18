@@ -64,7 +64,7 @@ function show(type: NotificationType, title: string, description?: string, durat
   closeBtn.type = 'button';
   closeBtn.setAttribute('aria-label', 'Đóng');
   closeBtn.className =
-    'cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:opacity-70';
+    'cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70';
   closeBtn.textContent = '×';
   wrap.append(icon, body, closeBtn);
   el.append(wrap);

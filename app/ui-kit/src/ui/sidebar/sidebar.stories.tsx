@@ -8,27 +8,18 @@ const meta = { title: 'Navigation/Sidebar', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 
-// IconFolder/IconFile: SVG tạm — primeicons bộ 48 chưa có 'folder'/'file'
-// (audit V2 2026-10-18: chờ quyết định thêm icon, không tự sửa path tay).
-function IconFolder() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 3h3.5L7 5h5v6H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
-}
-function IconFile() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2h4l2 2v8H4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>;
-}
-
 const items: MenuItemData[] = [
   { key: 'home', label: 'Home', icon: <Icon name="home" size={14} /> },
   {
     key: 'manage',
     label: 'Manage',
-    icon: <IconFolder />,
+    icon: <Icon name="folder" size={14} />,
     children: [
-      { key: 'tasks', label: 'Tasks', icon: <IconFile /> },
-      { key: 'accounts', label: 'Accounts', icon: <IconFile /> },
+      { key: 'tasks', label: 'Tasks', icon: <Icon name="file" size={14} /> },
+      { key: 'accounts', label: 'Accounts', icon: <Icon name="file" size={14} /> },
     ],
   },
-  { key: 'reports', label: 'Reports', icon: <IconFile /> },
+  { key: 'reports', label: 'Reports', icon: <Icon name="file" size={14} /> },
 ];
 
 const brand = (

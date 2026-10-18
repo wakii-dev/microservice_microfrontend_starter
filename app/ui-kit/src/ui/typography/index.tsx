@@ -62,7 +62,7 @@ export function Text({
 }: TextProps) {
   const typeStyle = type ? { color: TYPE_COLOR[type] } : undefined;
   let content: ReactNode = children;
-  if (code) content = <code style={{ fontFamily: 'var(--m)', fontSize: '0.9em', background: 'rgba(150,150,150,0.1)', padding: '0.2em 0.4em', borderRadius: 4 }}>{content}</code>;
+  if (code) content = <code style={{ fontFamily: 'var(--m)', fontSize: '0.9em', background: 'var(--s3)', padding: '0.2em 0.4em', borderRadius: 4 }}>{content}</code>;
   if (keyboard) content = <kbd style={{ fontFamily: 'var(--m)', fontSize: '0.9em', border: '1px solid var(--line)', borderBottomWidth: 2, borderRadius: 4, padding: '0 4px' }}>{content}</kbd>;
   if (underline) content = <u>{content}</u>;
   if (del) content = <del>{content}</del>;

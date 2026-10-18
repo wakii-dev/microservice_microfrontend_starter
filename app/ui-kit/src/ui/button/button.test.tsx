@@ -146,10 +146,11 @@ describe('Button — modernize (vision-audit 2026-10-18)', () => {
       'duration-150',
       'focus-visible:ring-2',
       'focus-visible:ring-accent/40',
-      'focus-visible:ring-offset-2',
       'focus-visible:outline-none',
       'active:scale-[0.98]',
     );
+    // KHÔNG ring-offset — khe trắng quanh track tạo viền đôi (chuẩn user duyệt, rule 4)
+    expect(btn.className).not.toContain('ring-offset');
   });
 
   it('middle mặc định h-9 (36px antd middle)', () => {

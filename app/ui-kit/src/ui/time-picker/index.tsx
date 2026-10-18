@@ -103,7 +103,7 @@ export function TimePicker({
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
+        className={`inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
         } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
       >

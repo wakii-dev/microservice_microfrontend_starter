@@ -126,7 +126,7 @@ export function Modal({
         <button
           type="button"
           aria-label="Đóng"
-          className={`absolute right-4 top-4 cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:opacity-70${slot(classNames?.closeButton)}`}
+          className={`absolute right-4 top-4 cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70${slot(classNames?.closeButton)}`}
           onClick={() => onCancel?.()}
         >
           ×

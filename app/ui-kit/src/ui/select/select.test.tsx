@@ -151,3 +151,76 @@ describe('Select — polish (check icon + menu min-height)', () => {
     expect(screen.getByRole('listbox').className).toContain('min-h-[104px]');
   });
 });
+
+// ── Coverage audit additions: multiple / filter / clear / loading (antd parity) ──
+describe('Select — multiple (coverage audit)', () => {
+  it('click 2 options → onChange nhận mảng cộng dồn; chip hiển thị', async () => {
+    const user = userEvent.setup();
+    let latest: string[] = [];
+    const { rerender } = render(
+      <Select ariaLabel="M" options={OPTIONS} multiple value={latest} onChange={(v) => { latest = v as string[]; rerender(<Select ariaLabel="M" options={OPTIONS} multiple value={latest} onChange={(nv) => { latest = nv as string[]; }} />); }} />,
+    );
+    await user.click(screen.getByRole('combobox', { name: 'M' }));
+    await user.click(screen.getByRole('option', { name: 'Cần làm' }));
+    expect(latest).toEqual(['todo']);
+    rerender(<Select ariaLabel="M" options={OPTIONS} multiple value={latest} onChange={(v) => { latest = v as string[]; }} />);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
+    expect(latest).toEqual(['todo', 'done']);
+    // chip hiển thị label đã chọn
+    expect(screen.getByRole('combobox', { name: 'M' })).toHaveTextContent('Cần làm');
+  });
+
+  it('select-all trong panel → onChange với mọi option value', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Select ariaLabel="M2" options={OPTIONS} multiple value={['todo']} onChange={onChange} />);
+    await user.click(screen.getByRole('combobox', { name: 'M2' }));
+    await user.click(screen.getByRole('button', { name: 'Chọn tất cả' }));
+    expect(onChange).toHaveBeenCalledWith(['todo', 'in_progress', 'done']);
+  });
+
+  it('maxSelectedCount → chips giới hạn + "+N" overflow', () => {
+    render(<Select ariaLabel="M3" options={OPTIONS} multiple maxSelectedCount={1} value={['todo', 'in_progress', 'done']} />);
+    const trigger = screen.getByRole('combobox', { name: 'M3' });
+    expect(trigger).toHaveTextContent('Cần làm');
+    expect(trigger).toHaveTextContent('+2');
+  });
+});
+
+describe('Select — filterable (coverage audit)', () => {
+  it('gõ vào ô filter → options lọc theo label', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="F" options={OPTIONS} filterable value="todo" />);
+    await user.click(screen.getByRole('combobox', { name: 'F' }));
+    const box = screen.getByRole('textbox', { name: 'F — tìm kiếm' });
+    await user.type(box, 'làm');
+    expect(screen.getByRole('option', { name: 'Cần làm' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Xong' })).toBeNull();
+  });
+
+  it('filter không khớp → "Không có kết quả"', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="F2" options={OPTIONS} filterable />);
+    await user.click(screen.getByRole('combobox', { name: 'F2' }));
+    await user.type(screen.getByRole('textbox', { name: 'F2 — tìm kiếm' }), 'zzz');
+    expect(screen.getByText('Không có kết quả')).toBeInTheDocument();
+  });
+});
+
+describe('Select — showClear + loading (coverage audit)', () => {
+  it('showClear: có value → nút Xoá; click → onChange("")', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Select ariaLabel="C" options={OPTIONS} showClear value="todo" onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: 'Xoá' }));
+    expect(onChange).toHaveBeenCalledWith('');
+  });
+
+  it('loading → spinner thay listbox', async () => {
+    const user = userEvent.setup();
+    render(<Select ariaLabel="L" options={OPTIONS} loading />);
+    await user.click(screen.getByRole('combobox', { name: 'L' }));
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.getByLabelText('Đang tải options')).toBeInTheDocument();
+  });
+});

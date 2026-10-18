@@ -68,7 +68,7 @@ export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
-        className={`relative h-1.5 w-full rounded-pill bg-line2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
+        className={`relative h-1.5 w-full rounded-pill bg-line2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
         onClick={handleTrack}
       >
         <div

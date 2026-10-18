@@ -191,7 +191,7 @@ export function TreeSelect({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={onTriggerKeyDown}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none ${
+        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
         } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
       >
@@ -204,7 +204,7 @@ export function TreeSelect({
               type="button"
               aria-label="Xoá"
               onClick={(e) => { e.stopPropagation(); clearValue(); }}
-              className="cursor-pointer rounded-pill border-none bg-transparent p-0 text-ink3 hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none"
+              className="cursor-pointer rounded-pill border-none bg-transparent p-0 text-ink3 hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
             >
               <Icon name="times" size={12} />
             </button>
@@ -215,7 +215,7 @@ export function TreeSelect({
 
       {open && (
         <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
-          <span className="block overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+          <span className="block origin-top overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
             {searchable && (
               <span className="block border-b border-line2 p-2">
                 <input

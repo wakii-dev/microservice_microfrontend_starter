@@ -111,7 +111,7 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
           ref={menuRef}
           role="menu"
           onKeyDown={onMenuKey}
-          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]"
+          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] origin-top-right list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
         >
           {items.map((item) =>
             item.key === '---' ? (

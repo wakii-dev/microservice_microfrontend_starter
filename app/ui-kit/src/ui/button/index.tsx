@@ -36,7 +36,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const BASE =
-  'inline-flex items-center justify-center gap-1 rounded-lg border font-medium tracking-[0.01em] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-[var(--bg-disabled)] disabled:text-ink4 active:scale-[0.98] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
+  'inline-flex items-center justify-center gap-1 rounded-lg border font-medium tracking-[0.01em] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-[var(--bg-disabled)] disabled:text-ink4 active:scale-[0.98] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
 
 const SIZE: Record<ButtonSize, string> = {
   small: 'h-8 px-3 text-label',

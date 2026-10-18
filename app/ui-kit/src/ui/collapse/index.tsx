@@ -42,7 +42,7 @@ export function Collapse({ items, defaultActiveKeys = [], className }: CollapseP
               type="button"
               aria-expanded={open}
               onClick={() => toggle(item.key)}
-              className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors outline-none hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+              className="flex w-full cursor-pointer items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors outline-none hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 "
             >
               {item.label}
               <span aria-hidden="true" className={`text-ink3 transition-transform ${open ? 'rotate-180' : ''}`}>

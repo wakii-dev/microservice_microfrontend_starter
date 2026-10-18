@@ -61,7 +61,7 @@ export function ContextMenu({ items, children, onItemClick, className }: Context
     <div ref={ref} className={className} onContextMenu={(e) => { e.preventDefault(); setPos({ x: e.clientX, y: e.clientY }); }}>
       {children}
       {pos && (
-        <ul ref={menuRef} role="menu" onKeyDown={onMenuKey} className="fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)]" style={{ left: pos.x, top: pos.y }}>
+        <ul ref={menuRef} role="menu" onKeyDown={onMenuKey} className="fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] origin-top-left list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]" style={{ left: pos.x, top: pos.y }}>
           {items.map((item) => item.key === '---' ? (
             <li key={item.key} className="my-1 border-t border-line2" />
           ) : (

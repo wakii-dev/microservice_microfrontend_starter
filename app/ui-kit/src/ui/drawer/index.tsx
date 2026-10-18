@@ -95,7 +95,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
           <button
             type="button"
             aria-label="Đóng"
-            className="cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:opacity-70"
+            className="cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70"
             onClick={() => onClose?.()}
           >
             ×

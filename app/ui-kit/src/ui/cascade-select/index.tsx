@@ -62,7 +62,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
       </button>
       {open && (
         <div role="listbox" aria-label={placeholder}
-          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]">
           {current.map((option) => (
             <button key={option.value} type="button" role="option" aria-selected={value[value.length - 1] === option.value}
               onClick={() => {

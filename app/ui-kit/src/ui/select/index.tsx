@@ -184,7 +184,7 @@ export function Select({
 
       {open && (
         <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
-          <span className="block overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)]">
+          <span className="block origin-top overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
             {/* Filter input */}
             {filterable && (
               <span className="block border-b border-line2 p-2">

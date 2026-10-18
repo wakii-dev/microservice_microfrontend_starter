@@ -59,7 +59,7 @@ function ChevronRightIcon() {
 const CELL =
   'aspect-square w-full flex items-center justify-center rounded-lg border-none text-body select-none cursor-pointer transition-colors';
 const NAV_CLS =
-  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas focus-visible:outline-none';
+  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none';
 
 export function Calendar({ value, onChange, now = new Date(), locale, range, onDayHover, bare = false, className }: CalendarProps) {
   const loc = useDateLocale(locale);

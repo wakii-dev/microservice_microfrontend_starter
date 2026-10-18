@@ -31,6 +31,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `Row`/`Col` | 24-col responsive grid — KPI rows, dashboard card mosaics, form column splits | `gutter` on `Row` (number or `[h, v]` px — antd mechanic: negative margin + col padding) | `Col span={24} md={12} xl={6}` mobile-first (xs→xl resolve qua matchMedia) · wrap `Card`/`Statistic` dashboards · nest rows for sub-layouts |
 | `Flex` | One-axis layout fast — toolbars, button rows, stacked forms (skip 24-col math) | `gap` (`'small' \| 'middle' \| 'large'` \| px, default 8) | `vertical` for stacked form fields · justify/align raw CSS values · lighter than `Row`/`Col` when columns don't matter |
 | `Anchor` | In-page TOC with scroll-spy — docs, long settings, detail pages | `items` (`href: '#section-id'` + nested `children` for sub-levels) | `affix` sticky rail beside long content · `offsetTop` to clear sticky headers · `onClick` for analytics · `getContainer` for inner scroll areas |
+| `Layout` | App frame — Header/Content/Footer/Sider zones (antd Layout parity) | `Layout.Sider` (`width`/`collapsed`/`collapsedWidth` — mặc định 200↔80 khớp Sidebar) | `Layout hasSider` + `Sidebar` inside Sider · `Header sticky` top bar · `useSiderCollapsed()` cho UI đọc trạng thái thu gọn |
 
 ## Menu family — khi nào dùng
 
@@ -71,6 +72,7 @@ So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa c�
 | `Tag` | Tiny label chip — statuses, metadata; `Tag.Checkable` for filter chips | `closable`+`onClose` (consumer removes) · Checkable `checked`+`onChange` | `Table` status cells · `Checkable` chip groups in filter bars · `List` row meta |
 | `Timeline` | Vertical activity feed — dot + text + time per entry | `items` (per-item `color` dot, `label` time) · `mode="alternate|left|right"` (label column) · `pending` hollow dot | `Card` body feeds · audit/history panels (recipe 6) · deploy logs with "rolling out…" tail |
 | `Tree` | Expand/collapse hierarchy — file trees, category nav | `data` (+ `defaultExpandedKeys`; uncontrolled expand state) · `showLine` connector borders | side navigation panels · use `TreeSelect` when a value must be picked |
+| `TreeTable` | Hierarchical data as a grid — file trees with columns, WBS/org with metadata | `data` (recursive `{key, children?, values}`) + `columns` (`header`/`align`/`render`) | `defaultExpandedKeys`/`expandedKeys` + `onRowToggle` · `selectionMode` single/checkbox (+ select-all đếm cả node gập) · indent `--sp-4` × depth · expand animate grid-rows 3-tier clip |
 | `VirtualScroll` | Windowed list for 10k+ rows — mount only the visible window + buffer, GPU translate | `itemSize` (FIXED row height px — dynamic height is a known backlog) | `height` px or `'100%'` (measured after mount) · `onScrollEnd` fires once per bottom-hit for load-more · pair with `List`-style rows · NOT for `Table` (use `Table virtual`) |
 
 

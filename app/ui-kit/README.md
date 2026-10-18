@@ -125,6 +125,24 @@ const form = useForm({ schema, mode: 'onBlur' });
 Heavy engines are **optional peer dependencies** — install them only if you use the subpath:
 `@wakii/ui-kit/carousel` → `swiper` · `chart` → `chart.js` · `useForm` → `zod` · schedule → `@fullcalendar/*` · editor → `@tiptap/*`
 
+## 🧩 Templates — full pages composed from the kit
+
+Mỗi template là **1 story sống** trong Storybook — controlled state thật (drag card, filter,
+log giờ đều chạy), không phải mock render. Copy về app, đổi data là dùng.
+
+| Template | Components chính | Story path (`?path=/story/…` trên :6006 hoặc live Storybook) |
+|---|---|---|
+| **Dashboard** (admin) | `Layout` (Sider+Header) · `Row/Col` · `Card`/`Statistic` · `Table` · `Timeline` · `Chart` | `templates-dashboard--dashboard` |
+| **Kanban Project** | `KanbanBoard` (4 cột + WIP limit) · `Segmented`/`Input.Search`/`Select` filter · `Avatar`/`Badge`/`Tag` · `Timesheet` · `message` | `templates-kanban-project--project-board` |
+| **CRUD Table** | `Table` (sort/filter/pagination/expandable/loading) · `Modal` form · `message` | `templates-crud-table--full-demo` |
+| **Auth** (Sign in / Sign up / split) | `useForm` + `zod` · `Field`/`Input`/`Button`/`Checkbox` · `Layout` split | `templates-auth--sign-in` · `--sign-up` · `--split-layout` |
+| **Settings** | `Tabs` · `Switch` · `Field`/`Select` — *đang chuẩn bị; recipe 9 sẵn ở [recipes.md](../../docs/ai/recipes.md)* | — |
+| **Landing** | `Button` · `Tag` · `Typography` · `Divider` — *đang chuẩn bị; recipe 10 sẵn* | — |
+
+> Trạng thái thật (đếm từ Storybook index 2026-10-18): **4/6 template live** (Dashboard,
+> Kanban Project, CRUD Table, Auth — 13 story). Settings/Landing theo roadmap — recipe
+> tương ứng đã có sẵn để copy ngay.
+
 ## 🔬 Quality
 
 - **540 behavior tests** (clicks → callbacks, state classes, keyboard flows)

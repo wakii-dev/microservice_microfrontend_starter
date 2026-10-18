@@ -21,7 +21,7 @@ function ensureContainer(): HTMLDivElement {
   // isConnected guard: container có thể bị detach (cleanup test / HMR) — tái tạo
   if (!container || !container.isConnected) {
     container = document.createElement('div');
-    container.className = 'pointer-events-none fixed inset-x-0 top-4 z-50 flex flex-col items-center gap-2';
+    container.className = 'pointer-events-none fixed inset-x-0 top-4 z-[var(--z-toast)] flex flex-col items-center gap-2';
     document.body.appendChild(container);
   }
   return container;

@@ -143,3 +143,62 @@ export const MoRong: Story = {
   name: '13 · Row Expansion',
   render: () => <ExpandDemo />,
 };
+
+// ── Virtual Scroll (5000 rows — windowed, DOM chỉ giữ ~20 rows) ──
+interface BigRow { id: string; name: string; team: string; status: 'todo' | 'doing' | 'done'; point: number }
+
+// Faker VN tự chế — deterministic (derivable từ index, không random runtime)
+const HOS = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Đặng', 'Bùi', 'Đỗ'];
+const DEM = ['Văn', 'Thị', 'Hữu', 'Ngọc', 'Minh', 'Thanh', 'Tuấn', 'Lan', 'Hương', 'Đức'];
+const TEN = ['An', 'Bình', 'Cường', 'Dung', 'Giang', 'Hà', 'Khanh', 'Mai', 'Nam', 'Yến'];
+const NHOMS = ['Frontend', 'Backend', 'QA', 'DevOps', 'Data'];
+
+const BIG_DATA: BigRow[] = Array.from({ length: 5000 }, (_, i) => ({
+  id: String(i + 1),
+  name: `${HOS[i % 10]} ${DEM[(i * 3) % 10]} ${TEN[(i * 7) % 10]}`,
+  team: NHOMS[i % 5],
+  status: (['todo', 'doing', 'done'] as const)[i % 3],
+  point: 20 + ((i * 13) % 81),
+}));
+
+const BIG_COLS = [
+  { key: 'id', title: 'ID', width: '64px', sortable: true },
+  { key: 'name', title: 'Thành viên', sortable: true },
+  { key: 'team', title: 'Nhóm', sortable: true, filterable: true, filterMatchMode: 'equals' as const },
+  {
+    key: 'status',
+    title: 'Trạng thái',
+    sortable: true,
+    render: (r: BigRow) => (
+      <Badge variant={r.status === 'todo' ? 'todo' : r.status === 'doing' ? 'doing' : 'done'}>{r.status}</Badge>
+    ),
+  },
+  { key: 'point', title: 'Điểm', sortable: true, dataType: 'number' as const },
+];
+
+export const TableVirtualDemo: Story = {
+  name: '14 · Virtual Scroll (5000 rows)',
+  render: () => (
+    <div>
+      <p className="mb-2 text-label text-ink3">
+        5000 rows · itemHeight 44 · scrollHeight 480 — cuộn thử: mượt, DOM chỉ giữ ~20 rows quanh viewport
+      </p>
+      <Table
+        columns={BIG_COLS}
+        dataSource={BIG_DATA}
+        rowKey="id"
+        virtual={{ itemHeight: 44 }}
+        scrollHeight={480}
+      />
+    </div>
+  ),
+};
+
+export const DarkTheme: Story = {
+  name: 'Dark theme — striped/selected theo token',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <Table columns={COLS} dataSource={DATA.slice(0, 5)} rowKey="id" striped />
+    </div>
+  ),
+};

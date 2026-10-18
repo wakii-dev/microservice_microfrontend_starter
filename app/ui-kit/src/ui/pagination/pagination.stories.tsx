@@ -1,5 +1,6 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// PARITY: PrimeReact Paginator (item 32, current accent fill, ellipsis jump).
+// PARITY: antd Pagination (item ô vuông 32 không viền, active accent fill + fontWeightStrong,
+// hover colorBgTextHover, SVG chevron, ellipsis ··· jump ±5).
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Pagination } from './index';
@@ -45,4 +46,14 @@ export const NhieuTrang: Story = {
   name: 'Nhiều trang — ellipsis jump',
   args: { current: 50, pageSize: 10, total: 1000 },
   render: () => <ControlledDemo initial={50} total={1000} />,
+};
+
+export const DarkTheme: Story = {
+  name: 'Dark theme',
+  args: { current: 5, pageSize: 10, total: 100 },
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <ControlledDemo />
+    </div>
+  ),
 };

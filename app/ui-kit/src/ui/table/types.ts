@@ -84,6 +84,11 @@ export interface TableColumn<T> {
   align?: 'left' | 'center' | 'right';
 }
 
+/** Cấu hình virtual scroll — chiều cao cố định 1 row (px) dùng cho window math. */
+export interface TableVirtualConfig {
+  itemHeight: number;
+}
+
 export interface TableProps<T> {
   columns: Array<TableColumn<T>>;
   dataSource: T[];
@@ -101,6 +106,12 @@ export interface TableProps<T> {
   selectedRowKeys?: Array<string>;
   onSelectionChange?: (records: T[]) => void;
   scrollHeight?: number | string;
+  /**
+   * Virtual scroll — render windowed rows theo scrollTop khi dữ liệu lớn
+   * (> ~50 rows). `true` = itemHeight mặc định 44; object = override.
+   * Yêu cầu scrollHeight (viewport) để tính window; giữ selection + sticky header.
+   */
+  virtual?: boolean | TableVirtualConfig;
   striped?: boolean;
   borderless?: boolean;
   size?: 'small' | 'normal' | 'large';

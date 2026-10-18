@@ -16,7 +16,7 @@ let seq = 0;
 function ensureContainer(): HTMLDivElement {
   if (!container || !container.isConnected) {
     container = document.createElement('div');
-    container.className = 'pointer-events-none fixed right-4 top-4 z-50 flex w-[336px] flex-col gap-3';
+    container.className = 'pointer-events-none fixed right-4 top-4 z-[var(--z-toast)] flex w-[336px] flex-col gap-3';
     document.body.appendChild(container);
   }
   return container;

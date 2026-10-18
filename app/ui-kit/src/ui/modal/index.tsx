@@ -1,9 +1,12 @@
 // Modal — hộp thoại confirm (antd look: centered, overlay, radius-3, shadow
 // boxShadowSecondary). Motion identity (CSS): zoom-in mở / zoom-out đóng — closing
 // state machine: open=false → animation XONG mới unmount. ESC + overlay = cancel.
-import { useEffect, useState, type ReactNode } from 'react';
+// A11y (batch ⑫ worker C): focus trap (Tab/Shift+Tab vòng trong dialog), mở →
+// focus phần tử đầu, đóng → trả focus về trigger (capture document.activeElement).
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../button/index';
+import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 export interface ModalProps {
   open: boolean;
@@ -32,6 +35,10 @@ export function Modal({
 }: ModalProps) {
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // active = open && mounted: mở → focus đầu; bắt đầu closing → trả focus trigger
+  useFocusTrap(dialogRef, open && mounted);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -58,13 +65,15 @@ export function Modal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
+      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-black/45 p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
       onClick={() => onCancel?.()}
       data-testid="modal-overlay"
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         aria-label={typeof title === 'string' ? title : undefined}
         style={{ willChange: "transform, opacity" }}
         className={`w-full max-w-[416px] rounded-3 bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}`}

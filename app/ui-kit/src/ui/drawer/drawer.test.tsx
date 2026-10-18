@@ -1,6 +1,8 @@
-// Drawer tests — portal, open/close, ESC, mask click, footer.
-import { cleanup, render, screen } from '@testing-library/react';
+// Drawer tests — portal, open/close, ESC, mask click, footer
+// (+ focus management batch ⑫: trap Tab, focus-first, trả focus trigger).
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Drawer } from './index.js';
 
@@ -46,5 +48,61 @@ describe('Drawer — branch phụ (Tier 5 sweep)', () => {
     expect(screen.getByRole('dialog', { name: 'Không footer' })).toBeInTheDocument();
     // footer element = block cuối có border-t — không truyền footer thì không có
     expect(document.querySelector('.border-t.border-line2.p-4')).toBeNull();
+  });
+});
+
+describe('Drawer — focus management (a11y batch ⑫ worker C)', () => {
+  function DrawerHost({ onClose }: { onClose: () => void }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <button onClick={() => setOpen(true)}>Mở drawer</button>
+        <Drawer
+          open={open}
+          title="Chi tiết"
+          onClose={() => { onClose(); setOpen(false); }}
+          footer={<button onClick={() => setOpen(false)}>Lưu</button>}
+        >
+          Nội dung drawer
+        </Drawer>
+      </>
+    );
+  }
+
+  const openDrawer = async (onClose = vi.fn()) => {
+    const user = userEvent.setup();
+    render(<DrawerHost onClose={onClose} />);
+    await user.click(screen.getByRole('button', { name: 'Mở drawer' }));
+    return { user, onClose };
+  };
+
+  it('mở → focus phần tử focusable đầu (nút × Đóng)', async () => {
+    await openDrawer();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
+  });
+
+  it('Tab ở phần tử cuối (Lưu) → vòng về đầu, KHÔNG thoát ra ngoài panel', async () => {
+    await openDrawer();
+    screen.getByRole('button', { name: 'Lưu' }).focus();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
+  });
+
+  it('Shift+Tab ở phần tử đầu → vòng về cuối', async () => {
+    await openDrawer(); // focus đang ở Đóng (đầu)
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab', shiftKey: true });
+    expect(screen.getByRole('button', { name: 'Lưu' })).toHaveFocus();
+  });
+
+  it('ESC → gọi onClose', async () => {
+    const { onClose } = await openDrawer();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('đóng → focus TRẢ VỀ trigger (Mở drawer)', async () => {
+    const { user } = await openDrawer();
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(screen.getByRole('button', { name: 'Mở drawer' })).toHaveFocus();
   });
 });

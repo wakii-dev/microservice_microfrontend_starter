@@ -209,3 +209,92 @@ describe('Table — scroll + variants + expansion', () => {
     expect(screen.getByTestId('exp-1')).toBeInTheDocument();
   });
 });
+
+describe('Table — virtual scroll', () => {
+  const BIG = Array.from({ length: 120 }, (_, i) => ({
+    id: String(i),
+    title: `Task ${i}`,
+    status: 'todo' as const,
+    priority: i,
+  }));
+
+  it('virtual off (mặc định) → render hết 120 rows như cũ', () => {
+    render(<Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={300} />);
+    expect(screen.getByText('Task 0')).toBeInTheDocument();
+    expect(screen.getByText('Task 119')).toBeInTheDocument();
+  });
+
+  it('virtual on, scrollTop 0 → chỉ window đầu (viewport + overscan 8); rows ngoài window không có trong DOM', () => {
+    render(
+      <Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={200} virtual={{ itemHeight: 40 }} />,
+    );
+    // viewport 200px / itemHeight 40 = 5 rows nhìn thấy + overscan 8 → rows 0..12
+    expect(screen.getByText('Task 0')).toBeInTheDocument();
+    expect(screen.getByText('Task 12')).toBeInTheDocument();
+    expect(screen.queryByText('Task 13')).toBeNull();
+    expect(screen.queryByText('Task 119')).toBeNull();
+  });
+
+  it('fireEvent.scroll xuống giữa → window trượt; rows cũ ngoài window biến mất', () => {
+    const { container } = render(
+      <Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={200} virtual={{ itemHeight: 40 }} />,
+    );
+    const scroller = container.querySelector('div[style*="max-height"]') as HTMLElement;
+    fireEvent.scroll(scroller, { target: { scrollTop: 40 * 60 } }); // xuống row 60
+    expect(screen.getByText('Task 60')).toBeInTheDocument();
+    expect(screen.getByText('Task 52')).toBeInTheDocument(); // 60 − overscan 8
+    expect(screen.queryByText('Task 51')).toBeNull();
+    expect(screen.queryByText('Task 0')).toBeNull();
+  });
+
+  it('itemHeight override → window size đổi theo chiều cao row', () => {
+    render(
+      <Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={200} virtual={{ itemHeight: 40 }} />,
+    );
+    const rowsWith40 = screen.getAllByRole('row').length;
+    cleanup();
+    render(
+      <Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={200} virtual={{ itemHeight: 100 }} />,
+    );
+    const rowsWith100 = screen.getAllByRole('row').length;
+    expect(rowsWith40).toBeGreaterThan(rowsWith100);
+  });
+
+  it('virtual=true (boolean) → itemHeight mặc định 44 vẫn window đúng', () => {
+    render(
+      <Table columns={COLS} dataSource={BIG} rowKey="id" scrollHeight={220} virtual />,
+    );
+    // viewport 220 / 44 = 5 + overscan 8 → rows 0..12
+    expect(screen.getByText('Task 0')).toBeInTheDocument();
+    expect(screen.getByText('Task 12')).toBeInTheDocument();
+    expect(screen.queryByText('Task 13')).toBeNull();
+  });
+
+  it('virtual on nhưng ≤ ngưỡng 50 rows → render hết (không window)', () => {
+    render(<Table columns={COLS} dataSource={DATA} rowKey="id" virtual />);
+    expect(screen.getByText('Học TypeScript')).toBeInTheDocument();
+    expect(screen.getByText('Viết test E2E')).toBeInTheDocument();
+  });
+
+  it('virtual on giữ selection qua scroll (windowed rows vẫn chọn được)', async () => {
+    const onSelectionChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={BIG}
+        rowKey="id"
+        scrollHeight={200}
+        virtual={{ itemHeight: 40 }}
+        selectionMode="single"
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+    await user.click(screen.getByText('Task 0')); // row đầu trong window
+    expect(onSelectionChange).toHaveBeenLastCalledWith([BIG[0]]);
+    const scroller = container.querySelector('div[style*="max-height"]') as HTMLElement;
+    fireEvent.scroll(scroller, { target: { scrollTop: 40 * 60 } });
+    await user.click(screen.getByText('Task 60')); // row giữa window sau scroll
+    expect(onSelectionChange).toHaveBeenLastCalledWith([BIG[60]]);
+  });
+});

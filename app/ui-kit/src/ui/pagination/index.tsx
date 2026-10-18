@@ -1,7 +1,12 @@
-// Pagination — antd look: item 32×32 rounded-2, current = nền accent trắng chữ,
-// prev/next ‹ ›, ellipsis ••• (jump ±5 — antd quick). Contract note: TasksPage giữ
-// "Tải thêm"/"x/total" — component này stories-only cho đến khi có page-based list.
+// Pagination — antd look: item ô vuông 32px (h-8 min-w-8) rounded-lg, KHÔNG chọn
+// = viền outline (border-line) để nút đọc rõ; active = nền accent đặc + chữ trắng
+// font-medium (fontWeightStrong) không viền; hover item thường/prev/next = bg-s3
+// (colorBgTextHover); prev/next SVG chevron, ellipsis ··· (jump ±5 — antd quick);
+// disabled = text-ink3 cursor-not-allowed, không hover bg, không viền.
+// Contract note: TasksPage giữ "Tải thêm"/"x/total" — component này stories-only
+// cho đến khi có page-based list.
 import { useMemo } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface PaginationProps {
   current: number;
@@ -24,8 +29,19 @@ export function pageList(current: number, pageCount: number): Array<number | 'el
   return pages;
 }
 
+function ChevronLeftIcon() {
+  return <Icon name="chevron-left" size={14} />;
+}
+function ChevronRightIcon() {
+  return <Icon name="chevron-right" size={14} />;
+}
+
 const ITEM =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-2 border border-transparent px-2 text-body text-ink transition-colors hover:text-accent';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink transition-colors hover:bg-s3';
+const ITEM_ACTIVE =
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white';
+const ITEM_DISABLED =
+  'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border-none bg-transparent px-2 text-body text-ink3 cursor-not-allowed';
 
 export function Pagination({ current, pageSize, total, onChange, className }: PaginationProps) {
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -41,11 +57,11 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
       <button
         type="button"
         aria-label="Trang trước"
-        className={ITEM}
+        className={current === 1 ? ITEM_DISABLED : ITEM}
         disabled={current === 1}
         onClick={() => go(current - 1)}
       >
-        ‹
+        <ChevronLeftIcon />
       </button>
       {pages.map((p) =>
         p === 'ellipsis-prev' || p === 'ellipsis-next' ? (
@@ -56,7 +72,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
             className={`${ITEM} tracking-[2px]`}
             onClick={() => go(p === 'ellipsis-prev' ? Math.max(1, current - 5) : Math.min(pageCount, current + 5))}
           >
-            •••
+            ···
           </button>
         ) : (
           <button
@@ -64,11 +80,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
             type="button"
             aria-label={`Trang ${p}`}
             aria-current={p === current ? 'page' : undefined}
-            className={
-              p === current
-                ? 'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-[4px] border-none bg-accent px-2 text-body text-white'
-                : `${ITEM}`
-            }
+            className={p === current ? ITEM_ACTIVE : ITEM}
             onClick={() => go(p)}
           >
             {p}
@@ -78,11 +90,11 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
       <button
         type="button"
         aria-label="Trang sau"
-        className={ITEM}
+        className={current === pageCount ? ITEM_DISABLED : ITEM}
         disabled={current === pageCount}
         onClick={() => go(current + 1)}
       >
-        ›
+        <ChevronRightIcon />
       </button>
     </nav>
   );

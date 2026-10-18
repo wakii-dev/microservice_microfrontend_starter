@@ -32,3 +32,18 @@ export const CoMoTaVaClose: Story = {
     closable: true,
   },
 };
+
+export const DarkTheme: Story = {
+  name: 'Dark theme (filled hex giữ nguyên — WCAG chủ đích)',
+  args: { message: 'Alert' },
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+      <div style={{ display: 'grid', gap: 12, maxWidth: 560 }}>
+        <Alert type="success" message="Đã lưu thay đổi." />
+        <Alert type="info" message="Dịch vụ xác thực người dùng chưa sẵn sàng — thử lại sau." />
+        <Alert type="warning" message="Token sắp hết hạn." />
+        <Alert type="error" message="Email hoặc mật khẩu không đúng." />
+      </div>
+    </div>
+  ),
+};

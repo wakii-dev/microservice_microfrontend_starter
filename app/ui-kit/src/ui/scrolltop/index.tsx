@@ -19,7 +19,7 @@ export function ScrollTop({ threshold = 400, className }: ScrollTopProps) {
       type="button"
       aria-label="Về đầu trang"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-6 right-6 z-40 grid size-10 cursor-pointer place-items-center rounded-pill border-none bg-accent text-body text-white shadow-[var(--shadow-pop)] transition-opacity hover:opacity-90${className ? ` ${className}` : ''}`}
+      className={`fixed bottom-6 right-6 z-[var(--z-toast)] grid size-10 cursor-pointer place-items-center rounded-pill border-none bg-accent text-body text-white shadow-[var(--shadow-pop)] transition-opacity hover:opacity-90${className ? ` ${className}` : ''}`}
     >
       ↑
     </button>

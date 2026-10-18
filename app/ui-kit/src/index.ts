@@ -72,3 +72,56 @@ export { Menubar, type MenubarProps, type MenubarItem } from './ui/menubar/index
 export { PanelMenu, type PanelMenuProps, type PanelMenuItem } from './ui/panel-menu/index.js';
 export { TabMenu, type TabMenuProps, type TabMenuItem } from './ui/tab-menu/index.js';
 export { SplitButton, type SplitButtonProps, type SplitButtonItem } from './ui/split-button/index.js';
+
+// ── Hooks (native, spec usehooks.com — batch ④ 2026-10-17) ──
+export { useLocalStorage } from './hooks/useLocalStorage.js';
+export { useSessionStorage } from './hooks/useSessionStorage.js';
+export { useToggle } from './hooks/useToggle.js';
+export { usePrevious } from './hooks/usePrevious.js';
+export { useDefault } from './hooks/useDefault.js';
+export { useDebounce } from './hooks/useDebounce.js';
+export { useThrottle } from './hooks/useThrottle.js';
+export { useTimeout } from './hooks/useTimeout.js';
+export { useCountdown } from './hooks/useCountdown.js';
+export { useClickAway } from './hooks/useClickAway.js';
+export { useHover } from './hooks/useHover.js';
+export { useKeyPress } from './hooks/useKeyPress.js';
+export { useMediaQuery } from './hooks/useMediaQuery.js';
+export { useLockBodyScroll } from './hooks/useLockBodyScroll.js';
+export { useWindowSize } from './hooks/useWindowSize.js';
+export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
+
+// ── Navigation mới (batch ② 2026-10-17) ──
+export { Menu, type MenuProps, type MenuItemData, MenuCompactContext, findPath } from './ui/menu/index.js';
+export { Sidebar, type SidebarProps } from './ui/sidebar/index.js';
+export { useForm, type UseFormOptions, type FormErrors, type FormValidationMode } from './hooks/useForm.js';
+
+// ── Upload (batch ③ 2026-10-18) ──
+export { Upload, UploadDropzone } from './ui/upload/index.js';
+export type { UploadItem, UploadProps, UploadStatus } from './ui/upload/upload-core.js';
+
+// ── Icon system + Field (batch ⑥⑩ 2026-10-18) ──
+export { Icon, type IconName } from './ui/icons/index.js';
+export { Field, type FieldProps } from './ui/field/index.js';
+
+// ── Data display mới (batch ⑨ 2026-10-18) ──
+export { List, type ListProps } from './ui/list/index.js';
+export { AvatarGroup, type AvatarGroupProps } from './ui/avatar-group/index.js';
+export { TreeSelect, type TreeSelectProps, type TreeNode } from './ui/tree-select/index.js';
+
+// ── Date/Time (batch ⑧ 2026-10-18) ──
+export { TimePicker, type TimePickerProps } from './ui/time-picker/index.js';
+export type { DateLocale } from './ui/date-picker/locale.js';
+export { useFocusTrap } from './hooks/useFocusTrap.js';
+
+// ── Misc family (batch 3) — bổ sung barrel sau QA sweep 2026-10-18 (comp có test
+// nhưng thiếu export, stories = backlog riêng) ──
+export { AutoComplete, type AutoCompleteProps } from './ui/auto-complete/index.js';
+export { CascadeSelect, type CascadeSelectProps } from './ui/cascade-select/index.js';
+export { Chips, type ChipsProps } from './ui/chips/index.js';
+export { Inplace, type InplaceProps } from './ui/inplace/index.js';
+export { Knob, type KnobProps } from './ui/knob/index.js';
+export { Mention, type MentionProps } from './ui/mention/index.js';
+export { OrderList, type OrderListProps, type OrderListItem } from './ui/order-list/index.js';
+export { PickList, type PickListProps } from './ui/pick-list/index.js';
+export { ScrollPanel, type ScrollPanelProps } from './ui/scroll-panel/index.js';

@@ -12,6 +12,8 @@
 // - Scroll: scrollHeight + sticky header
 // - Variants: striped / borderless / size small|normal|large
 // - Loading skeleton · EmptyState · Row expansion
+// - Virtual scroll (virtual: boolean | { itemHeight } — windowed rows khi > 50
+//   rows, spacer rows giữ scrollbar, thead sticky + selection giữ nguyên)
 // - CSV export (toolbar button)
 // - Column resize (kéo viền cột)
 import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
@@ -24,9 +26,9 @@ import { Checkbox } from '../checkbox/index';
 import { FilterIcon, FilterFillIcon, FilterSlashIcon, SortAltIcon, SortAmountUpIcon, SortAmountDownIcon } from './icons';
 import type {
   SortMeta, SortOrder, FilterMatchMode, FilterOperator,
-  FilterConstraint, TableColumn, TableProps,
+  FilterConstraint, TableColumn, TableProps, TableVirtualConfig,
 } from './types';
-export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps } from './types';
+export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps, TableVirtualConfig } from './types';
 import { STRING_MODES, NUMBER_MODES, matchConstraint } from './types';
 export { STRING_MODES, NUMBER_MODES, matchConstraint };
 
@@ -45,6 +47,11 @@ function matchColumn(record: Record<string, unknown>, filter: { constraints: Fil
 
 const SIZE_CLS = { small: 'px-3 py-1.5 text-label', normal: 'px-4 py-2.5 text-body', large: 'px-5 py-3.5 text-body' } as const;
 const HEAD_SIZE = { small: 'px-3 py-1.5 text-label', normal: 'px-4 py-2.5 text-label', large: 'px-5 py-3 text-body' } as const;
+
+// ── Virtual scroll — render windowed rows theo scrollTop ──
+const VIRTUAL_THRESHOLD = 50;   // chỉ engage khi số rows > ngưỡng
+const VIRTUAL_OVERSCAN = 8;     // render dư 8 rows mỗi phía
+const VIRTUAL_ROW_HEIGHT = 44;  // itemHeight mặc định khi virtual=true
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Filter Menu — funnel icon + dropdown (PrimeReact UX signature)
@@ -191,6 +198,7 @@ export function Table<T extends object>({
   selectedRowKeys: controlledSelected,
   onSelectionChange,
   scrollHeight,
+  virtual = false,
   striped = false,
   borderless = false,
   size = 'normal',
@@ -211,7 +219,9 @@ export function Table<T extends object>({
   const [internalSelected, setInternalSelected] = useState<string[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
   const [colWidths, setColWidths] = useState<Record<string, number>>({});
+  const [scrollTop, setScrollTop] = useState(0);
   const gridRef = useRef<HTMLTableElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
 
   const selectedKeys = controlledSelected ?? internalSelected;
@@ -262,6 +272,26 @@ export function Table<T extends object>({
   const pageCount = paginator ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
   const safePage = Math.min(page, pageCount);
   const paged = paginator ? sorted.slice((safePage - 1) * pageSize, safePage * pageSize) : sorted;
+
+  // ── virtual window: render duy nhất các rows trong viewport (+overscan 2 phía) ──
+  // Kỹ thuật: 2 spacer rows (trước/sau window) giữ tổng chiều cao body =
+  // itemHeight × rows → scrollbar đúng; thead sticky + column width giữ nguyên
+  // vì vẫn là 1 bảng duy nhất. virtual off (hoặc ≤ ngưỡng) → render như cũ.
+  const virtualCfg: TableVirtualConfig | null =
+    virtual == null || virtual === false
+      ? null
+      : { itemHeight: typeof virtual === 'object' ? virtual.itemHeight : VIRTUAL_ROW_HEIGHT };
+  const virtualOn = virtualCfg != null && !loading && paged.length > VIRTUAL_THRESHOLD;
+  const rowHeight = virtualCfg?.itemHeight ?? VIRTUAL_ROW_HEIGHT;
+  const viewportH = scrollerRef.current?.clientHeight
+    || (typeof scrollHeight === 'number' ? scrollHeight : 400);
+  const maxScroll = Math.max(0, paged.length * rowHeight - viewportH);
+  const clampedTop = Math.min(scrollTop, maxScroll);
+  const winStart = virtualOn ? Math.max(0, Math.floor(clampedTop / rowHeight) - VIRTUAL_OVERSCAN) : 0;
+  const winEnd = virtualOn
+    ? Math.min(paged.length, Math.ceil((clampedTop + viewportH) / rowHeight) + VIRTUAL_OVERSCAN)
+    : paged.length;
+  const windowed = virtualOn ? paged.slice(winStart, winEnd) : paged;
 
   // ── selection: GIỮ qua filter/pagination (keys-based) ──
   const keyOf = (r: T) => String(r[rowKey]);
@@ -384,10 +414,17 @@ export function Table<T extends object>({
       )}
 
       <div
+        ref={scrollerRef}
         className="overflow-auto rounded-3 border border-line"
         style={scrollHeight !== undefined ? { maxHeight: typeof scrollHeight === 'number' ? `${scrollHeight}px` : scrollHeight } : undefined}
+        onScroll={virtualOn ? (e) => setScrollTop(e.currentTarget.scrollTop) : undefined}
       >
-        <table role="grid" aria-rowcount={sorted.length} className="w-full border-collapse text-left text-body">
+        <table
+          role="grid"
+          aria-rowcount={sorted.length}
+          className="w-full border-collapse text-left text-body"
+          style={virtualOn ? { tableLayout: 'fixed' } : undefined}
+        >
           <thead>
             <tr>
               {hasSelection && (
@@ -499,16 +536,24 @@ export function Table<T extends object>({
                 </td>
               </tr>
             ) : (
-              paged.map((record, rowIndex) => {
+              <>
+                {virtualOn && winStart > 0 && (
+                  <tr aria-hidden="true" style={{ height: winStart * rowHeight }}>
+                    <td colSpan={columns.length + extraCols} style={{ padding: 0, border: 'none' }} />
+                  </tr>
+                )}
+                {windowed.map((record, i) => {
+                const rowIndex = winStart + i;
                 const k = keyOf(record);
                 const isSelected = hasSelection && selectedKeys.includes(k);
                 const isExpanded = expandedKeys.has(k);
                 return (
                   <Fragment key={k}>
                     <tr
+                      style={virtualOn ? { height: rowHeight } : undefined}
                       aria-selected={hasSelection ? isSelected : undefined}
                       className={`${borderCls} transition-colors duration-150 ${
-                        isSelected ? 'bg-[#e6f4ff]' : striped && rowIndex % 2 === 1 ? 'bg-[rgba(0,0,0,0.02)]' : ''
+                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3' : ''
                       } hover:bg-s3 ${selectionMode === 'single' ? 'cursor-pointer' : ''}`}
                       onClick={() => selectionMode === 'single' && emitSelection([keyOf(record)])}
                     >
@@ -548,7 +593,13 @@ export function Table<T extends object>({
                     )}
                   </Fragment>
                 );
-              })
+                })}
+                {virtualOn && winEnd < paged.length && (
+                  <tr aria-hidden="true" style={{ height: (paged.length - winEnd) * rowHeight }}>
+                    <td colSpan={columns.length + extraCols} style={{ padding: 0, border: 'none' }} />
+                  </tr>
+                )}
+              </>
             )}
           </tbody>
         </table>

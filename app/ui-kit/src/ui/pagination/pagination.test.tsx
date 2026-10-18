@@ -1,4 +1,4 @@
-// Pagination tests — pageList window ±1 + đầu/cuối + ellipsis; item current/aria.
+// Pagination tests — pageList window ±1 + đầu/cuối + ellipsis; item active/hover/disabled.
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -21,11 +21,40 @@ describe('pageList', () => {
 });
 
 describe('Pagination', () => {
-  it('current → aria-current + nền accent; prev disabled ở trang 1', () => {
+  it('active → bg-accent + text-white + font-medium, không viền; item thường → outline border-line + hover:bg-s3', () => {
+    render(<Pagination current={2} pageSize={10} total={100} onChange={vi.fn()} />);
+    const active = screen.getByRole('button', { name: 'Trang 2' });
+    expect(active).toHaveClass('bg-accent', 'text-white', 'font-medium');
+    expect(active).toHaveAttribute('aria-current', 'page');
+    expect(active).not.toHaveClass('border-line');
+    const normal = screen.getByRole('button', { name: 'Trang 1' });
+    expect(normal).toHaveClass('border', 'border-line', 'hover:bg-s3', 'bg-transparent');
+    expect(normal).not.toHaveClass('bg-accent');
+  });
+
+  it('prev disabled ở trang 1 → text-ink3 cursor-not-allowed, không hover bg không viền; next enabled có viền', () => {
     render(<Pagination current={1} pageSize={10} total={100} onChange={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Trang 1' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('button', { name: 'Trang trước' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Trang sau' })).toBeEnabled();
+    const prev = screen.getByRole('button', { name: 'Trang trước' });
+    expect(prev).toBeDisabled();
+    expect(prev).toHaveClass('text-ink3', 'cursor-not-allowed');
+    expect(prev).not.toHaveClass('hover:bg-s3');
+    expect(prev).not.toHaveClass('border-line');
+    const next = screen.getByRole('button', { name: 'Trang sau' });
+    expect(next).toBeEnabled();
+    expect(next).toHaveClass('border-line', 'hover:bg-s3');
+    expect(next).not.toHaveClass('cursor-not-allowed');
+  });
+
+  it('next disabled ở trang cuối', () => {
+    render(<Pagination current={10} pageSize={10} total={100} onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Trang sau' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Trang trước' })).toBeEnabled();
+  });
+
+  it('prev/next dùng SVG chevron (không còn ‹ › ký tự)', () => {
+    render(<Pagination current={5} pageSize={10} total={100} onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Trang trước' }).querySelector('svg')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Trang sau' }).querySelector('svg')).not.toBeNull();
   });
 
   it('click trang → onChange(page)', async () => {
@@ -36,11 +65,13 @@ describe('Pagination', () => {
     expect(onChange).toHaveBeenCalledWith(2);
   });
 
-  it('ellipsis click → jump ±5', async () => {
+  it('ellipsis ··· click → jump ±5', async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Pagination current={5} pageSize={10} total={100} onChange={onChange} />);
-    await user.click(screen.getByRole('button', { name: 'Tiến 5 trang' }));
+    const dots = screen.getByRole('button', { name: 'Tiến 5 trang' });
+    expect(dots).toHaveTextContent('···');
+    await user.click(dots);
     expect(onChange).toHaveBeenCalledWith(10);
     await user.click(screen.getByRole('button', { name: 'Lùi 5 trang' }));
     expect(onChange).toHaveBeenCalledWith(1);
@@ -76,13 +107,6 @@ describe('Pagination — branch phụ 2', () => {
   it('pageCount ≤ 7 → không có ellipsis', () => {
     render(<Pagination current={4} pageSize={10} total={70} onChange={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Trang 1' })).toBeInTheDocument();
-    expect(screen.queryByText('•••')).toBeNull();
-  });
-});
-
-describe('Pagination — branch phụ (Tier 5 sweep)', () => {
-  it('prev disabled ở trang 1; next disabled ở trang cuối', () => {
-    render(<Pagination current={10} pageSize={10} total={100} onChange={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Trang sau' })).toBeDisabled();
+    expect(screen.queryByText('···')).toBeNull();
   });
 });

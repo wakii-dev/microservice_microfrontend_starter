@@ -48,3 +48,18 @@ export const Dashed: Story = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: orientation) ──
+
+export const Orientation: Story = {
+  name: 'Orientation — text left / center / right',
+  render: () => (
+    <div className="max-w-md">
+      <Divider orientation="left">Left aligned</Divider>
+      <span>Content</span>
+      <Divider>Center (default)</Divider>
+      <span>Content</span>
+      <Divider orientation="right">Right aligned</Divider>
+    </div>
+  ),
+};

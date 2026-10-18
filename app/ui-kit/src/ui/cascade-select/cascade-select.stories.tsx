@@ -91,6 +91,24 @@ export const WithDeepTree: Story = {
   render: () => <DeepTreeDemo />,
 };
 
+function PreselectedDemo() {
+  const [value, setValue] = useState<string[]>(['hn', 'hn-th']);
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <CascadeSelect options={TREE} value={value} onChange={setValue} placeholder="Pick a location…" />
+      <p className="m-0 font-mono text-meta text-ink3">
+        path: <strong className="text-ink">{value.length > 0 ? value.join(' / ') : '—'}</strong>
+      </p>
+    </div>
+  );
+}
+
+/** Preselected — initial value path renders on the trigger without picking. */
+export const Preselected: Story = {
+  name: 'Preselected — initial value path (Hanoi / Tay Ho)',
+  render: () => <PreselectedDemo />,
+};
+
 /** Empty — options=[]: panel opens with nothing to pick (edge). */
 export const Empty: Story = {
   args: { options: [], placeholder: 'Nothing to pick…' },

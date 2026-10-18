@@ -105,7 +105,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 type="button"
                 role="menuitem"
                 aria-expanded={open}
-                aria-haspopup="true"
+                aria-haspopup="menu"
                 disabled={item.disabled}
                 className={itemCls(item.disabled ? 'disabled' : 'normal', compact)}
                 onClick={() => !item.disabled && toggle(item.key)}

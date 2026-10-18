@@ -28,7 +28,7 @@ describe('Popconfirm', () => {
     );
     expect(screen.getByText('Xoá task này?')).toBeInTheDocument();
     const dialog = document.querySelector('[role="dialog"]')!;
-    expect(dialog).toHaveAttribute('aria-label', 'Xoá task này?');
+    expect(dialog).toHaveAttribute('aria-labelledby'); // a11y sweep: name qua labelledby (đủ cả title ReactNode)
     // icon mặc định = vàng warning (không danger)
     expect(document.querySelector('.bg-st-doing')).not.toBeNull();
     expect(document.querySelector('.bg-st-fail')).toBeNull();

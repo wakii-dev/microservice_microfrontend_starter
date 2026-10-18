@@ -173,6 +173,14 @@ export function Select({
               aria-label="Xoá"
               tabIndex={0}
               onClick={(e) => { e.stopPropagation(); clearValue(e as unknown as React.MouseEvent); }}
+              onKeyDown={(e) => {
+                // span-role-button phải Operable bằng keyboard (Enter/Space) — axe
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  clearValue(e as unknown as React.MouseEvent);
+                }
+              }}
               className="cursor-pointer text-ink3 hover:text-ink"
             >
               ×

@@ -61,7 +61,7 @@ describe('Menu — submenu', () => {
     expect(wrapperOf('Công việc').className).toContain('[grid-template-rows:0fr]');
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    expect(trigger).toHaveAttribute('aria-haspopup', 'true');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
     // wrapper animate chuyển 0fr→1fr qua class grid-template-rows
     expect(wrapperOf('Công việc').className).toContain('[grid-template-rows:1fr]');
     expect(wrapperOf('Công việc').className).toContain('opacity-100');
@@ -235,7 +235,7 @@ describe('Menu — compact (sidebar icon-only, fix ⑥ 2026-10-18)', () => {
     );
     const trigger = screen.getByRole('menuitem', { name: 'Quản lý' });
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
-    expect(trigger).toHaveAttribute('aria-haspopup', 'true');
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(trigger);

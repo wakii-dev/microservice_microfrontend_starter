@@ -3,7 +3,7 @@
 // state machine: open=false → animation XONG mới unmount. ESC + overlay = cancel.
 // A11y (batch ⑫ worker C): focus trap (Tab/Shift+Tab vòng trong dialog), mở →
 // focus phần tử đầu, đóng → trả focus về trigger (capture document.activeElement).
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../button/index';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
@@ -60,6 +60,9 @@ export function Modal({
   className,
   classNames,
 }: ModalProps) {
+  // A11y: dialog name qua labelledby — ăn cả title ReactNode (icon/badge), không
+  // chỉ title string như aria-label cũ.
+  const titleId = useId();
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -104,7 +107,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         tabIndex={-1}
-        aria-label={typeof title === 'string' ? title : undefined}
+        aria-labelledby={titleId}
         style={{ willChange: "transform, opacity" }}
         className={`relative w-full max-w-[416px] rounded-xl bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.wrapper)}`}
         onAnimationEnd={(e) => {
@@ -112,7 +115,7 @@ export function Modal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`mb-2 text-h2 font-semibold text-ink${slot(classNames?.header)}`}>{title}</div>
+        <div id={titleId} className={`mb-2 text-h2 font-semibold text-ink${slot(classNames?.header)}`}>{title}</div>
         {children && <div className={`text-body text-ink2${slot(classNames?.body)}`}>{children}</div>}
         <div className={`mt-4 flex justify-end gap-2${slot(classNames?.footer)}`}>
           <Button type="default" onClick={() => onCancel?.()} disabled={confirmLoading}>

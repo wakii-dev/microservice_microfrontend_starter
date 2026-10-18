@@ -49,6 +49,24 @@ export const Range: S = {
   render: () => <CalendarRangeDemo />,
 };
 
+function DayHoverDemo() {
+  const [hovered, setHovered] = useState<Date | undefined>();
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <Calendar now={NOW} onDayHover={setHovered} />
+      <p className="m-0 font-mono text-meta text-ink3">
+        hovered: <strong className="text-ink">{fmt(hovered)}</strong>
+      </p>
+    </div>
+  );
+}
+
+/** DayHover — onDayHover fires as the pointer moves across days (drives DatePicker range preview). */
+export const DayHover: S = {
+  name: 'DayHover — onDayHover readout (drives range preview)',
+  render: () => <DayHoverDemo />,
+};
+
 /** Bare — no outer border/padding; embed inside panels or cards. */
 export const Bare: S = {
   name: 'Bare — borderless embed',

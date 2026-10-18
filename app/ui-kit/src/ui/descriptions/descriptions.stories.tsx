@@ -51,3 +51,14 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: size + colon) ──
+
+export const SizeAndColon: Story = {
+  name: 'Size small + colon — dense rows with label colons',
+  render: () => (
+    <div className="w-[520px]">
+      <Descriptions title="Small + colon" items={items} size="small" colon />
+    </div>
+  ),
+};

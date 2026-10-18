@@ -1,7 +1,7 @@
 // Popconfirm — bubble confirm nhỏ bám trigger (style matrix 2026-10-18: bubble
 // rounded-xl, shadow var(--shadow-pop); icon warning tròn, nút small Huỷ/default + OK primary).
 // Controlled (open) — TaskItem xoá dùng; ESC = cancel.
-import { cloneElement, isValidElement, useEffect, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, isValidElement, useEffect, useId, type ReactElement, type ReactNode } from 'react';
 import { Button } from '../button/index';
 
 export interface PopconfirmProps {
@@ -36,6 +36,8 @@ export function Popconfirm({
   onCancel,
   children,
 }: PopconfirmProps) {
+  // A11y: bubble name qua labelledby — ăn cả title ReactNode, không chỉ string.
+  const titleId = useId();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -60,7 +62,7 @@ export function Popconfirm({
         <span className="absolute bottom-[calc(100%+10px)] left-0 z-[var(--z-popover)] w-max max-w-xs">
           <span
             role="dialog"
-            aria-label={typeof title === 'string' ? title : undefined}
+            aria-labelledby={titleId}
             className="block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
           >
             <span className="flex items-start gap-2">
@@ -71,7 +73,7 @@ export function Popconfirm({
                 !
               </span>
               <span>
-                <span className="block text-body font-medium text-ink">{title}</span>
+                <span id={titleId} className="block text-body font-medium text-ink">{title}</span>
                 {description && <span className="mt-1 block text-label text-ink2">{description}</span>}
                 <span className="mt-2 flex items-center justify-end gap-2">
                   <Button

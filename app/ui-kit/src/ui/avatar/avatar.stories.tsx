@@ -38,3 +38,16 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+// ── Case-coverage audit 2026-10-18 (antd parity: src error fallback) ──
+
+export const BrokenSrcFallback: S = {
+  name: 'Broken src — falls back to initials on error',
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <Avatar src="https://example.com/missing.jpg" alt="Hai">HB</Avatar>
+      <Avatar src="https://example.com/missing.jpg" alt="Team" shape="square">TM</Avatar>
+      <span className="text-meta text-ink2">← initials replace broken images</span>
+    </div>
+  ),
+};

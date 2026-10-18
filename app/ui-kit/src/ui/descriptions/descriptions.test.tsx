@@ -54,4 +54,22 @@ describe('Descriptions', () => {
     const { container } = render(<Descriptions items={ITEMS} className="marker" />);
     expect(container.firstElementChild).toHaveClass('marker');
   });
+
+  // ── Case-coverage audit 2026-10-18 (antd parity: size + colon) ──
+
+  it('size="small" → padding p-2 + label w-32 (antd size parity)', () => {
+    const { container } = render(<Descriptions items={ITEMS} size="small" />);
+    expect(container.querySelector('dt')!).toHaveClass('p-2', 'w-32');
+  });
+
+  it('mặc định → padding p-3 + label w-40; colon tắt', () => {
+    const { container } = render(<Descriptions items={ITEMS} />);
+    expect(container.querySelector('dt')!).toHaveClass('p-3', 'w-40');
+    expect(container.querySelector('dt')!.textContent).not.toContain(':');
+  });
+
+  it('colon → ":" render sau label (antd colon)', () => {
+    const { container } = render(<Descriptions items={ITEMS} colon />);
+    expect(container.querySelector('dt')!.textContent).toContain(':');
+  });
 });

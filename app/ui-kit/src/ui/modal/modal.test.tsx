@@ -53,7 +53,7 @@ describe('Modal', () => {
 });
 
 describe('Modal — branch phụ (Tier 2)', () => {
-  it('title ReactNode (không string) → không aria-label, vẫn render node', () => {
+  it('title ReactNode (không string) → VẪN có accessible name qua labelledby', () => {
     render(
       <Modal
         open
@@ -65,7 +65,10 @@ describe('Modal — branch phụ (Tier 2)', () => {
       />,
     );
     expect(screen.getByTestId('node-title')).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).not.toHaveAttribute('aria-label');
+    // a11y sweep 2026-10-18: dialog có name qua aria-labelledby → id title
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-labelledby');
+    expect(dialog.getAttribute('aria-labelledby')).toBeTruthy();
   });
 
   it('không children → chỉ title + actions', () => {

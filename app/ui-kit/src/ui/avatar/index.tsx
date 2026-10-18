@@ -19,6 +19,8 @@ export interface AvatarProps {
 
 export function Avatar({ children, src, alt, size = 32, shape = 'circle', className }: AvatarProps) {
   const [loaded, setLoaded] = useState(false);
+  // src fail (404/offline) → fallback về children/initials (antd onError fallback)
+  const [failed, setFailed] = useState(false);
   const style: React.CSSProperties = {
     width: size,
     height: size,
@@ -30,11 +32,12 @@ export function Avatar({ children, src, alt, size = 32, shape = 'circle', classN
       className={`inline-flex shrink-0 items-center justify-center overflow-hidden bg-s3 text-body text-ink2${className ? ` ${className}` : ''}`}
       style={style}
     >
-      {src ? (
+      {src && !failed ? (
         <img
           src={src}
           alt={alt ?? ''}
           onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
           className={`size-full object-cover transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'}`}
         />
       ) : (

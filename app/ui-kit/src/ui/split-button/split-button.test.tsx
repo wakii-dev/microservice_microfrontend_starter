@@ -92,7 +92,7 @@ describe('SplitButton — một nút duy nhất', () => {
   });
 
   it('ArrowDown trên nút → mở menu + focus item đầu (keyboard a11y)', async () => {
-    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    render(<SplitButton label="Lưu" items={items} />);
     const btn = screen.getByRole('button', { name: /Lưu/ });
     btn.focus();
     fireEvent.keyDown(btn, { key: 'ArrowDown' });

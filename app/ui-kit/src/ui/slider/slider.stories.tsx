@@ -18,6 +18,23 @@ export const Step: S = { name: 'Step — step 10', args: { value: 30, min: 0, ma
 /** Disabled — locked track + dimmed. */
 export const Disabled: S = { args: { value: 40, disabled: true, ariaLabel: 'Locked slider' } };
 
+/** Bounds — endpoints 0 and 100: fill and handle hug their edges. */
+export const Bounds: S = {
+  name: 'Bounds — value 0 and 100 (endpoint handles)',
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <div className="grid gap-1">
+        <span className="text-meta text-ink3">min (0)</span>
+        <Slider value={0} min={0} max={100} ariaLabel="Lower bound" onChange={() => {}} />
+      </div>
+      <div className="grid gap-1">
+        <span className="text-meta text-ink3">max (100)</span>
+        <Slider value={100} min={0} max={100} ariaLabel="Upper bound" onChange={() => {}} />
+      </div>
+    </div>
+  ),
+};
+
 /** Controlled — useState demo: click track / arrow keys → value shown. */
 export const Controlled: S = {
   render: () => <SliderControlledDemo />,

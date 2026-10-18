@@ -8,6 +8,7 @@ import {
   isValidElement,
   useCallback,
   useEffect,
+  useId,
   useState,
   type FocusEvent as ReactFocusEvent,
   type ReactElement,
@@ -48,6 +49,8 @@ export function Popover({
   className,
 }: PopoverProps) {
   const isControlled = open !== undefined;
+  // A11y: panel name qua labelledby khi có title (đủ cả title ReactNode).
+  const panelTitleId = useId();
   const [innerOpen, setInnerOpen] = useState(false);
   const openState = isControlled ? open : innerOpen;
 
@@ -109,12 +112,13 @@ export function Popover({
       {openState && (
         <div
           role="dialog"
+          aria-labelledby={title ? panelTitleId : undefined}
           className={`absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)] ${
             placement === 'top' ? 'bottom-[calc(100%+10px)]' : 'top-[calc(100%+10px)]'
           }${className ? ` ${className}` : ''}`}
         >
           {title != null && (
-            <div className="mb-2 border-b border-line2 pb-2 text-body font-medium text-ink">{title}</div>
+            <div id={panelTitleId} className="mb-2 border-b border-line2 pb-2 text-body font-medium text-ink">{title}</div>
           )}
           <div className="text-body text-ink2">{content}</div>
           <span

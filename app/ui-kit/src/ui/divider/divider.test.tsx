@@ -60,4 +60,24 @@ describe('Divider — combo branch (Tier 5 sweep)', () => {
     expect(three.container.querySelectorAll('span.border-dashed').length).toBe(0);
     three.unmount();
   });
+
+  // ── Case-coverage audit 2026-10-18 (antd parity: orientation) ──
+
+  it('orientation="left" → text trái, 1 line bên phải', () => {
+    const { container } = render(<Divider orientation="left">Section</Divider>);
+    const wrapper = container.querySelector('[role="separator"]')!;
+    const spans = wrapper.querySelectorAll('span');
+    expect(spans).toHaveLength(2);
+    expect(spans[0]).toHaveTextContent('Section');
+    expect(spans[0]).toHaveClass('mr-4'); // text trái + gap trước line
+    expect(spans[1]).toHaveClass('flex-1'); // line chiếm phần còn
+  });
+
+  it('orientation="right" → line trái, text phải', () => {
+    const { container } = render(<Divider orientation="right">Section</Divider>);
+    const spans = container.querySelector('[role="separator"]')!.querySelectorAll('span');
+    expect(spans[0]).toHaveClass('flex-1');
+    expect(spans[1]).toHaveTextContent('Section');
+    expect(spans[1]).toHaveClass('ml-4');
+  });
 });

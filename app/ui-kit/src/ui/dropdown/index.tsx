@@ -4,7 +4,16 @@
 // A11y (batch ⑫ worker C): role=menu/menuitem, ArrowUp/Down/Home/End đi giữa
 // item, mở bằng keyboard (Enter/Space/ArrowDown) → focus item đầu, ESC → đóng
 // + trả focus về trigger.
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 
 export interface DropdownItem {
   key: string;
@@ -101,10 +110,19 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
     }
   };
 
+  // Trigger được wire aria (cloneElement — pattern Popconfirm): SR biết menu đang
+  // mở + trigger mở loại gì; children không phải element → giữ nguyên.
+  const triggerEl = isValidElement(trigger)
+    ? cloneElement(trigger as ReactElement<Record<string, unknown>>, {
+        'aria-haspopup': 'menu',
+        'aria-expanded': open,
+      })
+    : trigger;
+
   return (
     <span ref={rootRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
       <span onClick={onTriggerClick} onKeyDown={onTriggerKey} className="inline-flex">
-        {trigger}
+        {triggerEl}
       </span>
       {open && (
         <ul

@@ -1,13 +1,11 @@
 // Branch-fill sweep — phủ các nhánh className-passthrough + path behavior còn thiếu
 // (coverage branches ≥ 90 — Tier 3/4/5 sweep 2026-10-17). Mỗi test = 1-2 nhánh nhỏ.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Avatar } from './avatar/index.js';
 import { Breadcrumb } from './breadcrumb/index.js';
 import { Button } from './button/index.js';
 import { Collapse } from './collapse/index.js';
-import { Descriptions } from './descriptions/index.js';
 import { Divider } from './divider/index.js';
 import { Drawer } from './drawer/index.js';
 import { Dropdown } from './dropdown/index.js';
@@ -24,7 +22,6 @@ import { Tag } from './tag/index.js';
 import { Tooltip } from './tooltip/index.js';
 import { Typography } from './typography/index.js';
 import { Radio, RadioGroup } from './radio/index.js';
-import { Avatar as A2 } from './avatar/index.js';
 
 afterEach(cleanup);
 

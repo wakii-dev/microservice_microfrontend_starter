@@ -55,6 +55,30 @@ export const Basic: Story = {
   render: () => <ControlledDemo />,
 };
 
+const ORG_TREE: TreeNode[] = [
+  {
+    value: 'company',
+    label: 'Company',
+    children: [
+      {
+        value: 'rd',
+        label: 'R&D',
+        children: [
+          { value: 'fe', label: 'Frontend' },
+          { value: 'be', label: 'Backend' },
+        ],
+      },
+      { value: 'ops', label: 'Operations' },
+    ],
+  },
+];
+
+/** DeepPath — 3-level hierarchy; trigger shows the full 'Company / R&D / Frontend' path. */
+export const DeepPath: Story = {
+  name: 'Deep path — 3 levels shown as Company / R&D / Frontend',
+  args: { ariaLabel: 'Org unit', treeData: ORG_TREE, value: 'fe' },
+};
+
 export const Disabled: Story = {
   name: 'Disabled — panel won’t open, s3 background',
   args: { ariaLabel: 'Department (disabled)', treeData: DEPARTMENTS, value: 'fe-ui', disabled: true },

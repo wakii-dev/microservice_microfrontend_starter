@@ -43,6 +43,18 @@ export const WithDateValue: Story = {
   render: () => <TimePicker value={new Date(2026, 9, 18, 8, 30)} />,
 };
 
+/** StringValue — value as "HH:mm": trigger shows the time; a pick emits a pure
+ * epoch-day Date (1970-01-01 + time) — pair with DatePicker, not standalone. */
+export const StringValue: Story = {
+  name: 'String value "08:30" — emits epoch-day Date',
+  render: () => (
+    <div className="grid w-[260px] gap-3">
+      <TimePicker value="08:30" />
+      <p className="text-meta text-ink3">String value → trigger renders HH:mm without a Date object.</p>
+    </div>
+  ),
+};
+
 export const LocaleEN: Story = {
   name: 'Locale EN',
   render: () => <TimePicker locale="en" />,

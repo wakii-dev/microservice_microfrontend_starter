@@ -89,6 +89,21 @@ export const MinMaxClamp: S = {
   ),
 };
 
+export const Step5: S = {
+  name: 'Step 5 — stepper ±5 + arrow keys',
+  args: { min: 0, max: 100, step: 5, ariaLabel: 'Stepped quantity' },
+  render: ({ min, max, step, ariaLabel }) => (
+    <Demo
+      ariaLabel={ariaLabel}
+      hint="Stepper buttons and ↑↓ keys jump by 5 — from empty, the first bump lands on 5."
+      initial={10}
+      max={max}
+      min={min}
+      step={step}
+    />
+  ),
+};
+
 /** Disabled — input + stepper locked, group dimmed (bg-s3 + opacity). */
 export const Disabled: S = {
   args: { disabled: true, value: 5, ariaLabel: 'Quantity (disabled)' },

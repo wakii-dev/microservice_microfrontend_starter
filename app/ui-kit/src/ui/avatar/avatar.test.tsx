@@ -1,5 +1,5 @@
 // Avatar tests — chữ cái, size, shape, src.
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Avatar } from './index.js';
 
@@ -52,5 +52,14 @@ describe('Avatar — branch phụ (Tier 5 sweep)', () => {
     render(<Avatar size={40}>VN</Avatar>);
     const inner = screen.getByText('VN');
     expect(inner.style.fontSize).toBe('17.6px');
+  });
+
+  // ── Case-coverage audit 2026-10-18 (antd parity: src error → fallback) ──
+
+  it('src load fail → fallback về children initials (antd onError fallback)', () => {
+    render(<Avatar src="https://example.com/broken.jpg" alt="Hai">HB</Avatar>);
+    expect(screen.queryByText('HB')).not.toBeInTheDocument();
+    fireEvent.error(screen.getByRole('img', { name: 'Hai' }));
+    expect(screen.getByText('HB')).toBeInTheDocument();
   });
 });

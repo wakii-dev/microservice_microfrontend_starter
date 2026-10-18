@@ -66,13 +66,13 @@ function FeatureRow({ feature, flip }: { feature: Feature; flip: boolean }) {
             {feature.kicker}
           </span>
           {/* REF-SPEC H2: ~29px/300 light */}
-          <h2 className="m-0 text-[29px] font-light leading-[1.25] text-ink">
+          <h2 className="m-0 text-[29px] font-light leading-[1.25] text-white">
             {feature.title[0]}
             <br />
             {feature.title[1]}
           </h2>
           {/* REF-SPEC body: 12px/400 tracking 0.3 */}
-          <p className="m-0 max-w-md text-[12px] leading-[1.7] tracking-[0.3px] text-ink2">{feature.body}</p>
+          <p className="m-0 max-w-md text-[12px] leading-[1.7] tracking-[0.3px] text-white/85">{feature.body}</p>
         </div>
       </Reveal>
       <div ref={ref} className={flip ? 'md:order-1' : undefined}>
@@ -110,17 +110,17 @@ function FeatureRow({ feature, flip }: { feature: Feature; flip: boolean }) {
 /** Chương 02 — Living docs: header + 3 feature xen kẽ trái/phải (mask-reveal graded). */
 export default function Ch2LivingDocs() {
   return (
-    <SectionMood id="ch2" mood="docs" className="relative min-h-screen">
+    <SectionMood id="ch2" mood="docs" className="relative min-h-screen" style={{ background: 'linear-gradient(160deg, var(--chapter-bg-a), var(--chapter-bg-b))' }}>
       <div className="py-10">
         <header className="mx-auto max-w-5xl px-6 pb-4">
           <Reveal direction="up">
-            <span className="font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-ink3">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-white/60">
               Chương 02 · Orca Experience
             </span>
-            <h1 className="mb-2 mt-3 text-[18px] font-light leading-snug tracking-[0.3px] text-ink">
+            <h1 className="mb-2 mt-3 text-[18px] font-light leading-snug tracking-[0.3px] text-white">
               Living docs<span className="text-accent">.</span> Tài liệu chạy, thở và đổi màu cùng sản phẩm.
             </h1>
-            <p className="m-0 max-w-xl text-[12px] leading-[1.7] tracking-[0.3px] text-ink2">
+            <p className="m-0 max-w-xl text-[12px] leading-[1.7] tracking-[0.3px] text-white/85">
               Mỗi claim dưới đây là demo sống trong trang — kéo, bấm, đổi theme là thấy.
             </p>
           </Reveal>

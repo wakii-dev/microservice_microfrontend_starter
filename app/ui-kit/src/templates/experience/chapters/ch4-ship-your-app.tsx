@@ -32,7 +32,7 @@ const STEPS: Array<{ num: string; icon: IconName; title: string; body: string }>
 
 export default function Ch4ShipYourApp() {
   return (
-    <SectionMood id="ch4" mood="ship" className="relative h-[200vh]">
+    <SectionMood id="ch4" mood="ship" className="relative h-[200vh]" style={{ background: 'linear-gradient(160deg, var(--chapter-bg-a), var(--chapter-bg-b))' }}>
       {/* PINNED — sticky 100vh trong 200vh: cuộn tiếp 1 màn, 3 lớp trôi 3 nhịp */}
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         {/* Lớp NỀN — 0.08/280: gần như đứng yên (ảnh demo seeded, site thay bằng asset thật) */}

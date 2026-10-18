@@ -55,17 +55,17 @@ export default function Ch3TeamVelocity() {
   const active = WORKFLOWS.find((w) => w.id === workflow)!;
 
   return (
-    <SectionMood id="ch3" mood="velocity" className="relative min-h-screen">
+    <SectionMood id="ch3" mood="velocity" className="relative min-h-screen" style={{ background: 'linear-gradient(160deg, var(--chapter-bg-a), var(--chapter-bg-b))' }}>
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-24">
         <Reveal>
-          <p className="m-0 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[2.64px] text-ink2">
+          <p className="m-0 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[2.64px] text-white/70">
             <Icon name="users" size={12} />
             Chapter 03 — Team Velocity
           </p>
         </Reveal>
 
         <Reveal direction="up" delay={80}>
-          <h2 className="m-0 mt-4 text-[29px] font-light leading-snug tracking-[0.02em] text-ink">
+          <h2 className="m-0 mt-4 text-[29px] font-light leading-snug tracking-[0.02em] text-white">
             Mỗi team một nhịp — <span className="text-accent">đúng mood, đúng workflow</span>
           </h2>
         </Reveal>
@@ -73,7 +73,7 @@ export default function Ch3TeamVelocity() {
         {/* Mood accent — chip button thật; accent cascade LIVE qua theme object */}
         <Reveal delay={160}>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <span className="text-meta text-ink3">Mood accent:</span>
+            <span className="text-meta text-white/60">Mood accent:</span>
             {MOODS.map((m) => (
               <button
                 key={m.id}
@@ -81,7 +81,7 @@ export default function Ch3TeamVelocity() {
                 aria-pressed={mood.id === m.id}
                 onClick={() => setMood(m)}
                 className={`flex cursor-pointer items-center gap-2 rounded-pill border px-3 py-1 text-[12px] font-bold uppercase tracking-[2.4px] transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
-                  mood.id === m.id ? 'border-accent bg-accent/10 text-ink' : 'border-line text-ink3 hover:text-ink2'
+                  mood.id === m.id ? 'border-accent bg-accent/10 text-white' : 'border-white/20 text-white/60 hover:text-white'
                 }`}
               >
                 <span aria-hidden="true" className="size-2.5 rounded-pill" style={{ background: m.accent }} />
@@ -99,8 +99,8 @@ export default function Ch3TeamVelocity() {
               return (
                 <Reveal key={w.id} direction="up" delay={200 + i * 120} className="h-full">
                   <div
-                    className={`flex h-full flex-col gap-3 rounded-xl border bg-s1 p-5 transition-colors duration-200 ${
-                      picked ? 'border-accent' : 'border-line hover:border-line2'
+                    className={`flex h-full flex-col gap-3 rounded-xl border bg-white/5 p-5 transition-colors duration-200 ${
+                      picked ? 'border-accent' : 'border-white/15 hover:border-white/30'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -119,10 +119,10 @@ export default function Ch3TeamVelocity() {
                       />
                     </div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-3xl font-bold tabular-nums text-ink">
+                      <span className="text-3xl font-bold tabular-nums text-white">
                         <CountUp key={`${w.id}-${mood.id}`} value={w.stat} />
                       </span>
-                      <span className="text-meta text-ink3">{w.statLabel}</span>
+                      <span className="text-meta text-white/60">{w.statLabel}</span>
                     </div>
                   </div>
                 </Reveal>
@@ -133,13 +133,13 @@ export default function Ch3TeamVelocity() {
           {/* Panel mô tả — key={id} replay slide-up-in (keyframe kit) */}
           <div
             key={active.id}
-            className="mt-6 rounded-xl border border-line bg-s1 p-5 animate-[bp-slide-up-in_var(--motion-base)_var(--ease-enter)]"
+            className="mt-6 rounded-xl border border-white/10 bg-white/5 p-5 animate-[bp-slide-up-in_var(--motion-base)_var(--ease-enter)]"
           >
             <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[2.4px] text-accent">
               <Icon name={active.icon} size={12} />
               {active.name} workflow
             </div>
-            <p className="m-0 mt-2 max-w-3xl text-body leading-relaxed text-ink2">{active.body}</p>
+            <p className="m-0 mt-2 max-w-3xl text-body leading-relaxed text-white/85">{active.body}</p>
           </div>
         </UiKitProvider>
       </div>

@@ -49,10 +49,10 @@ function Starfield({ reduced }: { reduced: boolean }) {
     const draw = (mx = 0, my = 0) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const s of stars) {
-        ctx.globalAlpha = dark ? Math.min(1, s.a + 0.4) : s.a;
+        ctx.globalAlpha = dark ? Math.min(1, s.a + 0.5) : s.a;
         ctx.fillStyle = ink;
         ctx.beginPath();
-        ctx.arc(s.x + mx * s.depth, s.y + my * s.depth, dark ? s.r + 0.3 : s.r, 0, Math.PI * 2);
+        ctx.arc(s.x + mx * s.depth, s.y + my * s.depth, dark ? s.r + 0.5 : s.r, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
@@ -117,7 +117,8 @@ export default function Hero() {
     <header
       id="hero"
       data-mood="atlas"
-      className="relative flex min-h-screen flex-col items-center justify-center gap-5 overflow-hidden bg-canvas p-6 text-center"
+      className="relative flex min-h-screen flex-col items-center justify-center gap-5 overflow-hidden p-6 text-center"
+      style={{ background: 'linear-gradient(to bottom, var(--hero-sky-a), var(--hero-sky-b))' }}
     >
       <Starfield reduced={reduced} />
       <div className="relative z-10 flex flex-col items-center gap-4">

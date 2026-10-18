@@ -58,17 +58,17 @@ export function useSectionProgress<T extends HTMLElement>() {
   return { ref, progress };
 }
 
-/** Nền crossfade mood — canvas → s2 → accent/10 theo progress toàn trang
- * (lead chỉ định cho compose; dark: 3 token tự override theo theme). */
+/** Nền crossfade mood v0.3 theo REF-SPEC — hero SÁNG (canvas) → chapters GIỮA TỐI
+ * (--scrim-4 vũ trụ, khớp khối chương tự chủ tối) → CTA SÁNG (canvas) cuối trang. */
 export function CrossfadeBackdrop({ pct }: { pct: number }) {
   const canvasOpacity = pct < 0.5 ? 1 - pct * 2 : 0;
-  const s2Opacity = pct < 0.5 ? pct * 2 : 2 - pct * 2;
-  const accentOpacity = pct > 0.5 ? (pct - 0.5) * 2 : 0;
+  const scrimOpacity = pct < 0.5 ? pct * 2 : 2 - pct * 2;
+  const endCanvasOpacity = pct > 0.5 ? (pct - 0.5) * 2 : 0;
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
       <div className="absolute inset-0 bg-canvas" style={{ opacity: canvasOpacity }} />
-      <div className="absolute inset-0 bg-s2" style={{ opacity: s2Opacity }} />
-      <div className="absolute inset-0 bg-accent/10" style={{ opacity: accentOpacity }} />
+      <div className="absolute inset-0 bg-[var(--scrim-4)]" style={{ opacity: scrimOpacity }} />
+      <div className="absolute inset-0 bg-canvas" style={{ opacity: endCanvasOpacity }} />
     </div>
   );
 }

@@ -22,8 +22,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "build": "tsup && pnpm build:css",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "storybook": "node scripts/stamp-build.cjs && storybook dev -p 6006",
+    "build-storybook": "node scripts/stamp-build.cjs && storybook build",
     "test-storybook": "test-storybook",
     "build:css": "tailwindcss -i src/styles/ui-kit.css -o dist/ui-kit.css --minify"
   },

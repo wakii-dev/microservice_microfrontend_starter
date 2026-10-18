@@ -18,8 +18,19 @@ function Starfield({ reduced }: { reduced: boolean }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Đọc token runtime (dark-safe pattern useChartTheme) — sao navy trên nền sáng.
-    const ink = getComputedStyle(document.documentElement).getPropertyValue('--navy-ink').trim() || 'rgb(16, 36, 52)';
+    // Màu + độ nổi hạt theo theme (PO bugfix "nền đen sao đen"): light = navy
+    // --navy-ink alpha nhẹ · dark = TRẮNG và ĐẬM hơn (alpha +0.4, r +0.3) — nếu
+    // không, hạt trắng alpha 0.2 trên nền đen là vô hình.
+    // Pattern watermark: đọc token runtime + MutationObserver data-bp-theme repaint.
+    let ink = 'rgb(16, 36, 52)';
+    let dark = false;
+    const readTheme = () => {
+      dark = document.documentElement.getAttribute('data-bp-theme') === 'dark';
+      ink = dark
+        ? 'rgba(255, 255, 255, 0.95)'
+        : getComputedStyle(document.documentElement).getPropertyValue('--navy-ink').trim() || 'rgb(16, 36, 52)';
+    };
+    readTheme();
 
     const resize = () => {
       canvas.width = canvas.offsetWidth;
@@ -31,17 +42,17 @@ function Starfield({ reduced }: { reduced: boolean }) {
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       r: i % 3 === 0 ? 1.6 : i % 3 === 1 ? 1.1 : 0.7,
-      a: i % 3 === 0 ? 0.55 : i % 3 === 1 ? 0.35 : 0.2, // navy trên sáng: alpha thấp vẫn đọc
+      a: i % 3 === 0 ? 0.55 : i % 3 === 1 ? 0.35 : 0.2,
       depth: i % 3 === 0 ? 22 : i % 3 === 1 ? 12 : 6,
     }));
 
     const draw = (mx = 0, my = 0) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const s of stars) {
-        ctx.globalAlpha = s.a;
+        ctx.globalAlpha = dark ? Math.min(1, s.a + 0.4) : s.a;
         ctx.fillStyle = ink;
         ctx.beginPath();
-        ctx.arc(s.x + mx * s.depth, s.y + my * s.depth, s.r, 0, Math.PI * 2);
+        ctx.arc(s.x + mx * s.depth, s.y + my * s.depth, dark ? s.r + 0.3 : s.r, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
@@ -55,7 +66,15 @@ function Starfield({ reduced }: { reduced: boolean }) {
         draw();
       };
       window.addEventListener('resize', onResize);
-      return () => window.removeEventListener('resize', onResize);
+      const themeObs = new MutationObserver(() => {
+        readTheme();
+        draw();
+      });
+      themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bp-theme'] });
+      return () => {
+        window.removeEventListener('resize', onResize);
+        themeObs.disconnect();
+      };
     }
 
     let raf = 0;
@@ -72,11 +91,17 @@ function Starfield({ reduced }: { reduced: boolean }) {
       resize();
       draw();
     };
+    const themeObs = new MutationObserver(() => {
+      readTheme();
+      draw();
+    });
+    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bp-theme'] });
     window.addEventListener('mousemove', onMove);
     window.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('resize', onResize);
+      themeObs.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
   }, [reduced]);

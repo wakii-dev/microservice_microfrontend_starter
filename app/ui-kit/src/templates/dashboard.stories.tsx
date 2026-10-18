@@ -306,10 +306,10 @@ function AdminDashboard() {
       )}
       <Layout>
         <Layout.Header sticky>
-          <span className="text-h3 font-semibold text-ink">Sprint VU-53</span>
-          <Tag>v0.3.0-rc</Tag>
+          <span className="whitespace-nowrap text-h3 font-semibold text-ink">Sprint VU-53</span>
+          <Tag className="whitespace-nowrap">v0.3.0-rc</Tag>
           <span className="ml-auto flex items-center gap-2">
-            <Button size="small" type="text" icon={<Icon name="refresh" size={14} />} onClick={refreshKpis}>
+            <Button size="small" type="text" icon={<Icon name="refresh" size={14} />} onClick={refreshKpis} className="whitespace-nowrap">
               Đồng bộ
             </Button>
             <Badge count={unread}>

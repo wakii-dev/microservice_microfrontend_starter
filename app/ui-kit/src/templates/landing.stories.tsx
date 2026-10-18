@@ -70,11 +70,11 @@ function Hero({ onCta }: { onCta?: () => void }) {
         A task platform assembled from one design system — dashboards, boards and landing pages that
         all speak the same token language.
       </Text>
-      <div className="flex gap-3">
-        <Button type="primary" size="large" onClick={onCta}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Button type="primary" size="large" onClick={onCta} className="whitespace-nowrap">
           Get started free
         </Button>
-        <Button size="large" icon={<Icon name="external-link" size={14} />}>
+        <Button size="large" icon={<Icon name="external-link" size={14} />} className="whitespace-nowrap">
           Read the docs
         </Button>
       </div>

@@ -1,4 +1,4 @@
-# AI Recipes — 10 công thức UI dùng `@wakii/ui-kit`
+# AI Recipes — 12 công thức UI dùng `@wakii/ui-kit`
 
 Code dưới dùng **API thật đã verify theo source** (audit 2026-10-18). Import gốc:
 
@@ -402,6 +402,68 @@ export function HeroLanding() {
   );
 }
 ```
+
+---
+
+## 11. DashboardGrid — Row/Col + Card + Statistic
+
+```tsx
+import { Card, Col, Row, Statistic, type StatisticProps } from '@wakii/ui-kit';
+
+const STATS: { title: string; value: string; delta: string; tone: StatisticProps['valueStyle'] }[] = [
+  { title: 'Người dùng', value: '1,284', delta: '+12%', tone: { color: 'var(--st-done)' } },
+  { title: 'Tasks mở', value: '316', delta: '+5%', tone: { color: 'var(--st-doing)' } },
+  { title: 'Quá hạn', value: '18', delta: '-3', tone: { color: 'var(--st-fail)' } },
+  { title: 'Uptime', value: '99.98%', delta: '30 ngày', tone: { color: 'var(--ink)' } },
+];
+
+export function DashboardGrid() {
+  return (
+    <Row gutter={[16, 16]}>
+      {STATS.map((s) => (
+        <Col key={s.title} xs={24} md={12} xl={6}>
+          <Card>
+            <Statistic title={s.title} value={s.value} valueStyle={s.tone} suffix={s.delta} />
+          </Card>
+        </Col>
+      ))}
+      <Col span={24}>
+        <Card title="Hoạt động tuần này">…chart/list body…</Card>
+      </Col>
+    </Row>
+  );
+}
+```
+
+Ghi chú: `gutter={[ngang, dọc]}` px chảy qua negative-margin + col padding (mechanic antd — không cần tự tính margin). Span **mobile-first**: `xs={24} md={12} xl={6}` = 1 cột mobile / 2 cột tablet / 4 cột desktop; bậc breakpoint không truyền thì kế thừa bậc dưới. Layout 1 trục không cần cột → dùng `Flex` (`gap` thang `small|middle|large`) cho gọn.
+
+## 12. Popover hay Tooltip — chọn overlay nào
+
+```tsx
+import { Button, Popover, Tooltip } from '@wakii/ui-kit';
+
+// Tooltip — hint TEXT thuần, hover/focus là đủ.
+<Tooltip title="Đồng bộ qua gateway, retry 3 lần rồi vào DLQ">
+  <Button icon>?</Button>
+</Tooltip>
+
+// Popover — nội dung GIÀU: title + ReactNode (list, link, action), trigger click.
+<Popover
+  trigger="click"
+  title="Người thực hiện"
+  content={
+    <div className="flex w-56 flex-col gap-2">
+      <span>Alice — admin</span>
+      <span>Bob — member</span>
+      <Button size="small" type="primary">+ Mời</Button>
+    </div>
+  }
+>
+  <Button>Quản lý (3)</Button>
+</Popover>
+```
+
+Ghi chú: **Tooltip** = 1 câu hint ≤250px, đóng theo hover/focus, không tương tác được (`pointer-events-none`). **Popover** = panel `role="dialog"` có `title` divider + body ReactNode tự do; mở bằng `trigger` `hover|click|focus` (click dùng cho panel có action — hover làm Panel khó bấm); đóng bằng ESC + click ngoài + (controlled) `onOpenChange`. Popconfirm vẫn là lựa chọn riêng cho xác nhận OK/Huỷ — đừng dựng confirm bằng Popover.
 
 ---
 

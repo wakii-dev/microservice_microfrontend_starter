@@ -22,6 +22,14 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | Menu ngang | `Menubar` (hover dropdown) · `TabMenu` (tabs nav) · `SplitButton` · `Dropdown` · `ContextMenu` |
 | Date/time | `DatePicker` (range/showTime, locale vi/en) · `TimePicker` · `Calendar` |
 
+## Layout & Nav — khi nào dùng
+
+| Component | Use when | Most valuable prop | Common combos |
+|---|---|---|---|
+| `Row`/`Col` | 24-col responsive grid — KPI rows, dashboard card mosaics, form column splits | `gutter` on `Row` (number or `[h, v]` px — antd mechanic: negative margin + col padding) | `Col span={24} md={12} xl={6}` mobile-first (xs→xl resolve qua matchMedia) · wrap `Card`/`Statistic` dashboards · nest rows for sub-layouts |
+| `Flex` | One-axis layout fast — toolbars, button rows, stacked forms (skip 24-col math) | `gap` (`'small' \| 'middle' \| 'large'` \| px, default 8) | `vertical` for stacked form fields · justify/align raw CSS values · lighter than `Row`/`Col` when columns don't matter |
+| `Anchor` | In-page TOC with scroll-spy — docs, long settings, detail pages | `items` (`href: '#section-id'` + nested `children` for sub-levels) | `affix` sticky rail beside long content · `offsetTop` to clear sticky headers · `onClick` for analytics · `getContainer` for inner scroll areas |
+
 ## Data Display — khi nào dùng
 
 | Component | Use when | Most valuable prop | Common combos |
@@ -110,10 +118,12 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `Modal` | Blocking confirm/dialog on top of the page (portal, focus trap, scroll lock) | `open` + `onOk`/`onCancel` (ESC + mask + × all cancel) | `danger` red OK · `confirmLoading` locks both buttons · `okText`/`cancelText` · `classNames` slots |
 | `Notification` | Rich toast with title + description — static API, 4.5s | `notification.success(title, description?)` | manual × close built-in · `classNames` slots |
 | `Popconfirm` | Confirm bubble anchored to a trigger (delete guard) | `open` (controlled) + `onConfirm`/`onCancel` | `danger` red icon/OK · `title` + `description` · ESC = cancel · `okText`/`cancelText` |
+| `Popover` | Rich anchored panel — free `content` ReactNode (lists, links, mini actions), unlike Tooltip's text-only hint | `content` (any ReactNode; pair with `title` for the divider head) | `trigger` `hover\|click\|focus` (default hover) · controlled `open`/`onOpenChange` · `placement` top/bottom · ESC + click-outside close built in |
 | `Progress` | Line progress bar with % readout | `percent` (clamped 0–100) | `status="exception\|success"` recolors bar · `showInfo={false}` hides % |
 | `Result` | Full-area status page (success/error/404/500/warning/info) | `status` (drives icon, color, default title) | `title`/`subTitle` override · `extra` action buttons |
 | `Spinner` | Inline busy indicator (ring/dots/bars) | `label` (REQUIRED aria-label) | `size` (`sm`/`md`/`lg`) + `color` (`inverse` on dark surfaces) · pair with `BlockUI` scrim |
 | `Tooltip` | Hover/focus hint bubble (top/bottom) — portal-free, wraps the trigger in place | `title` (bubble content) · `placement` `top`/`bottom` | wrap any focusable trigger · `aria-describedby` auto-wired · ESC dismisses |
+| `Watermark` | Content guard overlay — repeated diagonal text tile over previews/documents/drafts | `content` (string or `string[]` for multi-line) | wraps any block (children stay interactive — overlay `pointer-events-none`) · `rotate`/`opacity`/`font`/`fontColor` custom tile · corner-anchored via `left`/`top`/`width`/`height` · dark theme re-bakes the tile automatically |
 
 ## Quy tắc BẮT BUỘC (vi phạm = review fail)
 

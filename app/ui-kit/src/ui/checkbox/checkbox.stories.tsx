@@ -30,6 +30,32 @@ export const DarkTheme: S = {
   ),
 };
 
+/** Group — multi-pick column of checkboxes (antd Checkbox.Group pattern, consumer-side). */
+export const Group: S = {
+  name: 'Group — multi-pick (consumer-side state)',
+  render: () => <CheckboxGroupDemo />,
+};
+
+const STACKS = ['React', 'TypeScript', 'Rust'];
+
+function CheckboxGroupDemo() {
+  const [picked, setPicked] = useState<string[]>(['React']);
+  const toggle = (name: string) =>
+    setPicked((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
+  return (
+    <div className="grid max-w-[320px] gap-3">
+      <div role="group" aria-label="Stacks" className="grid gap-2">
+        {STACKS.map((name) => (
+          <Checkbox key={name} checked={picked.includes(name)} onChange={() => toggle(name)}>
+            {name}
+          </Checkbox>
+        ))}
+      </div>
+      <p className="m-0 font-mono text-meta text-ink3">picked: <strong className="text-ink">{JSON.stringify(picked)}</strong></p>
+    </div>
+  );
+}
+
 function CheckboxControlledDemo() {
   const [on, setOn] = useState(false);
   return (

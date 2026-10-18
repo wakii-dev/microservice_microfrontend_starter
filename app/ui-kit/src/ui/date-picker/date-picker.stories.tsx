@@ -6,6 +6,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DatePicker } from './index';
 import { DateLocaleProvider } from './locale';
 import { TimePicker } from '../time-picker/index';
+import { Icon } from '../icons/index';
 
 const meta = { title: 'Forms/DatePicker', component: DatePicker, tags: ['autodocs'] } satisfies Meta<typeof DatePicker>;
 export default meta;
@@ -16,6 +17,18 @@ const fmt = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFu
 
 export const Basic: S = { args: { placeholder: 'Pick a date…' } };
 export const Disabled: S = { args: { disabled: true, placeholder: 'Disabled' } };
+
+/** PrefixIcon — calendar glyph before the value (antd prefix). */
+export const PrefixIcon: S = {
+  name: 'Prefix icon — calendar glyph',
+  args: { placeholder: 'Due date…', prefix: <Icon name="calendar" size={14} /> },
+};
+
+/** DisabledRange — both from/to inputs locked (antd RangePicker disabled). */
+export const DisabledRange: S = {
+  name: 'Disabled range — locked from/to',
+  args: { range: true as const, disabled: true },
+};
 
 /** Controlled — useState demo: picked date shown below. */
 export const Controlled: S = {

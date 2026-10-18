@@ -32,6 +32,20 @@ export const WithDisabled: S = {
   },
 };
 
+/** GroupDisabled — whole group locked (antd RadioGroup disabled). */
+export const GroupDisabled: S = {
+  name: 'Group disabled — all options locked',
+  args: {
+    value: 'a',
+    disabled: true,
+    onChange: () => {},
+    options: [
+      { label: 'Option A', value: 'a' },
+      { label: 'Option B', value: 'b' },
+    ],
+  },
+};
+
 /** Controlled — useState demo: pick shows the selected value. */
 export const Controlled: S = {
   args: { options: [] },

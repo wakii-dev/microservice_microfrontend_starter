@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '../button/index.js';
 import { Input, Textarea } from '../input/index.js';
+import { Select } from '../select/index.js';
 import { Field } from './index.js';
 
 const meta = {
@@ -54,6 +55,27 @@ export const ErrorThayHint: Story = {
     error: 'Email không hợp lệ',
     hint: 'Dùng email công việc',
     children: <Input id="field-error" invalid aria-invalid aria-describedby="field-error-error" defaultValue="khong-phai-email" />,
+  },
+};
+
+/** WithSelect — Field wraps any control, not just Input (antd Form.Item parity). */
+export const WithSelect: Story = {
+  name: 'With select control',
+  args: {
+    label: 'Region',
+    htmlFor: 'field-region',
+    hint: 'Filter tasks by workspace region',
+    children: (
+      <Select
+        ariaLabel="Region"
+        placeholder="Pick a region…"
+        options={[
+          { label: 'HN — Hà Nội', value: 'hn' },
+          { label: 'SG — Sài Gòn', value: 'sg' },
+          { label: 'DN — Đà Nẵng', value: 'dn' },
+        ]}
+      />
+    ),
   },
 };
 

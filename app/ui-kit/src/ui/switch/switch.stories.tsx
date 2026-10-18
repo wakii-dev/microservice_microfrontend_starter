@@ -53,8 +53,10 @@ export const Disabled: S = {
 
 export const DarkTheme: S = {
   name: 'Dark theme',
+  /* Nền bg-s2 (dark = xám đậm dịu) như switch nằm trên card thật — KHÔNG
+   * bg-canvas near-black gây vạt đen gắt trên canvas sáng (feedback user). */
   render: () => (
-    <div data-bp-theme="dark" className="inline-flex items-center gap-3 rounded-xl bg-canvas p-4">
+    <div data-bp-theme="dark" className="inline-flex items-center gap-4 rounded-xl bg-s2 p-4">
       <Switch checked aria-label="Dark 1" />
       <Switch aria-label="Dark 2" />
       <Switch checked size="small" aria-label="Dark 3" />

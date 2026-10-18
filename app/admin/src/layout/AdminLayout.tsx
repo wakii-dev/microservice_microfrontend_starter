@@ -49,8 +49,8 @@ const MENU_MAIN: MenuItemData[] = [
     label: 'Demo',
     icon: <Icon name="star" size={16} />,
     children: [
-      { key: '/demo/hooks', label: 'Hooks' },
-      { key: '/demo/components', label: 'Components' },
+      { key: '/demo/hooks', label: 'Hooks', icon: <Icon name="copy" size={14} /> },
+      { key: '/demo/components', label: 'Components', icon: <Icon name="menu-bars" size={14} /> },
     ],
   },
 ];

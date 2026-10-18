@@ -58,11 +58,15 @@ describe('Sidebar — collapse', () => {
     expect(screen.getByRole('button', { name: 'Mở rộng' })).toBeInTheDocument();
   });
 
-  it('collapsed → trigger căn giữa ngang (left-1/2); expanded → mép phải (-right-3)', () => {
+  it('trigger mép phải cả 2 trạng thái; collapsed ngang hàng brand (top 28px), expanded giữa (50%)', () => {
     render(<Sidebar>content</Sidebar>);
-    expect(screen.getByRole('button', { name: 'Thu gọn' }).className).toContain('-right-3');
-    fireEvent.click(screen.getByRole('button', { name: 'Thu gọn' }));
-    expect(screen.getByRole('button', { name: 'Mở rộng' }).className).toContain('left-1/2');
+    const expanded = screen.getByRole('button', { name: 'Thu gọn' });
+    expect(expanded.className).toContain('-right-3');
+    expect(expanded.style.top).toBe('50%');
+    fireEvent.click(expanded);
+    const collapsed = screen.getByRole('button', { name: 'Mở rộng' });
+    expect(collapsed.className).toContain('-right-3');
+    expect(collapsed.style.top).toBe('28px');
   });
 
   it('onToggle bắn trạng thái mới', () => {

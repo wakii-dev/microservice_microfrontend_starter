@@ -53,4 +53,25 @@ describe('Segmented — branch phụ (Tier 5 sweep)', () => {
     expect(screen.getByRole('radiogroup')).toBeInTheDocument();
     expect(screen.queryByRole('radio')).toBeNull();
   });
+
+  // ── Case-coverage audit 2026-10-18 (antd parity: disabled option) ──
+
+  it('option disabled → không bấm được, không gọi onChange (antd parity)', async () => {
+    const onChange = vi.fn();
+    render(
+      <Segmented
+        options={[
+          { label: 'Ngày', value: 'day' },
+          { label: 'Khoá', value: 'locked', disabled: true },
+        ]}
+        value="day"
+        onChange={onChange}
+      />,
+    );
+    const locked = screen.getByRole('radio', { name: 'Khoá' });
+    expect(locked).toBeDisabled();
+    expect(locked).toHaveClass('cursor-not-allowed');
+    await userEvent.click(locked);
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });

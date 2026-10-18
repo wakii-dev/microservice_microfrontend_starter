@@ -44,3 +44,22 @@ describe('Menubar — hover dropdown', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Menubar — danger item', () => {
+  it('child danger → class text-st-fail (đỏ, hover bg-st-fail/12)', async () => {
+    render(
+      <Menubar
+        items={[
+          {
+            key: 'task',
+            label: 'Task',
+            children: [{ key: 'del', label: 'Delete task…', danger: true }],
+          },
+        ]}
+      />,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Task' }));
+    const item = screen.getByText('Delete task…');
+    expect(item.className).toContain('text-st-fail');
+  });
+});

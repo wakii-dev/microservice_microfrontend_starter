@@ -47,3 +47,19 @@ export const SelectionDemo: Story = {
   name: 'Demo — onClick + onItemClick display',
   render: () => <DemoMenubar />,
 };
+
+export const DangerItem: Story = {
+  name: 'Danger item — destructive submenu action',
+  render: () => (
+    <Menubar
+      items={[
+        {
+          key: 'task',
+          label: 'Task',
+          children: [{ key: 'new', label: 'New task' }, { key: 'del', label: 'Delete task…', danger: true }],
+        },
+        { key: 'help', label: 'Help' },
+      ]}
+    />
+  ),
+};

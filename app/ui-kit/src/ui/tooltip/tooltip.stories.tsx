@@ -62,3 +62,19 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+export const RichContent: Story = {
+  name: 'Rich content — ReactNode title (strong + accent)',
+  render: () => (
+    <Tooltip
+      title={
+        <span>
+          <strong className="text-white">Deadline</strong> — syncs through the gateway, retries 3×, then parks in{' '}
+          <span className="text-accent">DLQ</span>
+        </span>
+      }
+    >
+      <Button>Hover for rich hint</Button>
+    </Tooltip>
+  ),
+};

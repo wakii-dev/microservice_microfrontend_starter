@@ -1,7 +1,7 @@
 // Knob — dial value (antd lite): circular indicator + drag.
 // A11y (batch ⑫ worker C): role=slider + Arrow keys (±1, clamp min/max) —
 // trước đây chỉ drag chuột, keyboard không với tới.
-import { useCallback, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useRef, type KeyboardEvent } from 'react';
 
 export interface KnobProps {
   value?: number;
@@ -16,7 +16,6 @@ export interface KnobProps {
 
 export function Knob({ value = 0, onChange, min = 0, max = 100, size = 96, ariaLabel = 'Điều khiển giá trị', className }: KnobProps) {
   const ref = useRef<SVGSVGElement>(null);
-  const angle = ((value - min) / (max - min)) * 270 - 135;
   const r = size / 2 - 8;
   const c = size / 2;
   const circumference = 2 * Math.PI * r;

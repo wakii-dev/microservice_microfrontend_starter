@@ -2,6 +2,7 @@
 // Component has NO disabled/size prop (see types) — don't invent variants.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { Icon } from '../icons/index';
 import { Segmented } from './index';
 const meta = { title: 'Navigation/Segmented', component: Segmented, tags: ['autodocs'] } satisfies Meta<typeof Segmented>;
 export default meta;
@@ -39,6 +40,43 @@ export const ManyOptions: S = {
   args: {
     options: [...OPTIONS, { label: 'Quarter', value: 'quarter' }, { label: 'Year', value: 'year' }],
     value: 'quarter',
+    onChange: () => {},
+  },
+};
+
+export const IconOptions: S = {
+  name: 'Icon options — Icon inside ReactNode label',
+  args: {
+    options: [
+      {
+        label: (
+          <span className="flex items-center gap-1.5">
+            <Icon name="calendar" size={14} />
+            Schedule
+          </span>
+        ),
+        value: 'schedule',
+      },
+      {
+        label: (
+          <span className="flex items-center gap-1.5">
+            <Icon name="users" size={14} />
+            Team
+          </span>
+        ),
+        value: 'team',
+      },
+      {
+        label: (
+          <span className="flex items-center gap-1.5">
+            <Icon name="file" size={14} />
+            Docs
+          </span>
+        ),
+        value: 'docs',
+      },
+    ],
+    value: 'team',
     onChange: () => {},
   },
 };

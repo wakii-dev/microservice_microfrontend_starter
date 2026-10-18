@@ -67,3 +67,29 @@ export const SelectionDemo: Story = {
   name: 'Demo — leaf select + root onClick',
   render: () => <SelectionDemoInner />,
 };
+
+export const MultipleOpen: Story = {
+  name: 'Multiple open — panels expand independently (click both)',
+  render: () => (
+    <PanelMenu
+      className="w-64"
+      items={[
+        {
+          key: 'manage',
+          label: 'Manage',
+          icon: <Icon name="menu-bars" size={14} />,
+          children: [
+            { key: 'tasks', label: 'Tasks' },
+            { key: 'users', label: 'Members' },
+          ],
+        },
+        {
+          key: 'reports',
+          label: 'Reports',
+          icon: <Icon name="calendar" size={14} />,
+          children: [{ key: 'weekly', label: 'Weekly' }],
+        },
+      ]}
+    />
+  ),
+};

@@ -1,4 +1,4 @@
-# USAGE — wakii-ui-kit
+# USAGE — @wakii-dev/ui-kit
 
 Storybook :6006 = docs sống (mọi props/states demo thật). File này gồm 2 phần:
 **Bắt đầu nhanh** (install/theme/form/icon/subpath/z-index) và **Tham chiếu theo component**.
@@ -15,7 +15,7 @@ ui-kit là **workspace package consumed qua source** (ADR-0009) — không build
 
 ```bash
 # trong workspace monorepo
-pnpm add wakii-ui-kit --workspace   # hoặc "dependencies": { "wakii-ui-kit": "workspace:*" }
+pnpm add @wakii-dev/ui-kit --workspace   # hoặc "dependencies": { "@wakii-dev/ui-kit": "workspace:*" }
 ```
 
 Tương lai publish npm: cùng API, thay scope thật — source-consumption giúp KHÔNG phải
@@ -44,7 +44,7 @@ Schema là source of truth; `useForm` trả `values/errors/touched` + handlers:
 
 ```tsx
 import { z } from 'zod';
-import { useForm, Field, Input, Button } from 'wakii-ui-kit';
+import { useForm, Field, Input, Button } from '@wakii-dev/ui-kit';
 
 const schema = z.object({
   email: z.string().min(1, 'Email bắt buộc').email('Email không hợp lệ'),
@@ -78,7 +78,7 @@ khi gõ, lỗi tự xoá khi sửa đúng). `reset()` xoá values/errors/touched
 48 icon path data gốc primeicons; `fill=currentColor` nên kế thừa màu text cha:
 
 ```tsx
-import { Icon } from 'wakii-ui-kit';
+import { Icon } from '@wakii-dev/ui-kit';
 
 <Icon name="chevron-right" />          // default 14px
 <Icon name="settings" size={20} className="text-accent" />
@@ -97,10 +97,10 @@ Storybook **Primitives/Icons → AllIcons**.
 Barrel chính KHÔNG kéo CSS của comp nặng. Import qua subpath tương ứng:
 
 ```tsx
-import { Carousel } from 'wakii-ui-kit/carousel';   // kèm swiper CSS; swiper là peer-dep
-import { Chart } from 'wakii-ui-kit/chart';         // chart.js
-import { Schedule } from 'wakii-ui-kit/schedule';   // @fullcalendar/* optional, có fallback
-import { Editor } from 'wakii-ui-kit/editor';       // @tiptap/*
+import { Carousel } from '@wakii-dev/ui-kit/carousel';   // kèm swiper CSS; swiper là peer-dep
+import { Chart } from '@wakii-dev/ui-kit/chart';         // chart.js
+import { Schedule } from '@wakii-dev/ui-kit/schedule';   // @fullcalendar/* optional, có fallback
+import { Editor } from '@wakii-dev/ui-kit/editor';       // @tiptap/*
 ```
 
 ### Z-index tier
@@ -133,12 +133,12 @@ import { Badge, EmptyState, Skeleton, Spinner, Button, Input, Textarea, Tag,
   Checkbox, Radio, RadioGroup, Switch, InputNumber, Tabs, Dropdown, Segmented,
   Avatar, Drawer, Progress, Result, Descriptions, Collapse, UiImage, Table,
   Breadcrumb, Steps, BusyBox, Typography, Divider, Space,
-  UiKitProvider, message, notification } from 'wakii-ui-kit';
+  UiKitProvider, message, notification } from '@wakii-dev/ui-kit';
 
 // Styles (shell import global; remote standalone tự import)
-import 'wakii-ui-kit/styles/tokens.css';
-import 'wakii-ui-kit/styles/base.css';
-import 'wakii-ui-kit/styles/tailwind.css'; // shell làm chủ; remote import trong app.css
+import '@wakii-dev/ui-kit/styles/tokens.css';
+import '@wakii-dev/ui-kit/styles/base.css';
+import '@wakii-dev/ui-kit/styles/tailwind.css'; // shell làm chủ; remote import trong app.css
 ```
 
 ### Badge
@@ -253,7 +253,7 @@ import 'wakii-ui-kit/styles/tailwind.css'; // shell làm chủ; remote import tr
 ### message / notification (static API)
 
 ```tsx
-import { message, notification } from 'wakii-ui-kit';
+import { message, notification } from '@wakii-dev/ui-kit';
 message.success('Đã xoá'); message.error('Lỗi');
 notification.info('Tiêu đề', 'Mô tả chi tiết');
 ```

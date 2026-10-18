@@ -168,15 +168,16 @@ describe('findPath', () => {
 });
 
 describe('Menu — compact (sidebar icon-only, fix ⑥ 2026-10-18)', () => {
-  it('item icon căn GIỮA cột: justify-center + px-0, nhịp dọc py-2 đều', () => {
+  it('item = ô vuông size-8 căn giữa cột (mx-auto) — kiểu antd sider thu gọn', () => {
     render(
       <MenuCompactContext.Provider value={true}>
         <Menu items={threeLevels} />
       </MenuCompactContext.Provider>,
     );
     const item = screen.getByRole('menuitem', { name: 'Dashboard' });
-    expect(item).toHaveClass('justify-center', 'px-0', 'py-2');
+    expect(item).toHaveClass('size-8', 'justify-center', 'px-0');
     expect(item).toHaveClass('hover:bg-s3');
+    expect(item).not.toHaveClass('w-full');
   });
 
   it('submenu cha compact → chấm chỉ báo con (dot) + không chevron', () => {

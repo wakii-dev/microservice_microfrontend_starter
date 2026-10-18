@@ -2,8 +2,8 @@
 // SF-1 (story VU-53): import tokens+base để standalone không còn "trơ trụi" — GIỮ imports.
 // Trong shell, shell import global base LÀM CHỦ — remote không import lại (hand-off §2).
 // SF-4: banner debug scoped (styles.css qua ActivityPage import) thay banner text trần.
-import 'wakii-ui-kit/styles/tokens.css';
-import 'wakii-ui-kit/styles/base.css';
+import '@wakii-dev/ui-kit/styles/tokens.css';
+import '@wakii-dev/ui-kit/styles/base.css';
 import './app.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';

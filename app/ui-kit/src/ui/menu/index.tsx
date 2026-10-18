@@ -37,11 +37,13 @@ function ChevronDownIcon() {
 
 /* Ngôn ngữ nút — khớp pagination/calendar: transparent+hover s3 / accent fill /
  * ink4 disabled. 3 biến thể viết tường minh (không ghép chuỗi kiểu surgery).
- * Compact (sidebar icon-only): icon căn GIỮA cột (justify-center px-0 — hết lệch
- * trái), nhịp dọc đều py-2 (fix ⑥-2/⑥-5 2026-10-18). */
+ * Compact (sidebar icon-only, fix phản hồi user 2026-10-18): item = Ô VUÔNG
+ * size-8 như antd sider thu gọn; căn giữa cột do UL (items-center) + LI
+ * (flex-col items-center) lo — KHÔNG dùng mx-auto (class mới có thể chưa vào
+ * CSS build của consumer; chỉ dùng class đã tồn tại từ batch trước). */
 function itemCls(kind: 'normal' | 'selected' | 'disabled', compact: boolean): string {
-  const base = 'flex w-full items-center rounded-lg border-none text-body transition-colors';
-  const fit = compact ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-1.5';
+  const base = 'flex items-center rounded-lg border-none text-body transition-colors';
+  const fit = compact ? 'size-8 justify-center px-0' : 'w-full cursor-pointer gap-2 px-3 py-1.5';
   if (kind === 'disabled') return `${base} cursor-not-allowed bg-transparent text-ink4 ${fit}`;
   if (kind === 'selected') return `${base} cursor-pointer bg-accent font-medium text-white hover:bg-accent ${fit}`;
   return `${base} cursor-pointer bg-transparent text-ink hover:bg-s3 ${fit}`;
@@ -93,7 +95,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
         );
 
         return (
-          <li role="none" key={item.key} className="relative">
+          <li role="none" key={item.key} className={`relative${compact ? ' flex flex-col items-center' : ''}`}>
             {hasChildren ? (
               <button
                 type="button"
@@ -192,6 +194,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
 
 export function Menu({ items, mode = 'vertical', selectedKey, onSelect, className }: MenuProps) {
   /* Auto-open lần đầu: nhánh chứa selectedKey mở sẵn (useState initializer — chạy 1 lần). */
+  const compact = useContext(MenuCompactContext);
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set(findPath(items, selectedKey) ?? []));
 
   const toggle = (key: string) =>
@@ -213,7 +216,15 @@ export function Menu({ items, mode = 'vertical', selectedKey, onSelect, classNam
         items={items}
         mode={mode}
         depth={0}
-        ulCls={mode === 'horizontal' ? 'flex items-center gap-1' : 'flex flex-col gap-1'}
+        /* Compact: root ul tự items-center — ô vuông icon căn giữa cột bằng
+         * flexbox thuần (mx-auto phụ thuộc CSS class có trong build consumer). */
+        ulCls={
+          mode === 'horizontal'
+            ? 'flex items-center gap-1'
+            : compact
+              ? 'flex flex-col items-center gap-1'
+              : 'flex flex-col gap-1'
+        }
         selectedKey={selectedKey}
         onSelect={handleSelect}
         openKeys={openKeys}

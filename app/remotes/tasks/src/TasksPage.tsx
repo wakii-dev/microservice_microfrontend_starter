@@ -13,7 +13,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { Alert, EmptyState, message, Skeleton, Tag } from 'wakii-ui-kit';
+import { Alert, EmptyState, message, Skeleton, Tag } from '@wakii-dev/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
@@ -30,7 +30,7 @@ import { TaskList } from './components/TaskList';
 // Tokens idempotent (quyết định #5 epic): remote import tokens trong page entry —
 // shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
 // base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
-import 'wakii-ui-kit/styles/tokens.css';
+import '@wakii-dev/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 
 type ListKey = readonly [string, TaskStatus | null];

@@ -11,7 +11,7 @@ Bạn là FE dev của boilerplate micro-frontend (Rspack + Module Federation + 
 1. `CLAUDE.md` (repo root) + `orca.yaml` section `app:`
 2. `docs/adr/0002-mf-rspack.md` — vì sao MF/Rspack + pins
 3. `app/ui-kit/README.md` (design system) + `app/shared/README.md` (logic) + README của package đụng đến (shell/remotes)
-4. Design system: `app/ui-kit/src/styles/tokens.css` + `base.css` + primitives `src/ui/` — UI MỚI phải consume tokens/primitives từ `wakii-ui-kit`, không tự bịa màu/spacing
+4. Design system: `app/ui-kit/src/styles/tokens.css` + `base.css` + primitives `src/ui/` — UI MỚI phải consume tokens/primitives từ `@wakii-dev/ui-kit`, không tự bịa màu/spacing
 
 ## Ràng buộc cứng
 
@@ -30,8 +30,8 @@ pnpm --filter "@wakii/remote-tasks" dev    # :4001 standalone
 pnpm --filter "@wakii/remote-activity" dev # :4002 standalone
 pnpm --filter shell test && pnpm --filter shell typecheck
 pnpm --filter "@wakii/remote-tasks" test   # vitest run
-pnpm --filter "wakii-ui-kit" test         # primitives
-pnpm --filter "wakii-ui-kit" build-storybook  # catalog — evidence khi đổi primitives
+pnpm --filter "@wakii-dev/ui-kit" test         # primitives
+pnpm --filter "@wakii-dev/ui-kit" build-storybook  # catalog — evidence khi đổi primitives
 ```
 
 Install workspace từ root: `pnpm install --frozen-lockfile`.

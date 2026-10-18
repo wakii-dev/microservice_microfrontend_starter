@@ -15,7 +15,7 @@ import {
   message,
   useLocalStorage,
   type MenuItemData,
-} from 'wakii-ui-kit';
+} from '@wakii-dev/ui-kit';
 
 /* Badge count đè GÓC icon (absolute) — không chiếm layout, không tràn rìa khi
  * sidebar compact (fix ⑥-3): size-4, text-[9px], ring nền surface tách viền. */

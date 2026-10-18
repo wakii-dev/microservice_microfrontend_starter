@@ -125,3 +125,13 @@ export const FlatBar: Story = {
     />
   ),
 };
+
+/** DarkTheme — panel + bar trên dark canvas (tokens cascade, không code riêng cho dark). */
+export const DarkTheme: Story = {
+  name: 'Dark theme — bar + panel on dark canvas',
+  render: () => (
+    <div data-bp-theme="dark" className="w-full rounded-xl bg-canvas p-4">
+      <MegaMenu items={[PROJECTS]} className="rounded-lg" />
+    </div>
+  ),
+};

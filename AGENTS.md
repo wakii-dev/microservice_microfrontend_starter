@@ -18,8 +18,10 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | Thông báo | `message.*` (toast gọn) / `notification` (có title) / `Badge` trên bell — recipe 8 |
 | Trang settings | `Tabs` + `Switch` + `Field`/`Input` — recipe 9 |
 | Landing hero | `Button` + `Tag` + `Typography` + `Divider` + `Space` — recipe 10 |
+| Landing sống động (hero trôi + block hiện dần + KPI đếm số) | `Parallax` + `Reveal` + `CountUp` trong `Statistic`/`Row`/`Col` — recipe 16 |
 | Nav app | `Sidebar` (collapsible) + `Menu` đa cấp + `MenuCompactContext` tự icon-only |
-| Menu ngang | `Menubar` (hover dropdown) · `TabMenu` (tabs nav) · `SplitButton` · `Dropdown` · `ContextMenu` |
+| Menu ngang | `Menubar` (hover dropdown) · `MegaMenu` (panel multi-column mega) · `TabMenu` (tabs nav) · `SplitButton` · `Dropdown` · `ContextMenu` |
+| Menu trượt cấp (panel/hamburger) | `SlideMenu` (translateX giữa cấp, back + ESC) — recipe 18 |
 | Date/time | `DatePicker` (range/showTime, locale vi/en) · `TimePicker` · `Calendar` |
 
 ## Layout & Nav — khi nào dùng
@@ -29,6 +31,15 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `Row`/`Col` | 24-col responsive grid — KPI rows, dashboard card mosaics, form column splits | `gutter` on `Row` (number or `[h, v]` px — antd mechanic: negative margin + col padding) | `Col span={24} md={12} xl={6}` mobile-first (xs→xl resolve qua matchMedia) · wrap `Card`/`Statistic` dashboards · nest rows for sub-layouts |
 | `Flex` | One-axis layout fast — toolbars, button rows, stacked forms (skip 24-col math) | `gap` (`'small' \| 'middle' \| 'large'` \| px, default 8) | `vertical` for stacked form fields · justify/align raw CSS values · lighter than `Row`/`Col` when columns don't matter |
 | `Anchor` | In-page TOC with scroll-spy — docs, long settings, detail pages | `items` (`href: '#section-id'` + nested `children` for sub-levels) | `affix` sticky rail beside long content · `offsetTop` to clear sticky headers · `onClick` for analytics · `getContainer` for inner scroll areas |
+
+## Menu family — khi nào dùng
+
+| Component | Use when | Most valuable prop | Common combos |
+|---|---|---|---|
+| `MegaMenu` | Top bar + panel dropdown MULTI-COLUMN (2 cấp: group = cột → leaf) — landing/app header nhiều nhóm chức năng | `items[].children` (mỗi group render 1 cột, grid tự theo số group) | hover HOẶC click mở · ESC/click-ngoài/leave đóng (trả focus trigger) · `role=menu` + `aria-expanded` · leaf `danger` đỏ · `icon` từ bộ Icon |
+| `SlideMenu` | Menu trượt ngang GIỮA CÁC CẤP (panel hẹp, mobile/hamburger, cây sâu không giới hạn) | `items[].children` (đệ quy — translateX(-100%×depth), 0 deps) | back bar chevron-left + nhãn cấp cha · ESC pop cấp · trang ẩn `inert` + `aria-hidden` · `ariaLabel` cho landmark nav |
+
+So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa cột duyệt theo nhóm · `SlideMenu` = cấp sâu trong không gian hẹp — recipe 18.
 
 ## Data Display — khi nào dùng
 
@@ -43,9 +54,12 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `Collapse` | Progressive disclosure — FAQ, settings sections, logs | `items` (key/label/children, per-item `disabled`) · `accordion` (one open at a time) | inside `Card` body · default-open key via `defaultActiveKeys` |
 | `Descriptions` | Label:value readout of an entity (task detail, meta panel) | `items` · `size="small"` + `colon` | `Drawer`/`Modal` detail pane · `Card` body · `bordered` for dense data |
 | `Divider` | Separate/space content sections | `children` — text label embedded in the rule · `orientation="left|right"` | `Typography` sections · landing hero · settings groups |
+| `Draggable` / `DropZone` | Native HTML5 drag & drop primitives — reorder lists, drop targets (0 deps) | `Draggable data` (JSON payload qua dataTransfer, MIME riêng) · `DropZone onDrop(data)` parse ngược | `DragDropProvider` + keyboard: Space nhặt (`aria-pressed`) → Arrows zone → Enter thả / Esc hủy · `Draggable handle` giới hạn vùng kéo · `disabled` khoá card · `DropZone activeClass` thay highlight · `accept` lọc theo `dataTransfer.types` · ⚠️ không hỗ trợ touch — peer-dep dnd-kit nếu cần |
 | `Galleria` | Swipeable image gallery with dot indicators | `images` (per-image `caption` optional) | `Image` (click-to-zoom) for detail view · `Carousel` for non-image slides |
 | `Image` (`UiImage`) | Image with click-to-zoom preview overlay | `alt` (also the preview dialog's aria-label) | `Galleria` grids · `Upload` preview · `Table` attachment cells |
+| `KanbanBoard` | Kanban board — `columns` controlled (consumer sở hữu state), card kéo thả giữa/vị trí trong cột | `onCardMove(cardKey, fromColKey, toColKey, toIndex)` — toIndex là vị trí CUỐI sau khi card rời nguồn | `wipLimit` cột đầy từ chối drop + `border-st-fail` + aria-live · `tag`→Tag · `left` slot→Avatar · `renderCard` custom body · keyboard full (Tab → Space → ↑↓ vị trí / ←→ cột → Enter/Esc) · ⚠️ native DnD không touch |
 | `List` | Repeating rows from data — feeds, task digests | `renderItem` (full row control) | `List`+`Avatar`+`Tag` rows · `pagination` client-side · built-in `loading` skeleton + `EmptyState` |
+| `OrgChart` | Org tree dọc — company/team hierarchy, approval chains, reporting lines | `data` root đơn (`type` `'dept'\|'person'` đổi nền+icon) · `defaultCollapsedKeys` gập nhánh sẵn | `selectedKey`+`onSelect` highlight node (viền accent + aria-selected) · chevron góc card collapse subtree · connector line thuần CSS (0 đo đạc) · `role=tree/treeitem/group` |
 | `Schedule` | Month calendar (FullCalendar dayGrid) for date-driven events — sprints, deadlines, bookings | `events` (+ `onEventClick`) | `fallback` node when peer-dep `@fullcalendar/*` missing · `Card` wrapper · heavy: subpath `@wakii/ui-kit/schedule` |
 | `Segmented` | Compact single-choice switcher with no panels — view period, density, sort mode | `options` (`disabled` per-option) + controlled `value`/`onChange` | swap for `Tabs` when you don't need content panels · toolbar/filter-bar headers |
 | `Skeleton` | Loading placeholder mirroring the real layout before data lands | `variant` (text/row/card/circle/button) + `count` | stack `circle`+`text`+`row` to compose a card · `Table loading` renders its own — prefer that for grids · `classNames` slots (`wrapper`/`bone`) |
@@ -67,7 +81,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `AutoComplete` | Free-text input with type-to-filter suggestions (search-as-type) | `suggestions` — `onChange` gives raw text, `onSelect` gives the picked value | `Field` wrap · `Button` submit · empty `suggestions` → dropdown never opens |
 | `Calendar` | Month grid for inline date browsing/picking (no trigger field) | `value` + `onChange` (controlled selected day) | `locale="vi"\|"en"` · `range` + `onDayHover` (drives DatePicker) · `bare` inside panels |
 | `CascadeSelect` | Hierarchical pick (region → city → ward) through expanding panel columns | `options` (nested `children` define the levels) | `value` is a path array `["hn","bd"]` · keyboard ↑↓/Enter/Esc on the trigger |
-| `Checkbox` | Single on/off decision with a visible label | `checked` + `onChange(bool)` | `disabled` · inside `Field` · prefer `Switch` for instant-apply settings |
+| `Checkbox` | Single on/off decision with a visible label · tri-state parent (chọn một phần) | `checked` boolean\|`null` (null = indeterminate — dash + `aria-checked="mixed"`) · `indeterminate` override kiểu antd + `onChange(bool)` | `disabled` · inside `Field` · select-all header điều khiển list con (cycle true→null→false) · prefer `Switch` for instant-apply settings |
 | `Chips` | Multi-value tag input — Enter adds, × removes, Backspace pops the last | `value: string[]` + `onChange` | `placeholder` hint · `disabled` hides input + remove buttons · duplicates ignored |
 | `ColorPicker` | Color choice: swatch + preset grid + native picker + hex field | `presets` (curated palette; `[]` = native + hex only) | `value` hex · `onChange` fires from preset/native/hex alike |
 | `DatePicker` | Date pick through a trigger + calendar panel | `range` + `showTime` (with `locale` vi/en) | `value: Date \| [Date, Date]` · `now` injectable for tests · `prefix` icon · footer "Today"/OK |
@@ -99,6 +113,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | Component / Hook | Use when | Most valuable prop / arg | Common combos |
 |---|---|---|---|
 | `UiKitProvider` | Scope a theme subtree — dark mode or runtime token overrides without re-render | `theme` — `'dark'` or object `{ accent, accentHi, canvas, s1/s2/s3, ink/ink2/ink3, line, done/doing/fail }` (13 keys → CSS vars cascade) | wrap app root or a panel · `accent`/`accentHover` shorthand for brand swap |
+| `useFieldArray` | Dynamic rows in `useForm` (antd Form.List parity) — invite lists, line items | `nameAt(i, key)` → name `list.<i>.<key>` keeps form auto-focus-first-invalid working | `fields`/`count` render · `append(row)`/`remove(i)`/`move(from,to)`/`swap(a,b)`/`update(i,patch)` · errors follow ROWS (rebuilt from fresh snapshot per op) · recipe 17 |
 | `useForm` | Form state + zod validation (RHF-style minimal API) | `schema` (zod = source of truth; `mode` = onSubmit/onBlur/onChange) | `Field`+`Input`+`Button` · errors land on `errors.field` + auto-focus first invalid |
 | `useClickAway` | Close on outside interaction — dropdown, popover, menu | returned `ref` (attach to the inside element) | `Dropdown`/`Menu` builds · `useRef`-based popovers |
 | `useFocusTrap` | Lock Tab focus inside a dialog, restore focus on close | `(ref, active)` — focus first focusable (or container), cycle Tab, restore to trigger | `Modal`/`Drawer` (built-in) · any custom `role="dialog"` |
@@ -116,6 +131,14 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `useMediaQuery` | Reactive matchMedia boolean | `query` (e.g. `'(min-width: 768px)'`) | responsive JS behavior · `prefers-reduced-motion` branches |
 | `useWindowSize` | Live viewport width/height | — (no args) | virtualized lists · breakpoint-adjacent JS logic |
 | `useLocalStorage` / `useSessionStorage` | Persistent (tab) / session state without effect boilerplate | `key` + `initialValue` | theme preference · drafts · wizard step memory |
+
+## Motion — khi nào dùng
+
+| Component | Use when | Most valuable prop | Common combos |
+|---|---|---|---|
+| `Parallax` | Scroll-linked drift — hero ảnh/banner landing trôi chậm hơn trang, tạo chiều sâu | `speed` (0–1; 0.3 phổ biến; `scale` phóng nhẹ theo drift) | wrap ảnh hero/section trong landing (recipe 16) · **an toàn a11y: tự tắt khi `prefers-reduced-motion`** (qua `useMediaQuery`) hoặc `disabled` · 0 deps — style ghi thẳng node, 0 re-render/frame |
+| `Reveal` | Block hiện dần khi vào viewport — section landing, card list, KPI row | `direction` (`up` mặc định — dùng keyframe `bp-slide-up-in` có sẵn; `down/left/right` = fade + transition transform) | `delay` (stagger 0/150/300ms — fill backwards giữ ẩn trong lúc trễ) · `once` mặc định true (IO disconnect sau lần đầu), `once={false}` replay mỗi lần vào · fallback hiện luôn khi môi trường không có IntersectionObserver · reduced-motion tự tắt nhờ block global |
+| `CountUp` | Đếm số ease-out cho KPI/metric — dashboard, landing stats | `value` (+ `duration` giây, mặc định 1.2; `0` = chạm đích ngay) | `decimals`/`format` (locale vi-VN, đơn vị) · `onDone` đúng 1 lần · `Statistic value={<CountUp …/>}` dashboard (recipe 16) · đổi `value` → animate tiếp từ số đang hiển thị (không nhảy về 0) · `tabular-nums` sẵn |
 
 ## Feedback & Overlay — khi nào dùng
 
@@ -159,8 +182,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 - ❌ `!important`/`!bg-…` trừ khi override CSS third-party
 - ❌ State kéo theo re-render churn cho thư viện so-tham-chiếu-theo-reference (vd swiper/react) — dùng imperative ref + classList
 - ❌ Story file 0 `export const` (indexer drop — phải có ≥1 story mỗi file)
-- ❌ Story meta gắn `component:` khi story chỉ có `render: () => …` và component có required props — StoryObj suy `args` BẮT BUỘC → TS2322 chặn push. Fix: meta không gắn `component` (`satisfies Meta` không generic — pattern `image.stories`); chỉ gắn `component:` khi mọi story truyền đủ `args`
-- ❌ Meta gắn `component` khi component có required props → CSF ép `args` lên mọi story, story render-only lỗi TS — render-only dùng meta không `component` (`satisfies Meta`), story theo args thì gắn `component` + `args` đầy đủ (image vs galleria.stories)
+- ❌ Story meta gắn `component:` khi story chỉ có `render: () => …` và component có required props — StoryObj suy `args` BẮT BUỘC → TS2322 chặn push. Fix: meta không gắn `component` (`satisfies Meta` không generic — pattern `image.stories`); chỉ gắn `component:` khi mọi story truyền đủ `args` (pattern `galleria.stories`)
 
 ## Ghi nhớ vận hành
 

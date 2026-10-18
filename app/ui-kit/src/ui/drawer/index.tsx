@@ -7,18 +7,40 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
+/** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
+export interface DrawerClassNames {
+  /** Sliding panel (aside). */
+  wrapper?: string;
+  /** Fullscreen dim overlay. */
+  mask?: string;
+  /** Title bar. */
+  header?: string;
+  /** Scrollable body. */
+  body?: string;
+  /** Footer action row. */
+  footer?: string;
+}
+
 export interface DrawerProps {
+  /** Mở/đóng (đóng có exit animation trước khi unmount). */
   open: boolean;
+  /** Tiêu đề header (string → làm aria-label dialog). */
   title?: ReactNode;
   /** px — mặc định 378 (antd). */
   width?: number;
   onClose?: () => void;
+  /** Hàng nút cuối panel. */
   footer?: ReactNode;
   children?: ReactNode;
   className?: string;
+  /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
+  classNames?: DrawerClassNames;
 }
 
-export function Drawer({ open, title, width = 378, onClose, footer, children, className }: DrawerProps) {
+// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
+const slot = (c?: string) => (c ? ` ${c}` : '');
+
+export function Drawer({ open, title, width = 378, onClose, footer, children, className, classNames }: DrawerProps) {
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
   const panelRef = useRef<HTMLElement>(null);
@@ -51,7 +73,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] bg-black/45 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}`}
+      className={`fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)] ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.mask)}`}
       onClick={() => onClose?.()}
       data-testid="drawer-overlay"
     >
@@ -61,26 +83,26 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
         aria-modal="true"
         tabIndex={-1}
         aria-label={typeof title === 'string' ? title : undefined}
-        className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[-6px_0_16px_-8px_rgba(0,0,0,0.08),-9px_0_28px_0_rgba(0,0,0,0.05)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]'}${className ? ` ${className}` : ''}`}
+        className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]'}${className ? ` ${className}` : ''}${slot(classNames?.wrapper)}`}
         style={{ width }}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-line2 px-6 py-4">
+        <header className={`flex items-center justify-between border-b border-line2 px-6 py-4${slot(classNames?.header)}`}>
           <div className="text-h2 font-semibold text-ink">{title}</div>
           <button
             type="button"
             aria-label="Đóng"
-            className="cursor-pointer border-none bg-transparent text-lg leading-4 text-ink3 hover:text-ink"
+            className="cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:opacity-70"
             onClick={() => onClose?.()}
           >
             ×
           </button>
         </header>
-        <div className="flex-1 overflow-auto p-6 text-body text-ink2">{children}</div>
-        {footer && <footer className="flex justify-end gap-2 border-t border-line2 p-4">{footer}</footer>}
+        <div className={`flex-1 overflow-auto p-6 text-body text-ink2${slot(classNames?.body)}`}>{children}</div>
+        {footer && <footer className={`flex justify-end gap-2 border-t border-line2 p-4${slot(classNames?.footer)}`}>{footer}</footer>}
       </aside>
     </div>,
     document.body,

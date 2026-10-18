@@ -1,9 +1,20 @@
 // Message — toast gọn kiểu antd message (static API: message.success('…')).
 // Container tự tạo 1 lần (portal-free: div fixed gắn body khi gọi đầu tiên);
 // auto-dismiss 3s + motion slide-down. KHÔNG thay Alert cho error cần hiển thị lâu.
+// SÓNG-3: classNames slots (wrapper/icon/content) — merge sau class mặc định.
 import type { AlertType } from '../alert/index';
 
 export type MessageType = Exclude<AlertType, 'warning'> | 'warning';
+
+/** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
+export interface MessageClassNames {
+  /** Toast root. */
+  wrapper?: string;
+  /** Status glyph span. */
+  icon?: string;
+  /** Content span. */
+  content?: string;
+}
 
 
 const ICON: Record<MessageType, string> = { success: '✓', info: 'ℹ', warning: '⚠', error: '✕' };
@@ -15,7 +26,6 @@ const COLOR: Record<MessageType, string> = {
 };
 
 let container: HTMLDivElement | null = null;
-let seq = 0;
 
 function ensureContainer(): HTMLDivElement {
   // isConnected guard: container có thể bị detach (cleanup test / HMR) — tái tạo
@@ -27,13 +37,23 @@ function ensureContainer(): HTMLDivElement {
   return container;
 }
 
-function show(type: MessageType, content: string, durationMs = 3000): void {
+// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
+const slot = (c?: string) => (c ? ` ${c}` : '');
+
+function show(type: MessageType, content: string, durationMs = 3000, classNames?: MessageClassNames): void {
   const root = ensureContainer();
-  const id = ++seq;
   const el = document.createElement('div');
-  el.className = 'pointer-events-auto flex items-center gap-2 rounded-2 border border-line bg-s2 px-3 py-2 text-body text-ink shadow-lg';
-  el.innerHTML = `<span class="text-label ${COLOR[type]}" aria-hidden="true">${ICON[type]}</span><span>${content}</span>`;
+  el.className = `pointer-events-auto flex items-center gap-2 rounded-xl border border-line bg-s2 px-3 py-2 text-body text-ink shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
   el.setAttribute('role', 'status');
+  // DOM API + textContent — KHÔNG innerHTML (content có thể là input user → XSS surface)
+  const icon = document.createElement('span');
+  icon.className = `text-label ${COLOR[type]}${slot(classNames?.icon)}`;
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = ICON[type];
+  const text = document.createElement('span');
+  if (classNames?.content) text.className = classNames.content;
+  text.textContent = content;
+  el.append(icon, text);
   root.appendChild(el);
   // motion 12 standalone: animate qua Web Animations (không cần React root)
   // WAAPI — jsdom test không có Element.animate → guard (toast vẫn remove đúng)
@@ -57,9 +77,9 @@ function show(type: MessageType, content: string, durationMs = 3000): void {
 }
 
 export const message = {
-  success: (content: string) => show('success', content),
-  info: (content: string) => show('info', content),
-  warning: (content: string) => show('warning', content),
-  error: (content: string) => show('error', content),
+  success: (content: string, classNames?: MessageClassNames) => show('success', content, 3000, classNames),
+  info: (content: string, classNames?: MessageClassNames) => show('info', content, 3000, classNames),
+  warning: (content: string, classNames?: MessageClassNames) => show('warning', content, 3000, classNames),
+  error: (content: string, classNames?: MessageClassNames) => show('error', content, 3000, classNames),
 };
 

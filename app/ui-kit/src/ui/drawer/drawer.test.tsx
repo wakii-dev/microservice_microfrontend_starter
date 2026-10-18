@@ -106,3 +106,27 @@ describe('Drawer — focus management (a11y batch ⑫ worker C)', () => {
     expect(screen.getByRole('button', { name: 'Mở drawer' })).toHaveFocus();
   });
 });
+
+describe('Drawer — classNames slots (SÓNG-3)', () => {
+  it('slots merge sau default ở đúng element (mask/wrapper/header/body/footer)', () => {
+    render(
+      <Drawer
+        open
+        title="Slot"
+        footer={<button>Lưu</button>}
+        classNames={{ mask: 'backdrop-blur-sm', wrapper: 'ring-1', header: 'bg-s3', body: 'italic', footer: 'border-t-0' }}
+      >
+        nội dung
+      </Drawer>,
+    );
+    const mask = screen.getByTestId('drawer-overlay');
+    expect(mask).toHaveClass('bg-[var(--mask)]'); // default giữ
+    expect(mask).toHaveClass('backdrop-blur-sm'); // slot thêm
+    const panel = screen.getByRole('dialog', { name: 'Slot' });
+    expect(panel).toHaveClass('bg-s2');
+    expect(panel).toHaveClass('ring-1');
+    expect(panel.querySelector('header')).toHaveClass('bg-s3');
+    expect(panel.querySelector('.flex-1')).toHaveClass('italic');
+    expect(panel.querySelector('footer')).toHaveClass('border-t-0');
+  });
+});

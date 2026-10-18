@@ -101,17 +101,52 @@ describe('Modal — focus management (a11y batch ⑫ worker C)', () => {
     expect(screen.getByRole('button', { name: 'Huỷ' })).toHaveFocus();
   });
 
-  it('Tab ở nút cuối (OK) → vòng về đầu, KHÔNG thoát ra ngoài dialog', async () => {
+  it('Tab ở nút × Đóng (cuối DOM) → vòng về đầu (Huỷ), KHÔNG thoát dialog', async () => {
     await openModal();
-    screen.getByRole('button', { name: 'OK' }).focus();
+    screen.getByRole('button', { name: 'Đóng' }).focus();
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab' });
     expect(screen.getByRole('button', { name: 'Huỷ' })).toHaveFocus();
   });
 
-  it('Shift+Tab ở phần tử đầu → vòng về cuối', async () => {
+  it('nút × Đóng → onCancel', async () => {
+    const { onCancel, user } = await openModal();
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('classNames slots (SÓNG-3) — merge sau default ở mask/wrapper/header/body/footer/closeButton', () => {
+    render(
+      <Modal
+        open
+        title="Slot"
+        classNames={{
+          mask: 'backdrop-blur-sm',
+          wrapper: 'ring-1',
+          header: 'text-purple-700',
+          body: 'italic',
+          footer: 'border-t border-line2 pt-3',
+          closeButton: 'text-purple-500',
+        }}
+      >
+        nội dung
+      </Modal>,
+    );
+    const mask = screen.getByTestId('modal-overlay');
+    expect(mask).toHaveClass('bg-[var(--mask)]'); // default giữ
+    expect(mask).toHaveClass('backdrop-blur-sm'); // slot thêm
+    const dialog = screen.getByRole('dialog', { name: 'Slot' });
+    expect(dialog).toHaveClass('rounded-xl'); // default giữ
+    expect(dialog).toHaveClass('ring-1'); // slot thêm
+    expect(dialog.querySelector('.text-h2')).toHaveClass('text-purple-700');
+    expect(dialog.querySelector('.text-body')).toHaveClass('italic');
+    expect(dialog.querySelector('.mt-4')).toHaveClass('border-t');
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveClass('text-purple-500');
+  });
+
+  it('Shift+Tab ở phần tử đầu → vòng về cuối (nút × Đóng)', async () => {
     await openModal(); // focus đang ở Huỷ (đầu)
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Tab', shiftKey: true });
-    expect(screen.getByRole('button', { name: 'OK' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
   });
 
   it('ESC → gọi onCancel', async () => {

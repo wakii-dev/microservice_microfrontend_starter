@@ -5,6 +5,8 @@ export interface ToggleButtonProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
+  /** Giá trị đại diện khi nằm trong `ToggleButtonGroup` (đứng lẻ: bỏ qua). */
+  value?: string;
   children: ReactNode;
   className?: string;
 }

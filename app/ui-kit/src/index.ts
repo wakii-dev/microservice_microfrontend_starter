@@ -21,6 +21,7 @@ export { UiKitProvider, type UiKitProviderProps } from './provider/index.js';
 export { Typography, Title, Text, Paragraph, type TitleProps, type TextProps, type ParagraphProps, type TextType } from './ui/typography/index.js';
 export { Divider, type DividerProps } from './ui/divider/index.js';
 export { Flex, type FlexProps, type FlexGap } from './ui/flex/index.js';
+export { Layout, useSiderCollapsed, type LayoutProps, type LayoutHeaderProps, type LayoutContentProps, type LayoutFooterProps, type LayoutSiderProps, type LayoutComponent } from './ui/layout/index.js';
 export { Row, Col, type RowProps, type ColProps } from './ui/grid/index.js';
 export { Space, type SpaceProps } from './ui/space/index.js';
 export { Card, type CardProps } from './ui/card/index.js';
@@ -67,6 +68,7 @@ export { ColorPicker, type ColorPickerProps } from './ui/color-picker/index.js';
 export { SpeedDial, type SpeedDialProps, type SpeedDialAction } from './ui/speed-dial/index.js';
 export { Galleria, type GalleriaProps, type GalleriaImage } from './ui/galleria/index.js';
 export { Tree, type TreeProps, type TreeNodeData } from './ui/tree/index.js';
+export { TreeTable, type TreeTableProps, type TreeTableNode, type TreeTableColumn } from './ui/tree-table/index.js';
 export { Splitter, type SplitterProps } from './ui/splitter/index.js';
 export { Chart, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
 export { Schedule, type ScheduleProps, type ScheduleEvent } from './ui/schedule/index.js';
@@ -154,3 +156,30 @@ export { KanbanBoard, type KanbanBoardProps, type KanbanCardData, type KanbanCol
 export { CountUp, type CountUpProps } from './ui/count-up/index.js';
 export { Parallax, type ParallaxProps } from './ui/parallax/index.js';
 export { Reveal, type RevealDirection, type RevealProps } from './ui/reveal/index.js';
+
+// ── useForm companion (worker W6 2026-10-18): Form.List parity ──
+export { useFieldArray, type FieldArrayHelpers } from './hooks/useFieldArray.js';
+export type { FormInstance } from './hooks/useForm.js';
+
+// ── Nav family (worker W9 2026-10-18): MegaMenu + SlideMenu — 0 deps ──
+export { MegaMenu, type MegaMenuGroup, type MegaMenuItem, type MegaMenuLeaf, type MegaMenuProps } from './ui/mega-menu/index.js';
+export { SlideMenu, type SlideMenuItem, type SlideMenuProps } from './ui/slide-menu/index.js';
+
+// ── Motion effects bổ sung (worker W8 2026-10-18): Transition + Backdrop — 0 deps ──
+export { Backdrop, type BackdropProps } from './ui/backdrop/index.js';
+// Collapse của transition đổi tên barrel thành CollapseTransition — trùng tên với
+// Collapse (ui/collapse) ở trên (precedent UiImage)
+export { Collapse as CollapseTransition, Fade, Zoom, type TransitionProps } from './ui/transition/index.js';
+
+// ── Mobile/utility (worker V1 2026-10-18): BottomNavigation · DeferredContent · Fieldset · FloatButton — 0 deps ──
+export { BottomNavigation, type BottomNavigationProps, type BottomNavItem } from './ui/bottom-navigation/index.js';
+export { DeferredContent, type DeferredContentProps } from './ui/deferred-content/index.js';
+export { Fieldset, type FieldsetProps } from './ui/fieldset/index.js';
+export {
+  FloatButton,
+  FloatButtonGroup,
+  FloatButtonBackTop,
+  type FloatButtonProps,
+  type FloatButtonGroupProps,
+  type FloatButtonBackTopProps,
+} from './ui/float-button/index.js';

@@ -72,8 +72,8 @@ describe('Button', () => {
 describe('Button — completeness (Tier 1.5)', () => {
   it('size small/middle/large → class height riêng', () => {
     for (const [size, cls] of [
-      ['small', 'h-6'],
-      ['middle', 'h-8'],
+      ['small', 'h-8'],
+      ['middle', 'h-9'],
       ['large', 'h-10'],
     ] as const) {
       render(<Button size={size}>{size}</Button>);
@@ -132,6 +132,75 @@ describe('Button — branch phụ (parity)', () => {
       </Button>,
     );
     expect(screen.getByRole('button', { name: 'r' })).toHaveAttribute('type', 'reset');
-    expect(screen.getByRole('button', { name: 'r' })).toHaveClass('h-8');
+    expect(screen.getByRole('button', { name: 'r' })).toHaveClass('h-9');
+  });
+});
+
+describe('Button — modernize (vision-audit 2026-10-18)', () => {
+  it('base polish: rounded-lg + font-medium + duration-150 + focus ring accent/40 + active scale 0.98', () => {
+    render(<Button>polish</Button>);
+    const btn = screen.getByRole('button', { name: 'polish' });
+    expect(btn).toHaveClass(
+      'rounded-lg',
+      'font-medium',
+      'duration-150',
+      'focus-visible:ring-2',
+      'focus-visible:ring-accent/40',
+      'focus-visible:ring-offset-2',
+      'focus-visible:outline-none',
+      'active:scale-[0.98]',
+    );
+  });
+
+  it('middle mặc định h-9 (36px antd middle)', () => {
+    render(<Button>mặc định</Button>);
+    expect(screen.getByRole('button', { name: 'mặc định' })).toHaveClass('h-9');
+  });
+
+  it('default variant có định nghĩa: bg-s2 + border-line, hover bg-s3 (không trắng-trên-trắng)', () => {
+    render(<Button>secondary</Button>);
+    expect(screen.getByRole('button', { name: 'secondary' })).toHaveClass(
+      'bg-s2',
+      'border-line',
+      'hover:bg-s3',
+    );
+  });
+
+  it('disabled dùng token --bg-disabled (dark-safe, không hex đen cứng)', () => {
+    render(
+      <Button disabled>
+        off
+      </Button>,
+    );
+    expect(screen.getByRole('button', { name: 'off' })).toHaveClass(
+      'disabled:bg-[var(--bg-disabled)]',
+    );
+  });
+
+  it('loading → cursor-wait + Spinner size-3.5 (không phải size-3 cũ) + disable', () => {
+    render(
+      <Button type="primary" loading icon={<span data-testid="ic" />}>
+        Lưu
+      </Button>,
+    );
+    const btn = screen.getByRole('button', { name: /Lưu/ });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveClass('cursor-wait');
+    const spinner = btn.querySelector('[role="status"]');
+    expect(spinner).not.toBeNull();
+    // role=status là wrapper ngoài — box size nằm ở node ring bên trong
+    expect(spinner!.querySelector('.size-3\\.5')).not.toBeNull();
+  });
+
+  it('padding theo size: small px-3 / middle px-4 / large px-5', () => {
+    for (const [size, cls] of [
+      ['small', 'px-3'],
+      ['middle', 'px-4'],
+      ['large', 'px-5'],
+    ] as const) {
+      render(<Button size={size}>{size}</Button>);
+      expect(screen.getByRole('button', { name: size })).toHaveClass(cls);
+      cleanup();
+    }
   });
 });

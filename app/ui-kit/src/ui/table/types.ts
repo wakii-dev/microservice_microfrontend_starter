@@ -93,6 +93,12 @@ export interface TableVirtualConfig {
   itemHeight: number;
 }
 
+/** Cấu hình scroll kiểu antd — `{ y }` bật fixed header (wrapper max-height + thead sticky). */
+export interface TableScrollConfig {
+  /** Chiều cao tối đa vùng cuộn (px hoặc CSS length) — thead dính trên, summary dính đáy nếu có. */
+  y?: number | string;
+}
+
 /** classNames sub-part slots (antd v5 style) — merge SAU default classes. */
 export interface TableClassNames {
   /** Scroller bọc bảng (overflow-auto + border). */
@@ -135,6 +141,11 @@ export interface TableProps<T> {
   selectedRowKeys?: Array<string>;
   onSelectionChange?: (records: T[]) => void;
   scrollHeight?: number | string;
+  /** Scroll kiểu antd — `{ y }` bật fixed header (wrapper max-h + thead sticky; filter row sticky ngay dưới header). */
+  scroll?: TableScrollConfig;
+  /** Hàng tổng kiểu antd Table `summary` — nhận data TRANG HIỆN TẠI (paged khi paginator, else toàn bộ đã sort);
+   *  render `<tfoot>` dính đáy (sticky bottom-0) khi `scroll.y` bật. */
+  summary?: (currentData: T[]) => ReactNode;
   /**
    * Virtual scroll — render windowed rows theo scrollTop khi dữ liệu lớn
    * (> ~50 rows). `true` = itemHeight mặc định 44; object = override.

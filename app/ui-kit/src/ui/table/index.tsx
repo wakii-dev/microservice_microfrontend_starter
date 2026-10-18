@@ -9,7 +9,8 @@
 // - Filter placement: 'menu' (mặc định) | 'row' (input row)
 // - Paginator: Pagination + Select số dòng
 // - Selection: single (row click) | checkbox (cột + select-all) — GIỮ qua filter/pagination
-// - Scroll: scrollHeight + sticky header
+// - Scroll: scroll.y (antd) | scrollHeight (legacy) + sticky thead + filter row
+//   sticky dưới header; summary row (antd) dính đáy khi scroll bật
 // - Variants: striped / borderless / size small|normal|large
 // - Loading skeleton · EmptyState · Row expansion
 // - Virtual scroll (virtual: boolean | { itemHeight } — windowed rows khi > 50
@@ -29,7 +30,7 @@ import type {
   SortMeta, SortOrder, FilterMatchMode, FilterOperator,
   FilterConstraint, TableColumn, TableProps, TableVirtualConfig,
 } from './types';
-export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps, TableVirtualConfig, TableClassNames, TableExpandableConfig } from './types';
+export type { SortMeta, SortOrder, FilterMatchMode, FilterOperator, FilterConstraint, TableColumn, TableProps, TableVirtualConfig, TableClassNames, TableExpandableConfig, TableScrollConfig } from './types';
 import { STRING_MODES, NUMBER_MODES, matchConstraint } from './types';
 // eslint-disable-next-line react-refresh/only-export-components
 export { STRING_MODES, NUMBER_MODES, matchConstraint };
@@ -200,6 +201,8 @@ export function Table<T extends object>({
   selectedRowKeys: controlledSelected,
   onSelectionChange,
   scrollHeight,
+  scroll,
+  summary,
   virtual = false,
   striped = false,
   borderless = false,
@@ -228,7 +231,10 @@ export function Table<T extends object>({
   const [colWidths, setColWidths] = useState<Record<string, number>>({});
   const [scrollTop, setScrollTop] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const theadRef = useRef<HTMLTableSectionElement>(null);
   const resizeRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
+  // Fixed header: chiều cao hàng header chính — filter row sticky ngay dưới nó khi scroll.y bật
+  const [headerH, setHeaderH] = useState(0);
 
   const selectedKeys = controlledSelected ?? internalSelected;
 
@@ -278,6 +284,9 @@ export function Table<T extends object>({
   const safePage = Math.min(page, pageCount);
   const paged = paginator ? sorted.slice((safePage - 1) * pageSize, safePage * pageSize) : sorted;
 
+  // ── scroll: scroll.y (antd) ưu tiên hơn scrollHeight (legacy) — cùng ý nghĩa wrapper max-h ──
+  const scrollY = scroll?.y ?? scrollHeight;
+
   // ── virtual window: render duy nhất các rows trong viewport (+overscan 2 phía) ──
   // Kỹ thuật: 2 spacer rows (trước/sau window) giữ tổng chiều cao body =
   // itemHeight × rows → scrollbar đúng; thead sticky + column width giữ nguyên
@@ -289,7 +298,7 @@ export function Table<T extends object>({
   const virtualOn = virtualCfg != null && !loading && paged.length > VIRTUAL_THRESHOLD;
   const rowHeight = virtualCfg?.itemHeight ?? VIRTUAL_ROW_HEIGHT;
   const viewportH = scrollerRef.current?.clientHeight
-    || (typeof scrollHeight === 'number' ? scrollHeight : 400);
+    || (typeof scrollY === 'number' ? scrollY : 400);
   const maxScroll = Math.max(0, paged.length * rowHeight - viewportH);
   const clampedTop = Math.min(scrollTop, maxScroll);
   const winStart = virtualOn ? Math.max(0, Math.floor(clampedTop / rowHeight) - VIRTUAL_OVERSCAN) : 0;
@@ -394,6 +403,15 @@ export function Table<T extends object>({
   const borderCls = borderless ? '' : 'border-b border-line2';
   const showFilterRow = filterPlacement === 'row' && columns.some((c) => c.filterable);
 
+  // Fixed header (scroll.y): đo chiều cao hàng header → filter row sticky ngay dưới nó
+  useEffect(() => {
+    if (scrollY === undefined) return;
+    const measure = () => setHeaderH(theadRef.current?.rows[0]?.offsetHeight ?? 0);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [scrollY, size, showFilterRow]);
+
   return (
     <div className={className}>
       {/* Toolbar: global search + CSV export */}
@@ -419,7 +437,7 @@ export function Table<T extends object>({
       <div
         ref={scrollerRef}
         className={`overflow-auto rounded-xl border border-line${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}
-        style={scrollHeight !== undefined ? { maxHeight: typeof scrollHeight === 'number' ? `${scrollHeight}px` : scrollHeight } : undefined}
+        style={scrollY !== undefined ? { maxHeight: typeof scrollY === 'number' ? `${scrollY}px` : scrollY } : undefined}
         onScroll={virtualOn ? (e) => setScrollTop(e.currentTarget.scrollTop) : undefined}
       >
         <table
@@ -428,7 +446,7 @@ export function Table<T extends object>({
           className="w-full border-collapse text-left text-body"
           style={virtualOn ? { tableLayout: 'fixed' } : undefined}
         >
-          <thead className={classNames?.header}>
+          <thead ref={theadRef} className={classNames?.header}>
             <tr>
               {hasSelection && (
                 <th className={`${headPad} ${borderCls} w-10 bg-s3`}>
@@ -497,7 +515,11 @@ export function Table<T extends object>({
                 {hasSelection && <th className={`${headPad} ${borderCls} bg-s3`} />}
                 {hasExpander && <th className={`${headPad} ${borderCls} bg-s3`} />}
                 {columns.map((col) => (
-                  <th key={`f-${col.key}`} className={`${headPad} ${borderCls} bg-s3 font-normal`}>
+                  <th
+                    key={`f-${col.key}`}
+                    style={scrollY !== undefined ? { top: headerH } : undefined}
+                    className={`${headPad} ${borderCls} bg-s3 font-normal${scrollY !== undefined ? ' sticky z-10' : ''}`}
+                  >
                     {col.filterable && (
                       <input
                         aria-label={`Lọc ${typeof col.title === 'string' ? col.title : col.key}`}
@@ -614,6 +636,19 @@ export function Table<T extends object>({
               </>
             )}
           </tbody>
+          {/* Summary row (antd Table summary) — nhận data trang hiện tại; dính đáy khi scroll.y bật */}
+          {summary && !loading && (
+            <tfoot>
+              <tr>
+                <td
+                  colSpan={columns.length + extraCols}
+                  className={`${cellPad} border-t border-line2 bg-s3 font-medium sticky bottom-0`}
+                >
+                  {summary(paged)}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 

@@ -52,6 +52,7 @@ export interface DragDropApi {
 const DragDropContext = createContext<DragDropApi | null>(null);
 
 /** Context keyboard của primitives — null nếu không bọc DragDropProvider. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDragDrop(): DragDropApi | null {
   return useContext(DragDropContext);
 }
@@ -220,8 +221,9 @@ export function Draggable({
 // ── DropZone ──
 
 export interface DropZoneProps {
-  /** Nhận (data, event) khi drop parse được payload DRAG_MIME. */
-  onDrop?: (data: unknown, event: DragEvent) => void;
+  /** Nhận (data, event) khi drop parse được payload DRAG_MIME — event undefined
+   * khi thả bằng keyboard (endKeyboardDrag không có DragEvent thật). */
+  onDrop?: (data: unknown, event?: DragEvent) => void;
   /** dataTransfer.types phải chứa ÍT NHẤT 1 type này — mặc định [DRAG_MIME]. */
   accept?: string[];
   /** Class thay highlight mặc định (ring-accent/40 + bg-accent/10) khi isOver. */

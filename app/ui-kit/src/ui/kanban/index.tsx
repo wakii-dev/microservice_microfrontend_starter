@@ -82,7 +82,7 @@ function DropLine() {
 function KanbanCardView({ card, flash }: { card: KanbanCardData; flash: boolean }) {
   return (
     <div
-      className={`rounded-xl border border-line bg-s1 p-3 transition-[transform,box-shadow] duration-200 ease-[var(--ease-enter)] hover:shadow-lift${
+      className={`rounded-xl border border-line bg-s1 p-3 transition-shadow duration-200 hover:shadow-lift${
         flash ? ' animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]' : ''
       }`}
     >
@@ -193,7 +193,11 @@ function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: K
   }
 
   return (
-    <div className={`flex items-start gap-4 overflow-x-auto pb-2${className ? ` ${className}` : ''}`} aria-label={ariaLabel}>
+    <div
+      role={ariaLabel ? 'region' : undefined}
+      aria-label={ariaLabel}
+      className={`flex items-start gap-4 overflow-x-auto pb-2${className ? ` ${className}` : ''}`}
+    >
       <div aria-live="polite" className="sr-only">
         {live}
       </div>
@@ -244,7 +248,9 @@ function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: K
                         }}
                         onDragEnd={() => setDrag(null)}
                         onKeyDown={(e) => onCardKeyDown(e, card.key)}
-                        className="rounded-xl"
+                        // Transition nằm TRÊN WRAPPER — draggingClass (scale+shadow)
+                        // đổi class ở đây nên mượt; inner chỉ hover-shadow.
+                        className="rounded-xl transition-[transform,box-shadow] duration-200 ease-[var(--ease-enter)]"
                       >
                         {renderCard ? renderCard(card, col.key) : <KanbanCardView card={card} flash={flash === card.key} />}
                       </Draggable>

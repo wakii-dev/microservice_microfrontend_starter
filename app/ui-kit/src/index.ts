@@ -70,7 +70,7 @@ export { Galleria, type GalleriaProps, type GalleriaImage } from './ui/galleria/
 export { Tree, type TreeProps, type TreeNodeData } from './ui/tree/index.js';
 export { TreeTable, type TreeTableProps, type TreeTableNode, type TreeTableColumn } from './ui/tree-table/index.js';
 export { Splitter, type SplitterProps } from './ui/splitter/index.js';
-export { Chart, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
+export { Chart, useChartTheme, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
 export { Schedule, type ScheduleProps, type ScheduleEvent } from './ui/schedule/index.js';
 export { Editor, type EditorProps } from './ui/editor/index.js';
 export { Watermark, type WatermarkProps, type WatermarkFont } from './ui/watermark/index.js';

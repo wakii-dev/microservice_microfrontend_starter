@@ -248,6 +248,7 @@ const PATHS = {
   ],
 } as const satisfies Record<IconName, readonly string[]>;
 
+// eslint-disable-next-line react-refresh/only-export-components -- ICON_NAMES là public API đọc được (docs/test); tách file riêng chỉ để tắt warning fast-refresh — chấp nhận.
 export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 
 const FALLBACK: IconName = 'help-circle';

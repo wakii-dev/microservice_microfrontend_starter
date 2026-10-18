@@ -56,31 +56,33 @@ export const ListVirtual: Story = {
   ),
 };
 
+function ScrollEndDemo() {
+  const [count, setCount] = useState(50);
+  const loadMore = () => {
+    setCount((c) => c + 50);
+    message.info(`Loaded 50 more — total ${count + 50}`);
+  };
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="m-0 text-meta text-ink3">
+        Hit the bottom of the scroller — onScrollEnd appends 50 rows (fires once per approach).
+      </p>
+      <VirtualScroll
+        items={Array.from({ length: count }, (_, i) => i)}
+        itemSize={40}
+        height={280}
+        onScrollEnd={loadMore}
+        renderItem={(i) => <Row i={i} suffix="h-10 · itemSize 40" />}
+        className="rounded-xl border border-line bg-s2"
+      />
+      <Button onClick={loadMore}>Load 50 more manually ({count} total)</Button>
+    </div>
+  );
+}
+
 export const ScrollEndLoadMore: Story = {
   name: 'Scroll end — load more when the bottom is reached',
-  render: () => {
-    const [count, setCount] = useState(50);
-    const loadMore = () => {
-      setCount((c) => c + 50);
-      message.info(`Loaded 50 more — total ${count + 50}`);
-    };
-    return (
-      <div className="flex flex-col gap-3">
-        <p className="m-0 text-meta text-ink3">
-          Hit the bottom of the scroller — onScrollEnd appends 50 rows (fires once per approach).
-        </p>
-        <VirtualScroll
-          items={Array.from({ length: count }, (_, i) => i)}
-          itemSize={40}
-          height={280}
-          onScrollEnd={loadMore}
-          renderItem={(i) => <Row i={i} suffix="h-10 · itemSize 40" />}
-          className="rounded-xl border border-line bg-s2"
-        />
-        <Button onClick={loadMore}>Load 50 more manually ({count} total)</Button>
-      </div>
-    );
-  },
+  render: () => <ScrollEndDemo />,
 };
 
 export const FixedHeightNote: Story = {

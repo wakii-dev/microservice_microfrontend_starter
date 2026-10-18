@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment -- @ts-nocheck CỐ Ý: skin FullCalendar third-party (peer-dep optional, types FC không khớp) — đã duyệt giữ nguyên gate 2026-10-18
 // @ts-nocheck — peer-dep lazy import (engine optional, consumer tự cài — runtime try/catch)
 // Schedule — PEER-DEP pattern: FullCalendar lazy import.
 // Cài: pnpm add @fullcalendar/core @fullcalendar/daygrid @fullcalendar/interaction

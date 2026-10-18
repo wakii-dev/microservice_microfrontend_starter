@@ -2,8 +2,11 @@
 // Doughnut, Radar, Mixed bar+line, Colors custom, Height, Options passthrough +
 // Fallback/EmptyData (edges). Verify standard: canvas alpha > 5% for every story
 // with data (EmptyData is intentionally blank, Fallback has no canvas).
+import { useMemo, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Chart } from './index';
+import { Button } from '../button/index';
+import { UiKitProvider } from '../../provider/index.js';
+import { Chart, useChartTheme } from './index';
 import type { ChartConfig } from './index';
 
 const meta = { title: 'Data Display/Chart', component: Chart, tags: ['autodocs'] } satisfies Meta<typeof Chart>;
@@ -228,3 +231,48 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** DarkToggleLive — useChartTheme resolves token colors inside the UiKitProvider
+ * scope; toggling re-resolves → config JSON changes → Chart re-inits with the new
+ * palette WITHOUT remount (F2: dark-toggle live, 0 extra props on Chart). */
+export const DarkToggleLive: S = {
+  // render demo tự quản config qua useChartTheme — args chỉ để thỏa config required
+  args: { config: { type: 'line', labels: [], datasets: [] } },
+  render: () => <ChartThemeDemo />,
+};
+
+const THEME_VARS = { accent: '--accent', done: '--st-done' } as const;
+const THEME_FALLBACK = { accent: '#1677ff', done: '#52c41a' };
+
+function ChartThemeDemo() {
+  const [dark, setDark] = useState(false);
+  const { ref, colors } = useChartTheme(THEME_VARS, THEME_FALLBACK);
+  const config = useMemo<ChartConfig>(
+    () => ({
+      type: 'line',
+      labels: MONTHS,
+      datasets: [
+        { label: 'Accent', data: [12, 19, 3, 15, 9, 17], borderColor: colors.accent, backgroundColor: colors.accent, borderWidth: 2 },
+        { label: 'Done', data: [7, 11, 5, 13, 8, 14], borderColor: colors.done, backgroundColor: colors.done, borderWidth: 2 },
+      ],
+      options: { responsive: true, maintainAspectRatio: false },
+    }),
+    [colors],
+  );
+  return (
+    <UiKitProvider theme={dark ? 'dark' : 'light'}>
+      {/* Probe token trong đúng scope theme — attr đổi trên wrapper provider nằm trong subtree body */}
+      <span ref={ref} aria-hidden="true" className="hidden" />
+      <div className="grid w-full max-w-2xl gap-3 rounded-xl bg-canvas p-4">
+        <Button className="w-fit" onClick={() => setDark((d) => !d)}>
+          {dark ? 'Switch to light' : 'Switch to dark'} (live)
+        </Button>
+        <Chart config={config} height={240} />
+        <p className="m-0 font-mono text-meta text-ink3">
+          resolved: accent <strong className="text-ink">{colors.accent}</strong> · done{' '}
+          <strong className="text-ink">{colors.done}</strong>
+        </p>
+      </div>
+    </UiKitProvider>
+  );
+}

@@ -3,7 +3,7 @@
 // (trước đây cứ truyền prop fallback là không bao giờ render canvas); (2) config so
 // theo JSON (useMemo) — hết destroy/re-create loop mỗi re-render của docs; (3) canvas
 // nằm trong container có height chuẩn (default 260px) — chart.js responsive khỏi init 0×0.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
 
 export interface ChartDataset {
   label: string;
@@ -46,6 +46,50 @@ function safeGet(obj: unknown, key: string): unknown {
   } catch {
     return undefined;
   }
+}
+
+/**
+ * useChartTheme — resolve token màu cho chart canvas theo scope theme bao ngoài
+ * (gắn `ref` vào 1 probe span trong đúng scope) + TỰ re-resolve khi theme đổi
+ * (attr data-bp-theme/class/style trên <html> hoặc subtree body — MutationObserver,
+ * cover cả wrapper div của UiKitProvider). Chart tự re-init khi config JSON đổi →
+ * combo này cho dark-toggle LIVE mà KHÔNG cần prop mới trên Chart (F2 2026-10-18).
+ * jsdom/unit test không áp CSS → trả `fallback` cho tới khi token có giá trị thật.
+ * Truyền `vars`/`fallback` là const ngoài component (deps theo identity).
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useChartTheme<T extends Record<string, string>>(
+  vars: T,
+  fallback: { [K in keyof T]: string },
+): { ref: RefObject<HTMLSpanElement | null>; colors: { [K in keyof T]: string } } {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [colors, setColors] = useState(fallback);
+  const colorsRef = useRef(colors);
+  colorsRef.current = colors;
+  useLayoutEffect(() => {
+    const resolve = () => {
+      const el = ref.current;
+      if (!el) return;
+      const cs = getComputedStyle(el);
+      let next: { [K in keyof T]: string } | null = null;
+      for (const key of Object.keys(vars) as (keyof T & string)[]) {
+        const value = cs.getPropertyValue(vars[key]).trim();
+        if (value && value !== colorsRef.current[key]) {
+          next ??= { ...colorsRef.current };
+          next[key] = value;
+        }
+      }
+      if (next) setColors(next);
+    };
+    resolve();
+    if (typeof MutationObserver === 'undefined') return undefined;
+    const filter = ['data-bp-theme', 'class', 'style'];
+    const mo = new MutationObserver(resolve);
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: filter });
+    mo.observe(document.body, { attributes: true, attributeFilter: filter, subtree: true });
+    return () => mo.disconnect();
+  }, [vars, fallback]);
+  return { ref, colors };
 }
 
 export function Chart({ config, height = 260, className, fallback }: ChartProps) {

@@ -127,19 +127,19 @@ describe('SplitButton — primary action', () => {
 });
 
 describe('SplitButton — unity shell (feedback "1 thể thống nhất" 2026-10-18)', () => {
-  it('1 khối liên tục: border DUY NHẤT trên wrapper (rounded-lg + overflow-hidden), nút con trần không border/rounded riêng', () => {
+  it('1 khối liên tục (pattern PrimeReact/antd/MUI): KHÔNG divider span — solid seamless, default chỉ hairline border-l trên chevron', () => {
     const { container } = render(<SplitButton label="Lưu task" items={items} />);
     const shell = container.querySelector('span.relative > span');
     expect(shell).not.toBeNull();
     expect(shell).toHaveClass('rounded-lg', 'overflow-hidden', 'border-accent');
     const buttons = shell!.querySelectorAll('button');
     expect(buttons).toHaveLength(2); // main + chevron — không còn component Button lồng nhau
+    expect(shell!.querySelector('span.w-px')).toBeNull(); // hết divider trang trí
     for (const b of buttons) {
-      expect(b.className).not.toContain('border-l');
+      expect(b.className).not.toContain('border-l'); // solid: seamless tuyệt đối
       expect(b.className).not.toContain('rounded');
     }
-    // vạch phân cách nội bộ là span w-px (không double-border)
-    expect(shell!.querySelector('span.w-px')).not.toBeNull();
+    expect(shell!.querySelector('span.w-px')).toBeNull(); // hết divider trang trí (pattern đối thủ)
   });
 
   it('tông wrapper theo type: primary border-accent · default border-line · text transparent', () => {
@@ -158,7 +158,15 @@ describe('SplitButton — unity shell (feedback "1 thể thống nhất" 2026-10
     const { container } = render(<SplitButton label="Xoá" items={[]} danger />);
     const shell = container.querySelector('span.relative > span');
     expect(shell).toHaveClass('border-st-fail');
-    expect(shell!.querySelector('span.w-px')).toHaveClass('bg-white/20');
+    expect(shell!.querySelector('span.w-px')).toBeNull(); // solid: không divider (PrimeReact seamless)
+  });
+
+  it('default variant: hairline border-l CHỈ trên chevron (antd compact single-line), main trần', () => {
+    const { container } = render(<SplitButton label="Lưu" type="default" items={items} />);
+    const shell = container.querySelector('span.relative > span')!;
+    const [main, chevron] = shell.querySelectorAll('button');
+    expect(main.className).not.toContain('border-l');
+    expect(chevron).toHaveClass('border-l', 'border-line');
   });
 
   it('size áp đồng bộ cả 2 nút: small h-8 / middle h-9 (mặc định) / large h-10', () => {

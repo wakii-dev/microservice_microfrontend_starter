@@ -105,7 +105,6 @@ export function SplitButton({
         : 'bg-transparent text-ink hover:bg-s3'
       : 'bg-s2 text-ink hover:bg-[color-mix(in_srgb,var(--ink)_10%,var(--c-s2))]';
   // Divider tinh tế như primary: default dùng ink/10 (mảnh, cùng tông) — KHÔNG dùng bg-line (đậm → lộ cấu trúc 2 phần)
-  const dividerCls = solid ? 'bg-white/20' : 'bg-ink/10';
 
   return (
     <span ref={containerRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
@@ -119,8 +118,6 @@ export function SplitButton({
         >
           {label}
         </button>
-        {/* Vạch phân cách nội bộ — span 1px (không phải border) → không double-border */}
-        <span aria-hidden="true" className={`w-px shrink-0 ${dividerCls}`} />
         <button
           type="button"
           aria-label="Thêm tuỳ chọn"
@@ -134,7 +131,7 @@ export function SplitButton({
               setOpen(true);
             }
           }}
-          className={`inline-flex cursor-pointer items-center justify-center border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
+          className={`inline-flex cursor-pointer items-center justify-center ${solid ? '' : 'border-l border-line'} border-0 outline-none transition-colors duration-150 ${SIZE[size].chevron} ${chevronCls}`}
         >
           <span aria-hidden="true" className={`inline-flex transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
             <Icon name="chevron-down" size={14} />

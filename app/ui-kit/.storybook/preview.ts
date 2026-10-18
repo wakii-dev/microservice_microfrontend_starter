@@ -17,6 +17,17 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    a11y: {
+      // Iframe standalone là 1 trang không main/h1/landmark — 3 rule PAGE-SCAFFOLD
+      // (axe: landmark-one-main, page-has-heading-one, region) đánh vào khung xem,
+      // không phải component (audit 3D 21:58 xác nhận). Component vẫn bị audit
+      // đầy đủ các rule còn lại (contrast, aria, name...).
+      rules: [
+        { id: 'landmark-one-main', enabled: false },
+        { id: 'page-has-heading-one', enabled: false },
+        { id: 'region', enabled: false },
+      ],
+    },
   },
   decorators: [
     withThemeByDataAttribute<Preview>({

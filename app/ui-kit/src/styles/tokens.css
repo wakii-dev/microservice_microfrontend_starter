@@ -56,6 +56,16 @@
   /* Tooltip surface (antd colorBgSpotlight): light = spotlight đen; dark override
      sáng hơn (#424242) để bubble tách khỏi canvas tối — phán quyết lead 2026-10-18. */
   --tooltip-bg: rgba(0, 0, 0, 0.85);
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
+  /* Cinematic experience (REF-SPEC 2026-10-18 — đo từ ref, PO duyệt): chữ navy
+     trên section nền sáng của hero + footer tối. Không dùng cho text body thường. */
+  --navy-ink: rgb(16, 36, 52);
+  /* Nền TỰ CHỦ của experience (không theo theme — hero LUÔN sáng, chapters LUÔN
+     tối để text light giữ contrast ≥4.5:1 cả light lẫn dark toolbar). */
+  --hero-sky-a: #ffffff;
+  --hero-sky-b: #e8edf4;
+  --chapter-bg-a: rgb(10, 12, 22);
+  --chapter-bg-b: rgb(16, 36, 52);
   /* Z-index overlay scale — thang dùng chung cho floating surfaces (antd-like:
      dropdown < popover < modal < toast < tooltip). Component dùng z-[var(--z-*)],
      cấm hardcode số (batch ⑩ 2026-10-18). */

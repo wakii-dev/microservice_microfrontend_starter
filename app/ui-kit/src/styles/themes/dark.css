@@ -18,6 +18,10 @@ html[data-bp-theme='dark'] {
   --ink: #f7f8f8;
   --ink2: #d0d6e0;
   --ink3: #8a8f98;
+  /* Ink navy của hero Cinematic (REF-SPEC: light mode = navy trên nền sáng) —
+   * dark mode phải LIGHT để đọc được trên canvas đen (fix "text chìm" PO 2026-10-18).
+   * Starfield canvas của hero đọc token này runtime → sao cũng sáng theo. */
+  --navy-ink: #f7f8f8;
   /* Tooltip surface — sáng hơn canvas để bubble tách nền (antd dark colorBgSpotlight) */
   --tooltip-bg: #424242;
   /* Viền */

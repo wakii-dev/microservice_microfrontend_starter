@@ -1,189 +1,152 @@
-// SplitButton tests — batch ⑱ behavior: mở/tắt, click item → onItemClick + đóng,
-// click NGOÀI đóng (useClickAway), ESC đóng (useKeyPress), ArrowDown mở + focus
-// item đầu, danger class, separator, icon, a11y menu/menuitem + aria.
+// SplitButton tests — kiến trúc MỘT <button> duy nhất (user directive 2026-10-18):
+// chevron = span[data-chevron] vùng-click riêng bên trong nút (stopPropagation).
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SplitButton, type SplitButtonItem } from './index.js';
+import { SplitButton } from './index.js';
 
 afterEach(cleanup);
 
-const items: SplitButtonItem[] = [
-  { key: 'save-run', label: 'Lưu + chạy', icon: <svg data-testid="ico-run" /> },
+const items = [
+  { key: 'save-run', label: 'Lưu + chạy' },
   { key: 'save-draft', label: 'Lưu nháp' },
-  { key: '---', label: '', separator: true },
-  { key: 'archive', label: 'Lưu trữ', danger: true },
 ];
 
-function renderSplitButton(overrides: Partial<Parameters<typeof SplitButton>[0]> = {}) {
-  const onItemClick = vi.fn();
-  const onClick = vi.fn();
-  render(
-    <SplitButton
-      label="Lưu task"
-      items={items}
-      onItemClick={onItemClick}
-      onClick={onClick}
-      {...overrides}
-    />,
-  );
-  return { onItemClick, onClick };
+function chevronOf(container: HTMLElement): HTMLElement {
+  const el = container.querySelector('[data-chevron]');
+  if (!el) throw new Error('chevron span not found');
+  return el as HTMLElement;
 }
 
-const trigger = () => screen.getByRole('button', { name: 'Thêm tuỳ chọn' });
-const menu = () => screen.queryByRole('menu');
+async function openMenu(container: HTMLElement) {
+  await userEvent.click(chevronOf(container));
+  return screen.getByRole('menu');
+}
 
-describe('SplitButton — mở/tắt menu', () => {
-  it('click trigger phụ → menu hiện role=menu + aria-expanded=true; click lần nữa → đóng', async () => {
-    const user = userEvent.setup();
-    renderSplitButton();
-    expect(menu()).toBeNull();
-    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
-    expect(trigger()).toHaveAttribute('aria-haspopup', 'menu');
-    await user.click(trigger());
-    expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
-    await user.click(trigger());
-    expect(menu()).toBeNull();
-    expect(trigger()).toHaveAttribute('aria-expanded', 'false');
+describe('SplitButton — một nút duy nhất', () => {
+  it('click vùng chevron → menu hiện role=menu + aria-expanded=true; click lần nữa → đóng', async () => {
+    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    const btn = screen.getByRole('button', { name: /Lưu/ });
+    expect(btn).toHaveAttribute('aria-haspopup', 'menu');
+    await openMenu(container);
+    expect(btn).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(chevronOf(container));
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  it('items render role=menuitem + item danger class text-st-fail', async () => {
-    const user = userEvent.setup();
-    renderSplitButton();
-    await user.click(trigger());
-    const item = screen.getByRole('menuitem', { name: 'Lưu + chạy' });
-    expect(item).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: 'Lưu trữ' })).toHaveClass('text-st-fail');
-    // icon render trong item
-    expect(item.querySelector('[data-testid="ico-run"]')).not.toBeNull();
+  it('items render role=menuitem + item danger class text-st-fail + icon', async () => {
+    const { container } = render(
+      <SplitButton label="Lưu" items={[...items, { key: 'del', label: 'Xoá', danger: true, icon: <svg data-testid="ico-del" /> }]} />,
+    );
+    await openMenu(container);
+    expect(screen.getByRole('menuitem', { name: 'Lưu + chạy' })).toBeInTheDocument();
+    expect(screen.getByTestId('ico-del')).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'Xoá' }).className).toContain('text-st-fail');
   });
 
   it('separator item → đường phân cách border-t, KHÔNG phải button', async () => {
-    const user = userEvent.setup();
-    const { container } = { container: document.body };
-    renderSplitButton();
-    await user.click(trigger());
-    const sep = container.querySelector('li.border-t') ?? screen.getByRole('menu').querySelector('li.border-t');
+    const { container } = render(
+      <SplitButton label="Lưu" items={[...items, { key: 'sep', label: '', separator: true }]} />,
+    );
+    await openMenu(container);
+    const sep = screen.getByRole('menu').querySelector('li.border-t');
     expect(sep).not.toBeNull();
     expect(sep!.querySelector('button')).toBeNull();
   });
 
-  it('chevron xoay 180deg khi open (transition class)', async () => {
-    const user = userEvent.setup();
-    renderSplitButton();
-    expect(trigger().querySelector('span')!.className).not.toContain('rotate-180');
-    await user.click(trigger());
-    expect(trigger().querySelector('span')!.className).toContain('rotate-180');
+  it('chevron icon xoay 180deg khi open (transition class)', async () => {
+    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    expect(chevronOf(container).querySelector('svg')?.getAttribute('class')).not.toContain('rotate-180');
+    await openMenu(container);
+    expect(chevronOf(container).querySelector('svg')?.getAttribute('class')).toContain('rotate-180');
   });
-});
 
-describe('SplitButton — đóng menu', () => {
   it('click item → onItemClick(key) + menu đóng', async () => {
-    const { onItemClick } = renderSplitButton();
-    const user = userEvent.setup();
-    await user.click(trigger());
-    await user.click(screen.getByRole('menuitem', { name: 'Lưu + chạy' }));
-    expect(onItemClick).toHaveBeenCalledWith('save-run');
-    expect(menu()).toBeNull();
+    const onItemClick = vi.fn();
+    const { container } = render(<SplitButton label="Lưu" items={items} onItemClick={onItemClick} />);
+    await openMenu(container);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Lưu nháp' }));
+    expect(onItemClick).toHaveBeenCalledWith('save-draft');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
   it('click NGOÀI container → menu đóng, onItemClick không gọi', async () => {
-    const { onItemClick } = renderSplitButton();
-    const user = userEvent.setup();
-    await user.click(trigger());
-    expect(menu()).not.toBeNull();
-    fireEvent.mouseDown(document.body);
-    expect(menu()).toBeNull();
+    const onItemClick = vi.fn();
+    const { container } = render(
+      <div>
+        <span data-outside>ngoài</span>
+        <SplitButton label="Lưu" items={items} onItemClick={onItemClick} />
+      </div>,
+    );
+    await openMenu(container);
+    fireEvent.mouseDown(document.querySelector('[data-outside]')!);
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(onItemClick).not.toHaveBeenCalled();
   });
 
   it('ESC → menu đóng (useKeyPress window)', async () => {
-    const user = userEvent.setup();
-    renderSplitButton();
-    await user.click(trigger());
-    expect(menu()).not.toBeNull();
+    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    await openMenu(container);
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(menu()).toBeNull();
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  it('ArrowDown trên trigger → mở menu + focus item đầu (keyboard a11y)', async () => {
-    renderSplitButton();
-    expect(menu()).toBeNull();
-    fireEvent.keyDown(trigger(), { key: 'ArrowDown' });
-    expect(menu()).not.toBeNull();
-    expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Lưu + chạy' }));
+  it('ArrowDown trên nút → mở menu + focus item đầu (keyboard a11y)', async () => {
+    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    const btn = screen.getByRole('button', { name: /Lưu/ });
+    btn.focus();
+    fireEvent.keyDown(btn, { key: 'ArrowDown' });
+    await vi.waitFor(() => {
+      expect(screen.queryByRole('menu')).toBeInTheDocument();
+      expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Lưu + chạy' }));
+    });
   });
-});
 
-describe('SplitButton — primary action', () => {
-  it('click nút chính → onClick; menu không mở', async () => {
-    const { onClick } = renderSplitButton();
-    const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: 'Lưu task' }));
+  it('click phần label của NÚT → onClick chạy; menu KHÔNG mở (chevron stopPropagation)', async () => {
+    const onClick = vi.fn();
+    render(<SplitButton label="Lưu" items={items} onClick={onClick} />);
+    await userEvent.click(screen.getByRole('button', { name: /Lưu/ }));
     expect(onClick).toHaveBeenCalledTimes(1);
-    expect(menu()).toBeNull();
-  });
-});
-
-describe('SplitButton — unity shell (feedback "1 thể thống nhất" 2026-10-18)', () => {
-  it('1 khối liên tục (pattern PrimeReact/antd/MUI): KHÔNG divider span — solid seamless, default chỉ hairline border-l trên chevron', () => {
-    const { container } = render(<SplitButton label="Lưu task" items={items} />);
-    const shell = container.querySelector('span.relative > span');
-    expect(shell).not.toBeNull();
-    expect(shell).toHaveClass('rounded-lg', 'overflow-hidden', 'border-accent');
-    const buttons = shell!.querySelectorAll('button');
-    expect(buttons).toHaveLength(2); // main + chevron — không còn component Button lồng nhau
-    expect(shell!.querySelector('span.w-px')).toBeNull(); // hết divider trang trí
-    for (const b of buttons) {
-      expect(b.className).not.toContain('border-l'); // solid: seamless tuyệt đối
-      expect(b.className).not.toContain('rounded');
-    }
-    expect(shell!.querySelector('span.w-px')).toBeNull(); // hết divider trang trí (pattern đối thủ)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
-  it('tông wrapper theo type: primary border-accent · default border-line · text transparent', () => {
+  it('MỘT <button> duy nhất — chevron là span TRONG nút, không nút con thứ hai', () => {
+    const { container } = render(<SplitButton label="Lưu" items={items} />);
+    const shell = container.querySelector('span.relative')!;
+    expect(shell.querySelectorAll(':scope > button')).toHaveLength(1); // ĐÚNG 1 nút duy nhất
+    const btn = screen.getByRole('button', { name: /Lưu/ });
+    expect(btn.querySelector('[data-chevron]')).not.toBeNull(); // chevron nằm trong nút
+    expect(btn.className).toContain('rounded-lg'); // một nút bo tròn duy nhất
+  });
+
+  it('tông nút theo type: primary border-accent · default border-line · text transparent', () => {
     for (const [type, borderCls] of [
       ['primary', 'border-accent'],
       ['default', 'border-line'],
       ['text', 'border-transparent'],
     ] as const) {
-      const { container, unmount } = render(<SplitButton label="t" items={[]} type={type} />);
-      expect(container.querySelector('span.relative > span')).toHaveClass(borderCls);
+      const { unmount } = render(<SplitButton label="Lưu" type={type} items={items} />);
+      expect(screen.getByRole('button', { name: /Lưu/ }).className).toContain(borderCls);
       unmount();
     }
   });
 
-  it('danger primary → wrapper border-st-fail (solid đỏ liền khối)', () => {
-    const { container } = render(<SplitButton label="Xoá" items={[]} danger />);
-    const shell = container.querySelector('span.relative > span');
-    expect(shell).toHaveClass('border-st-fail');
-    expect(shell!.querySelector('span.w-px')).toBeNull(); // solid: không divider (PrimeReact seamless)
+  it('danger primary → nút border-st-fail solid đỏ', () => {
+    render(<SplitButton label="Xoá" items={[]} danger />);
+    const btn = screen.getByRole('button', { name: /Xoá/ });
+    expect(btn.className).toContain('border-st-fail');
+    expect(btn.className).toContain('bg-st-fail');
   });
 
-  it('default variant: MỘT bề mặt — KHÔNG border-l ở bất kỳ nút con nào (single button thị giác)', () => {
-    const { container } = render(<SplitButton label="Lưu" type="default" items={items} />);
-    const shell = container.querySelector('span.relative > span')!;
-    for (const b of shell.querySelectorAll('button')) {
-      expect(b.className).not.toContain('border-l');
-    }
-  });
-
-  it('size áp đồng bộ cả 2 nút: small h-8 / middle h-9 (mặc định) / large h-10', () => {
-    for (const [size, cls] of [
+  it('size đồng bộ Button: small h-8 / middle h-9 (mặc định) / large h-10', () => {
+    for (const [size, h] of [
       ['small', 'h-8'],
       ['middle', 'h-9'],
       ['large', 'h-10'],
     ] as const) {
-      render(<SplitButton label={size} items={[]} size={size} />);
-      for (const b of document.querySelectorAll('span.relative span button')) {
-        expect(b).toHaveClass(cls);
-      }
-      cleanup();
-    }
-    render(<SplitButton label="mặc định" items={[]} />);
-    for (const b of document.querySelectorAll('span.relative span button')) {
-      expect(b).toHaveClass('h-9');
+      const { unmount } = render(<SplitButton label="Lưu" size={size} items={items} />);
+      expect(screen.getByRole('button', { name: /Lưu/ }).className).toContain(h);
+      unmount();
     }
   });
 });

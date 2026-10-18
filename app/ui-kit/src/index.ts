@@ -149,3 +149,8 @@ export type { QrErrorLevel, QrMatrix } from './ui/qr-code/qrcode-core.js';
 // ── Drag & Drop + Kanban (worker W9 2026-10-18) — native HTML5 DnD, 0 deps ──
 export { DRAG_MIME, DragDropProvider, Draggable, DropZone, type DragDropApi, type DraggableProps, type DropZoneProps } from './ui/drag-drop/index.js';
 export { KanbanBoard, type KanbanBoardProps, type KanbanCardData, type KanbanColumnData } from './ui/kanban/index.js';
+
+// ── Motion effects (worker W8 2026-10-18) — scroll/reveal/count, 0 deps ──
+export { CountUp, type CountUpProps } from './ui/count-up/index.js';
+export { Parallax, type ParallaxProps } from './ui/parallax/index.js';
+export { Reveal, type RevealDirection, type RevealProps } from './ui/reveal/index.js';

@@ -13,9 +13,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CoBan: Story = {
-  name: 'Cơ bản — action chính + dropdown',
+  name: 'Cơ bản — action chính + dropdown (v3 một nút)',
   render: () => (
-    <SplitButton
+    <div>
+      <div className="mb-3 rounded-lg bg-s3 px-3 py-1.5 text-label text-ink2">
+        v3 — một nút duy nhất, icon nằm trong nút. Không thấy dòng này = bạn đang xem bản cache cũ.
+      </div>
+      <SplitButton
       label="Lưu task"
       items={[
         { key: 'save-run', label: 'Lưu + chạy' },
@@ -23,7 +27,8 @@ export const CoBan: Story = {
       ]}
       onClick={() => console.log('save')}
       onItemClick={(key) => console.log('item:', key)}
-    />
+      />
+    </div>
   ),
 };
 

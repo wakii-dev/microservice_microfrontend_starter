@@ -2,13 +2,31 @@
 
 # 🎨 @wakii/ui-kit
 
-**A production-grade React design system — 90+ components, 17 hooks, tokens-first, dark theme built in.**
+**A production-grade React design system built AI-first — 90+ components, 17 hooks, tokens-first, dark theme.**
 
-Benchmarked against Ant Design & PrimeReact. Faster motion, modern identity, zero styling surprises.
+Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
 
 [![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+
+## 🤖 Built for AI agents — not just humans
+
+This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZCode, Cursor…) that opens this repo gets productive immediately:
+
+| Mechanism | What it does for AI |
+|---|---|
+| **[`AGENTS.md`](../../AGENTS.md)** (repo root) | Auto-read by agent CLIs on session start — feature→component map, mandatory rules, anti-patterns. Zero onboarding cost. |
+| **[`docs/ai/recipes.md`](../../docs/ai/recipes.md)** | 10 copy-paste recipes for real features: CRUD pages, login flows, wizards, upload pipelines, dashboards. Agent picks a recipe, renames fields, ships. |
+| **Behavior tests (580+)** | Every component tested by *what it does* (clicks→callbacks, state classes, keyboard flows) — agents verify their work against the same assertions. |
+| **Tokens-first + z-scale + size scale** | Hard constraints instead of conventions: one source of truth CSS vars, `--z-*` layers, `h-8/9/10`. Machine-checkable, no aesthetic guessing. |
+| **Living Storybook (301+ stories, [live](https://storybook-static-khaki-two.vercel.app))** | Every state of every component rendered — ground truth for visual verification loops. |
+| **Strict single-button rule & friends** | Sharp opinions (no dividers on split buttons, focus-ring standard) so agents converge on ONE correct output, not five variants. |
+
+**Dogfooded by the multi-agent workflow itself**: this library was audited, restyled and completed by *5 coordinated AI terminals in parallel* (coordinator + workers pattern), gated by pixel-level automated verification. The AI-facing docs, checklists and recipes in this repo are the same ones those agents used.
+
+> Practical loop that works today: agent reads `AGENTS.md` → picks recipe → implements → runs `vitest` (580 tests catch wiring mistakes) → checks Storybook for visual truth → done.
+
 [![Tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#-quality)
 [![React](https://img.shields.io/badge/React-%E2%89%A518-61dafb?logo=react)](#)
 
@@ -21,7 +39,7 @@ Benchmarked against Ant Design & PrimeReact. Faster motion, modern identity, zer
 
 ---
 
-## ✨ Why wakii-ui-kit
+## ✨ Why @wakii/ui-kit
 
 | | |
 |---|---|

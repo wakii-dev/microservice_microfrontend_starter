@@ -104,7 +104,8 @@ export function SplitButton({
         ? 'bg-transparent text-st-fail hover:bg-st-fail/12'
         : 'bg-transparent text-ink hover:bg-s3'
       : 'bg-s2 text-ink hover:bg-[color-mix(in_srgb,var(--ink)_10%,var(--c-s2))]';
-  const dividerCls = solid ? 'bg-white/20' : 'bg-line';
+  // Divider tinh tế như primary: default dùng ink/10 (mảnh, cùng tông) — KHÔNG dùng bg-line (đậm → lộ cấu trúc 2 phần)
+  const dividerCls = solid ? 'bg-white/20' : 'bg-ink/10';
 
   return (
     <span ref={containerRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>

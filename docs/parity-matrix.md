@@ -59,6 +59,9 @@ toàn bộ case. Danh sách dưới = còn thiếu thật, xếp theo giá trị
 
 | Thiếu | Benchmark | Ghi chú |
 |---|---|---|
+| `Timesheet` | KHÔNG có sẵn ở antd/MUI/Prime (phải tự ghép DataGrid) | **user yêu cầu 2026-10-18** — domain composite: grid tuần × task, cell giờ InputNumber, tổng hàng/cột/grand, weekend shading, locale vi/en, week nav · làm được = hơn cả 3 benchmark |
+| `DragDrop` + `KanbanBoard` | antd/MUI KHÔNG có (tự ghép dnd-kit) · PrimeReact chỉ DragDrop thô | **user yêu cầu 2026-10-18** — primitives Draggable/DropZone native 0-deps (desktop) + keyboard-move a11y · KanbanBoard composite (columns/cards/onCardMove/WIP-limit/renderCard) · touch = hạn chế đã ghi (hướng nâng cấp: peer-dep dnd-kit nếu app cần) |
+| `Parallax` + `Reveal` + `CountUp` | KHÔNG component nào của 3 benchmark có (phải tự viết / react-spring) | **user yêu cầu 2026-10-18** — họ motion-effects 0-deps: Parallax scroll-linked transform (rAF) · Reveal enter-on-scroll (IntersectionObserver + keyframes sẵn) · CountUp số đếm animate · tôn trọng prefers-reduced-motion · differentiator "làm hơn đối thủ" |
 | `Anchor` | antd | scroll-spy nav cho trang docs/long-form |
 | `QRCode` | antd | link thanh toán / chia sẻ (bối cảnh VN dùng nhiều) |
 | `Watermark` | antd | chống copy nội dung nhạy cảm |

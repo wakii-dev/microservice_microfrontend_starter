@@ -1,4 +1,4 @@
-# AI Recipes — 12 công thức UI dùng `@wakii/ui-kit`
+# AI Recipes — 14 công thức UI dùng `@wakii/ui-kit`
 
 Code dưới dùng **API thật đã verify theo source** (audit 2026-10-18). Import gốc:
 
@@ -464,6 +464,124 @@ import { Button, Popover, Tooltip } from '@wakii/ui-kit';
 ```
 
 Ghi chú: **Tooltip** = 1 câu hint ≤250px, đóng theo hover/focus, không tương tác được (`pointer-events-none`). **Popover** = panel `role="dialog"` có `title` divider + body ReactNode tự do; mở bằng `trigger` `hover|click|focus` (click dùng cho panel có action — hover làm Panel khó bấm); đóng bằng ESC + click ngoài + (controlled) `onOpenChange`. Popconfirm vẫn là lựa chọn riêng cho xác nhận OK/Huỷ — đừng dựng confirm bằng Popover.
+
+---
+
+## 13. CrudTableExpandable — Table expandable + Input.Search filter
+
+Bảng CRUD có row chi tiết mở được (master-detail) + search filter dùng `Input.Search`.
+Cột expander **tự inject** khi truyền `expandable` — không cần khai cột `expander` thủ công.
+
+```tsx
+import { useMemo, useState } from 'react';
+import { Input, Table, Tag } from '@wakii/ui-kit';
+
+type Task = { id: string; title: string; status: 'todo' | 'doing' | 'done'; priority: number; note: string };
+const TASKS: Task[] = [
+  { id: '1', title: 'Setup repo', status: 'done', priority: 1, note: 'Scaffold + CI xanh.' },
+  { id: '2', title: 'Thêm endpoint tasks', status: 'doing', priority: 3, note: 'Drizzle + outbox pattern, chưa có retry.' },
+  { id: '3', title: 'E2E saga demo', status: 'todo', priority: 2, note: 'Chạy qua gateway :8080, assert DLQ.' },
+];
+
+export function CrudTableExpandable() {
+  const [q, setQ] = useState('');
+
+  const filtered = useMemo(
+    () => TASKS.filter((t) => t.title.toLowerCase().includes(q.trim().toLowerCase())),
+    [q],
+  );
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Search filter — onSearch fire khi Enter HOẶC click nút (antd parity) */}
+      <div className="w-72">
+        <Input.Search
+          aria-label="Tìm task"
+          placeholder="Tìm task…"
+          enterButton          // true → nút primary icon search; hoặc enterButton="Tìm"
+          onSearch={setQ}
+        />
+      </div>
+
+      <Table
+        columns={[
+          { key: 'title', title: 'Task', sortable: true },
+          { key: 'status', title: 'Trạng thái', render: (r: Task) => <Tag>{r.status}</Tag> },
+          { key: 'priority', title: 'Ưu tiên', dataType: 'number', align: 'right' },
+        ]}
+        dataSource={filtered}
+        rowKey="id"
+        emptyMessage={<p className="p-4 text-body text-ink3">Không có task phù hợp.</p>}
+        expandable={{
+          // Row con chiếm full colspan, nền bg-s3 — render mọi ReactNode
+          expandedRowRender: (r) => (
+            <div className="text-label text-ink2">
+              <p className="font-medium text-ink">{r.title}</p>
+              <p className="mt-1">{r.note}</p>
+            </div>
+          ),
+          defaultExpandedRowKeys: ['2'],               // mở sẵn lúc mount (uncontrolled)
+          rowExpandable: (r) => r.status !== 'done',   // done không có chi tiết → không render nút chevron
+        }}
+      />
+    </div>
+  );
+}
+```
+
+Ghi chú: `onSearch` là **trigger-style** (Enter/click) — muốn lọc live theo từng phím dùng `onChange` của input (hoặc `useDebounce` + `onChange` cho query đắt). Chevron xoay 90° khi mở, nút mang `aria-expanded`; row `rowExpandable: false` không render nút. `expandable` kết hợp được với `paginator` + `selectionMode="checkbox"` (state mở giữ qua trang). Filter-bar cần nổi khi scroll dài → bọc trong `Affix` (`offsetTop={0}`) ngay phía trên `Table`.
+
+---
+
+## 15. WeeklyTimesheet — Timesheet log giờ tuần + Statistic tổng
+
+```tsx
+import { useMemo, useState } from 'react';
+import { Card, Statistic, Timesheet, type TimesheetRow } from '@wakii/ui-kit';
+
+// values ĐÚNG 7 phần tử theo cột Thứ 2 → Chủ nhật; null = ô trống
+const INITIAL_ROWS: TimesheetRow[] = [
+  { key: 't1', label: 'Task #101', meta: 'Design system', values: [8, 8, 8, 8, 8, null, null] },
+  { key: 't2', label: 'Task #102', meta: 'Gateway', values: [1, 2, 0.5, null, null, null, null] },
+  { key: 't3', label: 'Task #103', meta: 'e2e', values: [null, null, null, 4, 6, 3, null] },
+];
+
+export function WeeklyTimesheetPage() {
+  const [rows, setRows] = useState(INITIAL_ROWS);
+  const [week, setWeek] = useState(new Date()); // bất kỳ ngày nào — component tự chuẩn về Thứ 2
+
+  const total = useMemo(
+    () => rows.reduce((sum, r) => sum + r.values.reduce((a, v) => a + (v ?? 0), 0), 0),
+    [rows],
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <Statistic title="Tổng giờ tuần này" value={total} suffix="h" />
+      </Card>
+      <Timesheet
+        rows={rows}
+        week={week}
+        editable
+        locale="vi"
+        onWeekChange={setWeek}
+        onCellChange={(rowKey, dayIndex, value) =>
+          setRows((prev) =>
+            prev.map((r) =>
+              r.key === rowKey
+                ? { ...r, values: r.values.map((v, i) => (i === dayIndex ? value : v)) }
+                : r,
+            ),
+          )
+        }
+      />
+    </div>
+  );
+}
+```
+
+Ghi chú: tuần **luôn bắt đầu Thứ 2** cả vi/en — `week` nhận bất kỳ Date nào trong tuần; nav prev/next bắn `onWeekChange` (Date = Thứ 2 tuần mới) và grid tự replay fade-in. Ô nhập clamp **0–24, step 0.5**; xoá ô → `onCellChange(…, null)` — state `rows` là nguồn sự thật, footer tổng cột + grand tự tính lại (bỏ `editable` → readonly text). Cột T7/CN đã nền nhẹ sẵn; `locale="en"` đổi headers + nhãn tuần sang `Oct 19–25, 2026`. Đang fetch → `loading` thay thân bảng bằng skeleton (header + nhãn tuần giữ nguyên). Tổng tuần trên `Statistic` tính consumer-side từ `rows` (tabular-nums built in).
 
 ---
 

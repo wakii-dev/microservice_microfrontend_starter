@@ -34,27 +34,30 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 
 | Component | Use when | Most valuable prop | Common combos |
 |---|---|---|---|
-| `Avatar` | Identity chip for a user/entity — letter initials by default, photo when `src` loads (fade-in) | `src` (falls back to initials children) | `AvatarGroup` (stacks) · `List` rows · `Card` extra |
+| `Avatar` | Identity chip for a user/entity — letter initials by default, photo when `src` loads (fade-in; broken src falls back to initials) | `src` (falls back to initials children — on load fail too) | `AvatarGroup` (stacks) · `List` rows · `Card` extra |
 | `AvatarGroup` | Stacked team/assignee faces with overflow | `max` — folds the rest into a "+N" pill whose tooltip lists hidden names | `Card` head extra · `Table` assignee cell · `Tooltip` built-in per avatar |
-| `Card` | Grouped content panel with head/body/actions | `title` (pair with `hoverable` for clickable cards) | `Card`+`Statistic` dashboard · `Card`+`Chart` · `Card`+`List` |
+| `Badge` | Status pill (task/activity variants) OR antd-style count badge — corner count on children, standalone status dot | `variant` pill · `count`+`overflowCount` (99+) · `dot` · `status`+`text` · `offset` | `Table` status cells · bell `count` corner · filter status legend |
+| `Card` | Grouped content panel with head/body/actions | `title` (pair with `hoverable` for clickable cards) · `loading` skeleton body · `size="small"` dense | `Card`+`Statistic` dashboard · `Card`+`Chart` · `Card`+`List` |
 | `Carousel` | Sliding content — hero banner, media strip, onboarding steps | `itemsPerView` (1 = hero, 3-4 = card rail) | `Carousel`+`Image` gallery · built-in indicators/navigators/keyboard |
 | `Chart` | Data viz: bar/line/pie/doughnut/radar | `config` (chart.js shape, per-dataset colors; per-dataset `type` for mixed) | `Card`+`Chart` dashboard · `fallback` node for missing peer-dep `chart.js` |
-| `Collapse` | Progressive disclosure — FAQ, settings sections, logs | `items` (key/label/children; several can be open at once) | inside `Card` body · default-open key via `defaultActiveKeys` |
-| `Descriptions` | Label:value readout of an entity (task detail, meta panel) | `items` | `Drawer`/`Modal` detail pane · `Card` body · `bordered` for dense data |
-| `Divider` | Separate/space content sections | `children` — text label embedded in the rule | `Typography` sections · landing hero · settings groups |
+| `Collapse` | Progressive disclosure — FAQ, settings sections, logs | `items` (key/label/children, per-item `disabled`) · `accordion` (one open at a time) | inside `Card` body · default-open key via `defaultActiveKeys` |
+| `Descriptions` | Label:value readout of an entity (task detail, meta panel) | `items` · `size="small"` + `colon` | `Drawer`/`Modal` detail pane · `Card` body · `bordered` for dense data |
+| `Divider` | Separate/space content sections | `children` — text label embedded in the rule · `orientation="left|right"` | `Typography` sections · landing hero · settings groups |
 | `Galleria` | Swipeable image gallery with dot indicators | `images` (per-image `caption` optional) | `Image` (click-to-zoom) for detail view · `Carousel` for non-image slides |
 | `Image` (`UiImage`) | Image with click-to-zoom preview overlay | `alt` (also the preview dialog's aria-label) | `Galleria` grids · `Upload` preview · `Table` attachment cells |
 | `List` | Repeating rows from data — feeds, task digests | `renderItem` (full row control) | `List`+`Avatar`+`Tag` rows · `pagination` client-side · built-in `loading` skeleton + `EmptyState` |
 | `Schedule` | Month calendar (FullCalendar dayGrid) for date-driven events — sprints, deadlines, bookings | `events` (+ `onEventClick`) | `fallback` node when peer-dep `@fullcalendar/*` missing · `Card` wrapper · heavy: subpath `@wakii/ui-kit/schedule` |
-| `Segmented` | Compact single-choice switcher with no panels — view period, density, sort mode | `options` + controlled `value`/`onChange` | swap for `Tabs` when you don't need content panels · toolbar/filter-bar headers |
+| `Segmented` | Compact single-choice switcher with no panels — view period, density, sort mode | `options` (`disabled` per-option) + controlled `value`/`onChange` | swap for `Tabs` when you don't need content panels · toolbar/filter-bar headers |
 | `Skeleton` | Loading placeholder mirroring the real layout before data lands | `variant` (text/row/card/circle/button) + `count` | stack `circle`+`text`+`row` to compose a card · `Table loading` renders its own — prefer that for grids · `classNames` slots (`wrapper`/`bone`) |
 | `Statistic` | Big-number KPI readout (title + value + prefix/suffix) | `value` (+ `prefix`/`suffix`) | `Card` dashboards · `valueStyle` to color by status · tabular-nums built in |
 | `Steps` | Horizontal wizard progress header (done/current/waiting) | `current` (prop-driven, no internal state) | `Button` next/back beneath it (recipe 4) · `aria-current="step"` built in |
-| `Table` | Data grid — sort/filter/paginate/select for CRUD backbones | `columns` (`sortable`/`filterable`/`render`/`align`) | recipe 2 CRUD · `virtual` for 5k+ rows · `selectionMode` for bulk actions · `globalFilter` · `classNames` slots (`wrapper`/`header`/`row`/`cell`) |
+| `Table` | Data grid — sort/filter/paginate/select for CRUD backbones | `columns` (`sortable`/`filterable`/`render`/`align`) | recipe 2 CRUD · `virtual` for 5k+ rows · `selectionMode` for bulk actions · `globalFilter` · `expandable` master-detail rows (recipe 13) · `classNames` slots (`wrapper`/`header`/`row`/`cell`) |
+| `Timesheet` | Weekly hours grid — rows = tasks/projects × 7 day columns (always Mon-start), cell = hours; row/column/grand totals built in for timesheet approval | `rows` (+ `editable` → `onCellChange(rowKey, dayIndex, value)`, clamp 0–24 step 0.5) | `Statistic` weekly total (recipe 15) · `week` + `onWeekChange` prev/next nav · `locale` vi/en · weekend columns shaded · `loading` skeleton |
 | `Tabs` | Switch between content panels in place — settings, detail views | `items` (+ controlled `activeKey`/`onChange`) | settings pages (recipe 9) · `Segmented` when panels aren't needed · `classNames` slots (`wrapper`/`tablist`/`tab`/`panel`) |
 | `Tag` | Tiny label chip — statuses, metadata; `Tag.Checkable` for filter chips | `closable`+`onClose` (consumer removes) · Checkable `checked`+`onChange` | `Table` status cells · `Checkable` chip groups in filter bars · `List` row meta |
-| `Timeline` | Vertical activity feed — dot + text + time per entry | `items` (per-item `color` dot, `label` time) | `Card` body feeds · audit/history panels (recipe 6) |
-| `Tree` | Expand/collapse hierarchy — file trees, category nav | `data` (+ `defaultExpandedKeys`; uncontrolled expand state) | side navigation panels · use `TreeSelect` when a value must be picked |
+| `Timeline` | Vertical activity feed — dot + text + time per entry | `items` (per-item `color` dot, `label` time) · `mode="alternate|left|right"` (label column) · `pending` hollow dot | `Card` body feeds · audit/history panels (recipe 6) · deploy logs with "rolling out…" tail |
+| `Tree` | Expand/collapse hierarchy — file trees, category nav | `data` (+ `defaultExpandedKeys`; uncontrolled expand state) · `showLine` connector borders | side navigation panels · use `TreeSelect` when a value must be picked |
+| `VirtualScroll` | Windowed list for 10k+ rows — mount only the visible window + buffer, GPU translate | `itemSize` (FIXED row height px — dynamic height is a known backlog) | `height` px or `'100%'` (measured after mount) · `onScrollEnd` fires once per bottom-hit for load-more · pair with `List`-style rows · NOT for `Table` (use `Table virtual`) |
 
 
 ## Forms — khi nào dùng
@@ -69,6 +72,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `ColorPicker` | Color choice: swatch + preset grid + native picker + hex field | `presets` (curated palette; `[]` = native + hex only) | `value` hex · `onChange` fires from preset/native/hex alike |
 | `DatePicker` | Date pick through a trigger + calendar panel | `range` + `showTime` (with `locale` vi/en) | `value: Date \| [Date, Date]` · `now` injectable for tests · `prefix` icon · footer "Today"/OK |
 | `Inplace` | Click-to-edit inline value (read mode → edit form → close) | `display` + `children` (the edit form) | `Input`/`Textarea` inside · `onClose` after closing the form |
+| `Input.Search` | Search box with an attached search button — filter bars, toolbars | `onSearch` (fires on Enter AND button click) | `enterButton` true→primary icon button, ReactNode→default button with content · `loading` swaps in Spinner + blocks extra submits · shares `size`/`invalid`/`disabled` with `Input` |
 | `InputMask` | Constrained format typing — `9`=digit, `a`=letter, `*`=alnum, others literal | `mask` | `placeholder` showing the format · `ariaLabel` for the accessible name · typing past an invalid char just stops |
 | `InputNumber` | Numeric input with vertical stepper + ↑↓ + min/max clamp | `min`/`max`/`step` | `invalid` red border · blur snaps the display to the clamp · `value` is read at mount (uncontrolled internal) |
 | `InputOTP` | N single-char cells with auto-advance + multi-cell paste | `length` | `value`/`onChange` as one joined string · `ariaLabel` per cell ("code 1…") · digits only · Backspace walks back |
@@ -81,6 +85,14 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `TimePicker` | HH:mm pick via stepper panel (+ "Now" shortcut) | `value` — Date keeps its date-part on change, string `"HH:mm"` emits epoch-day | `locale` vi/en · `now` injectable for tests · pairs with `DatePicker` `showTime` |
 | `ToggleButton` | Button with a pressed state (on/off action) | `checked` (exposed as `aria-pressed`) | `disabled` · clusters of toggles (filters/view switches) · unchecked = default variant look |
 | `TreeSelect` | Pick a LEAF from a hierarchy, with search + clear | `treeData` (nested `children`; parents are headers, not pickable) | `searchable` filters by label/path · `clearable` × resets · trigger shows the `"A / B"` path |
+
+## General — bổ sung parity P0/P1 (2026-10-18, worker W6)
+
+| Component | Use when | Most valuable prop | Common combos |
+|---|---|---|---|
+| `Link` | Inline anchor trong câu văn / standalone nav link — màu accent tự hover | `underline` (`'none'|'hover'|'always'`, mặc định `'hover'`) | `disabled` bỏ href + `aria-disabled` + swallow click · passthrough `target`/`rel` cho external · focus ring chuẩn |
+| `Affix` | Sticky wrapper bám mép khi scroll — toolbar/filter-bar nổi | `offsetTop` (mặc định 0; `offsetBottom` → bottom mode) | `onChange(affixed)` chỉ fire khi ĐỔI (không fire lúc mount) · CSS sticky thuần 0 deps · `target()` chỉ đích danh scroll container |
+| `QRCode` | SVG QR cho link thanh toán / chia sẻ / check-in | `value` (`size` mặc định 160) | `errorLevel` L/M/Q/H (mặc định M) · màu tokens `--ink` trên `--c-s1` (dark tự cascade) · `role="img"` + aria-label theo value · vendored qrcode-generator MIT — không deps runtime |
 
 ## Theming & Hooks — when to use
 
@@ -147,6 +159,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 - ❌ `!important`/`!bg-…` trừ khi override CSS third-party
 - ❌ State kéo theo re-render churn cho thư viện so-tham-chiếu-theo-reference (vd swiper/react) — dùng imperative ref + classList
 - ❌ Story file 0 `export const` (indexer drop — phải có ≥1 story mỗi file)
+- ❌ Meta gắn `component` khi component có required props → CSF ép `args` lên mọi story, story render-only lỗi TS — render-only dùng meta không `component` (`satisfies Meta`), story theo args thì gắn `component` + `args` đầy đủ (image vs galleria.stories)
 
 ## Ghi nhớ vận hành
 

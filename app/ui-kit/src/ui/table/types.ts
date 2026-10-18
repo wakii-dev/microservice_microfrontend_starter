@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 // Table DataTable types — PrimeReact-level
 export type SortOrder = 'asc' | 'desc' | 'none';
+/** Trạng thái sort 1 column — key = TableColumn.key. */
 export interface SortMeta { key: string; order: 'asc' | 'desc' }
 
 export type StringMatchMode = 'contains' | 'equals' | 'notEquals' | 'startsWith' | 'endsWith';
@@ -9,11 +10,13 @@ export type NumberMatchMode = 'lt' | 'lte' | 'gt' | 'gte' | 'equals' | 'notEqual
 export type FilterMatchMode = StringMatchMode | NumberMatchMode;
 export type FilterOperator = 'and' | 'or';
 
+/** 1 điều kiện lọc — giá trị nhập + match mode áp lên cột. */
 export interface FilterConstraint {
   value: string;
   matchMode: FilterMatchMode;
 }
 
+/** Bộ lọc 1 column — nhiều constraint ghép bằng operator (AND/OR). */
 export interface ColumnFilter {
   constraints: FilterConstraint[];
   operator: FilterOperator;
@@ -64,6 +67,7 @@ export function matchConstraint(value: unknown, constraint: FilterConstraint): b
   }
 }
 
+/** Định nghĩa 1 column — key trùng field của record trong dataSource. */
 export interface TableColumn<T> {
   key: string;
   title: ReactNode;
@@ -89,9 +93,23 @@ export interface TableVirtualConfig {
   itemHeight: number;
 }
 
+/** classNames sub-part slots (antd v5 style) — merge SAU default classes. */
+export interface TableClassNames {
+  /** Scroller bọc bảng (overflow-auto + border). */
+  wrapper?: string;
+  /** `<thead>` — hàng header. */
+  header?: string;
+  /** `<tr>` dữ liệu trong tbody. */
+  row?: string;
+  /** `<td>` dữ liệu. */
+  cell?: string;
+}
+
+/** Props của Table — data grid client-side (sort/filter/paginate/selection/virtual). */
 export interface TableProps<T> {
   columns: Array<TableColumn<T>>;
   dataSource: T[];
+  /** Field làm key duy nhất cho row (selection/expansion dựa trên key này). */
   rowKey: keyof T;
   sortMode?: 'single' | 'multiple';
   metaKeySelection?: boolean;
@@ -125,5 +143,7 @@ export interface TableProps<T> {
   csvFilename?: string;
   /** Column resize. */
   resizable?: boolean;
+  /** classNames sub-part slots (antd v5) — merge SAU default. */
+  classNames?: TableClassNames;
   className?: string;
 }

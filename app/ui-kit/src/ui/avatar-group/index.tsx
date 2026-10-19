@@ -12,9 +12,11 @@ export interface AvatarGroupItem {
 }
 
 export interface AvatarGroupProps {
+  /** Danh sách avatar — mỗi item tooltip = name khi hover. */
   items: AvatarGroupItem[];
-  /** Số avatar hiển thị tối đa — dư gộp thành pill "+N". */
+  /** Số avatar hiển thị tối đa — dư gộp thành pill "+N" (tooltip liệt kê tên ẩn). */
   max?: number;
+  /** Kích thước mỗi avatar px (truyền thẳng Avatar.size). */
   size?: number;
   className?: string;
 }
@@ -33,18 +35,28 @@ export function AvatarGroup({ items, max, size = 32, className }: AvatarGroupPro
   const hidden = items.slice(visible.length);
   const overlapCls = '-ml-2';
 
+  // Pop-in stagger: delay theo vị trí (literal class list — Tailwind quét được;
+  // bước 30ms theo depth contract 24-40ms; vành đai >5 avatar dùng delay cuối —
+  // hiếm, overflow +N đã gộp)
+  const stagger = ['', '[animation-delay:30ms]', '[animation-delay:60ms]', '[animation-delay:90ms]', '[animation-delay:120ms]'];
+
   return (
     <div className={`flex items-center${className ? ` ${className}` : ''}`}>
       {visible.map((item, i) => (
         <Tooltip key={`${item.name}-${i}`} title={item.name} className={i > 0 ? overlapCls : undefined}>
-          <Avatar src={item.src} alt={item.name} size={size} className="ring-2 ring-white">
+          <Avatar
+            src={item.src}
+            alt={item.name}
+            size={size}
+            className={`ring-2 ring-s2 animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]${stagger[Math.min(i, stagger.length - 1)]}`}
+          >
             {item.fallback ?? initials(item.name)}
           </Avatar>
         </Tooltip>
       ))}
       {hidden.length > 0 && (
         <Tooltip title={hidden.map((h) => h.name).join(', ')} className={overlapCls}>
-          <Avatar size={size} className="bg-s3 ring-2 ring-white">
+          <Avatar size={size} className="bg-s3 ring-2 ring-s2">
             +{hidden.length}
           </Avatar>
         </Tooltip>

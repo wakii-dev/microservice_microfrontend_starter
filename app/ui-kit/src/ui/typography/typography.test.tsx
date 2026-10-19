@@ -1,6 +1,5 @@
 // Typography tests — Title levels (antd scale) + Text types/marks/copyable + Paragraph.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Typography, Title, Text, Paragraph } from './index.js';
 
@@ -19,7 +18,8 @@ describe('Typography.Title', () => {
     const el = screen.getByRole('heading', { level });
     expect(el.tagName).toBe(tag.toUpperCase());
     expect(el).toHaveStyle({ fontSize: size });
-    expect(el).toHaveStyle({ fontWeight: 600 });
+    // Title-1 bold 700 (backlog 2026-10-18); levels 2–5 giữ semibold 600
+    expect(el).toHaveStyle({ fontWeight: level === 1 ? 700 : 600 });
   });
 
   it('mặc định level 1', () => {

@@ -16,14 +16,14 @@ export function TabMenu({ model, activeKey, onTabChange, className }: TabMenuPro
       {model.map((item) => {
         const isActive = item.key === activeKey;
         if (item.href) {
-          return <a key={item.key} href={item.href}
-            className={`px-4 py-2.5 text-body no-underline transition-colors ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'text-ink2 hover:text-accent'}`}>
+          return <a key={item.key} href={item.href} aria-current={isActive ? 'page' : undefined}
+            className={`px-4 py-2.5 text-body no-underline transition-colors ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'border-b-2 border-transparent text-ink2 hover:text-accent'}`}>
             {item.label}
           </a>;
         }
         return (
-          <button key={item.key} type="button" onClick={() => onTabChange?.(item.key)}
-            className={`cursor-pointer border-none bg-transparent px-4 py-2.5 text-body transition-colors ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'text-ink2 hover:text-accent'}`}>
+          <button key={item.key} type="button" aria-current={isActive ? 'page' : undefined} onClick={() => onTabChange?.(item.key)}
+            className={`cursor-pointer border-none bg-transparent px-4 py-2.5 text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${isActive ? 'border-b-2 border-accent font-semibold text-accent' : 'border-b-2 border-transparent text-ink2 hover:text-accent'}`}>
             {item.label}
           </button>
         );

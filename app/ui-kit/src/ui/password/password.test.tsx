@@ -15,3 +15,31 @@ describe('Password', () => {
     expect(screen.getByText('Mạnh')).toBeInTheDocument();
   });
 });
+
+describe('Password — matrix (uncontrolled/strength/disabled/a11y)', () => {
+  it('uncontrolled — gõ qua state nội bộ + onChange', () => {
+    const onChange = vi.fn();
+    render(<Password ariaLabel="pw" onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText('pw'), { target: { value: 'abc' } });
+    expect(onChange).toHaveBeenLastCalledWith('abc');
+  });
+
+  it('strength label theo độ mạnh: yếu/trung bình', () => {
+    const { rerender } = render(<Password ariaLabel="pw" value="Abcde" showStrength />);
+    expect(screen.getByText('Yếu')).toBeInTheDocument(); // 1 điểm: có chữ hoa, <8 ký tự
+    rerender(<Password ariaLabel="pw" value="Abcdefgh" showStrength />);
+    expect(screen.getByText('Trung bình')).toBeInTheDocument();
+    // queryByText (KHÔNG getByText) — getByText throw khi không thấy, không bao giờ null
+    expect(screen.queryByText('Yếu')).toBeNull();
+  });
+
+  it('disabled → input khoá + toggle ẩn/hiện vẫn bấm được nhưng type đổi', () => {
+    render(<Password ariaLabel="pw" value="secret" disabled />);
+    expect(screen.getByLabelText('pw')).toBeDisabled();
+  });
+
+  it('placeholder passthrough', () => {
+    render(<Password ariaLabel="pw" placeholder="Nhập mật khẩu" />);
+    expect(screen.getByLabelText('pw')).toHaveAttribute('placeholder', 'Nhập mật khẩu');
+  });
+});

@@ -46,3 +46,6 @@ pnpm lint:contracts
 - Đừng đổi id/uuid trong fixtures + users.json — chỉ thêm.
 - Đừng thêm field event mà bỏ qua bump `schemaVersion` + fixtures golden + test 2 đầu.
 - Đừng để contracts lệch với docs (`docs/walkthrough.md`, README service) — sửa cùng lúc.
+
+## Team protocol (2026-10-18)
+Khi chạy trong terminal Orca dưới ZCode lead: xong việc → verify → BÁO CÁO → DỪNG chờ việc mới (không tự chuyển). Phạm vi file đúng đúng brief ("CHỈ <dir> — ngoài CẤM"). Ghi file dùng đường dẫn tuyệt đối từ `app/`. Chi tiết: section "Team protocol" trong CLAUDE.md + board docs/team/TEAM.md.

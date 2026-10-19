@@ -13,7 +13,7 @@ import { useMediaQuery } from './useMediaQuery.js';
 import { useWindowSize } from './useWindowSize.js';
 
 const meta = {
-  title: 'Hooks',
+  title: 'Theming & Motion/Hooks',
   tags: ['autodocs'],
   parameters: {
     docs: {

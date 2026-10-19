@@ -18,4 +18,22 @@ describe('Statistic', () => {
     expect(screen.getByText('$')).toBeInTheDocument();
     expect(screen.getByText('9')).toHaveStyle({ color: 'var(--st-done)' });
   });
+
+  it('không title → không render title div; không suffix/prefix → không span', () => {
+    render(<Statistic value={7} />);
+    expect(screen.getByText('7')).toBeInTheDocument();
+    expect(screen.queryByText(/Tổng|task/i)).toBeNull();
+  });
+
+  it('value là ReactNode → render nguyên node', () => {
+    render(<Statistic value={<b data-testid="node">1.234</b>} />);
+    expect(screen.getByTestId('node')).toBeInTheDocument();
+  });
+
+  it('className passthrough lên root; giá trị dùng tabular-nums', () => {
+    const { container } = render(<Statistic value={5} className="marker" />);
+    expect(container.firstElementChild).toHaveClass('marker');
+    const flex = container.querySelector<HTMLElement>('[style*="tabular-nums"]');
+    expect(flex).not.toBeNull();
+  });
 });

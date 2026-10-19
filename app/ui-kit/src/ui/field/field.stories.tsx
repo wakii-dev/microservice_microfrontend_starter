@@ -7,10 +7,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '../button/index.js';
 import { Input, Textarea } from '../input/index.js';
+import { Select } from '../select/index.js';
 import { Field } from './index.js';
 
 const meta = {
-  title: 'Primitives/Field',
+  title: 'Forms/Field',
   component: Field,
   tags: ['autodocs'],
   parameters: {
@@ -27,7 +28,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CoBan: Story = {
-  name: 'Cơ bản',
+  name: 'Basic',
   args: {
     label: 'Tiêu đề',
     htmlFor: 'field-title',
@@ -37,7 +38,7 @@ export const CoBan: Story = {
 };
 
 export const Required: Story = {
-  name: 'Required (dấu *)',
+  name: 'Required marker',
   args: {
     label: 'Email',
     htmlFor: 'field-email',
@@ -47,13 +48,34 @@ export const Required: Story = {
 };
 
 export const ErrorThayHint: Story = {
-  name: 'Error thay hint',
+  name: 'Error replaces hint',
   args: {
     label: 'Email',
     htmlFor: 'field-error',
     error: 'Email không hợp lệ',
     hint: 'Dùng email công việc',
     children: <Input id="field-error" invalid aria-invalid aria-describedby="field-error-error" defaultValue="khong-phai-email" />,
+  },
+};
+
+/** WithSelect — Field wraps any control, not just Input (antd Form.Item parity). */
+export const WithSelect: Story = {
+  name: 'With select control',
+  args: {
+    label: 'Region',
+    htmlFor: 'field-region',
+    hint: 'Filter tasks by workspace region',
+    children: (
+      <Select
+        ariaLabel="Region"
+        placeholder="Pick a region…"
+        options={[
+          { label: 'HN — Hà Nội', value: 'hn' },
+          { label: 'SG — Sài Gòn', value: 'sg' },
+          { label: 'DN — Đà Nẵng', value: 'dn' },
+        ]}
+      />
+    ),
   },
 };
 
@@ -120,7 +142,7 @@ function ZodFormDemo() {
 }
 
 export const ZodForm: Story = {
-  name: 'Form thật (useForm + zod)',
+  name: 'Real form — useForm + zod',
   render: () => <ZodFormDemo />,
 };
 

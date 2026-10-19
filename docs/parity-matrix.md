@@ -39,6 +39,60 @@ batch ship (cột "Mức" ý kiến review, không phải cam kết API).
 | Skeleton / Spinner / BusyBox / EmptyState / BlockUI / ScrollTop / Segmented / Knob / Inplace / Rating / Slider / Switch / Checkbox / Radio / ToggleButton / Password / InputMask / InputOTP / Mention / Galleria / Timeline / OrderList / PickList / ColorPicker / Knob | PrimeReact | đủ dùng | Tier 1–4 (xem story từng comp) |
 | Typography | antd | đủ dùng | Title level 1–5, Text type, code/keyboard/copyable; metrics antd |
 
+## Gap vs antd + MUI + PrimeReact — kế hoạch OCD-completion (2026-10-18)
+
+Đối chiếu catalog 3 thư viện chuẩn; "đủ dùng" ở bảng trên nghĩa là surface CHÍNH, chưa phải
+toàn bộ case. Danh sách dưới = còn thiếu thật, xếp theo giá trị usage thực tế:
+
+### P0 — dùng gần như mọi app (làm trước)
+
+| Thiếu | Benchmark | Ghi chú |
+|---|---|---|
+| `Grid` (Row/Col) + `Flex` | antd Grid/Flex, MUI Grid/Stack | layout primitive nền tảng — hiện chỉ có `Space`; responsive span/gutter |
+| `Popover` | antd Popover, MUI Popover, PrimeReact OverlayPanel | panel neo trigger nội dung tự do — Tooltip chỉ text, Popconfirm chỉ confirm |
+| `Input.Search` | antd | variant input + nút search bên phải; filter-bar dùng liên tục |
+| `Link` | MUI Link, antd Typography.Link | typography hiện KHÔNG có Link (đã verify grep) |
+| `Affix` | antd | sticky wrapper cho toolbar/filter-bar |
+| `Table` expandable rows | antd Table | row mở rộng chi tiết — CRUD hay dùng (đã verify chưa có) |
+
+### P1 — app thật hay cần
+
+| Thiếu | Benchmark | Ghi chú |
+|---|---|---|
+| `Timesheet` | KHÔNG có sẵn ở antd/MUI/Prime (phải tự ghép DataGrid) | **user yêu cầu 2026-10-18** — domain composite: grid tuần × task, cell giờ InputNumber, tổng hàng/cột/grand, weekend shading, locale vi/en, week nav · làm được = hơn cả 3 benchmark |
+| `DragDrop` + `KanbanBoard` | antd/MUI KHÔNG có (tự ghép dnd-kit) · PrimeReact chỉ DragDrop thô | **user yêu cầu 2026-10-18** — primitives Draggable/DropZone native 0-deps (desktop) + keyboard-move a11y · KanbanBoard composite (columns/cards/onCardMove/WIP-limit/renderCard) · touch = hạn chế đã ghi (hướng nâng cấp: peer-dep dnd-kit nếu app cần) |
+| `Parallax` + `Reveal` + `CountUp` | KHÔNG component nào của 3 benchmark có (phải tự viết / react-spring) | **user yêu cầu 2026-10-18** — họ motion-effects 0-deps: Parallax scroll-linked transform (rAF) · Reveal enter-on-scroll (IntersectionObserver + keyframes sẵn) · CountUp số đếm animate · tôn trọng prefers-reduced-motion · differentiator "làm hơn đối thủ" |
+| `Anchor` | antd | scroll-spy nav cho trang docs/long-form |
+| `QRCode` | antd | link thanh toán / chia sẻ (bối cảnh VN dùng nhiều) |
+| `Watermark` | antd | chống copy nội dung nhạy cảm |
+| `Tour` | antd | onboarding sản phẩm; kết hợp `useFocusTrap` |
+| `ToggleButtonGroup` | MUI | cluster `ToggleButton` hiện chỉ đơn lẻ |
+| `VirtualScroller` | PrimeReact | `Table virtual` đã có — standalone cho List dài |
+
+### P2 — niche, chỉ làm khi có app tiêu thụ
+
+`Dock` (PrimeReact) · `MegaMenu` (PrimeReact) · `OrganizationChart` · `TreeTable` ·
+`Terminal` · `Fieldset/Panel` (Card phủ phần lớn) · `DeferredContent` · motion primitives
+(`<Fade>/<Zoom>` wrapper — keyframes đã có trong tokens).
+
+### P2-CHUẨN-HÓA 2026-10-18 (user: "vẫn chưa đủ") — full-catalog diff, sóng xây mới
+
+| Thiếu | Benchmark | Giá trị | Owner |
+|---|---|---|---|
+| `Layout` (Header/Content/Footer/Sider wiring) | antd Layout | CAO — app shell thật | W7 |
+| `Form.List` (Field.Array dynamic add/remove) | antd Form.List | CAO — form động | W6 |
+| `TreeTable` | PrimeReact | medium — cây dữ liệu bảng | D |
+| `OrgChart` + `TriStateCheckbox` | PrimeReact | medium + nhỏ | V2 |
+| `MegaMenu` + `SlideMenu` | PrimeReact | medium — nav advanced | W9 |
+| `Fade/Zoom/Collapse` transitions + `Backdrop` | MUI transitions | medium — motion composable | W8 |
+| `BottomNavigation` + `FloatButton` + `Fieldset` + `Terminal` + `DeferredContent` | MUI/antd/PrimeReact | nhỏ — mobile/utility | V1 (sau taxonomy) |
+
+### Case-coverage OCD (song song component mới)
+
+Mỗi component hiện có: đối chiếu trang docs antd/MUI/PrimeReact tương ứng, liệt kê
+case/variant còn thiếu (vd Button `block`? Table `expandable`; Modal `centered`?) rồi bổ
+sung stories EN + tests hành vi. Nguồn chân lý: docs của benchmark, KHÔNG đoán.
+
 ## Nguyên tắc token (áp cho mọi hàng)
 
 1. **Màu**: chỉ token `--c-*`/`--ink*`/`--line*`/`--accent`/`--st-*` — không hex cứng trong component.

@@ -2,12 +2,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon, ICON_NAMES } from './index';
 
+/** Primeicons-based icon set — 48 names, one `<Icon name size>` API. */
 const meta = { title: 'Primitives/Icons', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 
 export const AllIcons: S = {
-  name: 'Tất cả icon (48)',
+  name: 'All icons (48)',
   render: () => (
     <div className="grid grid-cols-8 gap-2">
       {ICON_NAMES.map((name) => (

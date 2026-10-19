@@ -64,7 +64,6 @@ describe('Table — sorting', () => {
     const onSort = vi.fn();
     const user = userEvent.setup();
     const { rerender } = render(<Table columns={COLS} dataSource={DATA} rowKey="id" onSort={onSort} />);
-    const header = screen.getByText('Tiêu đề').closest('button') ?? screen.getByText('Tiêu đề');
     await user.click(screen.getByText('Tiêu đề').closest('button')!);
     expect(onSort).toHaveBeenLastCalledWith([{ key: 'title', order: 'asc' }]);
     expect(screen.getAllByRole('grid')[0]).toHaveAttribute('aria-rowcount');
@@ -186,6 +185,46 @@ describe('Table — scroll + variants + expansion', () => {
     expect(container.querySelector('th.sticky') ?? container.querySelector('th')).not.toBeNull();
   });
 
+  it('scroll.y + selection + expandable → MỌI th hàng header sticky top-0 z-10 (kể cả cột selection/expand — bugfix PO full-demo)', () => {
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={DATA}
+        rowKey="id"
+        scroll={{ y: 300 }}
+        selectionMode="checkbox"
+        expandable={{ expandedRowRender: (r: Row) => <p>{r.title}</p> }}
+      />,
+    );
+    const headThs = Array.from(container.querySelectorAll('thead tr:first-child th'));
+    expect(headThs.length).toBe(5); // selection + expand + 3 cột dữ liệu
+    for (const th of headThs) {
+      expect(th.className).toContain('sticky');
+      expect(th.className).toContain('top-0');
+      expect(th.className).toContain('z-10');
+      expect(th.className).toContain('bg-s3'); // nền đặc — row cuộn dưới không lọt
+    }
+  });
+
+  it('scroll.y + filterPlacement row + selection → mọi th filter row sticky + top=headerH (selection/expand không thiếu)', () => {
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={DATA}
+        rowKey="id"
+        scroll={{ y: 300 }}
+        selectionMode="checkbox"
+        filterPlacement="row"
+      />,
+    );
+    const filterThs = Array.from(container.querySelectorAll<HTMLElement>('thead tr:nth-child(2) th'));
+    expect(filterThs.length).toBe(4); // selection + 3 cột
+    for (const th of filterThs) {
+      expect(th.className).toContain('sticky');
+      expect(th.style.top).not.toBe(''); // sticky ngay dưới hàng header
+    }
+  });
+
   it('striped + borderless + size small → class đúng', () => {
     const { container } = render(
       <Table columns={COLS} dataSource={DATA} rowKey="id" striped borderless size="small" />,
@@ -193,6 +232,21 @@ describe('Table — scroll + variants + expansion', () => {
     // size small → cell text-label; borderless → td không border-b
     expect(container.querySelector('td')).toHaveClass('text-label');
     expect(container.querySelector('td')?.className).not.toContain('border-b');
+  });
+
+  it('zebra: striped → hàng chẵn (rowIndex lẻ) bg-s3/40; hàng lẻ + không striped → không tint', () => {
+    const striped = render(<Table columns={COLS} dataSource={DATA} rowKey="id" striped />);
+    const rows = striped.container.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(3);
+    expect(rows[0].className).not.toContain('bg-s3/40');
+    expect(rows[1].className).toContain('bg-s3/40');
+    expect(rows[2].className).not.toContain('bg-s3/40');
+    striped.unmount();
+    // không striped → không hàng nào tint
+    const plain = render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
+    plain.container.querySelectorAll('tbody tr').forEach((tr) => {
+      expect(tr.className).not.toContain('bg-s3/40');
+    });
   });
 
   it('row expansion — expander toggle + rowExpansion render', async () => {
@@ -296,5 +350,116 @@ describe('Table — virtual scroll', () => {
     fireEvent.scroll(scroller, { target: { scrollTop: 40 * 60 } });
     await user.click(screen.getByText('Task 60')); // row giữa window sau scroll
     expect(onSelectionChange).toHaveBeenLastCalledWith([BIG[60]]);
+  });
+});
+
+describe('Table — global filter', () => {
+  it('gõ vào search toàn cục → chỉ rows khớp còn lại; xoá → trả đủ', async () => {
+    const user = userEvent.setup();
+    render(<Table columns={COLS} dataSource={DATA} rowKey="id" globalFilter />);
+    const search = screen.getByLabelText('Tìm kiếm toàn cục');
+    await user.type(search, 'tailwind');
+    expect(screen.getByText('Áp dụng Tailwind')).toBeInTheDocument();
+    expect(screen.queryByText('Học TypeScript')).toBeNull();
+    expect(screen.getByRole('grid')).toHaveAttribute('aria-rowcount', '1');
+    await user.clear(search);
+    expect(screen.getByText('Học TypeScript')).toBeInTheDocument();
+    expect(screen.getByRole('grid')).toHaveAttribute('aria-rowcount', '3');
+  });
+});
+
+describe('Table — filter menu (funnel)', () => {
+  it('mở panel: match mode + input + Apply; gõ giá trị → Apply → lọc rows', async () => {
+    const user = userEvent.setup();
+    render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
+    await user.click(screen.getByRole('button', { name: 'Lọc Tiêu đề' }));
+    expect(screen.getByLabelText('Match mode 1')).toBeInTheDocument();
+    const valueInput = screen.getByLabelText('Giá trị lọc 1');
+    await user.type(valueInput, 'TypeScript');
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(screen.getByText('Học TypeScript')).toBeInTheDocument();
+    expect(screen.queryByText('Áp dụng Tailwind')).toBeNull();
+    // badge active-count trên funnel
+    expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
+  it('+ Thêm constraint; Clear reset về 1 constraint rỗng → bỏ lọc', async () => {
+    const user = userEvent.setup();
+    render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
+    await user.click(screen.getByRole('button', { name: 'Lọc Trạng thái' }));
+    await user.type(screen.getByLabelText('Giá trị lọc 1'), 'zzz-không-khớp');
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(screen.queryByText('Học TypeScript')).toBeNull();
+    // mở lại → Clear
+    await user.click(screen.getByRole('button', { name: 'Lọc Trạng thái' }));
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+    await user.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(screen.getByText('Học TypeScript')).toBeInTheDocument();
+  });
+});
+
+describe('Table — column resize', () => {
+  it('kéo viền cột → width đổi theo dx; chạm min-clamp 60px khi kéo ngược', () => {
+    const { container } = render(<Table columns={COLS} dataSource={DATA} rowKey="id" resizable />);
+    const handle = container.querySelector('span[role="presentation"].cursor-col-resize') as HTMLElement;
+    expect(handle).not.toBeNull();
+    const th = handle.closest('th') as HTMLElement;
+    fireEvent.mouseDown(handle, { clientX: 100, preventDefault: () => {}, stopPropagation: () => {} });
+    // jsdom offsetWidth = 0 → dx +40 vẫn dưới min → clamp 60px
+    fireEvent.mouseMove(document, { clientX: 140 });
+    expect(th.style.width).toBe('60px');
+    // kéo tiếp xa hơn → vượt min, width theo dx
+    fireEvent.mouseMove(document, { clientX: 240 });
+    expect(th.style.width).toBe('140px');
+    fireEvent.mouseUp(document);
+    // sau mouseUp → thả listener, move nữa không đổi
+    fireEvent.mouseMove(document, { clientX: 340 });
+    expect(th.style.width).toBe('140px');
+  });
+});
+
+describe('Table — CSV export', () => {
+  it('nút CSV → tạo blob đúng 1 lần với header + rows', async () => {
+    const created: Blob[] = [];
+    const origCreate = URL.createObjectURL;
+    const origRevoke = URL.revokeObjectURL;
+    URL.createObjectURL = vi.fn((blob: Blob) => { created.push(blob); return 'blob:mock'; });
+    URL.revokeObjectURL = vi.fn();
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const user = userEvent.setup();
+    render(<Table columns={COLS} dataSource={DATA} rowKey="id" csvExport csvFilename="tasks" />);
+    await user.click(screen.getByRole('button', { name: /CSV/ }));
+    expect(created).toHaveLength(1);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock');
+    URL.createObjectURL = origCreate;
+    URL.revokeObjectURL = origRevoke;
+    clickSpy.mockRestore();
+  });
+});
+
+describe('Table — classNames slots (antd v5)', () => {
+  it('wrapper/header/row/cell slot đúng element + merge SAU default', () => {
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={DATA}
+        rowKey="id"
+        classNames={{ wrapper: 'cw', header: 'ch', row: 'cr', cell: 'cc' }}
+      />,
+    );
+    const wrapper = container.querySelector('.overflow-auto');
+    expect(wrapper).toHaveClass('rounded-xl'); // default giữ nguyên
+    expect(wrapper).toHaveClass('cw');          // slot merge sau
+    expect(container.querySelector('thead')).toHaveClass('ch');
+    const dataRow = screen.getByText('Học TypeScript').closest('tr');
+    expect(dataRow).toHaveClass('cr');
+    expect(dataRow!.querySelector('td')).toHaveClass('cc');
+  });
+
+  it('không truyền classNames → không class rác; header slot chỉ dính thead', () => {
+    const { container } = render(<Table columns={COLS} dataSource={DATA} rowKey="id" />);
+    expect(container.querySelector('thead')!.className.trim()).toBe('');
+    expect(container.querySelector('.cw')).toBeNull();
   });
 });

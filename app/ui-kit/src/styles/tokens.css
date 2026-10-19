@@ -46,6 +46,42 @@
   --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.03), 0 12px 16px -4px rgba(0, 0, 0, 0.06), 0 24px 48px -12px rgba(0, 0, 0, 0.08);
   /* Hover lift */
   --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+
+  /* Depth contract (PO duyệt 2+3 hợp thể): easing mềm cao cấp cho mọi state-change */
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-smooth: 240ms;
+
+  /* D1 — Elevation system (Design Depth Wave 19-10): shadow 3 tầng cho mọi surface
+     + inset highlight viền trên. Component dùng var(--ele-1|2|3) theo trạng thái
+     rest/hover/active; overlay giữ --shadow-pop. */
+  --ele-1: 0 1px 2px rgba(16, 24, 40, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ele-2: 0 2px 6px -1px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --ele-3: 0 6px 16px -4px rgba(16, 24, 40, 0.12), 0 2px 4px rgba(16, 24, 40, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  /* D2 — Surface wash + tint trạng thái (kết hợp utilities: bg-s1/s2 sẵn) */
+  --wash: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 45%);
+
+  /* Scrim — phủ đen trên media/backdrop (theme-INDEPENDENT: đen trên ảnh đúng cả
+     light/dark, không override dark.css). Thang bậc nhẹ→đậm; component dùng
+     bg-scrim-1..4, CẤM rgba(0,0,0) inline (batch F 2026-10-18). */
+  --scrim-1: rgba(0, 0, 0, 0.2); /* bullet indicator trên media */
+  --scrim-2: rgba(0, 0, 0, 0.3); /* nav button trên ảnh — rest */
+  --scrim-3: rgba(0, 0, 0, 0.5); /* nav button trên ảnh — hover/active bullet */
+  --scrim-4: rgba(0, 0, 0, 0.8); /* backdrop toàn màn (image preview) */
+  /* Tooltip surface (antd colorBgSpotlight): light = spotlight đen; dark override
+     sáng hơn (#424242) để bubble tách khỏi canvas tối — phán quyết lead 2026-10-18. */
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
+  /* Cinematic experience (REF-SPEC 2026-10-18 — đo từ ref, PO duyệt): chữ navy
+     trên section nền sáng của hero + footer tối. Không dùng cho text body thường. */
+  --navy-ink: rgb(16, 36, 52);
+  /* Nền TỰ CHỦ của experience (không theo theme — hero LUÔN sáng, chapters LUÔN
+     tối để text light giữ contrast ≥4.5:1 cả light lẫn dark toolbar). */
+  --hero-sky-a: #ffffff;
+  --hero-sky-b: #e8edf4;
+  --hero-ink: rgb(16, 36, 52); /* text hero trên nền sáng tự chủ — CỐ ĐỊNH, KHÔNG flip dark (khác --navy-ink có override #f7f8f8) */
+  --chapter-bg-a: rgb(10, 12, 22);
+  --chapter-bg-b: rgb(16, 36, 52);
   /* Z-index overlay scale — thang dùng chung cho floating surfaces (antd-like:
      dropdown < popover < modal < toast < tooltip). Component dùng z-[var(--z-*)],
      cấm hardcode số (batch ⑩ 2026-10-18). */
@@ -79,10 +115,19 @@
   --alert-info-border: #91caff;
   --alert-success-bg: #f6ffed;
   --alert-success-border: #b7eb8f;
+  /* Alert FILLED — nền đặc theo type (antd green-7/gold-7/red-7 + colorPrimary;
+   * tokenize giá trị look-cũ — batch worker H 2026-10-18, duyệt qua "fix tất cả issue") */
+  --alert-error-filled: #cf1322;
+  --alert-warning-filled: #d48806;
+  --alert-info-filled: #1677ff; /* = --accent */
+  --alert-success-filled: #389e0d;
+  /* Mask scrim phủ (drawer/modal/blockui overlay) — antd colorBgMask */
+  --mask: rgba(0, 0, 0, 0.45);
   /* Type scale (antd base 14) */
   --fs-meta: 12px;
   --fs-label: 13px;
   --fs-body: 14px;
+  --fs-h3: 15px; /* heading nhỏ (toolbar title — batch schedule-skin 2026-10-18, coordinator chỉ định) */
   --fs-h2: 16px;
   --fs-h1: 18px;
 }

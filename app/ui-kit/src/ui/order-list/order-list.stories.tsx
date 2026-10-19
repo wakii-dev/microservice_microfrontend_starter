@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { OrderList } from './index';
 
+/** Reorderable list — move items up/down with chevrons or keyboard. */
 const meta = {
   title: 'Data Display/OrderList',
   component: OrderList,
@@ -32,6 +33,6 @@ function ControlledDemo() {
 }
 
 export const CoBan: Story = {
-  name: 'Cơ bản — ▲/▼ đổi thứ tự',
+  name: 'Basic — move up / down',
   render: () => <ControlledDemo />,
 };

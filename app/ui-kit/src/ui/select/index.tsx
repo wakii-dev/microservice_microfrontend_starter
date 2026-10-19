@@ -2,8 +2,14 @@
 // filterable · multiple (chips + select-all) · option groups · loading · showClear
 // · editable · keyboard đầy đủ · ARIA listbox/combobox chuẩn WAI-ARIA.
 // GIỮ NGUYÊN: ariaLabel contract + a11y hơn antd (button+listbox thay span+click).
+// Depth contract 2026-10-19: trigger rest bg-s3 + ele-1 → hover nhấc ele-2 + viền
+// đậm ink/20; panel nổi = shadow-pop + ele-3 + wash; option hover tint accent/5;
+// stagger option mount 30ms (cap 12); empty icon float; mọi transition ease-smooth.
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { Icon } from '../icons/index.js';
 import { Spinner } from '../spinner/index';
+
+const SMOOTH = 'transition-[background-color,border-color,box-shadow,color] duration-200 ease-[var(--ease-smooth)]';
 
 export interface SelectOption {
   label: string;
@@ -145,9 +151,9 @@ export function Select({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={(e) => { if (!editable) onKeyDown(e); }}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-2 border bg-s2 px-3 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
-          open ? 'border-accent-hi' : 'border-line hover:border-accent'
-        } ${disabled ? 'cursor-not-allowed bg-[rgba(0,0,0,0.04)] text-ink4' : 'text-ink'}`}
+        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s3 px-3 text-body shadow-[var(--ele-1)] ${SMOOTH} hover:shadow-[var(--ele-2)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40 ${
+          open ? 'border-accent-hi' : 'border-line hover:border-ink/20'
+        } ${disabled ? 'cursor-not-allowed bg-ink/5 text-ink4 shadow-none' : 'text-ink'}`}
       >
         <span className="min-w-0 truncate">
           {multiple && visibleChips.length > 0 ? (
@@ -172,18 +178,26 @@ export function Select({
               aria-label="Xoá"
               tabIndex={0}
               onClick={(e) => { e.stopPropagation(); clearValue(e as unknown as React.MouseEvent); }}
+              onKeyDown={(e) => {
+                // span-role-button phải Operable bằng keyboard (Enter/Space) — axe
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  clearValue(e as unknown as React.MouseEvent);
+                }
+              }}
               className="cursor-pointer text-ink3 hover:text-ink"
             >
               ×
             </span>
           )}
-          <span aria-hidden="true" className={`text-ink3 transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+          <span aria-hidden="true" className={`text-ink3 transition-transform duration-200 ease-[var(--ease-smooth)] ${open ? 'rotate-180' : ''}`}>▾</span>
         </span>
       </button>
 
       {open && (
-        <span className="absolute left-0 top-full mt-1 z-30 block w-full min-w-[160px]">
-          <span className="block overflow-hidden rounded-3 border border-line bg-s2 shadow-[var(--shadow-pop)]">
+        <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
+          <span className="block origin-top overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
             {/* Filter input */}
             {filterable && (
               <span className="block border-b border-line2 p-2">
@@ -230,10 +244,14 @@ export function Select({
                 <Spinner label="Đang tải options" variant="dots" />
               </span>
             ) : filteredFlat.length === 0 ? (
-              <span className="block p-3 text-center text-body text-ink3">Không có kết quả</span>
+              <span className="flex items-center justify-center gap-2 p-3 text-center text-body text-ink3">
+                {/* Empty icon float 3s (depth contract — empty-state icon float) */}
+                <Icon name="search" size={14} aria-hidden className="animate-[bp-float_3s_var(--ease-smooth)_infinite]" />
+                Không có kết quả
+              </span>
             ) : (
               <ul ref={listRef} id={listId} role="listbox" aria-label={ariaLabel}
-                className="m-0 max-h-60 list-none overflow-auto p-1">
+                className="m-0 max-h-60 min-h-[104px] list-none overflow-auto p-1">
                 {filteredFlat.map((option, i) => {
                   const isSelected = selectedValues.includes(option.value);
                   const isActive = i === active;
@@ -251,8 +269,10 @@ export function Select({
                         aria-disabled={option.disabled || undefined}
                         onMouseEnter={() => setActive(i)}
                         onClick={() => !option.disabled && commit(option.value)}
-                        className={`flex h-8 cursor-pointer items-center rounded-2 px-3 text-body ${
-                          isSelected ? 'bg-[#e6f4ff] font-semibold text-accent' : 'text-ink hover:bg-s3'
+                        // Stagger mount 30ms/option (cap 12 mục — list dài không trễ quá ~360ms)
+                        style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
+                        className={`flex h-8 cursor-pointer items-center rounded-lg px-3 text-body animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${SMOOTH} ${
+                          isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-accent/5'
                         } ${isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : ''} ${option.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                       >
                         {multiple && (
@@ -260,7 +280,11 @@ export function Select({
                             {isSelected && <span className="grid size-full place-items-center text-[8px] font-bold text-white">✓</span>}
                           </span>
                         )}
-                        {option.label}
+                        {/* label chiếm phần còn — check icon selected bám mép phải (single; multiple có checkbox riêng) */}
+                        <span className="min-w-0 flex-1 truncate">{option.label}</span>
+                        {!multiple && isSelected && (
+                          <Icon name="check" size={12} className="shrink-0 text-accent" />
+                        )}
                       </div>
                     </li>
                   );

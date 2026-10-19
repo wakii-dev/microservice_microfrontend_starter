@@ -17,6 +17,7 @@ export interface PaginationProps {
 }
 
 /** Dãy trang kiểu antd: 1 … p-1 p p+1 … N (window ±1, giữ đầu/cuối). */
+// eslint-disable-next-line react-refresh/only-export-components
 export function pageList(current: number, pageCount: number): Array<number | 'ellipsis-prev' | 'ellipsis-next'> {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, i) => i + 1);
   const pages: Array<number | 'ellipsis-prev' | 'ellipsis-next'> = [1];
@@ -37,9 +38,9 @@ function ChevronRightIcon() {
 }
 
 const ITEM =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink transition-colors hover:bg-s3';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink transition-all duration-150 hover:bg-s3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
 const ITEM_ACTIVE =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-white/60';
 const ITEM_DISABLED =
   'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border-none bg-transparent px-2 text-body text-ink3 cursor-not-allowed';
 

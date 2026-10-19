@@ -1,8 +1,11 @@
 // TaskForm — tạo task (aria-label "Form tạo task" là contract, giữ nguyên).
-// react-hook-form (libs adopt 2026-10-17): form state qua useForm — fields chỉ reset
-// khi tạo THÀNH CÔNG; lỗi (banner ở page) giữ nguyên input cho user sửa.
-import { useForm } from 'react-hook-form';
-import { Button, Icon, Input, Textarea } from '@wakii/ui-kit';
+// ui-kit useForm + zod (app-fit migration 2026-10-18, thay react-hook-form):
+// fields chỉ reset khi tạo THÀNH CÔNG; lỗi (banner ở page) giữ nguyên input cho
+// user sửa. Zod = source of truth validate: title trim + bắt buộc + ≤200 ký tự,
+// description optional (trim, rỗng → undefined khi gửi).
+import { useState } from 'react';
+import { z } from 'zod';
+import { Button, Field, Icon, Input, Textarea, useForm } from '@wakii/ui-kit';
 import type { CreateTaskInput } from '../api';
 
 interface TaskFormProps {
@@ -10,26 +13,31 @@ interface TaskFormProps {
   onCreate: (input: CreateTaskInput) => Promise<boolean>;
 }
 
-interface FormValues {
-  title: string;
-  description: string;
-}
+const taskFormSchema = z.object({
+  title: z.string().trim().min(1, 'Tiêu đề là bắt buộc').max(200, 'Tiêu đề tối đa 200 ký tự'),
+  description: z.string().trim(),
+});
+type FormValues = z.infer<typeof taskFormSchema>;
 
 export function TaskForm({ onCreate }: TaskFormProps) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<FormValues>({ defaultValues: { title: '', description: '' } });
+  const [submitting, setSubmitting] = useState(false);
+  const form = useForm<FormValues>({
+    schema: taskFormSchema,
+    initialValues: { title: '', description: '' },
+  });
 
-  const submit = handleSubmit(async (values) => {
-    if (!values.title.trim()) return;
-    const ok = await onCreate({
-      title: values.title.trim(),
-      description: values.description.trim() || undefined,
-    });
-    if (ok) reset(); // chỉ reset khi tạo thành công
+  const submit = form.handleSubmit(async (values) => {
+    setSubmitting(true);
+    try {
+      // description trim rỗng → undefined (contract optional)
+      const ok = await onCreate({
+        title: values.title,
+        description: values.description || undefined,
+      });
+      if (ok) form.reset(); // chỉ reset khi tạo thành công
+    } finally {
+      setSubmitting(false);
+    }
   });
 
   return (
@@ -38,20 +46,28 @@ export function TaskForm({ onCreate }: TaskFormProps) {
       onSubmit={submit}
       aria-label="Form tạo task"
     >
-      <label className="flex flex-col gap-1 text-label text-ink2 [flex:1_1_200px]">
-        Tiêu đề
+      <Field label="Tiêu đề" htmlFor="task-form-title" error={form.errors.title} className="[flex:1_1_200px]">
         <Input
-          {...register('title', { required: true, maxLength: 200 })}
-          required
+          id="task-form-title"
+          name="title"
           maxLength={200}
+          value={form.values.title}
+          invalid={!!form.errors.title}
+          onChange={form.handleChange('title')}
+          onBlur={form.handleBlur('title')}
         />
-      </label>
-      <label className="flex flex-col gap-1 text-label text-ink2 [flex:1_1_200px]">
-        Mô tả
-        <Textarea {...register('description')} rows={2} />
-      </label>
-      <Button type="primary" htmlType="submit" disabled={isSubmitting} icon={<Icon name="plus" />}>
-        {isSubmitting ? 'Đang tạo…' : 'Tạo task'}
+      </Field>
+      <Field label="Mô tả" htmlFor="task-form-description" className="[flex:1_1_200px]">
+        <Textarea
+          id="task-form-description"
+          name="description"
+          rows={2}
+          value={form.values.description}
+          onChange={form.handleChange('description')}
+        />
+      </Field>
+      <Button type="primary" htmlType="submit" loading={submitting} icon={<Icon name="plus" />}>
+        {submitting ? 'Đang tạo…' : 'Tạo task'}
       </Button>
     </form>
   );

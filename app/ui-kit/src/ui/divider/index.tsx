@@ -3,14 +3,18 @@
 import type { ReactNode } from 'react';
 
 export interface DividerProps {
+  /** horizontal (mặc định) | vertical — vertical là span inline cao 0.9em. */
   type?: 'horizontal' | 'vertical';
+  /** Viền đứt (antd dashed) — mặc định liền. */
   dashed?: boolean;
-  /** Text giữa đường kẻ (chỉ horizontal). */
+  /** Vị trí text: 'left' | 'center' (mặc định) | 'right' (antd orientation). */
+  orientation?: 'left' | 'center' | 'right';
+  /** Text trên đường kẻ (chỉ horizontal). */
   children?: ReactNode;
   className?: string;
 }
 
-export function Divider({ type = 'horizontal', dashed = false, children, className }: DividerProps) {
+export function Divider({ type = 'horizontal', dashed = false, orientation = 'center', children, className }: DividerProps) {
   if (type === 'vertical') {
     return (
       <span
@@ -21,16 +25,33 @@ export function Divider({ type = 'horizontal', dashed = false, children, classNa
       />
     );
   }
+  const line = `border-t ${dashed ? 'border-dashed border-line' : 'border-solid border-line2'}`;
   if (children !== undefined) {
+    if (orientation === 'left') {
+      return (
+        <div role="separator" className={`flex items-center text-label text-ink3${className ? ` ${className}` : ''}`} style={{ margin: '16px 0' }}>
+          <span className="mr-4">{children}</span>
+          <span className={`flex-1 ${line}`} />
+        </div>
+      );
+    }
+    if (orientation === 'right') {
+      return (
+        <div role="separator" className={`flex items-center text-label text-ink3${className ? ` ${className}` : ''}`} style={{ margin: '16px 0' }}>
+          <span className={`flex-1 ${line}`} />
+          <span className="ml-4">{children}</span>
+        </div>
+      );
+    }
     return (
       <div
         role="separator"
-        className={`flex items-center text-meta text-ink3${className ? ` ${className}` : ''}`}
+        className={`flex items-center text-label text-ink3${className ? ` ${className}` : ''}`}
         style={{ margin: '16px 0' }}
       >
-        <span className={`flex-1 border-t ${dashed ? 'border-dashed border-line' : 'border-solid border-line2'}`} />
+        <span className={`flex-1 ${line}`} />
         <span className="px-4">{children}</span>
-        <span className={`flex-1 border-t ${dashed ? 'border-dashed border-line' : 'border-solid border-line2'}`} />
+        <span className={`flex-1 ${line}`} />
       </div>
     );
   }

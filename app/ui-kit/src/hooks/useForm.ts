@@ -23,7 +23,7 @@ export type FormErrors = Record<string, string>;
 type SafeResult<T> = ReturnType<ZodType<T>['safeParse']>;
 
 /** safeParse issues → FormErrors: path join '.', 1 message/field (issue đầu). */
-function collectErrors<T>(result: Extract<SafeResult<T>, { success: false }>): FormErrors {
+export function collectErrors<T>(result: Extract<SafeResult<T>, { success: false }>): FormErrors {
   const next: FormErrors = {};
   for (const issue of result.error.issues) {
     const key = issue.path.join('.') || 'root';
@@ -107,5 +107,13 @@ export function useForm<T>({ schema, initialValues, mode = 'onSubmit' }: UseForm
     setTouched({});
   };
 
-  return { values, errors, touched, setValue, handleChange, handleBlur, handleSubmit, reset, isValid };
+  return {
+    values, errors, touched, setValue, handleChange, handleBlur, handleSubmit, reset, isValid,
+    // Expose cho hook companion (useFieldArray — Form.List): schema để tự safeParse
+    // snapshot mới, setErrors để rebuild errors khi index mảng dịch. Không đổi API cũ.
+    schema, setErrors,
+  };
 }
+
+/** Kiểu instance trả về từ useForm — dùng khi hook companion cần nhận form qua param. */
+export type FormInstance<T> = ReturnType<typeof useForm<T>>;

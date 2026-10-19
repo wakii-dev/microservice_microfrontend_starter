@@ -13,8 +13,11 @@ const CONFIG: Record<string, { icon: string; color: string; defaultTitle: string
 };
 
 export interface ResultProps {
+  /** Trạng thái — icon + màu + title mặc định theo status. */
   status?: ResultStatus;
+  /** Tiêu đề (bỏ qua → dùng defaultTitle theo status). */
   title?: ReactNode;
+  /** Dòng phụ dưới tiêu đề. */
   subTitle?: ReactNode;
   /** Nút actions (vd Quay lại trang chủ). */
   extra?: ReactNode;
@@ -26,13 +29,31 @@ export function Result({ status = 'info', title, subTitle, extra, children, clas
   const cfg = CONFIG[status];
   return (
     <div className={`flex flex-col items-center gap-2 py-8 text-center animate-[bp-slide-up-in_var(--motion-slow)_var(--ease-enter)]${className ? ` ${className}` : ''}`}>
-      <div
-        aria-hidden="true"
-        className={`text-5xl font-bold ${status === 'success' ? 'text-st-done' : status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}`}
-        style={status === 'success' || status === 'error' || status === 'info' || status === 'warning' ? { color: cfg.color } : undefined}
-      >
-        {cfg.icon}
-      </div>
+      {status === 'success' ? (
+        // Success — check vẽ tay (bp-check-draw): circle + tick stroke pathLength=1,
+        // offset 1→0 chạy đúng mọi độ dài path. reduced-motion → hiện tức thì.
+        <svg aria-hidden="true" data-testid="result-check" viewBox="0 0 52 52" className="size-14 text-st-done">
+          <circle
+            cx="26" cy="26" r="23" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.45"
+            pathLength={1} strokeDasharray={1}
+            style={{ animation: 'bp-check-draw 320ms var(--ease-enter) both' }}
+          />
+          <path
+            d="M16 27l7.5 7.5L37 20" fill="none" stroke="currentColor" strokeWidth="3.5"
+            strokeLinecap="round" strokeLinejoin="round"
+            pathLength={1} strokeDasharray={1}
+            style={{ animation: 'bp-check-draw 420ms 200ms var(--ease-enter) both' }}
+          />
+        </svg>
+      ) : (
+        <div
+          aria-hidden="true"
+          className={`text-5xl font-bold ${status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}`}
+          style={status === 'error' || status === 'info' || status === 'warning' ? { color: cfg.color } : undefined}
+        >
+          {cfg.icon}
+        </div>
+      )}
       <div className="text-h2 font-semibold text-ink">{title ?? cfg.defaultTitle}</div>
       {subTitle && <div className="text-body text-ink2">{subTitle}</div>}
       {children}

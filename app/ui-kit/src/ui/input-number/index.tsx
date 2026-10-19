@@ -1,7 +1,11 @@
-// InputNumber — PrimeReact pattern: input + stepper icon buttons XẶP DỌC trong
-// mép phải (input group: input + border-left phân tách), Icon chevron up/down
-// (bộ icons dùng chung), keyboard ↑↓, min/max/step clamp, disabled.
-import { useState, type FocusEvent } from 'react';
+// InputNumber — antd-fidelity (redo 2026-10-19): input + cột stepper LÒNG TRONG
+// control mép phải (2 nút full-height nửa trên/dưới, chevron Icon bộ chung 14px,
+// hairline border-t chia 2 nút, CHỈ bo góc NGOÀI theo radius control — flush tuyệt
+// đối, wrapper overflow-hidden; giữ fix e94b3e4). Hover bg-ink/5 · active bg-ink/10
+// + press-scale trên ICON (không scale nút — giữ fix "hở viền" 2026-10-18). Focus
+// ring vòng NGOÀI cả control (focus-within). Sizes h-6/8/10 ăn theo họ Input.
+// prefix/suffix affixes (pattern antd). Keyboard ↑↓, min/max/step clamp, disabled.
+import { useState, type FocusEvent, type ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface InputNumberProps {
@@ -17,6 +21,12 @@ export interface InputNumberProps {
   max?: number;
   /** Bước nhảy của nút stepper và phím ↑↓ (mặc định 1). */
   step?: number;
+  /** Kích thước theo họ Input: small h-6 · middle h-8 (mặc định) · large h-10. */
+  size?: 'small' | 'middle' | 'large';
+  /** Node hiển thị trước input (antd prefix). */
+  prefix?: ReactNode;
+  /** Node hiển thị sau input, TRƯỚC cột stepper (antd suffix). */
+  suffix?: ReactNode;
   /** Khoá input + 2 nút stepper, cả nhóm mờ đi (bg-s3 + opacity). */
   disabled?: boolean;
   /** Trạng thái lỗi: viền đỏ --st-fail trên cả input lẫn cột stepper. */
@@ -28,15 +38,17 @@ export interface InputNumberProps {
 }
 
 function ChevronUpIcon({ className }: { className?: string }) {
-  return <Icon name="chevron-up" size={10} className={className} />;
+  return <Icon name="chevron-up" size={14} className={className} />;
 }
 function ChevronDownIcon({ className }: { className?: string }) {
-  return <Icon name="chevron-down" size={10} className={className} />;
+  return <Icon name="chevron-down" size={14} className={className} />;
 }
 
+const SIZE_CLS = { small: 'h-6 text-label', middle: 'h-8 text-body', large: 'h-10 text-body' } as const;
+
 export function InputNumber({
-  value, onChange, min = -Infinity, max = Infinity, step = 1,
-  disabled = false, invalid = false, ariaLabel, className,
+  value, onChange, min = -Infinity, max = Infinity, step = 1, size = 'middle',
+  prefix, suffix, disabled = false, invalid = false, ariaLabel, className,
 }: InputNumberProps) {
   const [text, setText] = useState(value !== undefined ? String(value) : '');
 
@@ -68,9 +80,11 @@ export function InputNumber({
   const borderCls = invalid ? 'border-st-fail' : 'border-line focus-within:border-accent-hi';
 
   return (
+    // Depth contract: rest bg-s3 + ele-1 → focus-within bg-s1 + ring 3px accent/40 + ele-2
     <span
-      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s2 ${borderCls}${disabled ? ' bg-s3 opacity-60' : ''}${className ? ` ${className}` : ''}`}
+      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:ring-[3px] focus-within:ring-accent/40 ${borderCls}${disabled ? ' bg-s3 opacity-60 shadow-none' : ''}${className ? ` ${className}` : ''}`}
     >
+      {prefix && <span className="inline-flex shrink-0 items-center pl-3 text-ink3">{prefix}</span>}
       <input
         type="number"
         aria-label={ariaLabel}
@@ -82,20 +96,28 @@ export function InputNumber({
           if (e.key === 'ArrowUp') { e.preventDefault(); bump(step); }
           if (e.key === 'ArrowDown') { e.preventDefault(); bump(-step); }
         }}
-        className="h-8 min-w-0 flex-1 border-none bg-transparent px-3 text-body text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className={`min-w-0 flex-1 border-none bg-transparent px-3 text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${SIZE_CLS[size]}`}
       />
+      {suffix && <span className="inline-flex shrink-0 items-center text-ink3">{suffix}</span>}
+      {/* Stepper — 2 nút xếp dọc fill nửa control (h-1/2, tổng đúng chiều cao input,
+          không khe/overshoot). KHÔNG radius riêng: chỉ góc NGOÀI bo theo radius control
+          (up = top-right, down = bottom-right; container overflow-hidden clip theo
+          rounded-lg nên lying flush viền — góc trong = 0). Divider giữa = hairline
+          border-t border-line (border-box nên vẫn fit 100%). Press = nền sâu hơn +
+          scale trên ICON (group/up·down) — scale NÚT làm hở viền (fix 2026-10-18,
+          không hồi quy). Focus ring nằm ở wrapper (vòng NGOÀI cả control). */}
       <span className={`flex flex-col border-l ${invalid ? 'border-st-fail' : 'border-line'} ${disabled ? 'opacity-50' : ''}`}>
         <button
           type="button" aria-label="Tăng" disabled={disabled} onClick={() => bump(step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center border-none bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:scale-95"
+          className="group/up flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10"
         >
-          <ChevronUpIcon />
+          <ChevronUpIcon className="transition-transform duration-150 ease-[var(--ease-smooth)] group-active/up:scale-90" />
         </button>
         <button
           type="button" aria-label="Giảm" disabled={disabled} onClick={() => bump(-step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center border-t border-line bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:scale-95"
+          className="group/down flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10"
         >
-          <ChevronDownIcon />
+          <ChevronDownIcon className="transition-transform duration-150 ease-[var(--ease-smooth)] group-active/down:scale-90" />
         </button>
       </span>
     </span>

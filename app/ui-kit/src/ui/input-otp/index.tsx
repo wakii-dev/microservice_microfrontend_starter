@@ -49,7 +49,7 @@ export function InputOTP({ length = 6, value: valueProp, onChange, disabled, ari
           onKeyDown={(e) => onKeyDown(i, e)}
           onPaste={onPaste}
           onChange={(e) => setChar(i, e.target.value.replace(/\D/g, '').slice(-1))}
-          className="size-10 cursor-text rounded-2 border border-line bg-s2 text-center text-h2 font-semibold text-ink transition-colors focus:border-accent focus:outline-none disabled:cursor-not-allowed disabled:bg-s3"
+          className="size-10 cursor-text rounded-lg border border-line bg-s3 text-center text-h2 font-semibold text-ink tabular-nums shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus:border-accent focus:bg-s1 focus:shadow-[var(--ele-2)] focus:ring-[3px] focus:ring-accent/40 focus:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:shadow-none"
         />
       ))}
     </span>

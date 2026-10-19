@@ -70,3 +70,17 @@ describe('Chips', () => {
     expect(screen.getByPlaceholderText('')).toBeInTheDocument();
   });
 });
+
+describe('Chips — matrix gaps (a11y/props)', () => {
+  it('mỗi nút xoá có aria-label riêng "Xoá <tag>" (screen-reader)', () => {
+    render(<Chips value={['react', 'vue']} onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Xoá react' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xoá vue' })).toBeInTheDocument();
+  });
+
+  it('placeholder hiển thị khi rỗng + className passthrough', () => {
+    const { container } = render(<Chips value={[]} onChange={vi.fn()} placeholder="Thêm tag…" className="marker" />);
+    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Thêm tag…');
+    expect(container.firstElementChild).toHaveClass('marker');
+  });
+});

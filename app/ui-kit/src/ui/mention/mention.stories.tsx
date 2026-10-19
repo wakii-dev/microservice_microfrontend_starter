@@ -1,35 +1,44 @@
-// Stories Mention — Forms. @autocomplete trong textarea.
+// Mention stories — type @ to trigger the suggestion list, pick inserts "@Name ".
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Mention } from './index';
 
-const meta = {
-  title: 'Forms/Mention',
-  component: Mention,
-  tags: ['autodocs'],
-} satisfies Meta;
+const meta = { title: 'Forms/Mention', component: Mention, tags: ['autodocs'] } satisfies Meta;
 export default meta;
-
 type Story = StoryObj;
 
-const TEAM = ['Alice Nguyen', 'Binh Tran', 'Chi Le', 'Duong Pham', 'Giang Vo'];
+const PEOPLE = ['An', 'Binh', 'Chi', 'Dung'];
 
-function ControlledDemo() {
-  const [value, setValue] = useState('');
+/** Basic — type @ → suggestions → click/keyboard to pick. */
+export const Basic: Story = {
+  render: () => <Mention suggestions={PEOPLE} placeholder="Type @ to mention…" className="w-96" />,
+};
+
+/** Controlled — useState demo: value shown under the textarea. */
+export const Controlled: Story = {
+  render: () => <MentionControlledDemo />,
+};
+
+/** DarkTheme — textarea + open suggestion list on dark canvas. */
+export const DarkTheme: Story = {
+  render: () => (
+    <div data-bp-theme="dark" className="w-96 rounded-xl bg-canvas p-4">
+      <Mention suggestions={PEOPLE.slice(0, 3)} placeholder="Type @ to mention…" />
+    </div>
+  ),
+};
+
+/** Empty — suggestions=[] → no dropdown even after @. */
+export const Empty: Story = {
+  args: { suggestions: [], placeholder: 'No one to mention…', className: 'w-96' },
+};
+
+function MentionControlledDemo() {
+  const [v, setV] = useState('');
   return (
     <div className="w-96">
-      <Mention
-        value={value}
-        onChange={setValue}
-        suggestions={TEAM}
-        placeholder="Viết comment, gõ @ để mention…"
-      />
-      <p className="mt-2 text-meta text-ink3">value: {value || '—'}</p>
+      <Mention value={v} onChange={setV} suggestions={PEOPLE} placeholder="Type @ to mention…" />
+      <p className="mt-2 font-mono text-meta text-ink3">value: <strong className="text-ink">{v || '—'}</strong></p>
     </div>
   );
 }
-
-export const CoBan: Story = {
-  name: 'Cơ bản — gõ @ → gợi ý → chọn',
-  render: () => <ControlledDemo />,
-};

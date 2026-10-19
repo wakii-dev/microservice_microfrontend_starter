@@ -18,7 +18,7 @@ export function Title({ level = 1, children, className, style }: TitleProps) {
   return (
     <Tag
       className={className}
-      style={{ fontSize: TITLE_SIZE[level], fontWeight: 600, lineHeight: 1.25, marginBottom: '0.5em', color: 'var(--ink)', ...style }}
+      style={{ fontSize: TITLE_SIZE[level], fontWeight: level === 1 ? 700 : 600, lineHeight: 1.25, marginBottom: '0.5em', color: 'var(--ink)', ...style }}
     >
       {children}
     </Tag>
@@ -62,7 +62,7 @@ export function Text({
 }: TextProps) {
   const typeStyle = type ? { color: TYPE_COLOR[type] } : undefined;
   let content: ReactNode = children;
-  if (code) content = <code style={{ fontFamily: 'var(--m)', fontSize: '0.9em', background: 'rgba(150,150,150,0.1)', padding: '0.2em 0.4em', borderRadius: 4 }}>{content}</code>;
+  if (code) content = <code style={{ fontFamily: 'var(--m)', fontSize: '0.9em', background: 'var(--s3)', padding: '0.2em 0.4em', borderRadius: 4 }}>{content}</code>;
   if (keyboard) content = <kbd style={{ fontFamily: 'var(--m)', fontSize: '0.9em', border: '1px solid var(--line)', borderBottomWidth: 2, borderRadius: 4, padding: '0 4px' }}>{content}</kbd>;
   if (underline) content = <u>{content}</u>;
   if (del) content = <del>{content}</del>;
@@ -117,6 +117,7 @@ export function Paragraph({ children, type, strong, className, style }: Paragrap
 }
 
 /** Typography composite — pattern antd (Typography.Title/Text/Paragraph). */
+// eslint-disable-next-line react-refresh/only-export-components
 export const Typography = Object.assign(
   () => null,
   { Title, Text, Paragraph },

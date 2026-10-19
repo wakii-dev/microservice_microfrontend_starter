@@ -102,4 +102,25 @@ describe('Tag — combo (Tier 5 sweep)', () => {
     );
     expect(screen.getByText('trơn').parentElement!.querySelectorAll('span[aria-hidden]').length).toBe(0);
   });
+
+  it('plain className passthrough + không closable → không nút Đóng', () => {
+    render(<Tag className="extra">nhãn</Tag>);
+    const el = screen.getByText('nhãn');
+    expect(el).toHaveClass('extra');
+    expect(screen.queryByRole('button', { name: 'Đóng' })).toBeNull();
+  });
+
+  it('plain icon → icon bọc span aria-hidden (trang trí)', () => {
+    render(<Tag icon={<span data-testid="pic">▲</span>}>nhãn</Tag>);
+    expect(screen.getByTestId('pic')).toBeInTheDocument();
+    expect(screen.getByTestId('pic').parentElement).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('Checkable checked → click gọi onChange(false) (toggle về false)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Tag.Checkable checked onChange={onChange}>Đang làm</Tag.Checkable>);
+    await user.click(screen.getByRole('button', { name: 'Đang làm' }));
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
 });

@@ -4,8 +4,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge, type BadgeVariant } from './index';
 
+/** Small count/status marker for icons and labels. */
 const meta = {
-  title: 'Primitives/Badge',
+  title: 'Data Display/Badge',
   component: Badge,
   tags: ['autodocs'],
   argTypes: {
@@ -50,6 +51,55 @@ export const TatCaVariants: Story = {
           {v}
         </Badge>
       ))}
+    </div>
+  ),
+};
+
+// ── Count mode (antd Badge) — EN stories cho case-coverage audit ──
+
+const slot = <span className="block size-8 rounded-lg bg-s3" aria-hidden="true" />;
+
+export const CountOnAvatar: Story = {
+  name: 'Count — wraps children at top-right corner',
+  render: () => (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      <Badge count={5}>{slot}</Badge>
+      <Badge count={12} offset={[-4, 4]}>{slot}</Badge>
+      <Badge count={5}>Inbox</Badge>
+    </div>
+  ),
+};
+
+export const CountOverflow: Story = {
+  name: 'Count — overflow 99+ (overflowCount custom)',
+  render: () => (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      <Badge count={150}>{slot}</Badge>
+      <Badge count={150} overflowCount={10}>{slot}</Badge>
+    </div>
+  ),
+};
+
+export const CountZeroAndDot: Story = {
+  name: 'Count — showZero + dot (no number)',
+  render: () => (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+      <Badge count={0}>{slot}</Badge>
+      <Badge count={0} showZero>{slot}</Badge>
+      <Badge dot>{slot}</Badge>
+    </div>
+  ),
+};
+
+export const StandaloneStatus: Story = {
+  name: 'Status — standalone dot + text (no children)',
+  render: () => (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+      <Badge status="success" text="Done" />
+      <Badge status="processing" text="Running" />
+      <Badge status="error" text="Failed" />
+      <Badge status="warning" text="Needs review" />
+      <Badge status="default" text="Draft" />
     </div>
   ),
 };

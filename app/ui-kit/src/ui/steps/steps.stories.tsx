@@ -1,35 +1,57 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// Steps stories — current điều khiển done/current/waiting (chỉ horizontal —
-// component chưa có size/vertical prop).
+// Steps stories — Basic / Completed / WithDescription / ManySteps / DarkTheme.
+// Horizontal only — component has no size/vertical prop (don't invent).
+// `current` is fully prop-driven — no internal state, so no controlled story.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Steps } from './index';
 
+/** Horizontal wizard progress header — done/current/waiting. */
 const meta = { title: 'Navigation/Steps', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 const items = [
-  { title: 'Chọn type', description: 'Loại task' },
-  { title: 'Điền form', description: 'Tiêu đề + assignee' },
-  { title: 'Xác nhận', description: 'Review tạo task' },
+  { title: 'Choose type', description: 'Task kind' },
+  { title: 'Fill form', description: 'Title + assignee' },
+  { title: 'Confirm', description: 'Review & create' },
 ];
 
 export const Basic: Story = {
-  name: 'Basic — current giữa',
+  name: 'Basic — current in the middle',
   render: () => <Steps items={items} current={1} className="max-w-[560px]" />,
 };
 
-export const HoanThanh: Story = {
-  name: 'Hoàn tất — current cuối',
+export const Completed: Story = {
+  name: 'Completed — current at the end',
   render: () => <Steps items={items} current={3} className="max-w-[560px]" />,
 };
 
-export const MoTa: Story = {
-  name: 'Có description + chưa bắt đầu',
+export const WithDescription: Story = {
+  name: 'With description + not started',
   render: () => (
     <div className="flex flex-col gap-6">
       <Steps items={items} current={2} className="max-w-[560px]" />
       <Steps items={items} current={0} className="max-w-[560px]" />
+    </div>
+  ),
+};
+
+export const ManySteps: Story = {
+  name: 'Many steps — 5 items, no description',
+  render: () => (
+    <Steps
+      items={[{ title: 'Draft' }, { title: 'Review' }, { title: 'Approve' }, { title: 'Publish' }, { title: 'Done' }]}
+      current={2}
+      className="max-w-[720px]"
+    />
+  ),
+};
+
+export const DarkTheme: Story = {
+  name: 'Dark theme — accent/border follow tokens',
+  render: () => (
+    <div data-bp-theme="dark" className="max-w-[560px] rounded-xl bg-s2 p-4">
+      <Steps items={items} current={1} />
     </div>
   ),
 };

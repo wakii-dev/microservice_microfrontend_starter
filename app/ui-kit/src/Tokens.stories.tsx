@@ -6,7 +6,7 @@ import type { CSSProperties } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 const meta = {
-  title: 'Design Tokens',
+  title: 'Theming & Motion/Design Tokens',
   tags: ['!dev'],
 } satisfies Meta;
 export default meta;
@@ -50,7 +50,7 @@ function Scales({
     <section style={{ marginBottom: 32 }}>
       <h2 style={{ fontSize: 'var(--fs-h1)', color: 'var(--ink)', margin: '0 0 12px' }}>{title}</h2>
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'baseline' }}>
-        {items.map(([name, value]) => (
+        {items.map(([name]) => (
           <div key={name}>
             <div style={style(`var(${name})`)} />
             <code style={{ fontSize: 'var(--fs-meta)', color: 'var(--ink2)' }}>{name}</code>
@@ -140,7 +140,7 @@ export const SángMặcĐịnh: Story = {
 };
 
 export const TốiDirectionB: Story = {
-  name: 'Dark — direction B (theme phụ, archive VU-53)',
+  name: 'Dark — direction B (archive VU-53)',
   render: () => (
     <div data-bp-theme="dark" style={{ padding: 24, background: 'var(--c-canvas)', minHeight: '100vh' }}>
       <Swatches

@@ -14,3 +14,37 @@ describe('TabMenu', () => {
     expect(onTabChange).toHaveBeenCalledWith('b');
   });
 });
+
+describe('TabMenu — controlled + links', () => {
+  it('onTabChange bắn key khi bấm tab khác', async () => {
+    const onTabChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TabMenu
+        model={[
+          { key: 'all', label: 'All' },
+          { key: 'doing', label: 'In progress' },
+        ]}
+        activeKey="all"
+        onTabChange={onTabChange}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'In progress' }));
+    expect(onTabChange).toHaveBeenCalledWith('doing');
+  });
+
+  it('href item → render <a> (không button)', () => {
+    render(
+      <TabMenu
+        model={[
+          { key: 'docs', label: 'Docs', href: '#' },
+          { key: 'api', label: 'API', href: '#' },
+        ]}
+        activeKey="api"
+      />,
+    );
+    const link = screen.getByRole('link', { name: 'API' });
+    expect(link).toHaveAttribute('href', '#');
+    expect(link).toHaveAttribute('aria-current', 'page');
+  });
+});

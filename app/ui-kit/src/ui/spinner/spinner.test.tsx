@@ -45,3 +45,22 @@ describe('Spinner — size (Tier 1.5)', () => {
     expect(screen.getByLabelText(`s-${size}`).querySelector('span')).toHaveClass(cls);
   });
 });
+
+describe('Spinner — branch phụ', () => {
+  it('role=status + aria-label bắt buộc (a11y contract)', () => {
+    render(<Spinner label="Đang tải bảng" />);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-label', 'Đang tải bảng');
+  });
+
+  it('ring dùng currentColor (border-current + border-t-transparent)', () => {
+    render(<Spinner label="r" />);
+    const ring = screen.getByLabelText('r').querySelector('span')!;
+    expect(ring.className).toContain('border-current');
+    expect(ring.className).toContain('border-t-transparent');
+  });
+
+  it('className passthrough', () => {
+    render(<Spinner label="c" className="my-2" />);
+    expect(screen.getByLabelText('c')).toHaveClass('my-2');
+  });
+});

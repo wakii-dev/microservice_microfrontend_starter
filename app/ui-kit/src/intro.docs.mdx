@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { Badge, Button, CountUp, Icon, Statistic, Tag } from './index.js';
+
+<Meta title="Introduction" />
+
+# Wakii UI Kit
+
+Design system của bộ task-management boilerplate — **90+ React components, 0 deps runtime**, consumed qua source (ADR-0009). Look nghiêng antd, dark theme và motion dùng chung một hệ token.
+
+## Triết lý
+
+**Token-first.** Không màu/độ trễ/góc bo cứng trong component — mọi thứ đọc CSS var (`--accent`, `--motion-fast`, `--shadow-pop`…). Đổi token là đổi toàn hệ thống; dark theme tự cascade qua `data-bp-theme="dark"` (bật bằng nút **Theme** trên toolbar phía trên).
+
+**Motion-first.** Chỉ animate `transform`/`opacity` trên GPU, thời lượng từ thang `--motion-instant → slow` và easing `--ease-enter/exit/toggle`. Keyframe dùng chung `bp-*`; component chuyển động (`Parallax`, `Reveal`, `CountUp` — nhóm **Motion**) tự tắt khi `prefers-reduced-motion`.
+
+**A11y-first.** Focus ring chuẩn trên mọi control, `role`/`aria-*` wired sẵn (menu, switch, dialog, slider…), icon-only bắt buộc nhãn. Rules đầy đủ trong AGENTS.md — vi phạm là review fail.
+
+## Đi nhanh
+
+| Cần | Mở |
+|---|---|
+| Quy tắc bắt buộc + bảng "khi nào dùng" từng nhóm | [AGENTS.md](../../AGENTS.md) (repo root) |
+| 16 recipe copy-chạy (form, CRUD, dashboard, landing sống động…) | [docs/ai/recipes.md](../../docs/ai/recipes.md) |
+| Đổi gần đây | [CHANGELOG.md](../CHANGELOG.md) |
+
+## Vị đầu tiên
+
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+  <div className="flex flex-col items-start gap-3 rounded-xl border border-line bg-s1 p-4">
+    <Button type="primary">Primary action</Button>
+    <Button>Secondary</Button>
+    <Button type="text" icon={<Icon name="refresh" size={14} />}>Text + icon</Button>
+  </div>
+  <div className="flex flex-col items-start gap-3 rounded-xl border border-line bg-s1 p-4">
+    <div className="flex gap-2">
+      <Tag>token</Tag>
+      <Tag icon={<Icon name="check" size={12} />}>a11y</Tag>
+    </div>
+    <Badge variant="doing">In progress</Badge>
+    <Badge variant="done">Gated</Badge>
+  </div>
+  <div className="rounded-xl border border-line bg-s1 p-4">
+    <Statistic title="Components" value={<CountUp value={90} duration={1.5} />} suffix="+" />
+    <div className="mt-1 text-meta text-ink3">đếm ease-out bằng CountUp thật</div>
+  </div>
+</div>
+
+<span className="text-meta text-ink3">Demo trên dùng component thật của kit — thử nút **Theme** trên toolbar để xem dark cascade.</span>

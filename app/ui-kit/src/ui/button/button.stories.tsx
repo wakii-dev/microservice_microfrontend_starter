@@ -1,6 +1,6 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// Modernize pass 2026-10-18 (vision-audit): thêm Sizes / Loading / Matrix —
-// default h-9, rounded-lg, default variant bg-s2 (có định nghĩa trên nền trắng).
+// Modernize pass 2026-10-18 (vision-audit): adds Sizes / Loading / Matrix —
+// default h-9, rounded-lg, default variant bg-s2 (visible on white bg).
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './index';
 
@@ -22,13 +22,19 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const CacType: Story = {
+/** Basic — primary button, the everyday default. */
+export const Basic: Story = {
+  name: 'Basic',
+  args: { type: 'primary', children: 'Create task' },
+};
+
+export const Variants: Story = {
   args: { children: 'Button' },
   render: () => (
     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-      <Button type="primary">Tạo task</Button>
-      <Button>Tải thêm</Button>
-      <Button type="text">Huỷ</Button>
+      <Button type="primary">Create task</Button>
+      <Button>Load more</Button>
+      <Button type="text">Cancel</Button>
       <Button type="primary" disabled>
         Disabled
       </Button>
@@ -36,22 +42,22 @@ export const CacType: Story = {
   ),
 };
 
-export const NguoiDung: Story = {
+export const Danger: Story = {
   args: { children: 'Danger' },
   name: 'Danger',
   render: () => (
     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
       <Button type="primary" danger>
-        Xác nhận xoá
+        Delete permanently
       </Button>
       <Button type="text" danger>
-        Xoá
+        Delete
       </Button>
     </div>
   ),
 };
 
-/** Sizes — small h-8 / middle h-9 (mặc định, 36px antd) / large h-10, cả 3 type. */
+/** Sizes — small h-8 / middle h-9 (default, 36px antd) / large h-10, all 3 types. */
 export const Sizes: Story = {
   name: 'Sizes (h-8 / h-9 / h-10)',
   args: { children: 'Button' },
@@ -61,11 +67,11 @@ export const Sizes: Story = {
         <div key={s} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{ width: 48, fontSize: 12, opacity: 0.6 }}>{s}</span>
           <Button size={s} type="primary">
-            Tạo task
+            Create task
           </Button>
-          <Button size={s}>Tải thêm</Button>
+          <Button size={s}>Load more</Button>
           <Button size={s} type="text">
-            Huỷ
+            Cancel
           </Button>
         </div>
       ))}
@@ -73,24 +79,24 @@ export const Sizes: Story = {
   ),
 };
 
-/** Loading — Spinner 3.5 thay icon, disable + cursor-wait; icon không hiện khi loading. */
+/** Loading — 3.5 spinner replaces the icon, disabled + cursor-wait; icon hidden while loading. */
 export const Loading: Story = {
   args: { children: 'Loading' },
   render: () => (
     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-      <Button loading>Lưu</Button>
+      <Button loading>Save</Button>
       <Button type="primary" loading>
-        Lưu
+        Save
       </Button>
       <Button type="primary" loading size="small">
         Small
       </Button>
-      <Button type="primary">So sánh — bình thường</Button>
+      <Button type="primary">Normal for comparison</Button>
     </div>
   ),
 };
 
-/** Matrix đầy đủ — 3 type × {thường, danger, disabled, loading}. */
+/** Full matrix — 3 types × {normal, danger, disabled, loading}. */
 export const Matrix: Story = {
   name: 'Matrix (type × danger × disabled × loading)',
   args: { children: 'Matrix' },

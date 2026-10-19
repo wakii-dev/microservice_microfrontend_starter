@@ -36,6 +36,7 @@ export interface UploadProps {
 }
 
 /** 100 → '100 B', 2048 → '2.0 KB', 1.5MB → '1.5 MB'. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
@@ -47,6 +48,7 @@ let uid = 0;
 const nextId = () => `upload-${++uid}`;
 
 /** Máy chọn file dùng chung: input ref + openDialog + hàng đợi items + beforeUpload/maxCount. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useUploadController(props: UploadProps) {
   const { disabled, multiple, maxCount, beforeUpload, onChange, onRemove } = props;
 

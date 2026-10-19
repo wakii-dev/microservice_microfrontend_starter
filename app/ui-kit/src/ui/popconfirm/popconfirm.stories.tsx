@@ -5,39 +5,69 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { Popconfirm } from './index';
 
+/** Confirm bubble anchored to a trigger — ESC = cancel. */
 const meta = {
-  title: 'Primitives/Popconfirm',
+  title: 'Feedback/Popconfirm',
   component: Popconfirm,
   tags: ['autodocs'],
 } satisfies Meta<typeof Popconfirm>;
 export default meta;
 
 type Story = StoryObj<typeof meta>;
+type R = StoryObj;
 
-function OursDemo({ danger }: { danger?: boolean }) {
+function DeleteDemo({ danger }: { danger?: boolean }) {
   const [open, setOpen] = useState(true);
   return (
     <Popconfirm
       open={open}
-      title="Xoá task này?"
-      description="Hành động không thể hoàn tác."
+      title="Delete this task?"
+      description="This action cannot be undone."
       danger={danger}
-      okText="Xác nhận xoá"
+      okText="Delete"
       onConfirm={() => setOpen(false)}
       onCancel={() => setOpen(false)}
     >
       <Button type="primary" danger={danger} onClick={() => setOpen((o) => !o)}>
-        Xoá task
+        Delete task
       </Button>
     </Popconfirm>
   );
 }
 
-export const XacNhanXoa: Story = {
-  args: { open: true, title: 'Xoá task này?', children: 'x' },
-  render: () => <OursDemo />,
+function SendDemo() {
+  const [open, setOpen] = useState(true);
+  return (
+    <Popconfirm open={open} title="Send report?" okText="Send" onConfirm={() => setOpen(false)} onCancel={() => setOpen(false)}>
+      <Button onClick={() => setOpen((o) => !o)}>Send report</Button>
+    </Popconfirm>
+  );
+}
+
+export const Basic: Story = {
+  name: 'Basic — controlled open + description',
+  args: { open: true, title: 'Delete this task?', children: 'x' },
+  render: () => <DeleteDemo />,
 };
-export const DangerIcon: Story = {
-  args: { open: true, title: 'Xoá task này?', children: 'x', danger: true },
-  render: () => <OursDemo danger />,
+
+export const Danger: Story = {
+  name: 'Danger — red icon + red OK button',
+  args: { open: true, title: 'Delete this task?', children: 'x', danger: true },
+  render: () => <DeleteDemo danger />,
+};
+
+export const NoDescription: R = {
+  name: 'No description — question only',
+  render: () => <SendDemo />,
+};
+
+export const DarkTheme: R = {
+  name: 'DarkTheme — bubble bg-s2 + shadow-pop dark',
+  render: () => (
+    <div data-bp-theme="dark" className="p-4">
+      <Popconfirm open title="Delete this task?" description="This action cannot be undone (dark scope)." danger okText="Delete">
+        <Button type="primary" danger>Delete task</Button>
+      </Popconfirm>
+    </div>
+  ),
 };

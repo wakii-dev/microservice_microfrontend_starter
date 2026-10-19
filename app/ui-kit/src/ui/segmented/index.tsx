@@ -3,31 +3,39 @@
 import type { ReactNode } from 'react';
 
 export interface SegmentedProps {
-  options: Array<{ label: ReactNode; value: string }>;
+  /** Các tuỳ chọn — value phải khả định duy nhất; disabled → không bấm được. */
+  options: Array<{ label: ReactNode; value: string; disabled?: boolean }>;
+  /** Tuỳ chọn đang chọn (controlled). */
   value?: string;
+  /** Callback khi chọn tuỳ chọn khác. */
   onChange?: (value: string) => void;
+  /** Nhãn a11y cho radiogroup (aria-label). */
+  ariaLabel?: string;
   className?: string;
 }
 
-export function Segmented({ options, value, onChange, className }: SegmentedProps) {
+export function Segmented({ options, value, onChange, ariaLabel, className }: SegmentedProps) {
   return (
     <div
       role="radiogroup"
-      className={`inline-flex items-center gap-1 rounded-2 bg-s3 p-1${className ? ` ${className}` : ''}`}
+      aria-label={ariaLabel}
+      className={`inline-flex items-center gap-1 rounded-lg bg-s3 p-1${className ? ` ${className}` : ''}`}
     >
       {options.map((option) => {
         const isActive = option.value === value;
+        const isDisabled = option.disabled === true;
         return (
           <button
             key={option.value}
             type="button"
             role="radio"
             aria-checked={isActive}
-            onClick={() => onChange?.(option.value)}
-            className={`cursor-pointer rounded-2 border-none px-3 py-1 text-body transition-colors ${
-              isActive
-                ? 'bg-s2 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
-                : 'bg-transparent text-ink2 hover:text-ink'
+            disabled={isDisabled}
+            onClick={() => !isDisabled && onChange?.(option.value)}
+            className={`rounded-lg border-none px-3 py-1 text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+              isDisabled
+                ? 'cursor-not-allowed text-ink4'
+                : `cursor-pointer active:opacity-70 ${isActive ? 'bg-s2 text-ink shadow-sm' : 'bg-transparent text-ink2 hover:text-ink'}`
             }`}
           >
             {option.label}

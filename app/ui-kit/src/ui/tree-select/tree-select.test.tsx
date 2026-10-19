@@ -121,4 +121,54 @@ describe('TreeSelect', () => {
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('listbox')).toBeNull();
   });
+
+  it('searchable=false → panel không ô tìm kiếm', async () => {
+    const user = userEvent.setup();
+    render(<TreeSelect ariaLabel="Địa điểm" treeData={TREE} searchable={false} />);
+    await user.click(screen.getByRole('combobox', { name: 'Địa điểm' }));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Địa điểm — tìm kiếm')).toBeNull();
+  });
+
+  it('clearable=false → có value nhưng không nút Xoá', () => {
+    render(<TreeSelect ariaLabel="Địa điểm" treeData={TREE} value="hn-bd" clearable={false} />);
+    expect(screen.getByRole('combobox', { name: 'Địa điểm' })).toHaveTextContent('Hà Nội / Ba Đình');
+    expect(screen.queryByRole('button', { name: 'Xoá' })).toBeNull();
+  });
+
+  it('disabled → không mở panel, không clear được', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TreeSelect ariaLabel="Địa điểm" treeData={TREE} value="hn-bd" disabled onChange={onChange} />);
+    const trigger = screen.getByRole('combobox', { name: 'Địa điểm' });
+    expect(trigger).toBeDisabled();
+    await user.click(trigger);
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Xoá' })).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('keyboard: focus trigger + ArrowDown → mở panel', async () => {
+    const user = userEvent.setup();
+    render(<TreeSelect ariaLabel="Địa điểm" treeData={TREE} />);
+    screen.getByRole('combobox', { name: 'Địa điểm' }).focus();
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Ba Đình' }).className).toContain('bg-s3');
+  });
+
+  it('keyboard: Enter mở panel → active mặc định leaf đầu → Enter commit onChange', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TreeSelect ariaLabel="Địa điểm" treeData={TREE} onChange={onChange} />);
+    screen.getByRole('combobox', { name: 'Địa điểm' }).focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{ArrowDown}'); // input autofocus nhận keydown — active 0→1
+    const second = screen.getByRole('option', { name: 'Tây Hồ' });
+    expect(second.className).toContain('bg-s3');
+    await user.keyboard('{Enter}');
+    expect(onChange).toHaveBeenCalledWith('hn-th');
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
 });

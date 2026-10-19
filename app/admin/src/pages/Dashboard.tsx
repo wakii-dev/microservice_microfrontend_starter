@@ -1,5 +1,5 @@
 // Dashboard — MỘT THỂ THỐNG NHẤT (vision-audit coordinator 2026-10-18).
-// ANCHOR = chart card: Card (bg-s2 + border-line + rounded-3 + body p-6, header
+// ANCHOR = chart card: Card (bg-s2 + border-line + rounded-xl + body p-6, header
 // title + extra phải). Mọi khối theo anchor đó:
 // - Stat cards: cùng Card, nội dung icon size-10 (accent/10) + label text-ink2 +
 //   số text-2xl font-semibold + delta pill nhỏ thống nhất (không Statistic/Tag rời rạc)
@@ -7,7 +7,7 @@
 // - Cột phải: Timeline + EmptyState stacked flex-1 — hai card CAO ĐỀU
 // - Headers: chart + timeline cùng pattern title trái + Tag phải
 // Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
-import { Button, Card, Chart, EmptyState, Icon, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
+import { Button, Card, Chart, Col, EmptyState, Icon, Row, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },
@@ -62,30 +62,33 @@ export function Dashboard() {
         <Button icon={<Icon name="refresh" size={12} />}>Làm mới</Button>
       </div>
 
-      {/* 4 stat cards — cùng anchor Card; icon + label + số + delta pill đồng bộ */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+      {/* 4 stat cards — cùng anchor Card; icon + label + số + delta pill đồng bộ.
+          Grid KPI rows qua Row/Col (24-col: 1 cột mobile / 2 cột ≥sm / 4 cột ≥xl). */}
+      <Row gutter={[24, 24]}>
         {STATS.map((stat) => (
-          <Card key={stat.title} hoverable>
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent"
-              >
-                <Icon name={stat.icon} size={18} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-body text-ink2">{stat.title}</div>
-                <div className="mt-0.5 flex items-center gap-2">
-                  <span className="text-2xl font-semibold leading-tight text-ink">{stat.value}</span>
-                  <span className="rounded-pill bg-st-done/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-st-done">
-                    {stat.tag}
-                  </span>
+          <Col key={stat.title} xs={24} sm={12} xl={6}>
+            <Card hoverable className="h-full">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent"
+                >
+                  <Icon name={stat.icon} size={18} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-body text-ink2">{stat.title}</div>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <span className="text-2xl font-semibold leading-tight text-ink">{stat.value}</span>
+                    <span className="rounded-pill bg-st-done/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-st-done">
+                      {stat.tag}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Col>
         ))}
-      </div>
+      </Row>
 
       {/* Chart (3/5 trái) + cột phải 2/5: Timeline trên + EmptyState dưới — flex-1
           mỗi card = CAO ĐỀU (grid rows fr/fr tương đương) */}

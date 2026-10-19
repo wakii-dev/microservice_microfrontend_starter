@@ -7,7 +7,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default tseslint.config(
   // generated/heavy output — không lint
-  { ignores: ['dist/**', 'storybook-static/**', 'coverage/**', 'node_modules/**', '.changeset/**'] },
+  { ignores: ['dist/**', 'storybook-static/**', 'coverage/**', 'node_modules/**', '.changeset/**', 'scripts/**'] },
   // Directive disable tham chiếu rule chưa cài (prettier/prettier trong icons/index.tsx —
   // file sinh bằng script của worker khác, không sửa ngoài story) → tắt báo cáo; plugin
   // prettier không thuộc plan lint của ui-kit

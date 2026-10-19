@@ -48,8 +48,8 @@ describe('Icon', () => {
     expect(ref.container.querySelector('path')!.getAttribute('d')).toBe(badD);
   });
 
-  it('ICON_NAMES đủ 48 + render được cả bộ (smoke, gồm multi-path như check-circle/users/trash)', () => {
-    expect(ICON_NAMES).toHaveLength(48);
+  it('ICON_NAMES đủ 50 + render được cả bộ (smoke, gồm multi-path như check-circle/users/trash)', () => {
+    expect(ICON_NAMES).toHaveLength(50);
     for (const name of ICON_NAMES) {
       const { container, unmount } = render(<Icon name={name} />);
       const svg = container.querySelector('svg');

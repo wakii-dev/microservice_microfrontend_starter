@@ -1,4 +1,4 @@
-// Alert tests — filled mặc định (nền đặc hex + chữ trắng) + outlined giữ look cũ + role=alert contract.
+// Alert tests — filled mặc định (nền đặc token --alert-*-filled + chữ trắng) + outlined giữ look cũ + role=alert contract.
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -6,27 +6,21 @@ import { Alert } from './index.js';
 
 afterEach(cleanup);
 
-// jsdom (cssstyle) chuẩn hoá hex → rgb khi áp inline style
-const rgb = (hex: string) => {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
-};
-
 describe('Alert', () => {
   it('mặc định info filled — role=alert + message + nền đặc', () => {
     render(<Alert message="Không kết nối được dịch vụ tasks." />);
     expect(screen.getByRole('alert')).toHaveTextContent('Không kết nối được dịch vụ tasks.');
-    expect(screen.getByRole('alert').style.background).toContain(rgb('#1677ff'));
+    expect(screen.getByRole('alert').style.background).toContain('--alert-info-filled');
   });
 
   it.each([
-    ['error', '#cf1322'],
-    ['warning', '#d48806'],
-    ['success', '#389e0d'],
-  ] as const)('type %s filled mặc định → nền đặc hex, không viền, chữ + icon trắng', (type, bg) => {
+    ['error', '--alert-error-filled'],
+    ['warning', '--alert-warning-filled'],
+    ['success', '--alert-success-filled'],
+  ] as const)('type %s filled mặc định → nền đặc token, không viền, chữ + icon trắng', (type, bg) => {
     render(<Alert type={type} message="m" />);
     const alert = screen.getByRole('alert');
-    expect(alert.style.background).toContain(rgb(bg));
+    expect(alert.style.background).toContain(bg);
     expect(alert).not.toHaveClass('border');
     // icon span trắng — phần tử aria-hidden đầu
     expect(alert.firstElementChild).toHaveClass('text-white');
@@ -56,6 +50,29 @@ describe('Alert', () => {
   it('description phụ hiển thị khi truyền', () => {
     render(<Alert type="error" message="Lỗi" description="Chi tiết kỹ thuật" />);
     expect(screen.getByText('Chi tiết kỹ thuật')).toBeInTheDocument();
+  });
+
+  it('classNames slots (SÓNG-3) — merge sau default ở đúng element', () => {
+    render(
+      <Alert
+        type="error"
+        message="m"
+        description="d"
+        closable
+        classNames={{ wrapper: 'ring-1', icon: 'text-2xl', message: 'font-bold', description: 'italic', closeButton: 'mr-1' }}
+      />,
+    );
+    const alert = screen.getByRole('alert');
+    // wrapper: giữ default + thêm slot
+    expect(alert).toHaveClass('flex');
+    expect(alert).toHaveClass('ring-1');
+    // icon
+    expect(alert.firstElementChild).toHaveClass('text-2xl');
+    // message + description
+    expect(screen.getByText('m')).toHaveClass('font-bold');
+    expect(screen.getByText('d')).toHaveClass('italic');
+    // closeButton
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveClass('mr-1');
   });
 });
 

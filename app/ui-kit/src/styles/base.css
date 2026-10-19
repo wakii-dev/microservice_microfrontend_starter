@@ -60,6 +60,34 @@
     font: inherit;
   }
 
+  /*
+   * Scrollbar — mảnh 8px, pill, token-driven (user báo thumb default #5b5b5b
+   * clash thiết kế 2026-10-18). Thumb = --line2 (nổi đủ trên canvas light lẫn
+   * dark — dark.css override --line2/#2b2d33, hover --ink3 sáng dần) — KHÔNG hex.
+   * ⚠️ macOS overlay: khi hệ điều hành đang dùng overlay scrollbar (default),
+   * khai báo scrollbar-width/scrollbar-color sẽ ĐỔI sang thin persistent —
+   * đây là hành vi chấp nhận có chủ đích (nhất quán cross-app, không tự ẩn);
+   * rule chỉ vẽ track/thumb khi browser render classic/forced scrollbar.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line2) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line2);
+    border-radius: var(--r-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink3);
+  }
+
   /* Skip link: ẩn khỏi mắt thường, hiện khi focus qua bàn phím (a11y baseline) */
   .skip-link {
     left: -9999px;

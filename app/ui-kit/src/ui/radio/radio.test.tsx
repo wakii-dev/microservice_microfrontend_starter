@@ -57,3 +57,27 @@ describe('Radio — branch phụ (Tier 5 sweep)', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+// ── Coverage audit additions ─────────────────────────────────────────────────────
+describe('RadioGroup — group-level disabled (coverage audit)', () => {
+  it('disabled group → mọi radio khoá, click không gọi onChange', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <RadioGroup
+        value="a"
+        disabled
+        onChange={onChange}
+        options={[
+          { label: 'Free', value: 'a' },
+          { label: 'Pro', value: 'b' },
+        ]}
+      />,
+    );
+    const inputs = screen.getAllByRole('radio');
+    expect(inputs).toHaveLength(2);
+    for (const input of inputs) expect(input).toBeDisabled();
+    await user.click(screen.getByText('Pro'));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

@@ -2,13 +2,31 @@
 
 # 🎨 @wakii/ui-kit
 
-**A production-grade React design system — 90+ components, 17 hooks, tokens-first, dark theme built in.**
+**A production-grade React design system built AI-first — 90+ components, 17 hooks, tokens-first, dark theme.**
 
-Benchmarked against Ant Design & PrimeReact. Faster motion, modern identity, zero styling surprises.
+Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
 
 [![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+
+## 🤖 Built for AI agents — not just humans
+
+This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZCode, Cursor…) that opens this repo gets productive immediately:
+
+| Mechanism | What it does for AI |
+|---|---|
+| **[`AGENTS.md`](../../AGENTS.md)** (repo root) | Auto-read by agent CLIs on session start — feature→component map, mandatory rules, anti-patterns. Zero onboarding cost. |
+| **[`docs/ai/recipes.md`](../../docs/ai/recipes.md)** | 10 copy-paste recipes for real features: CRUD pages, login flows, wizards, upload pipelines, dashboards. Agent picks a recipe, renames fields, ships. |
+| **Behavior tests (580+)** | Every component tested by *what it does* (clicks→callbacks, state classes, keyboard flows) — agents verify their work against the same assertions. |
+| **Tokens-first + z-scale + size scale** | Hard constraints instead of conventions: one source of truth CSS vars, `--z-*` layers, `h-8/9/10`. Machine-checkable, no aesthetic guessing. |
+| **Living Storybook (301+ stories, [live](https://storybook-static-khaki-two.vercel.app))** | Every state of every component rendered — ground truth for visual verification loops. |
+| **Strict single-button rule & friends** | Sharp opinions (no dividers on split buttons, focus-ring standard) so agents converge on ONE correct output, not five variants. |
+
+**Dogfooded by the multi-agent workflow itself**: this library was audited, restyled and completed by *5 coordinated AI terminals in parallel* (coordinator + workers pattern), gated by pixel-level automated verification. The AI-facing docs, checklists and recipes in this repo are the same ones those agents used.
+
+> Practical loop that works today: agent reads `AGENTS.md` → picks recipe → implements → runs `vitest` (580 tests catch wiring mistakes) → checks Storybook for visual truth → done.
+
 [![Tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#-quality)
 [![React](https://img.shields.io/badge/React-%E2%89%A518-61dafb?logo=react)](#)
 
@@ -21,7 +39,7 @@ Benchmarked against Ant Design & PrimeReact. Faster motion, modern identity, zer
 
 ---
 
-## ✨ Why wakii-ui-kit
+## ✨ Why @wakii/ui-kit
 
 | | |
 |---|---|
@@ -106,6 +124,24 @@ const form = useForm({ schema, mode: 'onBlur' });
 
 Heavy engines are **optional peer dependencies** — install them only if you use the subpath:
 `@wakii/ui-kit/carousel` → `swiper` · `chart` → `chart.js` · `useForm` → `zod` · schedule → `@fullcalendar/*` · editor → `@tiptap/*`
+
+## 🧩 Templates — full pages composed from the kit
+
+Mỗi template là **1 story sống** trong Storybook — controlled state thật (drag card, filter,
+log giờ đều chạy), không phải mock render. Copy về app, đổi data là dùng.
+
+| Template | Components chính | Story path (`?path=/story/…` trên :6006 hoặc live Storybook) |
+|---|---|---|
+| **Dashboard** (admin) | `Layout` (Sider+Header) · `Row/Col` · `Card`/`Statistic` · `Table` · `Timeline` · `Chart` | `templates-dashboard--dashboard` |
+| **Kanban Project** | `KanbanBoard` (4 cột + WIP limit) · `Segmented`/`Input.Search`/`Select` filter · `Avatar`/`Badge`/`Tag` · `Timesheet` · `message` | `templates-kanban-project--project-board` |
+| **CRUD Table** | `Table` (sort/filter/pagination/expandable/loading) · `Modal` form · `message` | `templates-crud-table--full-demo` |
+| **Auth** (Sign in / Sign up / split) | `useForm` + `zod` · `Field`/`Input`/`Button`/`Checkbox` · `Layout` split | `templates-auth--sign-in` · `--sign-up` · `--split-layout` |
+| **Settings** | `Tabs` · `Switch` · `Field`/`Select` — *đang chuẩn bị; recipe 9 sẵn ở [recipes.md](../../docs/ai/recipes.md)* | — |
+| **Landing** | `Button` · `Tag` · `Typography` · `Divider` — *đang chuẩn bị; recipe 10 sẵn* | — |
+
+> Trạng thái thật (đếm từ Storybook index 2026-10-18): **4/6 template live** (Dashboard,
+> Kanban Project, CRUD Table, Auth — 13 story). Settings/Landing theo roadmap — recipe
+> tương ứng đã có sẵn để copy ngay.
 
 ## 🔬 Quality
 

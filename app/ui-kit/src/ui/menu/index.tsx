@@ -26,6 +26,8 @@ export interface MenuProps {
 }
 
 /** Sidebar collapsed → Menu icon-only (label fade). Sidebar set qua provider. */
+// Context + util là public API có chủ đích (fast-refresh warning chấp nhận)
+// eslint-disable-next-line react-refresh/only-export-components
 export const MenuCompactContext = createContext(false);
 
 function ChevronRightIcon() {
@@ -50,6 +52,7 @@ function itemCls(kind: 'normal' | 'selected' | 'disabled', compact: boolean): st
 }
 
 /** Đường đi các key submenu cha của selectedKey (không gồm leaf) — auto-open lần đầu. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function findPath(items: MenuItemData[], selected?: string, trail: string[] = []): string[] | null {
   if (!selected) return null;
   for (const item of items) {
@@ -102,7 +105,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 type="button"
                 role="menuitem"
                 aria-expanded={open}
-                aria-haspopup="true"
+                aria-haspopup="menu"
                 disabled={item.disabled}
                 className={itemCls(item.disabled ? 'disabled' : 'normal', compact)}
                 onClick={() => !item.disabled && toggle(item.key)}
@@ -194,7 +197,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 items={item.children!}
                 mode={mode}
                 depth={depth + 1}
-                ulCls={`absolute z-30 flex flex-col gap-1 rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] ${
+                ulCls={`absolute z-[var(--z-popover)] origin-top-left flex flex-col gap-1 rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)] ${
                   depth === 0 ? 'left-0 top-full min-w-[180px]' : 'left-full top-0 min-w-[160px]'
                 }`}
                 selectedKey={selectedKey}

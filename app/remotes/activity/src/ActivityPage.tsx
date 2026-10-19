@@ -9,7 +9,7 @@ import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Icon, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, Icon, Link, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -112,13 +112,10 @@ export function ActivityPage() {
         ) : items.length === 0 && !feedError ? (
           <EmptyState
             action={
-              <a
-                className="inline-flex items-center gap-1 text-accent-hi no-underline hover:underline"
-                href="/tasks"
-              >
+              <Link href="/tasks">
                 Đi tới Tasks
                 <Icon name="arrow-right" size={12} />
-              </a>
+              </Link>
             }
             description="Tạo một task ở trang Tasks để thấy event tại đây."
             title="Chưa có hoạt động nào"

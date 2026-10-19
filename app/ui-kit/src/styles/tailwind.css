@@ -38,6 +38,11 @@
   --color-line2: var(--line2);
   --color-accent: var(--accent);
   --color-accent-hi: var(--accent-hi);
+  /* Scrim — phủ đen trên media/backdrop (theme-independent, xem tokens.css) */
+  --color-scrim-1: var(--scrim-1);
+  --color-scrim-2: var(--scrim-2);
+  --color-scrim-3: var(--scrim-3);
+  --color-scrim-4: var(--scrim-4);
   /* Trạng thái task */
   --color-st-todo: var(--st-todo);
   --color-st-doing: var(--st-doing);
@@ -47,6 +52,7 @@
   --text-meta: var(--fs-meta);
   --text-label: var(--fs-label);
   --text-body: var(--fs-body);
+  --text-h3: var(--fs-h3);
   --text-h2: var(--fs-h2);
   --text-h1: var(--fs-h1);
   /* Shadow layered */
@@ -105,6 +111,86 @@
 @keyframes bp-bars {
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(1); }
+}
+@keyframes bp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes bp-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes bp-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes bp-bounce-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.05); }
+  80% { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-slide-in-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  50% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+@keyframes bp-ripple {
+  from { transform: scale(0); opacity: 0.35; }
+  to { transform: scale(2.75); opacity: 0; }
+}
+@keyframes bp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* check-draw: path set pathLength=1 + stroke-dasharray:1 → offset 1→0 vẽ đúng mọi độ dài */
+@keyframes bp-check-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bp-indeterminate {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+@keyframes bp-flip {
+  from { transform: perspective(800px) rotateY(70deg); opacity: 0; }
+  to { transform: perspective(800px) rotateY(0); opacity: 1; }
+}
+@keyframes bp-odometer {
+  0% { transform: translateY(0.7em); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Transition family mở rộng (depth contract 2026-10-19 — exit = reverse của enter,
+ * không đúc keyframe out). Ngoại lệ duy nhất về "chỉ transform/opacity": bp-blur-in
+ * animate filter (blur) — bản chất của loại Blur, vẫn GPU-composited. */
+@keyframes bp-slide-in-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bp-grow-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-rotate-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.96); }
+  to { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+@keyframes bp-blur-in {
+  from { opacity: 0; filter: blur(8px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes bp-soft-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @theme inline {

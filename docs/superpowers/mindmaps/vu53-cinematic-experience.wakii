@@ -1,0 +1,32 @@
+{
+  "wakiiMindmap": 1,
+  "meta": { "story": "VU-53-CIN", "generator": "story-workflow CREATE", "generatedAt": "2026-10-19T00:05:00+07:00", "dest": "story-vu53-cin-experience", "worktreeModel": "story-hub" },
+  "nodes": [
+    { "id": "epic", "kind": "epic", "title": "Cinematic Experience — redesign chuẩn story-workflow (ref experience.staratlas.com)" },
+    { "id": "sf-1", "kind": "sf", "title": "Design Contract + Mood Engine (nền tảng)", "tier": 0, "design": "figma", "linear": "", "summary": "Phase 1/4 — shippable: EXPERIENCE-DESIGN contract dùng được độc lập (typography scale REF-SPEC, palette 5 mood, spacing, motion vocabulary) + scroll-mood engine + Avatar/Getty ảnh graded chuẩn hoá. Demo: story mood-engine riêng render 5 mood đúng số đo." },
+    { "id": "sf-2", "kind": "sf", "title": "Hero + Starfield + Trailer Gate", "tier": 1, "design": "figma", "linear": "", "summary": "Hero ref-fidility: section NỀN SÁNG chữ navy (REF-SPEC đo), ALL-CAPS display tracking 2.4, numbered header 01-05, canvas starfield theme-aware (bông tuyết light khi dark), trailer Modal. Demo: hero story standalone giống ref-hero.png ở 1280+375." },
+    { "id": "sf-3", "kind": "sf", "title": "Chapter Shell + Side-nav Progress", "tier": 1, "design": "figma", "linear": "", "summary": "ChapterShell component (label mono CHƯƠNG 0X 11px/700 tracking 2.64 + ALL-CAPS title ~29px/300 + copy punchy 2 dòng + parallax nền gần-fixed speed 0.08/strength 280) + Anchor side-nav sticky single-source aria-current (fix overlap vĩnh viễn bằng cấu trúc). Demo: 1 chương generic + nav chạy scroll-spy đúng 5 mục." },
+    { "id": "sf-4", "kind": "sf", "title": "Ch1 Deep Focus + Ch2 Living Docs", "tier": 2, "design": "figma", "linear": "", "summary": "2 chương nội dung theo ChapterShell: CountUp 62.210 + split-text reveal + 3 feature card mask-reveal clip-path. Demo: 2 chương render đúng contract, measure transform + clip-path đổi theo scroll." },
+    { "id": "sf-5", "kind": "sf", "title": "Ch3 Velocity + Ch4 Ship 3D", "tier": 2, "design": "figma", "linear": "", "summary": "Ch3 workflow-cards chọn được (mood accent) + Ch4 sticky-pinned 200vh tích hợp ScrollFlythrough Scene3D (three.js peer-dep, fallback node) — chương 3D thật của website. Demo: scroll ch4 → camera bay quanh tàu, fps>=50 paste số." },
+    { "id": "sf-6", "kind": "sf", "title": "Ch5 Future + Sun Journey + End CTA", "tier": 2, "design": "figma", "linear": "", "summary": "Band 4 CountUp + sun-journey arc dawn->night (đã verify) làm chuyển cảnh sang End CTA glow + footer numbered + social Icon. Demo: cụm cuối hoàn chỉnh + night mode đẹp." },
+    { "id": "sf-7", "kind": "sf", "title": "Convergence + QA full", "tier": 3, "linear": "", "summary": "Phase 4/4: ghép index Trải Nghiệm hoàn chỉnh + responsive 4bp (375/768/1280/1440) + contrast số >=4.5:1 mọi chương 2 mode + reduced-motion + performance (fps, will-change đúng) + evidence pack + deploy alias. Demo: story chính chạy end-to-end giống ref nhất có thể, mọi số liệu paste." }
+  ],
+  "edges": [
+    { "from": "epic", "to": "sf-1", "rel": "contains" },
+    { "from": "epic", "to": "sf-2", "rel": "contains" },
+    { "from": "epic", "to": "sf-3", "rel": "contains" },
+    { "from": "epic", "to": "sf-4", "rel": "contains" },
+    { "from": "epic", "to": "sf-5", "rel": "contains" },
+    { "from": "epic", "to": "sf-6", "rel": "contains" },
+    { "from": "epic", "to": "sf-7", "rel": "contains" },
+    { "from": "sf-2", "to": "sf-1", "rel": "depends-on" },
+    { "from": "sf-3", "to": "sf-1", "rel": "depends-on" },
+    { "from": "sf-4", "to": "sf-3", "rel": "depends-on" },
+    { "from": "sf-5", "to": "sf-3", "rel": "depends-on" },
+    { "from": "sf-6", "to": "sf-3", "rel": "depends-on" },
+    { "from": "sf-7", "to": "sf-4", "rel": "depends-on" },
+    { "from": "sf-7", "to": "sf-5", "rel": "depends-on" },
+    { "from": "sf-7", "to": "sf-6", "rel": "depends-on" },
+    { "from": "sf-7", "to": "sf-2", "rel": "depends-on" }
+  ]
+}

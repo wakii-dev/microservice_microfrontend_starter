@@ -98,3 +98,15 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 - `.claude/agents/` — 4 agent miền: `fe-dev` · `be-dev` · `e2e-runner` · `contracts-keeper`.
 - Scaffold project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>` (bộ AI files đi kèm).
 - Culture evidence: đổi behavior đáng kể → chụp test-run/screenshot vào `docs/superpowers/evidence/` khi làm theo story workflow.
+
+## Team protocol — ui-kit multi-agent (bắt buộc từ 2026-10-18)
+
+Khi làm worker trong terminal Orca của repo này (điều phối bởi ZCode lead):
+
+1. **Xong mission** → chạy verify theo brief → **BÁO CÁO tóm tắt + paste kết quả verify thật** → **DỪNG**, chờ lead giao việc kế. KHÔNG tự chuyển mission trừ khi brief ghi rõ chuỗi.
+2. Lead ACK mỗi report trong ~10s; mọi report + gate được log lên board chung `docs/team/TEAM.md` (roster + standup ~30 phút + report log) — PO đọc board là thấy nhịp team.
+3. **Quyền sở hữu file tách bạch**: chỉ đụng file trong scope brief; barrel `src/index.ts` thêm dòng alphabet, đọc trước khi sửa; check `git status` từng file trước khi đụng (tránh đụng WIP người khác).
+4. **Path an toàn**: mọi đường dẫn ghi file dùng tuyệt đối từ `app/ui-kit/...` — KHÔNG dùng relative `src/...` từ repo root (đã gây file lạc chỗ).
+5. **Gate độc lập**: lead tự chạy verify trên diff thật trước khi commit — report của worker là đầu vào, không phải chân lý.
+6. Session chết giữa chừng: lead cứu WIP từ git (commit ghi rõ "recovered by coordinator") — luôn giữ tree ở trạng gian test-xanh-được.
+- **Peer-to-peer**: cần gì ở teammate → `docs/team/inbox/<tên>.md` (format `[HH:MM] @<bạn> → nội dung`); lead giao thư mỗi chu kỳ; broadcast → `docs/team/CHANNEL.md`.

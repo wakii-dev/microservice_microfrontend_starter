@@ -38,4 +38,42 @@ describe('UiImage — branch phụ', () => {
     expect(img).not.toHaveAttribute('width');
     expect(img).toHaveClass('marker-img');
   });
+
+  it('width string → passthrough nguyên văn (%, ch)', () => {
+    render(<UiImage src="/b.png" alt="b" width="50%" />);
+    expect(screen.getByRole('button', { name: 'b — phóng to' })).toHaveAttribute('width', '50%');
+  });
+});
+
+describe('UiImage — preview dialog (a11y batch F)', () => {
+  it('overlay là dialog: role=dialog + aria-modal + aria-label=alt', async () => {
+    const user = userEvent.setup();
+    render(<UiImage src="/a.png" alt="Ảnh demo" />);
+    await user.click(screen.getByRole('button', { name: 'Ảnh demo — phóng to' }));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('aria-label', 'Ảnh demo');
+  });
+
+  it('click overlay → đóng preview', async () => {
+    const user = userEvent.setup();
+    render(<UiImage src="/a.png" alt="Ảnh demo" />);
+    await user.click(screen.getByRole('button', { name: 'Ảnh demo — phóng to' }));
+    await user.click(screen.getByRole('dialog'));
+    expect(document.querySelector('[data-testid="image-preview"]')).toBeNull();
+  });
+
+  it('focus trap: mở → focus overlay, đóng → trả focus về thumbnail', async () => {
+    const user = userEvent.setup();
+    render(<UiImage src="/a.png" alt="Ảnh demo" />);
+    const thumb = screen.getByRole('button', { name: 'Ảnh demo — phóng to' });
+    await user.click(thumb);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveFocus(); // không focusable bên trong → focus chính overlay
+    // Tab vòng trong — focus không thoát khỏi dialog
+    await user.tab();
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+    await user.keyboard('{Escape}');
+    expect(thumb).toHaveFocus(); // trả focus về trigger
+  });
 });

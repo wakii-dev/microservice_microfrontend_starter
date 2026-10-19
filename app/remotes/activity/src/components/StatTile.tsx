@@ -1,6 +1,11 @@
-// StatTile — card thống kê (SF-4, hand-off §4): giá trị 18px + nhãn meta 12px,
-// nền --c-s2 viền --line radius --r-3 (depth = surface, không shadow).
-// Motion polish: hover nhẹ viền sáng hơn (transition-colors 150ms — pattern ui-kit).
+// StatTile — Card + Statistic từ ui-kit (app-fit migration 2026-10-18): thay raw
+// div + tailwind. Statistic được thiết kế thay StatTile (comment ui-kit: "GIỮ
+// ariaLabel contract — wiring ở activity") → wrapper div giữ aria-label NGUYÊN
+// VĂN (tests getByLabelText + toHaveTextContent đọc textContent subtree).
+// Label thành Statistic title (chuẩn antd — trên value); hover viền giữ qua
+// className passthrough.
+import { Card, Statistic } from '@wakii/ui-kit';
+
 export interface StatTileProps {
   /** aria-label NGUYÊN VĂN — contract a11y có test (context pack: KHÔNG đổi) */
   ariaLabel: string;
@@ -10,12 +15,10 @@ export interface StatTileProps {
 
 export function StatTile({ ariaLabel, label, value }: StatTileProps) {
   return (
-    <div
-      aria-label={ariaLabel}
-      className="grid gap-1 rounded-3 border border-line bg-s2 p-4 transition-colors duration-150 hover:border-line2"
-    >
-      <span className="text-h1 font-semibold leading-[1.2] text-ink">{value}</span>
-      <span className="text-meta text-ink3">{label}</span>
+    <div aria-label={ariaLabel}>
+      <Card size="small" className="h-full transition-colors duration-150 hover:border-line2">
+        <Statistic title={label} value={value} />
+      </Card>
     </div>
   );
 }

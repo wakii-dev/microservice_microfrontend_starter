@@ -1,7 +1,7 @@
 // CascadeSelect tests — chọn theo tầng: level 0 → con → leaf; onChange path
 // từng tầng; leaf đóng panel + trigger hiện path 'Cha / Con'. Controlled
 // harness (component là fully-controlled qua `value`).
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
@@ -90,5 +90,43 @@ describe('CascadeSelect', () => {
     await user.click(trigger); // mở lại
     expect(screen.getByText('Tây Hồ')).toBeInTheDocument(); // nhánh hn
     expect(screen.queryByText('Đà Nẵng')).toBeNull();
+  });
+});
+
+describe('CascadeSelect — keyboard nav (audit fix)', () => {
+  it('ArrowDown ×2 → Enter chọn option đang active (Đà Nẵng)', async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const trigger = screen.getByText('Chọn…').closest('button')!;
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' }); // mở + active 1 (Đà Nẵng — active khởi đầu 0, wrap %2)
+    expect(screen.getByText('Đà Nẵng')).toHaveClass('bg-s3');
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(onChange).toHaveBeenCalledWith(['dn']);
+  });
+
+  it('Escape đóng panel', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(screen.getByText('Chọn…'));
+    expect(screen.getByText('Hà Nội')).toBeInTheDocument();
+    screen.getByText('Chọn…').closest('button')!.focus();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByText('Hà Nội')).toBeNull();
+  });
+});
+
+describe('CascadeSelect — panel align giữa trigger (polish)', () => {
+  it('panel width theo content + căn giữa (left-1/2 -translate-x-1/2), không full-width', () => {
+    render(<CascadeSelect options={TREE} />);
+    fireEvent.click(screen.getByText('Chọn…').closest('button')!);
+    const panel = screen.getByRole('listbox');
+    expect(panel.className).toContain('left-1/2');
+    expect(panel.className).toContain('-translate-x-1/2');
+    expect(panel.className).toContain('w-max');
+    expect(panel.className).not.toContain('inset-x-0');
+    // option không còn w-full (width theo label, min-w giữ vùng chạm)
+    const opt = screen.getByText('Hà Nội').closest('button')!;
+    expect(opt.className).not.toContain('w-full');
+    expect(opt.className).toContain('min-w-[140px]');
   });
 });

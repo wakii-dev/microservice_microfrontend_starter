@@ -9,6 +9,7 @@ import {
   Badge,
   Dropdown,
   Icon,
+  Input,
   Menu,
   Sidebar,
   Switch,
@@ -57,6 +58,8 @@ const MENU_MAIN: MenuItemData[] = [
 
 const MENU_SECONDARY: MenuItemData[] = [{ key: '/settings', label: 'Cài đặt', icon: <Icon name="settings" size={16} /> }];
 
+// MoonIcon/SunIcon — SVG stroke tự vẽ là NGOẠI LỆ được ghi: bộ primeicons 50 của
+// ui-kit không có moon/sun (rule 9 cấm tự vẽ khi có Icon thay thế — ở đây không có).
 function MoonIcon() {
   return (
     <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -80,23 +83,20 @@ function Header({ dark, onToggleDark }: { dark: boolean; onToggleDark: () => voi
 
   return (
     <header className="sticky top-0 z-[var(--z-dropdown)] flex h-14 items-center gap-3 border-b border-line bg-s1 px-4 md:px-6">
-      <label className="relative hidden min-w-0 flex-1 sm:block">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink3">
-          <Icon name="search" size={14} />
-        </span>
-        <input
+      <label className="hidden min-w-0 flex-1 sm:block">
+        <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm kiếm…"
           aria-label="Tìm kiếm toàn cục"
-          className="h-8 w-full max-w-xs rounded-2 border border-line bg-s2 pl-8 pr-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none"
+          prefix={<Icon name="search" size={14} />}
         />
       </label>
       <div className="ml-auto flex items-center gap-4">
         <button
           type="button"
           aria-label="Thông báo (3 mới)"
-          className="relative cursor-pointer rounded-2 border-none bg-transparent p-1.5 text-ink2 hover:bg-s3"
+          className="relative cursor-pointer rounded-lg border-none bg-transparent p-1.5 text-ink2 hover:bg-s3"
         >
           <Icon name="bell" size={18} />
           <span className="absolute -right-1 -top-1">
@@ -107,7 +107,7 @@ function Header({ dark, onToggleDark }: { dark: boolean; onToggleDark: () => voi
           type="button"
           onClick={onToggleDark}
           aria-label={dark ? 'Tắt dark mode' : 'Bật dark mode'}
-          className="cursor-pointer rounded-2 border-none bg-transparent p-1.5 text-ink2 hover:bg-s3"
+          className="cursor-pointer rounded-lg border-none bg-transparent p-1.5 text-ink2 hover:bg-s3"
         >
           {dark ? <SunIcon /> : <MoonIcon />}
         </button>
@@ -157,11 +157,11 @@ export function AdminLayout() {
           sidebarCollapsed ? (
             /* Compact: chỉ logo W, căn giữa ngang (fix ⑥-1 — hết tràn chữ). */
             <div className="flex w-full justify-center">
-              <span className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent text-label font-bold text-white">W</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-label font-bold text-white">W</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 px-1">
-              <span className="grid size-7 shrink-0 place-items-center rounded-2 bg-accent text-label font-bold text-white">W</span>
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-label font-bold text-white">W</span>
               <span className="whitespace-nowrap text-body font-semibold text-ink">Wakii Admin</span>
             </div>
           )

@@ -1,6 +1,17 @@
 // Notification — static API kiểu antd: góc phải-trên, title + description,
 // auto-dismiss 4.5s, đóng ×; container isConnected guard (pattern message).
+// SÓNG-3: classNames slots (wrapper/title/content) — merge sau class mặc định.
 export type NotificationType = 'success' | 'info' | 'warning' | 'error';
+
+/** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
+export interface NotificationClassNames {
+  /** Toast card root. */
+  wrapper?: string;
+  /** Title line. */
+  title?: string;
+  /** Body area (title + description container). */
+  content?: string;
+}
 
 const ICON: Record<NotificationType, string> = { success: '✓', info: 'ℹ', warning: '⚠', error: '✕' };
 const COLOR: Record<NotificationType, string> = {
@@ -11,7 +22,6 @@ const COLOR: Record<NotificationType, string> = {
 };
 
 let container: HTMLDivElement | null = null;
-let seq = 0;
 
 function ensureContainer(): HTMLDivElement {
   if (!container || !container.isConnected) {
@@ -22,21 +32,42 @@ function ensureContainer(): HTMLDivElement {
   return container;
 }
 
-function show(type: NotificationType, title: string, description?: string, durationMs = 4500): void {
+// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
+const slot = (c?: string) => (c ? ` ${c}` : '');
+
+function show(type: NotificationType, title: string, description?: string, durationMs = 4500, classNames?: NotificationClassNames): void {
   const root = ensureContainer();
   const el = document.createElement('div');
   el.setAttribute('role', 'status');
   el.className =
-    'pointer-events-auto rounded-3 border border-line bg-s2 p-4 shadow-[0_6px_16px_rgba(0,0,0,0.08),0_3px_6px_-4px_rgba(0,0,0,0.12),0_9px_28px_8px_rgba(0,0,0,0.05)]';
-  el.innerHTML = `
-    <div class="flex items-start gap-2">
-      <span class="text-label ${COLOR[type]}" aria-hidden="true">${ICON[type]}</span>
-      <div class="min-w-0 flex-1">
-        <div class="text-body font-semibold text-ink">${title}</div>
-        ${description ? `<div class="mt-1 text-label text-ink2">${description}</div>` : ''}
-      </div>
-      <button type="button" aria-label="Đóng" class="cursor-pointer border-none bg-transparent text-base leading-4 text-ink3">×</button>
-    </div>`;
+    `pointer-events-auto rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
+  // DOM API + textContent — KHÔNG innerHTML (title/description là input user → XSS surface)
+  const wrap = document.createElement('div');
+  wrap.className = 'flex items-start gap-2';
+  const icon = document.createElement('span');
+  icon.className = `text-label ${COLOR[type]}`;
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = ICON[type];
+  const body = document.createElement('div');
+  body.className = `min-w-0 flex-1${slot(classNames?.content)}`;
+  const titleEl = document.createElement('div');
+  titleEl.className = `text-body font-semibold text-ink${slot(classNames?.title)}`;
+  titleEl.textContent = title;
+  body.append(titleEl);
+  if (description) {
+    const descEl = document.createElement('div');
+    descEl.className = 'mt-1 text-label text-ink2';
+    descEl.textContent = description;
+    body.append(descEl);
+  }
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', 'Đóng');
+  closeBtn.className =
+    'cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70';
+  closeBtn.textContent = '×';
+  wrap.append(icon, body, closeBtn);
+  el.append(wrap);
   root.appendChild(el);
   // Motion identity: enter slide-in-right + fade; exit slide-out (nhanh hơn enter ~30%)
   if (typeof el.animate === 'function') {
@@ -59,14 +90,13 @@ function show(type: NotificationType, title: string, description?: string, durat
       el.remove();
     }
   };
-  const closeBtn = el.querySelector('button');
-  closeBtn?.addEventListener('click', remove);
+  closeBtn.addEventListener('click', remove);
   window.setTimeout(remove, durationMs);
 }
 
 export const notification = {
-  success: (title: string, description?: string) => show('success', title, description),
-  info: (title: string, description?: string) => show('info', title, description),
-  warning: (title: string, description?: string) => show('warning', title, description),
-  error: (title: string, description?: string) => show('error', title, description),
+  success: (title: string, description?: string, classNames?: NotificationClassNames) => show('success', title, description, 4500, classNames),
+  info: (title: string, description?: string, classNames?: NotificationClassNames) => show('info', title, description, 4500, classNames),
+  warning: (title: string, description?: string, classNames?: NotificationClassNames) => show('warning', title, description, 4500, classNames),
+  error: (title: string, description?: string, classNames?: NotificationClassNames) => show('error', title, description, 4500, classNames),
 };

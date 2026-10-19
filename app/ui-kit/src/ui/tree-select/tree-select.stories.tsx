@@ -1,9 +1,10 @@
-// Stories TreeSelect — Forms. Chọn leaf, đường dẫn 'Cha / Con', search label +
-// đường dẫn, clearable.
+// TreeSelect stories — Forms. Leaf-only selection, 'Parent / Child' path,
+// search by label + path, clearable, disabled.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { TreeSelect, type TreeNode } from './index';
 
+/** Pick one leaf from a hierarchy — searchable, clearable, path shown as 'A / B'. */
 const meta = {
   title: 'Forms/TreeSelect',
   component: TreeSelect,
@@ -39,26 +40,65 @@ function ControlledDemo() {
   return (
     <div className="w-72">
       <TreeSelect
-        ariaLabel="Phòng ban"
+        ariaLabel="Department"
         treeData={DEPARTMENTS}
         value={value}
         onChange={setValue}
-        placeholder="Chọn phòng ban…"
+        placeholder="Select department…"
       />
-      {value && <p className="mt-2 text-meta text-ink3">value: {value}</p>}
+      {value && <p className="mt-2 text-label text-ink3">value: {value}</p>}
     </div>
   );
 }
 
-export const TreeSelectCoBan: Story = {
-  name: 'Cơ bản — chọn leaf, đường dẫn, search',
+export const Basic: Story = {
+  name: 'Basic — leaf selection, path, search',
   render: () => <ControlledDemo />,
+};
+
+const ORG_TREE: TreeNode[] = [
+  {
+    value: 'company',
+    label: 'Company',
+    children: [
+      {
+        value: 'rd',
+        label: 'R&D',
+        children: [
+          { value: 'fe', label: 'Frontend' },
+          { value: 'be', label: 'Backend' },
+        ],
+      },
+      { value: 'ops', label: 'Operations' },
+    ],
+  },
+];
+
+/** DeepPath — 3-level hierarchy; trigger shows the full 'Company / R&D / Frontend' path. */
+export const DeepPath: Story = {
+  name: 'Deep path — 3 levels shown as Company / R&D / Frontend',
+  args: { ariaLabel: 'Org unit', treeData: ORG_TREE, value: 'fe' },
+};
+
+export const NoSearch: Story = {
+  name: 'searchable=false — panel without search box',
+  args: { ariaLabel: 'Department', treeData: DEPARTMENTS, searchable: false, placeholder: 'Select department…' },
+};
+
+export const NoClear: Story = {
+  name: 'clearable=false — has value but no × button',
+  args: { ariaLabel: 'Department', treeData: DEPARTMENTS, value: 'be-node', clearable: false },
+};
+
+export const Disabled: Story = {
+  name: 'Disabled — panel won’t open, s3 background',
+  args: { ariaLabel: 'Department (disabled)', treeData: DEPARTMENTS, value: 'fe-ui', disabled: true },
 };
 
 export const DarkTheme: Story = {
   name: 'Dark theme',
   render: () => (
-    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-4">
+    <div data-bp-theme="dark" className="rounded-xl bg-s2 p-4">
       <ControlledDemo />
     </div>
   ),

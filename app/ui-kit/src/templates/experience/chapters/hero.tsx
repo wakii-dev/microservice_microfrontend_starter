@@ -204,7 +204,7 @@ export default function Hero() {
       </Parallax>
 
       {/* ── TOP BAR — brand · numbered header 01–05 · meta mono + CTA trailer ── */}
-      <div className="relative z-20 flex items-center justify-between gap-6 px-[clamp(24px,5.3vw,68px)] py-6">
+      <div className="relative z-20 flex items-center justify-between gap-6 pr-[clamp(24px,5.3vw,68px)] pl-[clamp(24px,5.3vw,68px)] md:pl-[clamp(228px,17vw,268px)] py-6">
         <a href="#hero" className="flex items-center gap-2 whitespace-nowrap no-underline">
           <span aria-hidden="true" style={{ color: DOT }}>
             ◆
@@ -244,7 +244,7 @@ export default function Hero() {
       </div>
 
       {/* ── KHỐI DISPLAY — eyebrow + 3 dòng ALL-CAPS lệch khối 18/29/18 + editorial ── */}
-      <div className="relative z-10 mt-10 max-md:px-6 md:absolute md:left-[clamp(24px,5.3vw,68px)] md:top-[28%] md:mt-0">
+      <div className="relative z-10 mt-10 max-md:px-6 md:absolute md:left-[clamp(228px,17vw,268px)] md:top-[28%] md:mt-0">
         <Parallax speed={0.5} strength={280} disabled={!isMd} className="max-w-[560px]">
           <p className="m-0 font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-[var(--hero-ink)] opacity-70">
             Nền tảng task — kịch bản cinematic
@@ -314,7 +314,7 @@ export default function Hero() {
       ))}
 
       {/* ── CỤM TRÁI DƯỚI — signup + mini-nav numbered + terms (ref bố cục) ── */}
-      <div className="relative z-10 max-md:mt-4 max-md:px-6 md:absolute md:bottom-14 md:left-[clamp(24px,5.3vw,68px)] md:w-[300px]">
+      <div className="relative z-10 max-md:mt-4 max-md:px-6 md:absolute md:bottom-14 md:left-[clamp(228px,17vw,268px)] md:w-[300px]">
         <Reveal direction="up" delay={240}>
           <p className="m-0 mb-2 text-[15px] font-bold text-[var(--hero-ink)]">
             Đăng ký nhận digest

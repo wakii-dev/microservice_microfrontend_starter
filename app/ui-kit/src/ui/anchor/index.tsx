@@ -3,6 +3,8 @@
 // (section cuối cùng có top ≤ offsetTop) qua scroll event của container — không
 // IntersectionObserver (jsdom/test + không deps mới). Vertical rail + ink dot,
 // active accent; a11y: <nav> landmark + aria-current trên link đang active.
+// Depth contract 2026-10-19: selected tint accent/8 + hover tint ink/4
+// (color-mix trên token), dot slide 2px hover, mọi transition ease-smooth 240ms.
 import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 
 export interface AnchorLinkItem {
@@ -100,13 +102,15 @@ export function Anchor({
               href={item.href}
               onClick={(e) => handleClick(e, item)}
               aria-current={isActive || undefined}
-              className={`relative block rounded-lg py-1 pl-4 text-body no-underline outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                isActive ? 'text-accent' : 'text-ink2 hover:text-ink'
+              className={`group relative block rounded-lg py-1 pl-4 text-body no-underline outline-none transition-[color,background-color] duration-[240ms] [transition-timing-function:var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                isActive
+                  ? 'bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] text-accent'
+                  : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] hover:text-ink'
               }`}
             >
               <span
                 aria-hidden="true"
-                className={`absolute -left-[3px] top-1/2 size-1.5 -translate-y-1/2 rounded-pill ${
+                className={`absolute -left-[3px] top-1/2 size-1.5 -translate-y-1/2 rounded-pill transition-[background-color,transform] duration-[240ms] [transition-timing-function:var(--ease-smooth)] group-hover:translate-x-0.5 ${
                   isActive ? 'bg-accent' : 'bg-ink4'
                 }`}
               />

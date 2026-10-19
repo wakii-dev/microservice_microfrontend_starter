@@ -169,6 +169,29 @@
   0% { transform: translateY(0.7em); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
+/* Transition family mở rộng (depth contract 2026-10-19 — exit = reverse của enter,
+ * không đúc keyframe out). Ngoại lệ duy nhất về "chỉ transform/opacity": bp-blur-in
+ * animate filter (blur) — bản chất của loại Blur, vẫn GPU-composited. */
+@keyframes bp-slide-in-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bp-grow-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-rotate-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.96); }
+  to { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+@keyframes bp-blur-in {
+  from { opacity: 0; filter: blur(8px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes bp-soft-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
 
 @theme inline {
   --animate-fade-in: bp-fade-in var(--motion-base) var(--ease-enter);

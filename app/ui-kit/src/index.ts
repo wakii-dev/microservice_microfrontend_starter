@@ -99,6 +99,20 @@ export { useLockBodyScroll } from './hooks/useLockBodyScroll.js';
 export { useWindowSize } from './hooks/useWindowSize.js';
 export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
 
+// ── Hooks wave ×12 (PO 1.0.0 — lifecycle/observers/controllable) ──
+export { useMountEffect } from './hooks/useMountEffect.js';
+export { useUpdateEffect } from './hooks/useUpdateEffect.js';
+export { useIsFirstRender } from './hooks/useIsFirstRender.js';
+export { useControllableState, type UseControllableStateOptions } from './hooks/useControllableState.js';
+export { useEventListener, type EventListenerTarget } from './hooks/useEventListener.js';
+export { useScrollProgress } from './hooks/useScrollProgress.js';
+export { useInView, type UseInViewOptions, type UseInViewReturn } from './hooks/useInView.js';
+export { useInfiniteScroll, type UseInfiniteScrollOptions } from './hooks/useInfiniteScroll.js';
+export { useMeasure, type ElementSize } from './hooks/useMeasure.js';
+export { useOnlineStatus } from './hooks/useOnlineStatus.js';
+export { useFullscreen, type UseFullscreenReturn } from './hooks/useFullscreen.js';
+export { useTitle } from './hooks/useTitle.js';
+
 // ── Navigation mới (batch ② 2026-10-17) ──
 export { Menu, type MenuProps, type MenuItemData, MenuCompactContext, findPath } from './ui/menu/index.js';
 export { Sidebar, type SidebarProps } from './ui/sidebar/index.js';
@@ -134,6 +148,12 @@ export { Mention, type MentionProps } from './ui/mention/index.js';
 export { OrderList, type OrderListProps, type OrderListItem } from './ui/order-list/index.js';
 export { PickList, type PickListProps } from './ui/pick-list/index.js';
 export { ScrollPanel, type ScrollPanelProps } from './ui/scroll-panel/index.js';
+export { ScrollPage, type ScrollPageProps, type ScrollPageSectionProps, type ScrollPageComponent } from './ui/scroll-page/index.js';
+
+// ── Utils (batch utils wave 2026-10-18) — format / array-cây / dom helpers ──
+export { formatCurrency, formatBytes, formatRelativeTime, formatNumber } from './utils/format.js';
+export { chunk, groupBy, flattenTree, findTreeNode, type FlatTreeNode } from './utils/array.js';
+export { getScrollParent, getFocusableElements, cx } from './utils/dom.js';
 export { VirtualScroll, type VirtualScrollProps } from './ui/virtual-scroll/index.js';
 
 // ── Gap P0 parity (worker W6 2026-10-18): Input.Search · Link · Affix · Table expandable ──
@@ -183,3 +203,10 @@ export {
   type FloatButtonGroupProps,
   type FloatButtonBackTopProps,
 } from './ui/float-button/index.js';
+
+// ── Team-OS domain (worker V1 2026-10-19): PingFeed · StagePipeline · DebtBoard · TeamDashboard · InboxThread ──
+export { PingFeed, relTime, type PingFeedProps, type PingEvent, type PingKind } from './ui/team/ping-feed/index.js';
+export { StagePipeline, type StagePipelineProps, type PipelineStage, type StageState } from './ui/team/stage-pipeline/index.js';
+export { DebtBoard, type DebtBoardProps, type DebtItem, type DebtStatus } from './ui/team/debt-board/index.js';
+export { TeamDashboard, type TeamDashboardProps, type TeamStats } from './ui/team/team-dashboard/index.js';
+export { InboxThread, type InboxThreadProps, type ThreadMessage } from './ui/team/inbox-thread/index.js';

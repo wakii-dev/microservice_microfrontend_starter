@@ -4,6 +4,8 @@
 // hình (bước intro/outro). ESC / click mask = đóng; scroll/resize tự re-measure.
 // A11y (pattern Modal): role=dialog + useFocusTrap — mở → focus panel, Tab vòng
 // trong, đóng → trả focus về trigger. Motion: bp-fade-in mask + bp-zoom-in panel.
+// Depth contract 2026-10-19: panel nổi bậc L3 — hairline border + ele-3 (inset
+// highlight) chồng shadow-pop + wash sheen + easing --ease-smooth.
 import {
   useEffect,
   useLayoutEffect,
@@ -156,7 +158,7 @@ export function Tour({ steps, open, onClose, current, onCurrentChange, className
     <div
       data-testid="tour-overlay"
       onClick={onClose}
-      className={`fixed inset-0 z-[var(--z-modal)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]${slot}`}
+      className={`fixed inset-0 z-[var(--z-modal)] animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]${slot}`}
     >
       <svg
         data-testid="tour-spotlight"
@@ -175,7 +177,7 @@ export function Tour({ steps, open, onClose, current, onCurrentChange, className
         tabIndex={-1}
         style={panelStyle}
         onClick={(e) => e.stopPropagation()}
-        className="absolute w-[320px] rounded-xl bg-s2 p-4 shadow-[var(--shadow-pop)] outline-none animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]"
+        className="absolute w-[320px] rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop),var(--ele-3)] [background-image:var(--wash)] outline-none animate-[bp-zoom-in_var(--motion-base)_var(--ease-smooth)]"
       >
         <div className="mb-1 flex items-start justify-between gap-2">
           <span className="pt-0.5 font-mono text-meta text-ink3">

@@ -1,14 +1,57 @@
 // Transition stories — Fade/Zoom/Collapse toggles + a Reveal combo (scroll
-// reveal expands a collapsible). Toggle buttons drive `in` like a real consumer.
-import { useState, type ReactNode } from 'react';
+// reveal expands a collapsible) + MATRIX 11 loại (depth contract 2026-10-19:
+// mọi loại ease-smooth 200-280ms, exit = reverse enter). Toggle buttons drive
+// `in` like a real consumer.
+import { useState, type ComponentType, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index.js';
 import { Reveal } from '../reveal/index.js';
-import { Collapse, Fade, Zoom, type TransitionProps } from './index';
+import {
+  Blur,
+  Bounce,
+  Collapse,
+  Crossfade,
+  Fade,
+  Flip,
+  Grow,
+  Rotate,
+  ScaleSoft,
+  Slide,
+  Stagger,
+  Zoom,
+  type TransitionProps,
+} from './index';
 
 // Meta WITHOUT `component` — children + in are required/CSF-hostile props;
 // render-only stories (image.stories pattern).
-const meta = { title: 'Theming & Motion/Transition', tags: ['autodocs'] } satisfies Meta;
+const meta = {
+  title: 'Theming & Motion/Transition',
+  tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: [
+          '**11 loại × khi-nào-dùng** (depth contract — mọi loại easing `--ease-smooth` 200-280ms, exit = reverse enter):',
+          '| Loại | Khi nào dùng |',
+          '|---|---|',
+          '| Fade | mặc định an toàn — text/hint hiện gọn |',
+          '| Zoom | card/dialog pop giữa màn |',
+          '| Collapse (vertical) | FAQ/accordion mở rộng chiều dọc |',
+          '| Collapse (horizontal) | sidebar/mở cột chi tiết |',
+          '| Slide | drawer/panel trôi từ mép (4 hướng) |',
+          '| Grow | menu/popover MỌC từ trigger (origin) |',
+          '| Flip | đổi mặt thẻ/lượt xem 3D |',
+          '| Rotate | icon/badge quay vào chỗ |',
+          '| Blur | hero/ảnh focus-in từ mờ |',
+          '| Bounce | điểm thưởng/success pop overshoot |',
+          '| ScaleSoft | vùng nội dung hiện cực nhẹ |',
+          '| Stagger | list/grid mount nối tiếp 24-40ms |',
+          '| Crossfade | swap 2 trạng thái cùng chỗ |',
+        ].join('\n'),
+      },
+    },
+  },
+} satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
@@ -41,6 +84,105 @@ export const KeepMounted: Story = {
   name: 'Keep mounted — unmountOnExit=false',
   render: () => <ToggleDemo Comp={Fade} label="Fade" unmountOnExit={false} />,
 };
+
+/** Matrix — lưới 11 loại transition (depth contract 2026-10-19): bấm nút từng ô
+ * để xem enter/exit (exit = reverse enter); bảng "loại × khi-nào-dùng" ở docs
+ * component trên. Mọi ô easing --ease-smooth 240ms. */
+export const Matrix: Story = {
+  name: 'Matrix — 11 loại (ease-smooth, exit = reverse)',
+  render: () => <MatrixDemo />,
+};
+
+type GenericComp = ComponentType<Record<string, unknown>>;
+
+const MATRIX: [string, GenericComp, Record<string, unknown>][] = [
+  ['Fade', Fade as unknown as GenericComp, {}],
+  ['Zoom', Zoom as unknown as GenericComp, {}],
+  ['Slide up', Slide as unknown as GenericComp, { direction: 'up' }],
+  ['Slide left', Slide as unknown as GenericComp, { direction: 'left' }],
+  ['Grow', Grow as unknown as GenericComp, { origin: 'bottom left' }],
+  ['Flip', Flip as unknown as GenericComp, {}],
+  ['Rotate', Rotate as unknown as GenericComp, {}],
+  ['Blur', Blur as unknown as GenericComp, {}],
+  ['Bounce', Bounce as unknown as GenericComp, {}],
+  ['ScaleSoft', ScaleSoft as unknown as GenericComp, {}],
+];
+
+function MatrixCell({ label, Comp, props }: { label: string; Comp: GenericComp; props: Record<string, unknown> }) {
+  const [show, setShow] = useState(true);
+  return (
+    <div className="flex min-h-28 flex-col items-start gap-2">
+      <Button size="small" onClick={() => setShow((s) => !s)}>
+        {show ? 'Ẩn' : 'Hiện'} — {label}
+      </Button>
+      <Comp in={show} {...props}>
+        <div className="rounded-xl border border-line bg-s1 p-3 text-meta text-ink2 shadow-[var(--ele-1)]">
+          {label}
+        </div>
+      </Comp>
+    </div>
+  );
+}
+
+function CollapseHorizontalCell() {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="flex min-h-28 flex-col items-start gap-2">
+      <Button size="small" onClick={() => setOpen((o) => !o)}>
+        Collapse ngang
+      </Button>
+      <Collapse in={open} orientation="horizontal" unmountOnExit={false}>
+        <div className="whitespace-nowrap rounded-xl border border-line bg-s1 p-3 text-meta text-ink2 shadow-[var(--ele-1)]">
+          Cột 0fr↔1fr
+        </div>
+      </Collapse>
+    </div>
+  );
+}
+
+function StaggerCell() {
+  const [run, setRun] = useState(0);
+  return (
+    <div className="flex min-h-28 flex-col items-start gap-2">
+      <Button size="small" onClick={() => setRun((r) => r + 1)}>
+        Stagger replay
+      </Button>
+      <Stagger key={run} in staggerMs={30}>
+        <div className="rounded-lg border border-line bg-s1 px-3 py-1 text-meta text-ink2">Mục 1</div>
+        <div className="rounded-lg border border-line bg-s1 px-3 py-1 text-meta text-ink2">Mục 2</div>
+        <div className="rounded-lg border border-line bg-s1 px-3 py-1 text-meta text-ink2">Mục 3</div>
+      </Stagger>
+    </div>
+  );
+}
+
+function CrossfadeCell() {
+  const [face, setFace] = useState<0 | 1>(0);
+  return (
+    <div className="flex min-h-28 flex-col items-start gap-2">
+      <Button size="small" onClick={() => setFace((f) => (f === 0 ? 1 : 0))}>
+        Crossfade swap
+      </Button>
+      <Crossfade active={face} className="w-40">
+        <div className="rounded-xl border border-line bg-s1 p-3 text-meta text-ink2 shadow-[var(--ele-1)]">Mặt A</div>
+        <div className="rounded-xl border border-line bg-s1 p-3 text-meta text-ink2 shadow-[var(--ele-1)]">Mặt B</div>
+      </Crossfade>
+    </div>
+  );
+}
+
+function MatrixDemo() {
+  return (
+    <div className="grid max-w-4xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {MATRIX.map(([label, Comp, props]) => (
+        <MatrixCell key={label} label={label} Comp={Comp} props={props} />
+      ))}
+      <CollapseHorizontalCell />
+      <StaggerCell />
+      <CrossfadeCell />
+    </div>
+  );
+}
 
 function Panel({ children }: { children: ReactNode }) {
   return <div className="w-fit rounded-xl border border-line bg-s1 p-4 text-body text-ink2">{children}</div>;

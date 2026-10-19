@@ -21,7 +21,7 @@ export function Backdrop({ open, onClick, className, children }: BackdropProps) 
       data-testid="backdrop"
       aria-hidden="true"
       onClick={onClick}
-      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-scrim-4 animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]${className ? ` ${className}` : ''}`}
+      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-scrim-4 animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]${className ? ` ${className}` : ''}`}
     >
       {children}
     </div>

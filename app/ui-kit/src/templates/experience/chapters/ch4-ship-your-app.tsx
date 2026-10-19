@@ -6,6 +6,8 @@
 // 0 scroll listener riêng (mục 4). Scrim from-black/75 via-black/40; chữ trắng
 // drop-shadow-md. Nội dung: Build → Gate → Ship (hành trình một đợt release).
 import { Parallax } from '../../../ui/parallax/index';
+import { ScrollFlythrough } from '../../../ui/experience3d/index.js';
+import { useSectionProgress } from '../lib/scroll-mood.js';
 import { Icon, type IconName } from '../../../ui/icons/index.js';
 import { SectionMood } from '../lib/scroll-mood.js';
 
@@ -31,19 +33,24 @@ const STEPS: Array<{ num: string; icon: IconName; title: string; body: string }>
 ];
 
 export default function Ch4ShipYourApp() {
+  // Progress 0..1 của section 200vh — điều khiển ScrollFlythrough (3D W8).
+  const { ref: sectionRef, progress } = useSectionProgress<HTMLDivElement>();
   return (
-    <SectionMood id="ch4" mood="ship" className="relative h-[200vh]" style={{ background: 'linear-gradient(160deg, var(--chapter-bg-a), var(--chapter-bg-b))' }}>
+    <SectionMood id="ch4" mood="ship" className="relative h-[200vh]" innerRef={sectionRef} style={{ background: 'linear-gradient(160deg, var(--chapter-bg-a), var(--chapter-bg-b))' }}>
       {/* PINNED — sticky 100vh trong 200vh: cuộn tiếp 1 màn, 3 lớp trôi 3 nhịp */}
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
+        {/* Lớp 3D — ScrollFlythrough camera bay theo progress (tích hợp experience3d W8) */}
+        <ScrollFlythrough progress={progress} className="absolute inset-0" height="100%" fallback={null} />
         {/* Lớp NỀN — 0.08/280: gần như đứng yên (ảnh demo seeded, site thay bằng asset thật) */}
-        <Parallax speed={0.08} strength={280} className="absolute inset-0">
+        <Parallax speed={0.08} strength={280} className="absolute inset-0 opacity-60">
           <img
             src="https://picsum.photos/seed/wakii-ship/1600/1000"
             alt=""
             aria-hidden="true"
             className="size-full scale-125 object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-black/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/20" />
         </Parallax>
 
         {/* Lớp GIỮA — 0.3/240: thẻ gate checklist trôi chậm */}

@@ -64,6 +64,7 @@
      tối để text light giữ contrast ≥4.5:1 cả light lẫn dark toolbar). */
   --hero-sky-a: #ffffff;
   --hero-sky-b: #e8edf4;
+  --hero-ink: rgb(16, 36, 52); /* text hero trên nền sáng tự chủ — CỐ ĐỊNH, KHÔNG flip dark (khác --navy-ink có override #f7f8f8) */
   --chapter-bg-a: rgb(10, 12, 22);
   --chapter-bg-b: rgb(16, 36, 52);
   /* Z-index overlay scale — thang dùng chung cho floating surfaces (antd-like:

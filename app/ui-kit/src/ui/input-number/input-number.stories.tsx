@@ -132,3 +132,29 @@ export const KeyboardArrow: S = {
     />
   ),
 };
+
+/** Sizes — small h-6 · middle h-8 (default) · large h-10, matching the Input family.
+ * The flush stepper column scales with the control height (full-height halves). */
+export const Sizes: S = {
+  render: () => (
+    <div className="grid w-64 gap-3">
+      <InputNumber ariaLabel="Small quantity" size="small" value={5} min={0} max={99} />
+      <InputNumber ariaLabel="Medium quantity" size="middle" value={5} min={0} max={99} />
+      <InputNumber ariaLabel="Large quantity" size="large" value={5} min={0} max={99} />
+      <p className="m-0 text-meta text-ink3">h-6 / h-8 / h-10 — stepper halves follow the control height.</p>
+    </div>
+  ),
+};
+
+/** Affixes — antd prefix/suffix inside the control: currency prefix, unit suffix.
+ * Stepper stays flush at the right edge; ring on focus wraps the whole control. */
+export const Affixes: S = {
+  render: () => (
+    <div className="grid w-72 gap-3">
+      <InputNumber ariaLabel="Price" prefix={<span>$</span>} value={42} min={0} max={9999} step={1} />
+      <InputNumber ariaLabel="Weight" suffix={<span>kg</span>} value={72} min={0} max={500} step={0.5} />
+      <InputNumber ariaLabel="Percent" prefix={<span>↓</span>} suffix={<span>%</span>} value={30} min={0} max={100} />
+      <p className="m-0 text-meta text-ink3">prefix → input → suffix → flush stepper (antd affix pattern).</p>
+    </div>
+  ),
+};

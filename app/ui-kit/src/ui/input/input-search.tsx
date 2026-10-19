@@ -4,7 +4,7 @@
 // `loading` (Spinner thay icon + chặn search tiếp — không stack request).
 // Style cùng họ Input (h-6/8/10, border line, focus ring accent, invalid đỏ) —
 // wrapper mang viền + focus-within, input trần bên trong (pattern affix antd).
-import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
+import { useRef, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Icon } from '../icons/index';
 import { Spinner } from '../spinner/index';
 
@@ -15,6 +15,8 @@ export interface InputSearchProps extends Omit<InputHTMLAttributes<HTMLInputElem
   enterButton?: boolean | ReactNode;
   /** Đang loading — Spinner thay icon + chặn Enter/click phát thêm (antd loading). */
   loading?: boolean;
+  /** Nút × xoá giá trị — hiện khi có text; xoá KHÔNG phát onSearch (chỉ onChange). */
+  allowClear?: boolean;
   /** Error state — viền + ring đỏ như Input `invalid`. */
   invalid?: boolean;
   size?: 'small' | 'middle' | 'large';
@@ -32,6 +34,7 @@ export function SearchInput({
   onSearch,
   enterButton = false,
   loading = false,
+  allowClear = false,
   invalid = false,
   size = 'middle',
   className,
@@ -42,8 +45,16 @@ export function SearchInput({
   ...rest
 }: InputSearchProps) {
   const [inner, setInner] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const controlled = value !== undefined;
   const text = String((controlled ? value : inner) ?? '');
+
+  function clearValue() {
+    if (disabled) return;
+    if (!controlled) setInner('');
+    onChange?.({ target: { value: '' } } as unknown as React.ChangeEvent<HTMLInputElement>);
+    inputRef.current?.focus();
+  }
 
   function fire() {
     if (loading || disabled) return;
@@ -59,6 +70,7 @@ export function SearchInput({
       className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] ${SMOOTH} focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:outline-none ${SIZE_CLS[size]} ${invalid ? RING_INVALID : RING_OK}${disabled ? ' cursor-not-allowed bg-ink/5 shadow-none' : ''}${className ? ` ${className}` : ''}`}
     >
       <input
+        ref={inputRef}
         value={controlled ? value : inner}
         onChange={(e) => {
           if (!controlled) setInner(e.target.value);
@@ -72,6 +84,16 @@ export function SearchInput({
         className={`min-w-0 flex-1 border-none bg-transparent pl-3 outline-none ${SIZE_CLS[size]} text-ink placeholder:text-ink4 disabled:cursor-not-allowed disabled:text-ink4`}
         {...rest}
       />
+      {allowClear && text !== '' && !disabled && (
+        <button
+          type="button"
+          aria-label="Xoá nội dung tìm kiếm"
+          onClick={clearValue}
+          className={`shrink-0 cursor-pointer border-none bg-transparent pr-0.5 text-ink3 hover:text-ink2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${SMOOTH}`}
+        >
+          ×
+        </button>
+      )}
       <button
         type="button"
         // icon-only (default + enterButton=true) cần name; ReactNode tự có text content

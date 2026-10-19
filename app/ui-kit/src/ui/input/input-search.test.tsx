@@ -80,3 +80,37 @@ describe('Input.Search', () => {
     expect(input.closest('span')!.className).toContain('h-10');
   });
 });
+
+describe('InputSearch — redo antd-fidelity (allowClear + attached flush)', () => {
+  it('allowClear: ẩn khi rỗng; có text → hiện ×; click → onChange("") + KHÔNG fire onSearch', async () => {
+    const onSearch = vi.fn();
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    const { container } = render(<Input.Search allowClear onChange={onChange} onSearch={onSearch} />);
+    expect(screen.queryByLabelText('Xoá nội dung tìm kiếm')).toBeNull();
+    const input = container.querySelector('input')!;
+    await user.type(input, 'abc');
+    const clear = screen.getByLabelText('Xoá nội dung tìm kiếm');
+    await user.click(clear);
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ target: { value: '' } }));
+    expect(onSearch).not.toHaveBeenCalled();
+    expect((input as HTMLInputElement).value).toBe('');
+    expect(screen.queryByLabelText('Xoá nội dung tìm kiếm')).toBeNull();
+  });
+
+  it('nút search DÍNH THÀNH THỂ (guard): wrapper overflow-hidden bo góc, nút KHÔNG radius riêng — chỉ border-l phân tách', () => {
+    const wrapper = render(<Input.Search />).container.querySelector('span')!;
+    expect(wrapper.className).toContain('overflow-hidden');
+    expect(wrapper.className).toContain('rounded-lg');
+    const btn = screen.getByRole('button', { name: 'Search' });
+    expect(btn.className).not.toMatch(/rounded/); // góc do wrapper clip — flush tuyệt đối
+    expect(btn.className).toContain('border-l'); // hairline phân tách với input
+  });
+
+  it('press = chìm 1px (active:translate-y-px) — không scale (depth contract)', () => {
+    render(<Input.Search />);
+    const btn = screen.getByRole('button', { name: 'Search' });
+    expect(btn.className).toContain('active:translate-y-px');
+    expect(btn.className).not.toContain('scale');
+  });
+});

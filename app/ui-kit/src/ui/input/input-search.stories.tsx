@@ -85,3 +85,28 @@ function OnSearchDemo() {
 export const OnSearch: Story = {
   render: () => <OnSearchDemo />,
 };
+
+/** Demo component cho AllowClear — hooks phải nằm trong component thật (rules-of-hooks). */
+function AllowClearDemo() {
+  const [value, setValue] = useState('');
+  const [lastSearch, setLastSearch] = useState('');
+  return (
+    <div className="w-80">
+      <Input.Search
+        placeholder="Type then clear…" allowClear
+        value={value}
+        onChange={(e) => setValue((e.target as HTMLInputElement).value)}
+        onSearch={setLastSearch}
+      />
+      <p className="mt-2 text-label text-ink3">
+        value: {value || '—'} · last search: {lastSearch || '—'} (clear never fires search)
+      </p>
+    </div>
+  );
+}
+
+/** AllowClear — × appears once the field has text; clearing emits onChange('') only
+ * (onSearch is NOT fired), refocuses the input. Combined with onSearch below. */
+export const AllowClear: Story = {
+  render: () => <AllowClearDemo />,
+};

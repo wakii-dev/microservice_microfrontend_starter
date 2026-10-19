@@ -91,3 +91,67 @@ describe('InputNumber — matrix gaps (a11y/disabled/invalid/className)', () => 
     expect(container.firstElementChild).toHaveClass('marker');
   });
 });
+
+describe('InputNumber — redo antd-fidelity (flush stepper + sizes + affixes)', () => {
+  it('sizes: small h-6 / middle h-8 (mặc định) / large h-10 ăn theo họ Input', () => {
+    const { rerender, container } = render(<InputNumber ariaLabel="n" size="small" />);
+    expect(container.querySelector('input')!.className).toContain('h-6');
+    rerender(<InputNumber ariaLabel="n" />);
+    expect(container.querySelector('input')!.className).toContain('h-8');
+    rerender(<InputNumber ariaLabel="n" size="large" />);
+    expect(container.querySelector('input')!.className).toContain('h-10');
+  });
+
+  it('prefix/suffix render trong control — prefix trước input, suffix TRƯỚC cột stepper', () => {
+    const { container } = render(
+      <InputNumber ariaLabel="n" prefix={<span data-testid="pre">$</span>} suffix={<span data-testid="suf">kg</span>} />,
+    );
+    expect(screen.getByTestId('pre')).toBeInTheDocument();
+    expect(screen.getByTestId('suf')).toBeInTheDocument();
+    // prefix đứng TRƯỚC input, suffix đứng TRƯỚC cột stepper (stepper flush mép phải)
+    const pre = screen.getByTestId('pre');
+    const suf = screen.getByTestId('suf');
+    const stepper = screen.getByRole('button', { name: 'Tăng' }).parentElement!;
+    expect(pre.compareDocumentPosition(inputEl(container)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(suf.compareDocumentPosition(stepper) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('stepper FLUSH (regression guard e94b3e4): wrapper overflow-hidden + nút h-1/2 bo CHỈ góc ngoài, divider border-t ở nút Giảm', () => {
+    const { container } = render(<InputNumber ariaLabel="n" />);
+    const wrapper = container.querySelector('span')!;
+    expect(wrapper.className).toContain('overflow-hidden');
+    expect(wrapper.className).toContain('rounded-lg');
+    const up = screen.getByRole('button', { name: 'Tăng' });
+    const down = screen.getByRole('button', { name: 'Giảm' });
+    for (const b of [up, down]) {
+      expect(b.className).toContain('h-1/2'); // full-height nửa trên/dưới — flush
+      expect(b.className).not.toMatch(/\bborder-l\b/); // không viền riêng cột (border-line OK)
+    }
+    expect(up.className).toContain('border-none'); // nút trên không viền
+    expect(up.className).toContain('rounded-tr-lg'); // chỉ góc NGOÀI trên
+    expect(down.className).toContain('rounded-br-lg'); // chỉ góc NGOÀI dưới
+    expect(down.className).toContain('border-t'); // hairline chia 2 nút
+  });
+
+  it('icon chevron 14px từ Icon bộ dùng chung + press-scale trên ICON (không scale nút — giữ flush)', () => {
+    render(<InputNumber ariaLabel="n" />);
+    const up = screen.getByRole('button', { name: 'Tăng' });
+    const svg = up.querySelector('svg')!;
+    expect(svg.getAttribute('width')).toBe('14');
+    expect(up.className).toContain('group/up');
+    // press-scale nằm trên ICON (svg mang class group-active/up:scale-90) — không scale nút
+    expect(svg.getAttribute('class')).toContain('group-active/up:scale-90');
+    expect(svg.getAttribute('class')).toContain('transition-transform');
+  });
+
+  it('stepper hover bg-ink/5 + active bg-ink/10 (press phẳng — không hồi quy scale nút gây hở viền)', () => {
+    render(<InputNumber ariaLabel="n" />);
+    const up = screen.getByRole('button', { name: 'Tăng' });
+    expect(up.className).toContain('hover:bg-ink/5');
+    expect(up.className).toContain('active:bg-ink/10');
+  });
+});
+
+function inputEl(container: HTMLElement): HTMLInputElement {
+  return container.querySelector('input')!;
+}

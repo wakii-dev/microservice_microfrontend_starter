@@ -61,13 +61,13 @@ export function ContextMenu({ items, children, onItemClick, className }: Context
     <div ref={ref} className={className} onContextMenu={(e) => { e.preventDefault(); setPos({ x: e.clientX, y: e.clientY }); }}>
       {children}
       {pos && (
-        <ul ref={menuRef} role="menu" onKeyDown={onMenuKey} className="fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] origin-top-left list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]" style={{ left: pos.x, top: pos.y }}>
+        <ul ref={menuRef} role="menu" onKeyDown={onMenuKey} className="fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] origin-top-left list-none rounded-xl border border-line bg-s2 [background-image:var(--wash)] p-1 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-smooth)]" style={{ left: pos.x, top: pos.y }}>
           {items.map((item) => item.key === '---' ? (
             <li key={item.key} className="my-1 border-t border-line2" />
           ) : (
             <li key={item.key}>
               <button type="button" role="menuitem" aria-disabled={item.disabled || undefined} disabled={item.disabled} onClick={() => { onItemClick?.(item.key); setPos(null); }}
-                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'} ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}>
+                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors duration-[240ms] ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'} ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}>
                 {item.label}
               </button>
             </li>

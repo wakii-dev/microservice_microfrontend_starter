@@ -77,7 +77,7 @@ export function Alert({
   const iconNode = isFilled ? fill.icon : outline.icon;
   const iconCls = isFilled ? 'text-white' : outline.iconCls;
 
-  const base = 'flex items-start gap-2 rounded-lg px-3 py-2 text-body';
+  const base = 'flex items-start gap-2 rounded-lg px-3 py-2 text-body [background-image:var(--wash)]';
   const borderCls = isFilled ? '' : ' border';
 
   return (

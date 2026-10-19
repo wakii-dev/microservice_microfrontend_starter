@@ -47,6 +47,11 @@
   /* Hover lift */
   --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
 
+
+  /* Depth contract (PO duyệt 2+3 hợp thể): easing mềm cao cấp cho mọi state-change */
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-smooth: 240ms;
+
   /* D1 — Elevation system (Design Depth Wave 19-10): shadow 3 tầng cho mọi surface
      + inset highlight viền trên. Component dùng var(--ele-1|2|3) theo trạng thái
      rest/hover/active; overlay giữ --shadow-pop. */

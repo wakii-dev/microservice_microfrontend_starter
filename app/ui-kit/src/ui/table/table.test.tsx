@@ -185,6 +185,46 @@ describe('Table — scroll + variants + expansion', () => {
     expect(container.querySelector('th.sticky') ?? container.querySelector('th')).not.toBeNull();
   });
 
+  it('scroll.y + selection + expandable → MỌI th hàng header sticky top-0 z-10 (kể cả cột selection/expand — bugfix PO full-demo)', () => {
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={DATA}
+        rowKey="id"
+        scroll={{ y: 300 }}
+        selectionMode="checkbox"
+        expandable={{ expandedRowRender: (r: Row) => <p>{r.title}</p> }}
+      />,
+    );
+    const headThs = Array.from(container.querySelectorAll('thead tr:first-child th'));
+    expect(headThs.length).toBe(5); // selection + expand + 3 cột dữ liệu
+    for (const th of headThs) {
+      expect(th.className).toContain('sticky');
+      expect(th.className).toContain('top-0');
+      expect(th.className).toContain('z-10');
+      expect(th.className).toContain('bg-s3'); // nền đặc — row cuộn dưới không lọt
+    }
+  });
+
+  it('scroll.y + filterPlacement row + selection → mọi th filter row sticky + top=headerH (selection/expand không thiếu)', () => {
+    const { container } = render(
+      <Table
+        columns={COLS}
+        dataSource={DATA}
+        rowKey="id"
+        scroll={{ y: 300 }}
+        selectionMode="checkbox"
+        filterPlacement="row"
+      />,
+    );
+    const filterThs = Array.from(container.querySelectorAll<HTMLElement>('thead tr:nth-child(2) th'));
+    expect(filterThs.length).toBe(4); // selection + 3 cột
+    for (const th of filterThs) {
+      expect(th.className).toContain('sticky');
+      expect(th.style.top).not.toBe(''); // sticky ngay dưới hàng header
+    }
+  });
+
   it('striped + borderless + size small → class đúng', () => {
     const { container } = render(
       <Table columns={COLS} dataSource={DATA} rowKey="id" striped borderless size="small" />,

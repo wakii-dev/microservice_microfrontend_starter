@@ -436,7 +436,7 @@ export function Table<T extends object>({
 
       <div
         ref={scrollerRef}
-        className={`overflow-auto rounded-xl border border-line${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}
+        className={`overflow-auto rounded-xl border border-line [background-image:var(--wash)] shadow-[var(--ele-1)]${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}
         style={scrollY !== undefined ? { maxHeight: typeof scrollY === 'number' ? `${scrollY}px` : scrollY } : undefined}
         onScroll={virtualOn ? (e) => setScrollTop(e.currentTarget.scrollTop) : undefined}
       >
@@ -449,7 +449,7 @@ export function Table<T extends object>({
           <thead ref={theadRef} className={classNames?.header}>
             <tr>
               {hasSelection && (
-                <th className={`${headPad} ${borderCls} w-10 bg-s3`}>
+                <th className={`${headPad} ${borderCls} w-10 sticky top-0 z-10 bg-s3`}>
                   <Checkbox
                     aria-label="Chọn tất cả trang này"
                     checked={allPageSelected}
@@ -457,7 +457,7 @@ export function Table<T extends object>({
                   />
                 </th>
               )}
-              {hasExpander && <th className={`${headPad} ${borderCls} w-10 bg-s3`} aria-label="Mở rộng" />}
+              {hasExpander && <th className={`${headPad} ${borderCls} w-10 sticky top-0 z-10 bg-s3`} aria-label="Mở rộng" />}
               {columns.map((col) => {
                 const order = sortOf(col.key);
                 const ariaSort = order === 'asc' ? 'ascending' : order === 'desc' ? 'descending' : undefined;
@@ -512,8 +512,8 @@ export function Table<T extends object>({
             </tr>
             {showFilterRow && (
               <tr role="row">
-                {hasSelection && <th className={`${headPad} ${borderCls} bg-s3`} />}
-                {hasExpander && <th className={`${headPad} ${borderCls} bg-s3`} />}
+                {hasSelection && <th className={`${headPad} ${borderCls} bg-s3${scrollY !== undefined ? ' sticky z-10' : ''}`} style={scrollY !== undefined ? { top: headerH } : undefined} />}
+                {hasExpander && <th className={`${headPad} ${borderCls} bg-s3${scrollY !== undefined ? ' sticky z-10' : ''}`} style={scrollY !== undefined ? { top: headerH } : undefined} />}
                 {columns.map((col) => (
                   <th
                     key={`f-${col.key}`}

@@ -29,10 +29,12 @@ describe('Dropdown', () => {
     const user = userEvent.setup();
     render(<Dropdown trigger={<button>Menu</button>} items={ITEMS} onItemClick={onItemClick} />);
     await user.click(screen.getByRole('button', { name: 'Menu' }));
-    await user.click(screen.getByText('Sửa'));
+    // item có stagger animation-delay (depth D6) — userEvent stability check
+    // đôi khi bấm trong window delay → dùng fireEvent bắn thẳng handler
+    fireEvent.click(screen.getByText('Sửa'));
     expect(onItemClick).toHaveBeenCalledWith('edit');
     await user.click(screen.getByRole('button', { name: 'Menu' }));
-    await user.click(screen.getByText('Khoá'));
+    fireEvent.click(screen.getByText('Khoá'));
     expect(onItemClick).toHaveBeenCalledTimes(1);
   });
 

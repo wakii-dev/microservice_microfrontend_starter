@@ -43,7 +43,7 @@ const slot = (c?: string) => (c ? ` ${c}` : '');
 function show(type: MessageType, content: string, durationMs = 3000, classNames?: MessageClassNames): void {
   const root = ensureContainer();
   const el = document.createElement('div');
-  el.className = `pointer-events-auto flex items-center gap-2 rounded-xl border border-line bg-s2 px-3 py-2 text-body text-ink shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
+  el.className = `pointer-events-auto flex items-center gap-2 rounded-xl border border-line bg-s2 [background-image:var(--wash)] px-3 py-2 text-body text-ink shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-slide-up-in_var(--motion-base)_var(--ease-smooth)]${slot(classNames?.wrapper)}`;
   el.setAttribute('role', 'status');
   // DOM API + textContent — KHÔNG innerHTML (content có thể là input user → XSS surface)
   const icon = document.createElement('span');

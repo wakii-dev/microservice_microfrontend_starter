@@ -129,9 +129,9 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
           ref={menuRef}
           role="menu"
           onKeyDown={onMenuKey}
-          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] origin-top-right list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
+          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] origin-top-right list-none rounded-xl border border-line bg-s2 [background-image:var(--wash)] p-1 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-smooth)]"
         >
-          {items.map((item) =>
+          {items.map((item, idx) =>
             item.key === '---' ? (
               <li key={item.key} className="my-1 border-t border-line2" />
             ) : (
@@ -141,14 +141,15 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
                   role="menuitem"
                   aria-disabled={item.disabled || undefined}
                   disabled={item.disabled}
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                  className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors duration-[240ms] ease-[var(--ease-smooth)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                    item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'
+                  } ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                   onClick={() => {
                     if (item.disabled) return;
                     onItemClick?.(item.key);
                     setOpen(false);
                   }}
-                  className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                    item.danger ? 'text-st-fail hover:bg-st-fail/12 active:bg-st-fail/12' : 'text-ink hover:bg-s3 active:bg-s3'
-                  } ${item.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
                 >
                   {item.label}
                 </button>

@@ -125,7 +125,7 @@ describe('Menu — horizontal vs vertical', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Quản lý' }));
     const panel = screen.getByRole('menuitem', { name: 'Công việc' }).closest('ul')!;
     expect(panel).toHaveClass('absolute', 'top-full', 'left-0');
-    expect(panel).toHaveClass('shadow-[var(--shadow-pop)]');
+    expect(panel).toHaveClass("shadow-[var(--ele-3),var(--shadow-pop)]");
   });
 
   it('horizontal cấp 2 → flyout bên phải (left-full top-0)', () => {

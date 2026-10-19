@@ -40,7 +40,7 @@ function show(type: NotificationType, title: string, description?: string, durat
   const el = document.createElement('div');
   el.setAttribute('role', 'status');
   el.className =
-    `pointer-events-auto rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
+    `pointer-events-auto rounded-xl border border-line bg-s2 [background-image:var(--wash)] p-4 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-slide-up-in_var(--motion-base)_var(--ease-smooth)]${slot(classNames?.wrapper)}`;
   // DOM API + textContent — KHÔNG innerHTML (title/description là input user → XSS surface)
   const wrap = document.createElement('div');
   wrap.className = 'flex items-start gap-2';

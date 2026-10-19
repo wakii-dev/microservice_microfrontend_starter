@@ -44,7 +44,7 @@ function ChevronDownIcon() {
  * (flex-col items-center) lo — KHÔNG dùng mx-auto (class mới có thể chưa vào
  * CSS build của consumer; chỉ dùng class đã tồn tại từ batch trước). */
 function itemCls(kind: 'normal' | 'selected' | 'disabled', compact: boolean): string {
-  const base = 'flex items-center rounded-lg border-none text-body transition-colors';
+  const base = 'flex items-center rounded-lg border-none text-body transition-colors duration-[240ms] ease-[var(--ease-smooth)]';
   const fit = compact ? 'size-8 justify-center px-0' : 'w-full cursor-pointer gap-2 px-3 py-1.5';
   if (kind === 'disabled') return `${base} cursor-not-allowed bg-transparent text-ink4 ${fit}`;
   if (kind === 'selected') return `${base} cursor-pointer bg-accent font-medium text-white hover:bg-accent ${fit}`;
@@ -197,7 +197,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 items={item.children!}
                 mode={mode}
                 depth={depth + 1}
-                ulCls={`absolute z-[var(--z-popover)] origin-top-left flex flex-col gap-1 rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)] ${
+                ulCls={`absolute z-[var(--z-popover)] origin-top-left flex flex-col gap-1 rounded-lg border border-line bg-s2 [background-image:var(--wash)] p-1 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-smooth)] ${
                   depth === 0 ? 'left-0 top-full min-w-[180px]' : 'left-full top-0 min-w-[160px]'
                 }`}
                 selectedKey={selectedKey}

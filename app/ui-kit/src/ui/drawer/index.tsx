@@ -75,7 +75,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)] ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.mask)}`}
+      className={`fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)] ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]'}${slot(classNames?.mask)}`}
       onClick={() => onClose?.()}
       data-testid="drawer-overlay"
     >
@@ -85,7 +85,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
         aria-modal="true"
         tabIndex={-1}
         aria-labelledby={titleId}
-        className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]'}${className ? ` ${className}` : ''}${slot(classNames?.wrapper)}`}
+        className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-smooth)]'}${className ? ` ${className}` : ''}${slot(classNames?.wrapper)}`}
         style={{ width }}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);

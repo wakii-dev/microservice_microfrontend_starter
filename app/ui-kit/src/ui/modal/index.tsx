@@ -98,7 +98,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--mask)] p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}${slot(classNames?.mask)}`}
+      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--mask)] p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-smooth)]'}${className ? ` ${className}` : ''}${slot(classNames?.mask)}`}
       onClick={() => onCancel?.()}
       data-testid="modal-overlay"
     >
@@ -109,7 +109,7 @@ export function Modal({
         tabIndex={-1}
         aria-labelledby={titleId}
         style={{ willChange: "transform, opacity" }}
-        className={`relative w-full max-w-[416px] rounded-xl bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.wrapper)}`}
+        className={`relative w-full max-w-[416px] rounded-xl bg-s2 [background-image:var(--wash)] p-6 shadow-[var(--ele-3),var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-smooth)]'}${slot(classNames?.wrapper)}`}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);
         }}

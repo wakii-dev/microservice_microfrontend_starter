@@ -20,7 +20,7 @@ export function OrderList({ items: itemsProp, onChange, className }: OrderListPr
   }
   return (
     <div className={`inline-flex flex-col gap-2${className ? ` ${className}` : ''}`}>
-      <ul className="m-0 min-h-[200px] w-64 list-none overflow-auto rounded-xl border border-line bg-s2 p-2">
+      <ul className="m-0 min-h-[200px] w-64 list-none overflow-auto rounded-xl border border-line bg-s2 [background-image:var(--wash)] shadow-[var(--ele-1)] p-2">
         {items.map((item, i) => (
           <li key={item.value} className="flex items-center justify-between rounded-2 px-3 py-1.5 text-body text-ink hover:bg-s3">
             <span>{i + 1}. {item.label}</span>

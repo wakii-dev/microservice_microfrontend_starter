@@ -38,9 +38,9 @@ const SIZE: Record<ButtonSize, string> = {
 };
 
 const ITEM_NORMAL =
-  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors hover:bg-s3';
+  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors duration-[240ms] ease-[var(--ease-smooth)] hover:bg-s3';
 const ITEM_DANGER =
-  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-st-fail transition-colors hover:bg-st-fail/12';
+  'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-st-fail transition-colors duration-[240ms] ease-[var(--ease-smooth)] hover:bg-st-fail/12';
 
 export function SplitButton({
   label,
@@ -122,7 +122,7 @@ export function SplitButton({
           ref={menuRef}
           role="menu"
           aria-label={label}
-          className="absolute left-0 top-full z-[var(--z-dropdown)] m-0 mt-1 min-w-[140px] list-none origin-top-left rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
+          className="absolute left-0 top-full z-[var(--z-dropdown)] m-0 mt-1 min-w-[140px] list-none origin-top-left rounded-lg border border-line bg-s2 [background-image:var(--wash)] p-1 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-smooth)]"
         >
           {items.map((item) =>
             item.separator ? (

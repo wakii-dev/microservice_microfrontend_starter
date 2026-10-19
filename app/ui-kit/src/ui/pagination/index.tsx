@@ -38,9 +38,9 @@ function ChevronRightIcon() {
 }
 
 const ITEM =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink transition-all duration-150 hover:bg-s3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent px-2 text-body text-ink tabular-nums transition-all duration-[240ms] ease-[var(--ease-smooth)] hover:bg-s3 hover:shadow-[var(--ele-2)] hover:border-ink/20 active:translate-y-px active:shadow-[var(--ele-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
 const ITEM_ACTIVE =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white transition-all duration-150 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-white/60';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-accent px-2 text-body font-medium text-white tabular-nums transition-all duration-[240ms] ease-[var(--ease-smooth)] active:translate-y-px active:shadow-[var(--ele-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-white/60';
 const ITEM_DISABLED =
   'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border-none bg-transparent px-2 text-body text-ink3 cursor-not-allowed';
 

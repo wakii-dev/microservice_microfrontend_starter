@@ -92,7 +92,7 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
               tabIndex={isActive ? 0 : -1}
               disabled={tab.disabled}
               onClick={() => !tab.disabled && onChange?.(tab.key)}
-              className={`relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none${classNames?.tab ? ` ${classNames.tab}` : ''} after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[''] after:transition-transform after:duration-200 after:[transition-timing-function:var(--ease-enter)] after:origin-left ${
+              className={`relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors duration-[240ms] ease-[var(--ease-smooth)] hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none${classNames?.tab ? ` ${classNames.tab}` : ''} after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[''] after:transition-transform after:duration-200 after:[transition-timing-function:var(--ease-smooth)] after:origin-left ${
                 isActive
                   ? 'text-accent after:bg-accent after:scale-x-100'
                   : 'text-ink opacity-65 after:bg-transparent after:scale-x-0 hover:text-accent hover:opacity-100'
@@ -109,7 +109,7 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
         role="tabpanel"
         aria-labelledby={active ? `${baseId}-tab-${active.key}` : undefined}
         tabIndex={0}
-        className={`animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] pt-4${classNames?.panel ? ` ${classNames.panel}` : ''}`}
+        className={`animate-[bp-fade-in_var(--motion-fast)_var(--ease-smooth)] pt-4${classNames?.panel ? ` ${classNames.panel}` : ''}`}
       >
         {active?.children}
       </div>

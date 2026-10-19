@@ -50,6 +50,20 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 - **Grid (Row/Col), Flex, Anchor** — layout + nav batch: `Row`/`Col` 24-col kiểu antd (`gutter` `[ngang, dọc]` qua negative-margin + col padding, span mobile-first `xs→xl` resolve matchMedia, wrap tự động) · `Flex` 1 trục (`gap` thang `small|middle|large|px`, `vertical`, justify/align) · `Anchor` in-page TOC scroll-spy (`items` nested, `affix` sticky, `offsetTop`, `getContainer`, `aria-current`) — 35 tests + stories EN. (`4fd4323`)
 - **Popover, Watermark** — overlay batch: `Popover` panel neo trigger nội dung tự do (`title` divider + `content` ReactNode, `trigger` hover/click/focus, controlled `open`/`onOpenChange`, ESC + click-outside qua `useClickAway`, `role="dialog"` + trigger `aria-expanded`) · `Watermark` overlay tile SVG data-URI lặp (`rotate` −22° mặc định, `gap`/`offset`, màu resolve token `--ink3` + re-bake khi đổi theme, overlay `pointer-events-none` children vẫn bấm được) — 18 tests + stories EN. (`291ce0d`)
 
+
+### [Unreleased → 1.0.0] — 2026-10-19/20 (Depth + Team-OS + Cinematic wave)
+
+- **Design Depth hợp đồng Linear×Geist** (PO duyệt 2+3 hợp thể): tokens `--ele-1/2/3` 3 tầng elevation + `--wash` surface + `--ease-smooth` 240ms — áp ~50 component toàn 6 cụm (Forms 19 · Data A-L/M-Z · Feedback+Nav · Motion+3D) + 7 templates: hover nhấc bậc/press chìm vật lý/hairline + 1 edge-highlight/typography tracking âm + mono ID/stagger 24-40ms/counter pulse. (`95ab014` `55017c6` `f666fbe` `2032bc1` `a59e0e7` `1933d01` `fa6a440`)
+- **Transition mở rộng 3→11 loại**: +Slide 4 hướng · Grow · Flip · Rotate · Blur · Bounce · ScaleSoft · Stagger · Crossfade · Collapse ngang — API thống nhất in/duration/delay/easing/unmountOnExit, 5 keyframe mới token-driven. (`2032bc1`)
+- **Hooks ×12**: useInView · useMountEffect · useUpdateEffect · useIsFirstRender · useControllableState · useEventListener · useScrollProgress · useIntersection... 119 tests. (`3f6b681`)
+- **Utils mảng mới**: format (VND/bytes/relative-time vi) · array (chunk/groupBy/flattenTree) · dom (getScrollParent/focusables/cx). (`fa6a440`)
+- **Team-OS trong kit ×5**: PingFeed · StagePipeline · DebtBoard · TeamDashboard (idle-alert R0.1) · InboxThread. (`e22db92`)
+- **Templates Sóng A + E-commerce ×7**: Mission-Control · Status-Page · Onboarding · Secure-Portal · Gallery · Docs-Portal · E-commerce (QRCode thanh toán + freeship Progress). (`1933d01`)
+- **Redo InputNumber + Input.Search** antd-fidelity: stepper flush góc-ngoài + nút search dính thể + allowClear + 3 size. (`c456866`)
+- **Carousel indicators** → ngôn ngữ Pagination (ô vuông viền + active accent + aria-current). (`2fb287f`)
+- **Cinematic Experience (story VU-53-CIN)**: contract v1.0 + ChapterShell + hero 9-lớp + starfield theme-aware + ch1 7-lớp ghost-number + ch2 mask-reveal + ch5 SunJourney 4-pha sine-arc + EndCta glow — side-nav removed per PO. (`46f6807` `68024bc` `6ac0172`)
+- Fixes: CRUD header cột-đầu sticky + calendar responsive 375 (`85cc797`) · hero overlay collision clamp (`68024bc`) · expand-collapse smooth pass 4 bề mặt (`245bae5`).
+
 ### Fixed
 
 - **Tooltip token dark contrast (worker V2)** — `--tooltip-bg` dark-surface + chữ `--ink` (thay nền/độ tương phản cũ vi phạm AA). (`4a480c1`)

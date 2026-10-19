@@ -39,7 +39,7 @@ export function Progress({ percent = 0, status = 'normal', showInfo = true, inde
         )}
       </div>
       {showInfo && !indeterminate && (
-        <span className={`w-10 text-right text-body ${status === 'exception' ? 'text-st-fail' : 'text-ink'}`}>{clamped}%</span>
+        <span className={`w-10 text-right text-body tabular-nums ${status === 'exception' ? 'text-st-fail' : 'text-ink'}`}>{clamped}%</span>
       )}
     </div>
   );

@@ -32,7 +32,7 @@ export function Segmented({ options, value, onChange, ariaLabel, className }: Se
             aria-checked={isActive}
             disabled={isDisabled}
             onClick={() => !isDisabled && onChange?.(option.value)}
-            className={`rounded-lg border-none px-3 py-1 text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+            className={`rounded-lg border-none px-3 py-1 text-body transition-[background-color,border-color,box-shadow,transform] duration-200 [transition-timing-function:var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
               isDisabled
                 ? 'cursor-not-allowed text-ink4'
                 : `cursor-pointer active:opacity-70 ${isActive ? 'bg-s2 text-ink shadow-sm' : 'bg-transparent text-ink2 hover:text-ink'}`

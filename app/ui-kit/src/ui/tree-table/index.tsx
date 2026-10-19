@@ -183,7 +183,7 @@ export function TreeTable({
     <div
       role="treegrid"
       aria-readonly={selectionMode === 'none' ? undefined : false}
-      className={`overflow-auto rounded-xl border border-line${className ? ` ${className}` : ''}`}
+      className={`overflow-auto rounded-xl border border-line [background-image:var(--wash)] shadow-[var(--ele-1)]${className ? ` ${className}` : ''}`}
     >
       {/* Header row — cùng grid template với body rows */}
       <div role="rowgroup" aria-hidden="false">

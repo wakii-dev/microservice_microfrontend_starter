@@ -17,14 +17,14 @@ export function SpeedDial({ icon, actions, className }: SpeedDialProps) {
       {open && actions.map((action, i) => (
         <button key={action.key} type="button" aria-label={action.label}
           onClick={() => { action.onClick?.(); setOpen(false); }}
-          className="grid size-9 cursor-pointer place-items-center rounded-pill border border-line bg-s2 text-body text-ink2 shadow-[var(--shadow-lift)] transition-all hover:text-accent"
+          className="grid size-9 cursor-pointer place-items-center rounded-pill border border-line bg-s2 text-body text-ink2 shadow-[var(--shadow-lift)] transition-all duration-[240ms] ease-[var(--ease-smooth)] hover:text-accent hover:bg-s3 hover:shadow-[var(--ele-2)] active:translate-y-px"
           style={{ animation: `bp-slide-up-in 150ms cubic-bezier(0.16,1,0.3,1) ${(actions.length - 1 - i) * 40}ms both` }}>
           {action.icon}
         </button>
       ))}
       <button type="button" aria-label="Thao tác" aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`grid size-12 cursor-pointer place-items-center rounded-pill border-none bg-accent text-xl text-white shadow-[var(--shadow-pop)] transition-transform ${open ? 'rotate-45' : ''}`}>
+        className={`grid size-12 cursor-pointer place-items-center rounded-pill border-none bg-accent text-xl text-white shadow-[var(--ele-3),var(--shadow-pop)] transition-transform duration-[240ms] ease-[var(--ease-smooth)] ${open ? 'rotate-45' : ''}`}>
         {icon}
       </button>
     </div>

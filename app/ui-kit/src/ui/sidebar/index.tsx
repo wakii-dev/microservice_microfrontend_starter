@@ -69,7 +69,7 @@ export function Sidebar({
         aria-label={collapsed ? 'Mở rộng' : 'Thu gọn'}
         aria-expanded={!collapsed}
         onClick={toggle}
-        className={`absolute -right-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors hover:text-accent`}
+        className={`absolute -right-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors duration-[240ms] ease-[var(--ease-smooth)] hover:text-accent`}
         style={{ top: collapsed ? 28 : '50%' }}
       >
         {/* Lưồi nửa ngoài mép phải CẢ HAI trạng thái (fix user 2026-10-18):

@@ -22,7 +22,7 @@ export function PanelMenu({ items, className }: PanelMenuProps) {
     });
   }
   return (
-    <nav className={`overflow-hidden rounded-xl border border-line bg-s2${className ? ` ${className}` : ''}`}>
+    <nav className={`overflow-hidden rounded-xl border border-line bg-s2 [background-image:var(--wash)] shadow-[var(--ele-1)]${className ? ` ${className}` : ''}`}>
       {items.map((item) => (
         <div key={item.key}>
           <button type="button"

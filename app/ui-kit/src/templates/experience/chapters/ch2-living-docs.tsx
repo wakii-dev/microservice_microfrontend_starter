@@ -61,7 +61,9 @@ function FeatureRow({ feature, flip }: { feature: Feature; flip: boolean }) {
     <div data-feature-row="" className="mx-auto grid w-full max-w-5xl items-center gap-8 py-16 md:grid-cols-2 md:gap-12">
       <Reveal direction={flip ? 'right' : 'left'} delay={80} className={flip ? 'md:order-2' : undefined}>
         <div className="grid gap-3">
-          <span data-kicker="" className="font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-accent">
+          {/* Kicker text accent trên nền tối → accent-hi (contrast 5.75 ≥ 4.5 — §2
+           * convention mood velocity; accent thường chỉ 4.19 — fail chuẩn body). */}
+          <span data-kicker="" className="font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-accent-hi">
             {feature.kicker}
           </span>
           {/* Heading row h3 (shell đã dùng h2 chương) — 29px/300 leading-snug §1. */}

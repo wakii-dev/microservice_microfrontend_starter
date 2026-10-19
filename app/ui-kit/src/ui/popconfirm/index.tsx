@@ -63,7 +63,7 @@ export function Popconfirm({
           <span
             role="dialog"
             aria-labelledby={titleId}
-            className="block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]"
+            className="block origin-bottom-left rounded-xl border border-line bg-s2 [background-image:var(--wash)] p-3 shadow-[var(--ele-3),var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-smooth)]"
           >
             <span className="flex items-start gap-2">
               {/* Contrast: chữ ĐEN trên gold --st-doing (antd gold-pattern — trắng chỉ ~1.6:1);

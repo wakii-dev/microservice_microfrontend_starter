@@ -71,7 +71,7 @@ function OrgNode({
         <button
           type="button"
           onClick={() => onSelect?.(node.key)}
-          className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-4 py-2 text-body shadow-[var(--shadow-pop)] transition-[background-color,box-shadow,border-color] duration-150 hover:shadow-[var(--shadow-lift)] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
+          className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-4 py-2 text-body shadow-[var(--shadow-pop)] transition-[background-color,border-color,box-shadow,transform] duration-200 [transition-timing-function:var(--ease-smooth)] hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:translate-y-px active:shadow-[var(--ele-1)] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
             selected ? 'border-accent ring-1 ring-accent/40' : 'border-line'
           } ${typeCls}`}
         >

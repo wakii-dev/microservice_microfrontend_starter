@@ -21,15 +21,18 @@ export function Steps({ items, current, className }: StepsProps) {
         const state = i < current ? 'done' : i === current ? 'current' : 'waiting';
         const dot =
           state === 'done' ? (
-            <span className="grid size-7 place-items-center rounded-pill border border-accent bg-accent text-[11px] font-bold text-white">
+            <span className="grid size-7 place-items-center rounded-pill border border-accent bg-accent text-[11px] font-bold tabular-nums text-white">
               ✓
             </span>
           ) : state === 'current' ? (
-            <span className="grid size-7 place-items-center rounded-pill border-2 border-accent text-[11px] font-bold text-accent">
+            <span
+              key={`step-${current}`}
+              className="grid size-7 place-items-center rounded-pill border-2 border-accent text-[11px] font-bold tabular-nums text-accent animate-[bp-zoom-in_var(--motion-fast)_var(--ease-smooth)]"
+            >
               {i + 1}
             </span>
           ) : (
-            <span className="grid size-7 place-items-center rounded-pill border border-line text-[11px] font-bold text-ink3">
+            <span className="grid size-7 place-items-center rounded-pill border border-line text-[11px] font-bold tabular-nums text-ink3">
               {i + 1}
             </span>
           );

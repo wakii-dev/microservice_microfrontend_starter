@@ -148,7 +148,7 @@ export function Timesheet({
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border border-line bg-s2${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}${className ? ` ${className}` : ''}`}
+      className={`overflow-hidden rounded-xl border border-line [background-image:var(--wash)] shadow-[var(--ele-1)] bg-s2${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}${className ? ` ${className}` : ''}`}
     >
       {/* Thanh tuần: nhãn khoảng tuần + nav prev/next */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2">

@@ -314,67 +314,7 @@ export default function Hero() {
       ))}
 
       {/* ── CỤM TRÁI DƯỚI — signup + mini-nav numbered + terms (ref bố cục) ── */}
-      <div className="relative z-10 max-md:mt-4 max-md:px-6 md:absolute md:bottom-14 md:left-[clamp(228px,17vw,268px)] md:w-[300px]">
-        <Reveal direction="up" delay={240}>
-          <p className="m-0 mb-2 text-[15px] font-bold text-[var(--hero-ink)]">
-            Đăng ký nhận digest
-          </p>
-          <form
-            className="flex h-11 items-center gap-1 rounded-lg border p-1 backdrop-blur-sm"
-            style={{ borderColor: 'rgba(16, 36, 52, 0.22)', background: 'rgba(255, 255, 255, 0.55)' }}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSubscribed(true);
-            }}
-          >
-            <Input
-              aria-label="Email đăng ký"
-              placeholder="email@company.vn"
-              value={email}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              className="border-0 bg-transparent placeholder:text-[rgba(16,36,52,0.45)]!"
-              // hero là surface sáng TỰ CHỦ (contract §6 — không token flip): nền/bóng chữ
-              // cố định navy-alpha, dark theme không được nhuộm pill/placeholder khác màu
-              style={{ background: 'transparent', color: 'var(--hero-ink)', borderColor: 'rgba(16, 36, 52, 0.2)' }}
-            />
-            <button
-              type="submit"
-              aria-label="Gửi"
-              className="cursor-pointer rounded-md border-none bg-transparent p-2 text-[#ff5c39] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
-            >
-              <Icon name="arrow-right" size={14} />
-            </button>
-          </form>
-          {subscribed && (
-            <p role="status" className="m-0 mt-2 text-meta text-[var(--hero-ink)] opacity-80">
-              Đã ghi nhận — digest gửi mỗi thứ Hai.
-            </p>
-          )}
-          <nav aria-label="Chương (mini-nav)" className="mt-7 grid grid-cols-1 gap-y-2">
-            {EXPERIENCE_CHAPTERS.map((c) => (
-              <a
-                key={c.id}
-                href={`#${c.id}`}
-                className="flex items-baseline gap-1.5 whitespace-nowrap no-underline"
-              >
-                <span aria-hidden="true" className="text-[10px]" style={{ color: DOT }}>◆</span>
-                <span className="font-mono text-[11px] font-bold tracking-[2.64px] text-[var(--hero-ink)] opacity-70">
-                  {c.num}
-                </span>
-                <span className="text-[11px] font-bold uppercase tracking-[2.64px] text-[var(--hero-ink)] opacity-85">
-                  {c.title}
-                </span>
-              </a>
-            ))}
-          </nav>
-          <a
-            href="#hero"
-            className="m-0 mt-5 inline-block font-mono text-[11px] font-bold uppercase tracking-[2.64px] text-[var(--hero-ink)] opacity-70 no-underline"
-          >
-            Terms of service
-          </a>
-        </Reveal>
-      </div>
+   
 
       {/* ── SCROLL HINT — progress ring + chevron (infinite CHỈ trạng thái affordance) ── */}
       <div className="z-10 my-8 flex flex-col items-center gap-1 max-md:mx-auto md:my-0 md:absolute md:bottom-6 md:left-1/2 md:-translate-x-1/2">

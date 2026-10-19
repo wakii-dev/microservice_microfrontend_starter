@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Design Depth — BEFORE/AFTER (124 component, lưới 3×3)</title>
+<style>
+  body { margin: 0; background: #0f1011; color: #e8eaed; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  header { padding: 20px 24px; border-bottom: 1px solid #23252a; position: sticky; top: 0; background: #0f1011f2; backdrop-filter: blur(6px); }
+  h1 { margin: 0 0 4px; font-size: 15px; letter-spacing: 2.4px; text-transform: uppercase; }
+  .meta { color: #8a8f98; font-size: 11px; }
+  .meta b { color: #8ab4ff; }
+  .row { padding: 16px 24px; border-bottom: 1px solid #1a1c20; }
+  .row h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #8a8f98; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .side { border: 1px solid #23252a; border-radius: 8px; overflow: hidden; }
+  .side .tag { padding: 6px 10px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+  .baseline .tag { background: #23252a; color: #8a8f98; }
+  .after .tag { background: #10331c; color: #3fb950; }
+  .side img { display: block; width: 100%; height: auto; }
+  .note { padding: 14px 24px; color: #8a8f98; font-size: 11px; }
+  @media (max-width: 900px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎬 Design Depth — trước / sau (PO duyệt mắt)</h1>
+  <div class="meta">
+    14 lưới × 9 component = <b>124 component</b> · method: lưới sống 3×3 (http.server :6199 + iframe :6006, light-forced, token-verified) ·
+    baseline = đầu depth wave · after = chụp sau gate <b>e22db92</b> · R11 depth contract: ele-1/2/3 + wash + ease-smooth.
+  </div>
+</header>
+<div id="rows"></div>
+<p class="note">
+  Cách duyệt: mỗi hàng = 1 lưới. Trái = BASELINE (đầu wave), phải = AFTER (sau depth).
+  Component đổi rõ nhất: Card · Collapse · Descriptions · PanelMenu · PingFeed/Team-OS (mới) · Table · các panel ele/wash.
+  Ảnh gốc đầy đủ: <b>depth-baseline/</b> và <b>depth-after/</b> (14 × fullPage).
+</p>
+<script>
+  const N = 14;
+  const rows = document.getElementById('rows');
+  for (let i = 1; i <= N; i++) {
+    const n = String(i).padStart(2, '0');
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `
+      <h2>Grid ${n}</h2>
+      <div class="pair">
+        <figure class="side baseline"><figcaption class="tag">● baseline — đầu depth wave</figcaption><img loading="lazy" src="depth-baseline/grid-${n}.png" alt="baseline grid ${n}"></figure>
+        <figure class="side after"><figcaption class="tag">✓ after — sau depth (gate e22db92)</figcaption><img loading="lazy" src="depth-after/grid-${n}.png" alt="after grid ${n}"></figure>
+      </div>`;
+    rows.appendChild(row);
+  }
+</script>
+</body>
+</html>

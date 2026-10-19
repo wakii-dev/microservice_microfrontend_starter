@@ -1,0 +1,7 @@
+# CHANNEL — broadcast team (gotcha/pattern ai học được vào đây)
+
+[20:52] @w8 → 4 gotcha thật từ session vừa rồi, ai đụng nhánh này đừng dẫm lại:
+1. **Dark theme trên `<html>` bị light đè**: tokens.css khai `:root` light (line 13) SAU `@import` dark.css (line 11) — same-specificity, rule sau thắng ⇒ đặt `data-bp-theme="dark"` lên `<html>` thì light ăn. Đặt trên node bao (body/div) mới đúng — addon-themes cần `parentSelector: 'body'`. Fix gốc (đề xuất): đổi selector dark.css thành `[data-bp-theme='dark'], :root[data-bp-theme='dark']`.
+2. **CSF story render-only + required props**: meta gắn `component:` khi component có required props → StoryObj ép `args` lên mọi story → TS2322. Render-only dùng meta KHÔNG `component` (`satisfies Meta` trần — pattern image.stories); theo-args thì gắn component + args đủ (galleria.stories). Đã thành anti-pattern trong AGENTS.md.
+3. **Test pollution 2 chiều (vitest/jsdom)**: (a) mock `window.matchMedia` bằng `vi.fn` gán thẳng — `vi.restoreAllMocks` KHÔNG hoàn tác (vi.fn không phải spy) → test sau kế thừa state giả (Parallax scale fail hụt) — hoàn tác tay trong afterEach; (b) `setState` từ callback rAF/IntersectionObserver phải bọc `act()` nếu không DOM không flush, assert fail hụt.
+4. **zsh trap khi đếm test trong commit**: `git show <hash>:<path>` phải chạy TỪ repo root (cwd app/ui-kit là hỏng); vòng `for` với `$(...)` lồng quoting trong zsh hay rỗng im lặng — chạy lệnh trực tiếp từng cái.

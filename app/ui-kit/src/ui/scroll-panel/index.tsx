@@ -9,7 +9,7 @@ export interface ScrollPanelProps {
 
 export function ScrollPanel({ children, height = '200px', className }: ScrollPanelProps) {
   return (
-    <div className={`overflow-auto rounded-xl border border-line bg-s2 p-3 [scrollbar-width:thin] [scrollbar-color:var(--line)_transparent]${className ? ` ${className}` : ''}`} style={{ height }}>
+    <div className={`overflow-auto rounded-xl border border-line bg-s2 [background-image:var(--wash)] shadow-[var(--ele-1)] p-3 [scrollbar-width:thin] [scrollbar-color:var(--line)_transparent]${className ? ` ${className}` : ''}`} style={{ height }}>
       {children}
     </div>
   );

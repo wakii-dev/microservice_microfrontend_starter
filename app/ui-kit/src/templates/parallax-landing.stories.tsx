@@ -19,6 +19,10 @@ type Story = StoryObj<typeof meta>;
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+const DEPTH_TX = 'transition-[box-shadow,border-color,transform] duration-[240ms] ease-[var(--ease-smooth)]';
+const CARD_DEPTH = `shadow-[var(--ele-1)] ${DEPTH_TX} hover:shadow-[var(--ele-2)] hover:border-ink/20 hover:-translate-y-px`;
+
 /** Progress scroll toàn trang 0..1 — 1 listener duy nhất ở root (rAF-throttle). */
 function usePageProgress() {
   const [pct, setPct] = useState(0);
@@ -101,7 +105,7 @@ function CrossfadeBackdrop({ pct }: { pct: number }) {
 function Kpi({ value, decimals = 0, suffix, label }: { value: number; decimals?: number; suffix?: string; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="flex items-baseline gap-1 text-h1 font-bold text-white drop-shadow-md">
+      <div className="flex items-baseline gap-1 text-h1 font-bold tracking-[-0.02em] text-white drop-shadow-md">
         <CountUp value={value} decimals={decimals} format={fmt} />
         {suffix && <span className="text-h2 font-semibold">{suffix}</span>}
       </div>
@@ -201,9 +205,13 @@ function FeatureSections() {
               <ul className="m-0 grid list-none gap-2 p-0">
                 {s.features.map((feature, k) => (
                   <li key={feature}>
-                    <Reveal direction={textDir} delay={120 + k * 90}>
-                      <div className="flex items-center gap-2 rounded-lg border border-line bg-s2 px-3 py-2 text-body text-ink2">
-                        <Icon name="check" size={14} className="shrink-0 text-st-done" />
+                    <Reveal direction={textDir} delay={80 + k * 40}>
+                      <div className={`group flex items-center gap-2 rounded-lg border border-line bg-s2 px-3 py-2 text-body text-ink2 ${CARD_DEPTH}`}>
+                        <Icon
+                          name="check"
+                          size={14}
+                          className="shrink-0 text-st-done transition-transform duration-[240ms] ease-[var(--ease-smooth)] group-hover:translate-x-0.5"
+                        />
                         {feature}
                       </div>
                     </Reveal>
@@ -261,7 +269,7 @@ function MaskRevealShowcase() {
           className="w-full rounded-xl border border-line object-cover"
           style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
         />
-        <span className="absolute bottom-2 right-2 rounded-pill bg-[var(--scrim-3)] px-2 py-0.5 text-meta text-white">
+        <span className="absolute bottom-2 right-2 rounded-pill bg-[var(--scrim-3)] px-2 py-0.5 font-mono text-meta tabular-nums text-white">
           mask {pct}%
         </span>
       </div>
@@ -316,8 +324,12 @@ function ParallaxGallery() {
     <section className="mx-auto max-w-5xl px-10 pb-6 pt-2">
       <h2 className="m-0 mb-4 text-h2 font-bold text-ink">Gallery — ảnh đứng, caption trôi</h2>
       <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
-        {GALLERY.map(([seed, imgSpeed, capSpeed]) => (
-          <div key={seed} className="relative h-56 overflow-hidden rounded-xl border border-line">
+        {GALLERY.map(([seed, imgSpeed, capSpeed], gi) => (
+          <div
+            key={seed}
+            className="relative h-56 overflow-hidden rounded-xl border border-line shadow-[var(--ele-1)] animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]"
+            style={{ animationDelay: `${gi * 40}ms` }}
+          >
             <Parallax speed={imgSpeed} className="absolute inset-0">
               <img
                 src={`https://picsum.photos/seed/${seed}/600/760`}
@@ -475,13 +487,13 @@ function FinalCta() {
       </Reveal>
       <Reveal direction="up" delay={100}>
         <div className="flex flex-wrap items-center justify-center gap-10 text-body text-ink2">
-          <span className="text-h2 font-bold text-ink">
+          <span className="text-h2 font-bold tracking-[-0.02em] text-ink">
             <CountUp value={12480} format={fmt} /> <span className="text-body font-normal text-ink3">task</span>
           </span>
-          <span className="text-h2 font-bold text-ink">
+          <span className="text-h2 font-bold tracking-[-0.02em] text-ink">
             <CountUp value={320} /> <span className="text-body font-normal text-ink3">đội nhóm</span>
           </span>
-          <span className="text-h2 font-bold text-ink">
+          <span className="text-h2 font-bold tracking-[-0.02em] text-ink">
             <CountUp value={0} /> <span className="text-body font-normal text-ink3">deps chuyển động</span>
           </span>
         </div>

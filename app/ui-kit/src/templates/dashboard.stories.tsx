@@ -37,6 +37,18 @@ const meta = { title: 'Templates/Dashboard', tags: ['autodocs'] } satisfies Meta
 export default meta;
 type S = StoryObj<typeof meta>;
 
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+// Panel: ele-1 nghỉ → ele-2 hover (edge-highlight + hairline nằm sẵn trong --ele-*),
+// viền đậm mực khi hover, nhấc/chìm 1px — mọi transition --ease-smooth 240ms.
+const DEPTH_TX = 'transition-[box-shadow,border-color,transform] duration-[240ms] ease-[var(--ease-smooth)]';
+const CARD_DEPTH = `shadow-[var(--ele-1)] ${DEPTH_TX} hover:shadow-[var(--ele-2)] hover:border-ink/20 hover:-translate-y-px`;
+const PRESS_DEPTH = 'active:translate-y-px';
+/** Stagger mount 32ms/ item (24-40ms contract) — fill backwards để delay không nhấp nháy. */
+const STAGGER_CLS = 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]';
+const stagger = (i: number, step = 32) => ({ animationDelay: `${i * step}ms` });
+/** Số lớn = depth: tracking âm −0.02em (Linear ladder — typography là depth). */
+const NUM_TIGHT = { letterSpacing: '-0.02em' } as const;
+
 /** DashboardMax — R11: 10 section shell admin, mọi live-state đều thao tác được. */
 export const Dashboard: S = {
   render: () => <AdminDashboard />,
@@ -204,13 +216,15 @@ function AdminDashboard() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [unread, setUnread] = useState(NOTIFS.length);
   const [calendarDay, setCalendarDay] = useState(new Date());
+  const [kpiRev, setKpiRev] = useState(0);
   const { probeRef, colors } = useChartColors();
 
-  // §2 KPI live refresh — CountUp animate tiếp từ số đang hiển thị
+  // §2 KPI live refresh — CountUp animate tiếp từ số đang hiển thị + delta pill pulse replay
   function refreshKpis() {
     setKpis((prev) =>
       prev.map((k) => ({ ...k, value: Math.round(k.value * (0.96 + Math.random() * 0.1) * 10) / 10 })),
     );
+    setKpiRev((v) => v + 1);
     message.success('Đã đồng bộ dữ liệu sprint');
   }
 
@@ -269,7 +283,18 @@ function AdminDashboard() {
 
   // §5 Table columns — sort + expand + summary qua Table advanced
   const columns: TableColumn<Task>[] = [
-    { key: 'title', title: 'Task', sortable: true },
+    {
+      key: 'title',
+      title: 'Task',
+      sortable: true,
+      // Typography = depth: ID mono (hàng cột không nhảy), title ink
+      render: (t) => (
+        <span className="flex items-baseline gap-2">
+          <span className="font-mono text-meta text-ink3">#{t.id}</span>
+          <span className="text-ink">{t.title}</span>
+        </span>
+      ),
+    },
     {
       key: 'status',
       title: 'Trạng thái',
@@ -289,7 +314,7 @@ function AdminDashboard() {
         </span>
       ),
     },
-    { key: 'hours', title: 'Giờ', align: 'right', render: (t) => <span className="tabular-nums">{t.hours}h</span> },
+    { key: 'hours', title: 'Giờ', align: 'right', render: (t) => <span className="font-mono tabular-nums">{t.hours}h</span> },
   ];
 
   return (
@@ -307,7 +332,7 @@ function AdminDashboard() {
       <Layout>
         <Layout.Header sticky>
           <span className="whitespace-nowrap text-h3 font-semibold text-ink">Sprint VU-53</span>
-          <Tag className="whitespace-nowrap">v0.3.0-rc</Tag>
+          <Tag className="whitespace-nowrap font-mono">v0.3.0-rc</Tag>
           <span className="ml-auto flex items-center gap-2">
             <Button size="small" type="text" icon={<Icon name="refresh" size={14} />} onClick={refreshKpis} className="whitespace-nowrap">
               Đồng bộ
@@ -317,55 +342,64 @@ function AdminDashboard() {
                 type="button"
                 aria-label={`Thông báo — ${unread} chưa đọc`}
                 onClick={() => setDrawerOpen(true)}
-                className="relative grid size-8 cursor-pointer place-items-center rounded-lg border-none bg-transparent text-ink2 transition-colors hover:bg-s3 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+                className={`group relative grid size-8 cursor-pointer place-items-center rounded-lg border-none bg-transparent text-ink2 hover:bg-s3 hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${DEPTH_TX} ${PRESS_DEPTH}`}
               >
-                <Icon name="bell" size={16} />
+                <Icon name="bell" size={16} className="transition-transform duration-[240ms] ease-[var(--ease-smooth)] group-hover:rotate-12" />
               </button>
             </Badge>
             <Avatar size={28}>A</Avatar>
           </span>
         </Layout.Header>
         <Layout.Content>
-          {/* §2 KPI — CountUp live + refresh */}
+          {/* §2 KPI — CountUp live + refresh; stagger mount 32ms + ele ladder + tracking âm */}
           <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-4">
-            {kpis.map((k) => (
-              <Card key={k.title}>
-                <div className="flex items-center gap-3">
-                  <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-lg ${k.iconCls}`}>
-                    <Icon name={k.icon} size={16} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <Statistic
-                      title={k.title}
-                      value={<CountUp value={k.value} decimals={k.decimals} duration={1.2} format={(n) => n.toLocaleString('vi-VN')} />}
-                      suffix={k.unit}
-                    />
+            {kpis.map((k, i) => (
+              <div key={k.title} className={STAGGER_CLS} style={stagger(i)}>
+                <Card className={CARD_DEPTH}>
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-lg ${k.iconCls}`}>
+                      <Icon name={k.icon} size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <Statistic
+                        title={k.title}
+                        value={<CountUp value={k.value} decimals={k.decimals} duration={1.2} format={(n) => n.toLocaleString('vi-VN')} />}
+                        suffix={k.unit}
+                        valueStyle={NUM_TIGHT}
+                      />
+                    </div>
+                    {/* counter pulse: pill remount theo kpiRev → replay pop khi số đổi */}
+                    <span
+                      key={`${k.title}-${kpiRev}`}
+                      className={`shrink-0 animate-[bp-switch-pop_var(--motion-fast)_var(--ease-toggle)] rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums ${PILL_CLS[k.tone]}`}
+                    >
+                      {k.delta}
+                    </span>
                   </div>
-                  <span className={`shrink-0 rounded-pill px-1.5 py-0.5 text-[10px] font-medium ${PILL_CLS[k.tone]}`}>{k.delta}</span>
-                </div>
-              </Card>
+                </Card>
+              </div>
             ))}
           </div>
 
           {/* §3 Charts — line 7 ngày + doughnut phân bố (dark-live) */}
           <div className="grid gap-4 px-4 xl:grid-cols-3">
-            <Card title="Tiến độ 7 ngày" className="xl:col-span-2">
+            <Card title="Tiến độ 7 ngày" className={`xl:col-span-2 ${CARD_DEPTH}`}>
               <Chart config={lineConfig} height={240} />
             </Card>
-            <Card title="Phân bố trạng thái">
+            <Card title="Phân bố trạng thái" className={CARD_DEPTH}>
               <Chart config={doughnutConfig} height={240} />
             </Card>
           </div>
 
           {/* §4 Sprint board mini + §10 team presence */}
           <div className="grid gap-4 p-4 xl:grid-cols-3">
-            <Card title="Sprint board — kéo thẻ thử" className="xl:col-span-2">
+            <Card title="Sprint board — kéo thẻ thử" className={`xl:col-span-2 ${CARD_DEPTH}`}>
               <div className="overflow-x-auto">
                 <KanbanBoard columns={board} onCardMove={moveCard} ariaLabel="Sprint board VU-53" />
               </div>
             </Card>
             <div className="grid content-start gap-4">
-              <Card title="Team đang online">
+              <Card title="Team đang online" className={CARD_DEPTH}>
                 <div className="flex flex-col gap-3">
                   <AvatarGroup items={TEAM} max={4} size={32} />
                   <p className="m-0 text-meta text-ink3">
@@ -382,7 +416,7 @@ function AdminDashboard() {
                 </div>
               </Card>
               {/* §8 Quick-add — Field mini → toast + prepend table */}
-              <Card title="Thêm task nhanh">
+              <Card title="Thêm task nhanh" className={CARD_DEPTH}>
                 <form
                   className="grid gap-2"
                   onSubmit={(e) => {
@@ -416,7 +450,7 @@ function AdminDashboard() {
           <div className="grid gap-4 p-4 xl:grid-cols-3">
             <Card
               title="Tasks mới nhất"
-              className="xl:col-span-2"
+              className={`xl:col-span-2 ${CARD_DEPTH}`}
               extra={
                 <span className="flex items-center gap-3 text-meta text-ink3">
                   <label className="flex cursor-pointer items-center gap-1.5">
@@ -459,11 +493,11 @@ function AdminDashboard() {
               />
             </Card>
             <div className="grid content-start gap-4">
-              <Card title="Hoạt động">
+              <Card title="Hoạt động" className={CARD_DEPTH}>
                 <Timeline items={ACTIVITY} />
               </Card>
               {/* §7 Upcoming — Calendar mini (chọn ngày deadline) */}
-              <Card title="Deadline gần — chọn ngày">
+              <Card title="Deadline gần — chọn ngày" className={CARD_DEPTH}>
                 <Calendar bare value={calendarDay} onChange={setCalendarDay} />
                 <p className="m-0 mt-2 text-meta text-ink3">
                   Đang xem: <span className="text-ink2">{calendarDay.toLocaleDateString('vi-VN')}</span> — 2 deadline (PR #55 review, 0.3.0 cut).
@@ -478,12 +512,16 @@ function AdminDashboard() {
       {/* §9 Notifications Drawer — bell mở, "đánh dấu đã đọc" reset Badge */}
       <Drawer open={drawerOpen} title="Thông báo" width={360} onClose={() => setDrawerOpen(false)}>
         <div className="grid gap-3">
-          {NOTIFS.map((n) => (
-            <div key={n.id} className={`rounded-xl border p-3 ${n.danger ? 'border-st-fail/40 bg-st-fail/5' : 'border-line bg-s2'}`}>
+          {NOTIFS.map((n, i) => (
+            <div
+              key={n.id}
+              className={`${STAGGER_CLS} rounded-xl border p-3 shadow-[var(--ele-1)] ${n.danger ? 'border-st-fail/40 bg-st-fail/5' : 'border-line bg-s2'}`}
+              style={stagger(i, 40)}
+            >
               <p className="m-0 flex items-center gap-2 text-label font-medium text-ink">
                 {n.danger && <Icon name="exclamation-triangle" size={12} className="text-st-fail" />}
                 {n.title}
-                <span className="ml-auto font-normal text-meta text-ink3">{n.time}</span>
+                <span className="ml-auto font-mono font-normal text-meta text-ink3 tabular-nums">{n.time}</span>
               </p>
               <p className="m-0 mt-1 text-label text-ink2">{n.desc}</p>
             </div>

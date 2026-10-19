@@ -38,6 +38,13 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+const DEPTH_TX = 'transition-[box-shadow,border-color,transform] duration-[240ms] ease-[var(--ease-smooth)]';
+const CARD_DEPTH = `shadow-[var(--ele-1)] ${DEPTH_TX} hover:shadow-[var(--ele-2)] hover:border-ink/20 hover:-translate-y-px`;
+const STAGGER_CLS = 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]';
+const stagger = (i: number, step = 32) => ({ animationDelay: `${i * step}ms` });
+const NUM_TIGHT = { letterSpacing: '-0.02em' } as const;
+
 type IssueType = 'task' | 'bug' | 'story';
 type Priority = 'highest' | 'high' | 'medium' | 'low' | 'lowest';
 type EpicTone = 'accent' | 'doing' | 'fail';
@@ -221,9 +228,9 @@ function ProjectBoardDemo() {
                   <button
                     type="button"
                     aria-label={`Tạo issue trong ${col.title}`}
-                    className="flex size-5 cursor-pointer items-center justify-center rounded-1 border-none bg-transparent text-ink3 transition-colors hover:bg-s3 hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+                    className={`group flex size-5 cursor-pointer items-center justify-center rounded-1 border-none bg-transparent text-ink3 hover:bg-s3 hover:text-accent focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${DEPTH_TX} hover:-translate-y-px active:translate-y-px`}
                   >
-                    <Icon name="plus" size={12} />
+                    <Icon name="plus" size={12} className="transition-transform duration-[240ms] ease-[var(--ease-smooth)] group-hover:rotate-90" />
                   </button>
                 </Popover>
               </span>
@@ -246,8 +253,9 @@ function ProjectBoardDemo() {
   return (
     <div className="mx-auto max-w-6xl p-6">
       <Flex vertical gap={12}>
-        {/* Toolbar Jira — search + quick-filter pills + members + Backlog toggle */}
-        <Card>
+        {/* Toolbar Jira — search + quick-filter pills + members + Backlog toggle; stagger mount */}
+        <div className={STAGGER_CLS} style={stagger(0)}>
+        <Card className={CARD_DEPTH}>
           <Flex gap="middle" wrap className="items-center">
             <Input.Search
               className="w-56"
@@ -266,16 +274,20 @@ function ProjectBoardDemo() {
               Backlog
             </Button>
             <span className="ml-auto flex items-center gap-3">
-              <span className="text-meta text-ink3">
+              <span
+                key={`${visibleCount}-${totalCount}`}
+                className="animate-[bp-switch-pop_var(--motion-fast)_var(--ease-toggle)] font-mono text-meta tabular-nums text-ink3"
+              >
                 {visibleCount}/{totalCount} issue
               </span>
               <AvatarGroup items={MEMBERS} size={24} max={3} />
             </span>
           </Flex>
         </Card>
+        </div>
 
-        {/* Board + side panel */}
-        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Board + side panel — stagger khối 2 */}
+        <div className={`${STAGGER_CLS} grid grid-cols-1 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]`} style={stagger(1)}>
           <KanbanBoard
             ariaLabel="Project board"
             columns={board}
@@ -316,12 +328,12 @@ function ProjectBoardDemo() {
 
           {/* Side panel — log giờ tuần (Timesheet mini) + tổng */}
           <Flex vertical gap={12}>
-            <Card>
+            <Card className={CARD_DEPTH}>
               <Flex gap="middle" className="items-center">
-                <Statistic title="Log tuần này" value="39h" suffix="/ 40h" />
+                <Statistic title="Log tuần này" value="39h" suffix="/ 40h" valueStyle={NUM_TIGHT} />
               </Flex>
             </Card>
-            <Card title="Timesheet">
+            <Card title="Timesheet" className={CARD_DEPTH}>
               <Timesheet
                 rows={SHEET_ROWS}
                 week={new Date()}

@@ -40,6 +40,13 @@ const meta = { title: 'Templates/Settings', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type S = StoryObj<typeof meta>;
 
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+const DEPTH_TX = 'transition-[box-shadow,border-color,transform] duration-[240ms] ease-[var(--ease-smooth)]';
+const CARD_DEPTH = `shadow-[var(--ele-1)] ${DEPTH_TX} hover:shadow-[var(--ele-2)] hover:border-ink/20 hover:-translate-y-px`;
+const STAGGER_CLS = 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]';
+const stagger = (i: number, step = 32) => ({ animationDelay: `${i * step}ms` });
+const NUM_TIGHT = { letterSpacing: '-0.02em' } as const;
+
 /** Settings — 4 nhóm cài đặt (Account/Security/Notifications/Appearance) trên shell Layout. */
 export const Settings: S = {
   render: () => <SettingsTemplate />,
@@ -60,7 +67,7 @@ function AccountPanel() {
   const [name, setName] = useState('Alice Nguyễn');
   const [email, setEmail] = useState('alice@demo.local');
   return (
-    <Card title="Hồ sơ">
+    <Card title="Hồ sơ" className={STAGGER_CLS}>
       <div className="flex items-start gap-4">
         <Avatar size={56}>A</Avatar>
         <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
@@ -111,7 +118,7 @@ function SecurityPanel() {
   const [otp, setOtp] = useState('');
   const cooldown = useCountdown(30);
   return (
-    <Card title="Bảo mật">
+    <Card title="Bảo mật" className={STAGGER_CLS}>
       <div className="grid max-w-md gap-4">
         <Field label="Mật khẩu hiện tại" htmlFor="pw-current" required>
           <Password ariaLabel="Mật khẩu hiện tại" value={currentPw} onChange={setCurrentPw} />
@@ -148,7 +155,11 @@ function SecurityPanel() {
               message.success('Đã gửi mã mới');
             }}
           >
-            {cooldown.isRunning ? `Gửi lại sau ${cooldown.seconds}s` : 'Gửi mã'}
+            {cooldown.isRunning ? (
+            <span className="font-mono tabular-nums">Gửi lại sau {cooldown.seconds}s</span>
+          ) : (
+            'Gửi mã'
+          )}
           </Button>
           <Button
             size="small"
@@ -182,12 +193,13 @@ function NotificationsPanel() {
   const [quietHours, setQuietHours] = useState(true);
   const [weekend, setWeekend] = useState(false);
   return (
-    <Card title="Thông báo">
+    <Card title="Thông báo" className={STAGGER_CLS}>
       <div className="grid">
-        {CHANNELS.map((c) => (
+        {CHANNELS.map((c, i) => (
           <div
             key={c.key}
-            className="flex items-center justify-between gap-4 rounded-lg px-2 py-2.5 transition-colors hover:bg-s3"
+            className={`${STAGGER_CLS} flex items-center justify-between gap-4 rounded-lg px-2 py-2.5 transition-colors hover:bg-s3`}
+            style={stagger(i)}
           >
             <div className="min-w-0">
               <div className="text-body text-ink">{c.label}</div>
@@ -232,7 +244,7 @@ function AppearancePanel() {
   const [accent, setAccent] = useState('#1677ff');
   return (
     <div className="grid gap-4">
-      <Card title="Mật độ hiển thị">
+      <Card title="Mật độ hiển thị" className={STAGGER_CLS}>
         <div className="flex flex-wrap items-center gap-3">
           <Segmented
             options={DENSITY}
@@ -245,10 +257,10 @@ function AppearancePanel() {
           <span className="text-meta text-ink3">Áp dụng cho Table, List và grid dữ liệu</span>
         </div>
       </Card>
-      <Card title="Màu nhận diện">
+      <Card title="Màu nhận diện" className={CARD_DEPTH}>
         <div className="flex flex-wrap items-center gap-4">
           <ColorPicker value={accent} presets={ACCENT_PRESETS} onChange={setAccent} />
-          <span className="text-meta text-ink3 tabular-nums">{accent}</span>
+          <span key={accent} className="animate-[bp-switch-pop_var(--motion-fast)_var(--ease-toggle)] font-mono text-meta tabular-nums text-ink3">{accent}</span>
         </div>
         {/* LIVE: UiKitProvider ghi --accent/--accent-hi lên scope con — accent đổi tức thì */}
         <div className="mt-4 rounded-xl border border-line bg-canvas p-4">
@@ -271,7 +283,7 @@ function AppearancePanel() {
           </UiKitProvider>
         </div>
       </Card>
-      <Card title="Xem trước dark">
+      <Card title="Xem trước dark" className={CARD_DEPTH}>
         <UiKitProvider theme="dark">
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-canvas p-4">
             <Button type="primary">Nút chính</Button>
@@ -301,14 +313,14 @@ function BillingPanel() {
   const [demo, setDemo] = useState('live');
   return (
     <div className="grid gap-4">
-      <Card title="Gói hiện tại — Team">
+      <Card title="Gói hiện tại — Team" className={CARD_DEPTH}>
         <div className="flex flex-wrap items-center gap-6">
-          <Statistic title="Hạn mức storage" value="86 GB" suffix="/ 100 GB" />
+          <Statistic title="Hạn mức storage" value="86 GB" suffix="/ 100 GB" valueStyle={NUM_TIGHT} />
           <div className="min-w-48 flex-1">
             <Progress percent={86} status="exception" />
             <p className="mb-0 mt-1 text-meta text-ink3">Gần hạn mức — cân nhắc nâng gói.</p>
           </div>
-          <Statistic title="Thành viên" value={12} suffix="/ 15" />
+          <Statistic title="Thành viên" value={12} suffix="/ 15" valueStyle={NUM_TIGHT} />
         </div>
         <div className="mt-4 flex items-center justify-between border-t border-line2 pt-4">
           <Checkbox checked={autoRenew} onChange={setAutoRenew}>
@@ -319,7 +331,7 @@ function BillingPanel() {
           </Button>
         </div>
       </Card>
-      <Card title="Lịch sử hóa đơn">
+      <Card title="Lịch sử hóa đơn" className={CARD_DEPTH}>
         <div className="mb-3">
           <Segmented
             aria-label="Demo state hóa đơn"
@@ -334,7 +346,10 @@ function BillingPanel() {
         </div>
         <Table
           columns={[
-            { key: 'id', title: 'Số hóa đơn' },
+            {
+            key: 'id', title: 'Số hóa đơn',
+            render: (r: (typeof INVOICES)[number]) => <span className="font-mono text-label text-ink2">{r.id}</span>,
+          },
             { key: 'date', title: 'Ngày' },
             { key: 'plan', title: 'Gói' },
             { key: 'amount', title: 'Số tiền', align: 'right', dataType: 'number', render: (r: (typeof INVOICES)[number]) => <span className="tabular-nums">${r.amount}</span> },
@@ -378,8 +393,9 @@ function IntegrationsPanel() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {INTEGRATIONS.map((i) => (
-        <Card key={i.key} title={i.name}>
+      {INTEGRATIONS.map((i, idx) => (
+        <div key={i.key} className={STAGGER_CLS} style={stagger(idx, 40)}>
+        <Card title={i.name} className={CARD_DEPTH}>
           <p className="m-0 text-label text-ink3">{i.desc}</p>
           <div className="mt-3 flex items-center justify-between">
             {connected[i.key] ? <Badge variant="done">Đã kết nối</Badge> : <Badge variant="todo">Chưa nối</Badge>}
@@ -390,6 +406,7 @@ function IntegrationsPanel() {
             />
           </div>
         </Card>
+        </div>
       ))}
       <Modal
         open={connecting !== null}
@@ -416,7 +433,7 @@ function DangerZonePanel() {
   const [confirmName, setConfirmName] = useState('');
   const armed = confirmName.trim().toLowerCase() === 'alice nguyen';
   return (
-    <Card title="Vùng nguy hiểm">
+    <Card title="Vùng nguy hiểm" className={CARD_DEPTH}>
       <div className="grid max-w-lg gap-3">
         <p className="m-0 text-label text-ink3">
           Xoá tài khoản xoá luôn mọi task, token và lịch sử hoạt động. Gõ <strong className="text-ink">Alice Nguyen</strong> để

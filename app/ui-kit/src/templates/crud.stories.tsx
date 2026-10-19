@@ -271,15 +271,17 @@ function CrudPage({ initialLoading = false, initialQuery = '' }: { initialLoadin
       </Flex>
 
       {/* Sprint progress mini — live theo data */}
-      <Card>
+      <Card className={CARD_DEPTH}>
         <Flex gap="middle" className="items-center">
-          <Statistic title="Tiến độ sprint" value={`${donePct}%`} />
+          <Statistic title="Tiến độ sprint" value={`${donePct}%`} valueStyle={NUM_TIGHT} />
           <div className="min-w-0 flex-1">
             <Progress percent={donePct} />
           </div>
           <Avatar>A</Avatar>
           <Avatar>B</Avatar>
-          <span className="text-meta text-ink3">3 người · 10 task</span>
+          <span key={donePct} className="animate-[bp-switch-pop_var(--motion-fast)_var(--ease-toggle)] font-mono text-meta tabular-nums text-ink3">
+            3 người · {tasks.length} task
+          </span>
         </Flex>
       </Card>
 
@@ -300,13 +302,24 @@ function CrudPage({ initialLoading = false, initialQuery = '' }: { initialLoadin
       {view === 'table' ? (
         <Table
           columns={[
-            { key: 'title', title: 'Task', sortable: true },
+            {
+              key: 'title', title: 'Task', sortable: true,
+              render: (r: Task) => (
+                <span className="flex items-baseline gap-2">
+                  <span className="font-mono text-meta text-ink3">#{r.id}</span>
+                  <span className="text-ink">{r.title}</span>
+                </span>
+              ),
+            },
             {
               key: 'status', title: 'Status', sortable: true,
               render: (r: Task) => <Badge variant={STATUS_BADGE[r.status].variant}>{STATUS_BADGE[r.status].label}</Badge>,
             },
             { key: 'owner', title: 'Owner', render: (r: Task) => <Tag>{r.owner}</Tag> },
-            { key: 'point', title: 'Points', dataType: 'number', align: 'right', sortable: true },
+            {
+              key: 'point', title: 'Points', dataType: 'number', align: 'right', sortable: true,
+              render: (r: Task) => <span className="font-mono tabular-nums">{r.point}</span>,
+            },
             ...actionCols,
           ]}
           dataSource={filtered}
@@ -334,19 +347,24 @@ function CrudPage({ initialLoading = false, initialQuery = '' }: { initialLoadin
             ? null
             : filtered.map((t) => (
                 <Col key={t.id} xs={24} md={12}>
-                  {/* Card không có prop onClick → bọc div role=button (a11y) */}
-                  <div role="button" tabIndex={0} className="cursor-pointer" onClick={() => openEdit(t)}>
+                  {/* Card không có prop onClick → bọc div role=button (a11y); stagger + press chìm 1px */}
+                  <div
+                    role="button" tabIndex={0}
+                    className={`cursor-pointer ${STAGGER_CLS} ${DEPTH_TX} active:translate-y-px`}
+                    style={stagger(Number(t.id) % 8)}
+                    onClick={() => openEdit(t)}
+                  >
                     <Card
                       title={t.title}
                       extra={<Badge variant={STATUS_BADGE[t.status].variant}>{STATUS_BADGE[t.status].label}</Badge>}
                       hoverable
-                      className="h-full"
+                      className="h-full shadow-[var(--ele-1)]"
                     >
                       <p className="m-0 text-label text-ink3">{t.note}</p>
                       <div className="mt-2 flex items-center gap-2">
                         <Avatar size={22}>{t.owner.charAt(0).toUpperCase()}</Avatar>
                         <Tag>{t.owner}</Tag>
-                        <span className="ml-auto text-meta text-ink3 tabular-nums">{t.point} pts</span>
+                        <span className="ml-auto font-mono text-meta text-ink3 tabular-nums">{t.point} pts</span>
                       </div>
                     </Card>
                   </div>
@@ -403,6 +421,13 @@ export default meta;
 
 type Story = StoryObj;
 
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+const DEPTH_TX = 'transition-[box-shadow,border-color,transform] duration-[240ms] ease-[var(--ease-smooth)]';
+const CARD_DEPTH = `shadow-[var(--ele-1)] ${DEPTH_TX} hover:shadow-[var(--ele-2)] hover:border-ink/20 hover:-translate-y-px`;
+const STAGGER_CLS = 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]';
+const stagger = (i: number, step = 32) => ({ animationDelay: `${i * step}ms` });
+const NUM_TIGHT = { letterSpacing: '-0.02em' } as const;
+
 /** FullDemo — toolbar search/2 filter/Segmented view/create + batch delete · sortable selectable
  * expandable fixed-header table + summary + pagination · Drawer CREATE vs EDIT (nested
  * Descriptions + Timeline) · EMPTY / SKELETON / ERROR 3 state toggle · toasts. */
@@ -413,4 +438,13 @@ export const Full_Demo: Story = {
 /** EmptyAndLoading — boots with the skeleton on and a non-matching search (empty state). */
 export const EmptyAndLoading: Story = {
   render: () => <CrudPage initialLoading initialQuery="zzz-no-match" />,
+};
+
+/** DarkTheme — surface ladder + ele re-bake cascade qua token, không code riêng cho dark. */
+export const DarkTheme: Story = {
+  render: () => (
+    <div data-bp-theme="dark" className="min-h-screen bg-canvas p-4">
+      <CrudPage />
+    </div>
+  ),
 };

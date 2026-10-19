@@ -19,7 +19,6 @@ import {
   Parallax,
   Password,
   Result,
-  Switch,
   Tour,
   useCountdown,
   useFieldArray,
@@ -29,6 +28,15 @@ import {
 const meta = { title: 'Templates/Auth', tags: ['autodocs'] } satisfies Meta;
 export default meta;
 type Story = StoryObj;
+
+// ── Depth contract (docs/team/depth-demos/direction-approved.md) ──
+// Auth = form focal panel: s2 + hairline + ele-1 (edge-highlight trong token);
+// panel tĩnh KHÔNG hover-lift (form nhấp nháy là phản cảm) — hover/press dành cho nút.
+const PANEL_DEPTH = 'rounded-xl border border-line bg-s2 p-6 shadow-[var(--ele-1)]';
+const STAGGER_CLS = 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)_backwards]';
+const stagger = (i: number, step = 32) => ({ animationDelay: `${i * step}ms` });
+/** Eyebrow Linear: uppercase tracking dương trên title. */
+const EYEBROW_CLS = 'text-meta font-medium uppercase tracking-widest text-ink3';
 
 // ── Sign-in — zod validate thật, submit sai → focus ô đầu tiên, đúng → loading 1.2s ──
 
@@ -53,9 +61,10 @@ function SignInCard() {
   const [tourOpen, setTourOpen] = useState(false);
 
   return (
-    <div className="flex w-full max-w-[400px] flex-col gap-4">
+    <div className={`flex w-full flex-col gap-4 ${PANEL_DEPTH}`}>
       <div>
-        <div className="text-h2 font-bold text-ink">Đăng nhập</div>
+        <div className={EYEBROW_CLS}>Wakii workspace</div>
+        <div className="mt-0.5 text-h2 font-bold tracking-[-0.02em] text-ink">Đăng nhập</div>
         <div className="text-body text-ink3">Vào bảng công việc của bạn</div>
       </div>
       <form
@@ -111,12 +120,16 @@ function SignInCard() {
       </form>
       <Divider>hoặc tiếp tục với</Divider>
       <div className="grid grid-cols-2 gap-2">
-        <Button icon={<Icon name="external-link" size={14} />}>Google</Button>
-        <Button icon={<Icon name="external-link" size={14} />}>GitHub</Button>
+        <Button icon={<Icon name="external-link" size={14} />} className={STAGGER_CLS} style={stagger(0)}>
+          Google
+        </Button>
+        <Button icon={<Icon name="external-link" size={14} />} className={STAGGER_CLS} style={stagger(1)}>
+          GitHub
+        </Button>
       </div>
       {done && (
-        <div role="status" className="rounded-lg bg-st-done/10 px-3 py-2 text-body text-st-done">
-          Đăng nhập thành công (demo) — {done}
+        <div role="status" className="animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)] rounded-lg bg-st-done/10 px-3 py-2 text-body text-st-done">
+          Đăng nhập thành công (demo) — <span className="font-mono">{done}</span>
         </div>
       )}
       <Tour
@@ -164,9 +177,10 @@ function SignUpCard() {
   const [done, setDone] = useState(false);
 
   return (
-    <div className="flex w-full max-w-[440px] flex-col gap-4">
+    <div className={`flex w-full flex-col gap-4 ${PANEL_DEPTH}`}>
       <div>
-        <div className="text-h2 font-bold text-ink">Tạo tài khoản</div>
+        <div className={EYEBROW_CLS}>Wakii workspace</div>
+        <div className="mt-0.5 text-h2 font-bold tracking-[-0.02em] text-ink">Tạo tài khoản</div>
         <div className="text-body text-ink3">Miễn phí — không cần thẻ</div>
       </div>
       <form
@@ -261,7 +275,7 @@ function SignUpCard() {
         </Button>
       </form>
       {done && (
-        <div role="status" className="rounded-lg bg-st-done/10 px-3 py-2 text-body text-st-done">
+        <div role="status" className="animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)] rounded-lg bg-st-done/10 px-3 py-2 text-body text-st-done">
           Tài khoản đã được tạo (demo) — kiểm tra email liên hệ.
         </div>
       )}
@@ -331,9 +345,9 @@ function ForgotPasswordDemo() {
   const cooldown = useCountdown(30);
 
   return (
-    <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
+    <div className={`flex w-full max-w-[380px] flex-col gap-4 shadow-[var(--ele-1)] rounded-xl border border-line bg-s2 p-6`}>
       <div>
-        <div className="text-h2 font-bold text-ink">Quên mật khẩu</div>
+        <div className="text-h2 font-bold tracking-[-0.02em] text-ink">Quên mật khẩu</div>
         <div className="text-body text-ink3">Nhập email — chúng tôi gửi mã xác nhận 6 số.</div>
       </div>
       {reset ? (
@@ -366,7 +380,11 @@ function ForgotPasswordDemo() {
                   disabled={cooldown.isRunning}
                   onClick={() => { cooldown.reset(); cooldown.start(); }}
                 >
-                  {cooldown.isRunning ? `Gửi lại sau ${cooldown.seconds}s` : 'Gửi lại mã'}
+                  {cooldown.isRunning ? (
+                    <span className="font-mono tabular-nums">Gửi lại sau {cooldown.seconds}s</span>
+                  ) : (
+                    'Gửi lại mã'
+                  )}
                 </Button>
                 <Button type="primary" size="small" disabled={otp.length < 6} onClick={() => setReset(true)}>
                   Xác nhận
@@ -402,9 +420,9 @@ function MagicLinkDemo() {
     );
   }
   return (
-    <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
+    <div className={`flex w-full max-w-[380px] flex-col gap-4 shadow-[var(--ele-1)] rounded-xl border border-line bg-s2 p-6`}>
       <div>
-        <div className="text-h2 font-bold text-ink">Đăng nhập bằng link</div>
+        <div className="text-h2 font-bold tracking-[-0.02em] text-ink">Đăng nhập bằng link</div>
         <div className="text-body text-ink3">Không cần mật khẩu — một link, một lần dùng.</div>
       </div>
       <Field label="Email" htmlFor="magic-email" required>
@@ -415,9 +433,15 @@ function MagicLinkDemo() {
       </Button>
       <Divider>hoặc</Divider>
       <div className="grid gap-2">
-        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với Google</Button>
-        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với Microsoft</Button>
-        <Button icon={<Icon name="external-link" size={14} />}>Tiếp tục với GitHub</Button>
+        <Button icon={<Icon name="external-link" size={14} />} className={STAGGER_CLS} style={stagger(0)}>
+          Tiếp tục với Google
+        </Button>
+        <Button icon={<Icon name="external-link" size={14} />} className={STAGGER_CLS} style={stagger(1)}>
+          Tiếp tục với Microsoft
+        </Button>
+        <Button icon={<Icon name="external-link" size={14} />} className={STAGGER_CLS} style={stagger(2)}>
+          Tiếp tục với GitHub
+        </Button>
       </div>
       <span className="text-center text-meta text-ink3">Bộ Icon kit không có brand glyph — nút SSO dùng external-link đại diện (rule 9).</span>
     </div>

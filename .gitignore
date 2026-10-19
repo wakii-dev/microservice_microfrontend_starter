@@ -43,3 +43,9 @@ storybook-static/
 
 # Team internal comms (inbox/channel/board) — local only, không vào repo
 docs/team/
+
+# Ảnh evidence/trong superpowers — local only (PO 2026-10-19)
+docs/superpowers/**/*.png
+docs/superpowers/**/*.jpg
+docs/superpowers/**/*.jpeg
+docs/superpowers/**/*.webp

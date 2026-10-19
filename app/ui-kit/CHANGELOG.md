@@ -51,7 +51,7 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 - **Popover, Watermark** — overlay batch: `Popover` panel neo trigger nội dung tự do (`title` divider + `content` ReactNode, `trigger` hover/click/focus, controlled `open`/`onOpenChange`, ESC + click-outside qua `useClickAway`, `role="dialog"` + trigger `aria-expanded`) · `Watermark` overlay tile SVG data-URI lặp (`rotate` −22° mặc định, `gap`/`offset`, màu resolve token `--ink3` + re-bake khi đổi theme, overlay `pointer-events-none` children vẫn bấm được) — 18 tests + stories EN. (`291ce0d`)
 
 
-### [Unreleased → 1.0.0] — 2026-10-19/20 (Depth + Team-OS + Cinematic wave)
+## [1.0.1] — 2026-10-20 (Depth + Team-OS + Cinematic wave)
 
 - **Design Depth hợp đồng Linear×Geist** (PO duyệt 2+3 hợp thể): tokens `--ele-1/2/3` 3 tầng elevation + `--wash` surface + `--ease-smooth` 240ms — áp ~50 component toàn 6 cụm (Forms 19 · Data A-L/M-Z · Feedback+Nav · Motion+3D) + 7 templates: hover nhấc bậc/press chìm vật lý/hairline + 1 edge-highlight/typography tracking âm + mono ID/stagger 24-40ms/counter pulse. (`95ab014` `55017c6` `f666fbe` `2032bc1` `a59e0e7` `1933d01` `fa6a440`)
 - **Transition mở rộng 3→11 loại**: +Slide 4 hướng · Grow · Flip · Rotate · Blur · Bounce · ScaleSoft · Stagger · Crossfade · Collapse ngang — API thống nhất in/duration/delay/easing/unmountOnExit, 5 keyframe mới token-driven. (`2032bc1`)

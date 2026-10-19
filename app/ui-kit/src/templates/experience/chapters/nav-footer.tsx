@@ -14,7 +14,7 @@
 // IP: sao cấu trúc/bố cục/kỹ thuật — nội dung Orca tự viết, không copy copy/ảnh ref.
 import type { JSX } from 'react';
 import { Icon } from '../../../index';
-import { EXPERIENCE_CHAPTERS, SideNav } from '../lib/SideNav.js';
+import { EXPERIENCE_CHAPTERS } from '../lib/SideNav.js';
 
 // Side-nav moved sang lib/SideNav (SF-3 — single-source, shell/nav-footer cùng dùng);
 // CHAPTERS = EXPERIENCE_CHAPTERS cho footer nav lặp.
@@ -30,9 +30,7 @@ const SOCIALS = [
 export default function NavFooter(): JSX.Element {
   return (
     <>
-      {/* SIDE-NAV — single-source từ lib/SideNav (SF-3); wrapper fixed pointer-events
-          pattern nằm trong đó. */}
-      <SideNav />
+      {/* SIDE-NAV removed per PO ("không cần đâu") — giữ lib/SideNav.tsx cho consumer tự dùng */}
 
       {/* FOOTER — nền cascade từ shell; label nhạt theo REF-SPEC 220,225,236 ≈ white/85 */}
       <footer className="relative z-[1] mt-16 border-t border-white/10 bg-[var(--scrim-4)] px-[clamp(24px,5.3vw,68px)] py-10">

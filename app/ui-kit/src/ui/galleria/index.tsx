@@ -39,7 +39,7 @@ export function Galleria({ images, className }: GalleriaProps) {
         {images.map((_, i) => (
           <button key={i} type="button" aria-label={`Ảnh ${i + 1}`} aria-current={i === active ? 'true' : undefined}
             onClick={() => { const track = trackRef.current; if (track) track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' }); setActive(i); }}
-            className={`size-2 cursor-pointer rounded-pill border-none outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-colors ${i === active ? 'bg-accent' : 'bg-line hover:bg-ink3'}`} />
+            className={`size-2 cursor-pointer rounded-pill border-none outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-colors duration-200 ease-[var(--ease-smooth)] ${i === active ? 'bg-accent' : 'bg-line hover:bg-ink3'}`} />
         ))}
       </div>
     </div>

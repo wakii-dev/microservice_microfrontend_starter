@@ -72,17 +72,17 @@ export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 
         onClick={handleTrack}
       >
         <div
-          className="absolute h-full rounded-pill bg-accent"
+          className="absolute h-full rounded-pill bg-accent transition-[width,left] duration-200 ease-[var(--ease-smooth)]"
           style={isRange
             ? { left: `${pct(value[0])}%`, width: `${pct(value[1]) - pct(value[0])}%` }
             : { width: `${pct(value as number)}%` }}
         />
         {isRange ? (
           (value as [number, number]).map((v, i) => (
-            <span key={i} className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)]" style={{ left: `${pct(v)}%` }} />
+            <span key={i} className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]" style={{ left: `${pct(v)}%` }} />
           ))
         ) : (
-          <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)]" style={{ left: `${pct(value as number)}%` }} />
+          <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]" style={{ left: `${pct(value as number)}%` }} />
         )}
       </div>
     </div>

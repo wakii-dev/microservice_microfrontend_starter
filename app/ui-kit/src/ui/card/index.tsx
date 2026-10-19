@@ -43,9 +43,12 @@ export function Card({
   const pad = PAD[size];
   return (
     <div
-      className={`overflow-hidden rounded-xl bg-s2 ${bordered ? 'border border-line' : ''} ${
+      className={`overflow-hidden rounded-xl bg-s2 shadow-[var(--ele-1)] ${bordered ? 'border border-line' : ''} ${
         hoverable
-          ? 'cursor-pointer transition-shadow hover:border-transparent hover:bg-s3 hover:shadow-[var(--shadow-lift)] hover:-translate-y-px'
+          ? // Depth contract (direction-approved): hover nhấc 1 bậc ele-1→ele-3 + viền
+            // đậm mực 20% + dịch bề mặt 1px; press chìm lại + bóng nén về ele-2.
+            // KHÔNG scale; mọi transition ease-smooth 200ms.
+            'cursor-pointer transition-[box-shadow,border-color,transform] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-3)] hover:border-ink/20 hover:-translate-y-px active:translate-y-0 active:shadow-[var(--ele-2)]'
           : ''
       }${className ? ` ${className}` : ''}`}
     >

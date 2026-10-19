@@ -36,8 +36,9 @@ export function AvatarGroup({ items, max, size = 32, className }: AvatarGroupPro
   const overlapCls = '-ml-2';
 
   // Pop-in stagger: delay theo vị trí (literal class list — Tailwind quét được;
-  // vành đai >5 avatar dùng delay cuối — hiếm, overflow +N đã gộp)
-  const stagger = ['', '[animation-delay:60ms]', '[animation-delay:120ms]', '[animation-delay:180ms]', '[animation-delay:240ms]'];
+  // bước 30ms theo depth contract 24-40ms; vành đai >5 avatar dùng delay cuối —
+  // hiếm, overflow +N đã gộp)
+  const stagger = ['', '[animation-delay:30ms]', '[animation-delay:60ms]', '[animation-delay:90ms]', '[animation-delay:120ms]'];
 
   return (
     <div className={`flex items-center${className ? ` ${className}` : ''}`}>

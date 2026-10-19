@@ -57,9 +57,9 @@ function ChevronRightIcon() {
 /* Cell base — VUÔNG (aspect-square w-full), MộT radius (rounded-lg 8), số flex center.
  * Viền/outline nằm ở state class (selected/today/adjacent khác thường). */
 const CELL =
-  'aspect-square w-full flex items-center justify-center rounded-lg border-none text-body select-none cursor-pointer transition-colors';
+  'aspect-square w-full min-w-0 flex items-center justify-center rounded-lg border-none text-body select-none cursor-pointer transition-colors duration-200 ease-[var(--ease-smooth)]';
 const NAV_CLS =
-  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none';
+  'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 hover:bg-accent/5 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none';
 
 export function Calendar({ value, onChange, now = new Date(), locale, range, onDayHover, bare = false, className }: CalendarProps) {
   const loc = useDateLocale(locale);
@@ -89,7 +89,7 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
 
   return (
     <div
-      className={`inline-block p-4${bare ? '' : ' rounded-xl border border-line bg-s2'}${className ? ` ${className}` : ''}`}
+      className={`inline-block p-4${bare ? '' : ' rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--ele-1)]'}${className ? ` ${className}` : ''}`}
       role="grid"
       aria-label="Calendar"
     >
@@ -128,7 +128,7 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
            * endpoint/selected = nền accent đặc + chữ trắng font-medium (không viền)
            * in-range         = nền accent/10 (hover preview antd RangePicker)
            * today            = outline + ring accent inset (KHÔNG đổi nền)
-           * thường   = outline border-line + hover bg-s3
+           * thường   = outline border-line + hover tint accent/5 (depth contract)
            * adjacent = text-ink3, không viền, không hover (disabled)      */
           let stateCls: string;
           if (isSelected) {
@@ -136,9 +136,9 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
           } else if (inRange) {
             stateCls = 'border-none bg-accent/10 text-ink hover:bg-accent/20';
           } else if (isToday) {
-            stateCls = 'border border-line bg-transparent text-accent font-medium ring-1 ring-inset ring-accent hover:bg-s3';
+            stateCls = 'border border-line bg-transparent text-accent font-medium ring-1 ring-inset ring-accent hover:bg-accent/5';
           } else if (isCurrent) {
-            stateCls = 'border border-line bg-transparent text-ink hover:bg-s3';
+            stateCls = 'border border-line bg-transparent text-ink hover:bg-accent/5';
           } else {
             stateCls = 'border-none bg-transparent text-ink3 cursor-not-allowed';
           }

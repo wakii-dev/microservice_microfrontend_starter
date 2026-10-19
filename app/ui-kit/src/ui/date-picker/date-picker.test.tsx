@@ -146,3 +146,76 @@ describe('DatePicker — polish (placeholder contrast / panel min-w / footer but
     expect(btn).toHaveClass('px-3', 'py-1.5');
   });
 });
+
+describe('DatePicker — responsive 375 (bugfix PO: popover tràn viewport / che trigger)', () => {
+  const NOW = new Date(2026, 9, 15);
+
+  function setViewport(w: number, h: number) {
+    Object.defineProperty(window, 'innerWidth', { value: w, configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: h, configurable: true });
+  }
+  function mockTriggerRect(rect: { left: number; top: number; right: number; bottom: number }) {
+    return vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      x: rect.left,
+      y: rect.top,
+      width: rect.right - rect.left,
+      height: rect.bottom - rect.top,
+      ...rect,
+      toJSON: () => rect,
+    } as DOMRect);
+  }
+  function positionedWrapper(): HTMLElement {
+    // panel min-w nằm trong wrapper định vị (left/top/bottom inline style)
+    const panel = document.body.querySelector('[class*="min-w-[300px]"]') as HTMLElement;
+    expect(panel).not.toBeNull();
+    return panel.parentElement!;
+  }
+
+  it('viewport 375 + trigger sát phải → cạnh phải panel bị clamp vào trong viewport (margin 8)', async () => {
+    setViewport(375, 667);
+    const spy = mockTriggerRect({ left: 300, top: 168, right: 340, bottom: 200 });
+    const user = userEvent.setup();
+    render(<DatePicker now={NOW} />);
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    // panel chưa đo được (jsdom 0) → fallback min-w 300: left = 375 − 8 − 300 = 67
+    expect(parseFloat(positionedWrapper().style.left)).toBe(67);
+    spy.mockRestore();
+  });
+
+  it('trigger ở trái → giữ bottom-start (left = rect.left), không clamp ngược', async () => {
+    setViewport(375, 667);
+    const spy = mockTriggerRect({ left: 40, top: 168, right: 220, bottom: 200 });
+    const user = userEvent.setup();
+    render(<DatePicker now={NOW} />);
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    expect(parseFloat(positionedWrapper().style.left)).toBe(40);
+    spy.mockRestore();
+  });
+
+  it('trigger sát đáy viewport → panel flip lên trên (bottom thay top — không che trigger)', async () => {
+    setViewport(375, 667);
+    const spy = mockTriggerRect({ left: 40, top: 500, right: 220, bottom: 532 });
+    const user = userEvent.setup();
+    render(<DatePicker now={NOW} />);
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    const pos = positionedWrapper().style;
+    expect(pos.bottom).toBe('171px'); // innerHeight − rect.top + 4 = 667 − 500 + 4
+    expect(pos.top).toBe('');
+    spy.mockRestore();
+  });
+
+  it('panel max-w-[calc(100vw-16px)] + showTime flex-wrap + cột giờ min-w-0 (co được ở 375)', async () => {
+    setViewport(375, 667);
+    const spy = mockTriggerRect({ left: 8, top: 100, right: 200, bottom: 132 });
+    const user = userEvent.setup();
+    render(<DatePicker showTime now={NOW} />);
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    const panel = document.body.querySelector('[class*="min-w-[300px]"]') as HTMLElement;
+    expect(panel.className).toContain('max-w-[calc(100vw-16px)]');
+    const row = panel.querySelector('[class*="flex-wrap"]');
+    expect(row).not.toBeNull();
+    const timeCol = screen.getByLabelText('Tăng giờ').closest('[class*="min-w-0"]');
+    expect(timeCol).not.toBeNull();
+    spy.mockRestore();
+  });
+});

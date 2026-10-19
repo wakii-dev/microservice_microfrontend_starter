@@ -22,8 +22,11 @@ export interface InputSearchProps extends Omit<InputHTMLAttributes<HTMLInputElem
 }
 
 const SIZE_CLS = { small: 'h-6 text-label', middle: 'h-8 text-body', large: 'h-10 text-body' } as const;
-const RING_OK = 'focus-within:border-accent-hi focus-within:ring-2 focus-within:ring-accent/10';
-const RING_INVALID = 'focus-within:border-st-fail focus-within:ring-2 focus-within:ring-st-fail/10';
+// Depth contract: rest bg-s3 lún + ele-1 → focus bg-s1 + ring 3px accent/40 + ele-2,
+// mọi transition ease-smooth (direction-approved.md 2026-10-19).
+const SMOOTH = 'transition-[background-color,border-color,box-shadow,color,transform] duration-200 ease-[var(--ease-smooth)]';
+const RING_OK = 'focus-within:border-accent-hi focus-within:ring-[3px] focus-within:ring-accent/40';
+const RING_INVALID = 'focus-within:border-st-fail focus-within:ring-[3px] focus-within:ring-st-fail/40';
 
 export function SearchInput({
   onSearch,
@@ -53,7 +56,7 @@ export function SearchInput({
 
   return (
     <span
-      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s2 transition-colors focus-within:outline-none ${SIZE_CLS[size]} ${invalid ? RING_INVALID : RING_OK}${disabled ? ' cursor-not-allowed bg-ink/5' : ''}${className ? ` ${className}` : ''}`}
+      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] ${SMOOTH} focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:outline-none ${SIZE_CLS[size]} ${invalid ? RING_INVALID : RING_OK}${disabled ? ' cursor-not-allowed bg-ink/5 shadow-none' : ''}${className ? ` ${className}` : ''}`}
     >
       <input
         value={controlled ? value : inner}
@@ -75,12 +78,13 @@ export function SearchInput({
         aria-label={enterButton === true || !enterButton ? 'Search' : undefined}
         disabled={disabled}
         onClick={fire}
-        className={`inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 border-none px-3 text-label font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[var(--bg-disabled)] disabled:text-ink4 ${buttonCls}${loading ? ' cursor-wait' : ''}`}
+        className={`group/search inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 border-none px-3 text-label font-medium focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-[var(--bg-disabled)] disabled:text-ink4 ${SMOOTH} active:translate-y-px ${buttonCls}${loading ? ' cursor-wait' : ''}`}
       >
         {loading ? (
           <Spinner size="small" label="" aria-hidden="true" />
         ) : enterButton === true || !enterButton ? (
-          <Icon name="search" size={14} />
+          /* Icon slide 2px hover (depth contract — icon slide trong button hover) */
+          <Icon name="search" size={14} className="transition-transform duration-200 ease-[var(--ease-smooth)] group-hover/search:translate-x-[2px]" />
         ) : (
           enterButton
         )}

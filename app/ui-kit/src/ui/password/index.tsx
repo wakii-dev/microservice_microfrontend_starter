@@ -49,7 +49,7 @@ export function Password({ value: valueProp, onChange, placeholder, showStrength
           type="button"
           aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
           onClick={() => setVisible((v) => !v)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-label text-ink3"
+          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-label text-ink3 transition-colors duration-200 ease-[var(--ease-smooth)] hover:text-ink2"
         >
           <Icon name={visible ? 'eye-slash' : 'eye'} size={16} />
         </button>
@@ -57,7 +57,7 @@ export function Password({ value: valueProp, onChange, placeholder, showStrength
       {showStrength && value && (
         <div className="mt-1 flex items-center gap-1">
           {[1, 2, 3].map((i) => (
-            <span key={i} className={`h-1 flex-1 rounded-pill ${i <= level ? STRENGTH_COLOR[level] : 'bg-line2'}`} />
+            <span key={i} className={`h-1 flex-1 rounded-pill transition-colors duration-300 ease-[var(--ease-smooth)] ${i <= level ? STRENGTH_COLOR[level] : 'bg-line2'}`} />
           ))}
           <span className="ml-1 text-meta text-ink3">{STRENGTH_LABEL[level]}</span>
         </div>

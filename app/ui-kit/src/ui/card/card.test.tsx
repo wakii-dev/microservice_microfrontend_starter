@@ -79,16 +79,19 @@ describe('Card', () => {
     expect(screen.getByTestId('only-body')).toBeInTheDocument();
   });
 
-  it('hoverable → đầy đủ hover lift (bg-s3 + shadow + translate, style matrix)', () => {
+  it('hoverable → depth contract: nhấc ele-1→ele-3 + viền đậm 20% + dịch 1px, ease-smooth', () => {
     render(
       <Card hoverable className="marker">
         <span>x</span>
       </Card>,
     );
     const cls = screen.getByText('x').closest('.marker')!.className;
-    expect(cls).toContain('hover:bg-s3');
-    expect(cls).toContain('hover:shadow-[var(--shadow-lift)]');
+    expect(cls).toContain('shadow-[var(--ele-1)]'); // rest ở bậc L2
+    expect(cls).toContain('hover:shadow-[var(--ele-3)]');
+    expect(cls).toContain('hover:border-ink/20');
     expect(cls).toContain('hover:-translate-y-px');
+    expect(cls).toContain('active:shadow-[var(--ele-2)]'); // press nén bóng
+    expect(cls).toContain('ease-[var(--ease-smooth)]');
   });
 });
 

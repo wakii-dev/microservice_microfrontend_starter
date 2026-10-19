@@ -56,23 +56,28 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
             setOpen(false); setLevel(0);
           }
         }}
-        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s2 px-3 text-body text-ink placeholder:text-ink4 focus:border-accent-hi focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none">
+        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s3 px-3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 hover:shadow-[var(--ele-2)] focus:border-accent-hi focus:bg-s1 focus:shadow-[var(--ele-2)] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40 focus-visible:outline-none">
         <span className={value.length > 0 ? '' : 'text-ink4'}>{value.length > 0 ? value.join(' / ') : placeholder}</span>
         <span aria-hidden="true" className="text-ink3"><Icon name="chevron-right" size={12} /></span>
       </button>
       {open && (
         <div role="listbox" aria-label={placeholder}
-          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]">
-          {current.map((option) => (
+          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]">
+          {current.map((option, i) => (
             <button key={option.value} type="button" role="option" aria-selected={value[value.length - 1] === option.value}
               onClick={() => {
                 const next = [...value.slice(0, level), option.value];
                 if (option.children) { setLevel(level + 1); onChange?.(next); }
                 else { onChange?.(next); setOpen(false); setLevel(0); }
               }}
-              className={`block min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-s3'}`}>
+              style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
+              className={`group/opt block min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-accent/5'}`}>
               {option.label}
-              {option.children && <span aria-hidden="true" className="float-right text-ink3"><Icon name="chevron-right" size={12} /></span>}
+              {option.children && (
+                <span aria-hidden="true" className="float-right text-ink3">
+                  <Icon name="chevron-right" size={12} className="transition-transform duration-200 ease-[var(--ease-smooth)] group-hover/opt:translate-x-[2px]" />
+                </span>
+              )}
             </button>
           ))}
         </div>

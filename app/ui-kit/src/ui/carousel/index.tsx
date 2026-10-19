@@ -55,7 +55,7 @@ export interface CarouselProps {
 }
 
 const BTN_CLS =
-  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-[background-color,transform] hover:bg-scrim-3 active:scale-95';
+  'absolute z-10 top-1/2 -translate-y-1/2 cursor-pointer rounded-pill border-none bg-scrim-2 p-1.5 text-white outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition-[background-color] duration-200 ease-[var(--ease-smooth)] hover:bg-scrim-3 active:bg-scrim-4';
 
 // Indicator bullet — ngôn ngữ Pagination (ô vuông h-8 min-w-8 rounded-lg, SỐ TRANG
 // trong ô). Active đổi bằng classList imperative (không setState từ swiper events —
@@ -63,7 +63,7 @@ const BTN_CLS =
 // hover:bg-s3 chỉ nằm ở bộ INACTIVE — active bị hover đè (specificity :hover 0,2,0
 // thắng utility 0,1,0) sẽ thành trắng-trên-trắng (bug đã bắt ở verify :6006).
 const BULLET_CLS =
-  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg text-body transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
+  'inline-flex h-8 min-w-8 cursor-pointer items-center justify-center rounded-lg text-body transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
 const BULLET_INACTIVE = ['border', 'border-line', 'bg-transparent', 'text-ink', 'hover:bg-s3'];
 const BULLET_ACTIVE = ['border-none', 'bg-accent', 'font-medium', 'text-white'];
 

@@ -68,8 +68,9 @@ export function InputNumber({
   const borderCls = invalid ? 'border-st-fail' : 'border-line focus-within:border-accent-hi';
 
   return (
+    // Depth contract: rest bg-s3 + ele-1 → focus-within bg-s1 + ring 3px accent/40 + ele-2
     <span
-      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s2 ${borderCls}${disabled ? ' bg-s3 opacity-60' : ''}${className ? ` ${className}` : ''}`}
+      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:ring-[3px] focus-within:ring-accent/40 ${borderCls}${disabled ? ' bg-s3 opacity-60 shadow-none' : ''}${className ? ` ${className}` : ''}`}
     >
       <input
         type="number"
@@ -82,7 +83,7 @@ export function InputNumber({
           if (e.key === 'ArrowUp') { e.preventDefault(); bump(step); }
           if (e.key === 'ArrowDown') { e.preventDefault(); bump(-step); }
         }}
-        className="h-8 min-w-0 flex-1 border-none bg-transparent px-3 text-body text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="h-8 min-w-0 flex-1 border-none bg-transparent px-3 text-body text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
       {/* Stepper — 2 nút xếp dọc fill nửa control (h-1/2, tổng đúng chiều cao input,
           không khe/overshoot). KHÔNG radius riêng: chỉ góc NGOÀI bo theo radius control
@@ -93,13 +94,13 @@ export function InputNumber({
       <span className={`flex flex-col border-l ${invalid ? 'border-st-fail' : 'border-line'} ${disabled ? 'opacity-50' : ''}`}>
         <button
           type="button" aria-label="Tăng" disabled={disabled} onClick={() => bump(step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:opacity-70"
+          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-s3 text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-line2 hover:text-accent active:opacity-70"
         >
           <ChevronUpIcon />
         </button>
         <button
           type="button" aria-label="Giảm" disabled={disabled} onClick={() => bump(-step)}
-          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-s3 text-ink2 transition-colors hover:bg-line2 hover:text-accent active:opacity-70"
+          className="flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-s3 text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-line2 hover:text-accent active:opacity-70"
         >
           <ChevronDownIcon />
         </button>

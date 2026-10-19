@@ -48,7 +48,7 @@ export function Collapse({ items, defaultActiveKeys = [], accordion = false, cla
               aria-expanded={open}
               disabled={item.disabled}
               onClick={() => !item.disabled && toggle(item.key)}
-              className={`flex w-full items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+              className={`flex w-full items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors duration-200 ease-[var(--ease-smooth)] outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
                 item.disabled ? 'cursor-not-allowed text-ink3' : 'cursor-pointer hover:bg-s3'
               }`}
             >
@@ -58,7 +58,7 @@ export function Collapse({ items, defaultActiveKeys = [], accordion = false, cla
               </span>
             </button>
             <div
-              className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+              className={`grid transition-[grid-template-rows] duration-[280ms] ease-[var(--ease-smooth)] ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
             >
               {/* 3 tầng: clip nằm SẠCH padding — overflow không clip padding của chính nó,
                * để px-4/pb-3 trên element overflow-hidden ⇒ track 0fr vẫn cao 12px (lộ nửa

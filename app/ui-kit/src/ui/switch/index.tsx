@@ -57,14 +57,14 @@ export function Switch({
         setPopping(true);
       }}
       {...rest}
-      className={`group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-accent/40 ${
+      className={`group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40 ${
         disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
       } ${track} ${checked ? '' : 'bg-ink/25'}${className ? ` ${className}` : ''}`}
     >
       {/* Gradient layer — opacity transition cho màu mượt (gradient không transition được trực tiếp) */}
       <span
         aria-hidden="true"
-        className={`absolute inset-0 rounded-pill bg-gradient-to-r from-accent to-accent-hi shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)] transition-opacity duration-200 ${
+        className={`absolute inset-0 rounded-pill bg-gradient-to-r from-accent to-accent-hi shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)] transition-opacity duration-200 ease-[var(--ease-smooth)] ${
           checked ? 'opacity-100' : 'opacity-0'
         }`}
       />

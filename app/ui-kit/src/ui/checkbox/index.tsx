@@ -28,7 +28,7 @@ export function Checkbox({ checked = false, indeterminate = false, onChange, dis
         onChange={(e) => onChange?.(e.target.checked)}
         aria-checked={tri ? 'mixed' : inputChecked}
         {...rest}
-        className={`peer size-4 cursor-pointer appearance-none rounded-[4px] border border-line bg-s2 transition-[background-color,border-color,transform] duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] checked:border-accent checked:bg-accent checked:scale-[1.15] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:checked:bg-ink3 disabled:checked:scale-100 ${tri ? 'border-accent bg-accent' : ''}`}
+        className={`peer size-4 cursor-pointer appearance-none rounded-[4px] border border-line bg-s2 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 checked:border-accent checked:bg-accent checked:scale-[1.15] checked:shadow-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:shadow-none disabled:checked:bg-ink3 disabled:checked:scale-100 ${tri ? 'border-accent bg-accent shadow-none' : ''}`}
       />
       {/* tick — chỉ khi checked thật (không hiện khi indeterminate) */}
       <span

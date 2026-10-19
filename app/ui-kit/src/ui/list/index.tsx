@@ -66,7 +66,7 @@ export function List<T>({
 
   return (
     <div
-      className={`${bordered ? 'rounded-xl border border-line bg-s2' : ''}${className ? ` ${className}` : ''}`}
+      className={`${bordered ? 'rounded-xl border border-line bg-s2 shadow-[var(--ele-1)]' : ''}${className ? ` ${className}` : ''}`}
     >
       {header && (
         <div className="border-b border-line2 px-4 py-3 text-label font-semibold text-ink2">
@@ -104,7 +104,10 @@ export function List<T>({
               <li
                 key={rowKey ? rowKey(item, index) : index}
                 role="listitem"
-                className={`px-4 py-3 ${itemBorder(i === paged.length - 1)}`}
+                // Stagger mount 28ms/hàng (depth contract 24-40ms, cap 12 hàng) —
+                // reduced-motion tắt sạch.
+                className={`animate-[bp-slide-up-in_280ms_var(--ease-smooth)_backwards] motion-reduce:animate-none px-4 py-3 ${itemBorder(i === paged.length - 1)}`}
+                style={{ animationDelay: `${Math.min(i, 12) * 28}ms` }}
               >
                 {renderItem(item, index)}
               </li>

@@ -2,15 +2,19 @@
 // accent, invalid viền đỏ. Completeness audit (Tier 1.5): size + prefix/suffix
 // (affix pattern antd — wrapper mang viền, input trần bên trong) + allowClear
 // (controlled: cần value + onChange) + passthrough native props.
+// Depth contract 2026-10-19 (direction-approved.md): rest bg-s3 lún + ele-1,
+// focus bg-s1 nổi + ring 3px accent/40 + ele-2 — elevation đổi CÓ animate
+// (ease-smooth 200ms); press/disabled hạ bóng.
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 import { SearchInput } from './input-search';
 
+const SMOOTH = 'transition-[background-color,border-color,box-shadow,color] duration-200 ease-[var(--ease-smooth)]';
 const FIELD_BASE =
-  'w-full rounded-lg border bg-s2 text-body text-ink placeholder:text-ink4 transition-colors focus:outline-none disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-ink4';
+  `w-full rounded-lg border bg-s3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] ${SMOOTH} focus:outline-none focus:bg-s1 focus:shadow-[var(--ele-2)] disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-ink4 disabled:shadow-none`;
 const FIELD_OK = 'border-line focus:border-accent-hi';
 const FIELD_INVALID = 'border-st-fail focus:border-st-fail';
-const RING_OK = 'focus:ring-2 focus:ring-accent/10';
-const RING_INVALID = 'focus:ring-2 focus:ring-st-fail/10';
+const RING_OK = 'focus:ring-[3px] focus:ring-accent/40';
+const RING_INVALID = 'focus:ring-[3px] focus:ring-st-fail/40';
 
 const SIZE_CLS = {
   small: 'h-6 px-2 text-label',
@@ -59,10 +63,13 @@ function InputBase({
     );
   }
 
-  // Affix pattern antd: wrapper mang viền/ring, input trần flex-1 bên trong
+  // Affix pattern antd: wrapper mang viền/ring, input trần flex-1 bên trong.
+  // Ring/focus đổi focus: → focus-within: (span không focusable — ring affix
+  // giờ ăn thật khi input bên trong focus; depth contract: focus = nổi s1).
+  const ringWrapper = ringCls.replaceAll('focus:', 'focus-within:');
   return (
     <span
-      className={`inline-flex w-full items-center gap-1 rounded-lg border bg-s2 px-2 transition-colors focus-within:outline-none ${ringCls}${className ? ` ${className}` : ''}`}
+      className={`inline-flex w-full items-center gap-1 rounded-lg border bg-s3 px-2 shadow-[var(--ele-1)] ${SMOOTH} focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:outline-none ${ringWrapper}${className ? ` ${className}` : ''}`}
     >
       {prefix && <span className="shrink-0 text-ink3">{prefix}</span>}
       <input
@@ -75,7 +82,7 @@ function InputBase({
         <button
           type="button"
           aria-label="Xoá"
-          className="cursor-pointer border-none bg-transparent text-ink3 transition-colors hover:text-ink2"
+          className={`cursor-pointer border-none bg-transparent text-ink3 hover:text-ink2 ${SMOOTH}`}
           onClick={() => onChange?.({ target: { value: '' } } as unknown as ChangeEvent<HTMLInputElement>)}
         >
           ×
@@ -116,7 +123,7 @@ export function Textarea({
         {...rest}
       />
       {count !== null && (
-        <div className="mt-1 text-right text-meta text-ink3">
+        <div className="mt-1 text-right text-meta text-ink3 tabular-nums">
           {count}/{maxLength}
         </div>
       )}

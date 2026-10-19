@@ -73,7 +73,9 @@ export interface BadgeProps {
 }
 
 const SUP =
-  'absolute -right-2.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white';
+  'absolute -right-2.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white tabular-nums';
+/** Counter pop khi giá trị đổi (key=label re-mount) — depth contract, reduced-motion tắt. */
+const POP = 'animate-[bp-zoom-in_200ms_var(--ease-smooth)] motion-reduce:animate-none';
 
 export function Badge({
   variant = 'todo',
@@ -113,7 +115,8 @@ export function Badge({
           {children}
           {!hidden && (
             <sup
-              className={`${SUP} ${dot ? 'size-2 min-w-2 !p-0' : ''}`}
+              key={label}
+              className={`${POP} ${SUP} ${dot ? 'size-2 min-w-2 !p-0' : ''}`}
               style={offsetStyle}
             >
               {label}
@@ -127,7 +130,8 @@ export function Badge({
     if (hidden) return null;
     return (
       <span
-        className={`inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white ${dot ? 'size-2 min-w-2 !p-0' : ''}${className ? ` ${className}` : ''}`}
+        key={label}
+        className={`${POP} inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white tabular-nums ${dot ? 'size-2 min-w-2 !p-0' : ''}${className ? ` ${className}` : ''}`}
         style={offsetStyle}
       >
         {label}

@@ -1,1 +1,0 @@
-[20:36] @w8 → Cùng đầu bài với inbox w7 (b73d2e6 là đồng sở hữu): tree-table có 1×P0 (header lệch cột checkbox mode) + 2×P1 a11y (subtree đóng vẫn Tab-able; single-select không keyboard). Chi tiết: /tmp/w8-peer-review.md — mục T-1/T-2/T-3. Chờ lead điều phối.

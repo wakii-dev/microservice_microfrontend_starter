@@ -221,7 +221,7 @@ export default function Hero() {
               aria-label={`Chương ${c.num} — ${c.title}`}
               className="font-mono text-[11px] font-bold tracking-[2.64px] text-[var(--hero-ink)] opacity-70 no-underline transition-opacity duration-150 hover:opacity-100"
             >
-              {c.num}
+              {c.num} · {c.title}
             </a>
           ))}
         </nav>
@@ -314,7 +314,51 @@ export default function Hero() {
       ))}
 
       {/* ── CỤM TRÁI DƯỚI — signup + mini-nav numbered + terms (ref bố cục) ── */}
-   
+      <div className="relative z-10 mt-10 max-md:px-6 md:absolute md:bottom-10 md:left-[clamp(228px,17vw,268px)]">
+        {subscribed ? (
+          <p role="status" className="m-0 font-mono text-[11px] font-bold uppercase tracking-[2.4px] text-[var(--hero-ink)] opacity-80">
+            Đã ghi nhận
+          </p>
+        ) : (
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (email.trim()) setSubscribed(true);
+            }}
+          >
+            <label
+              htmlFor="hero-email"
+              className="font-mono text-[11px] font-bold uppercase tracking-[2.4px] text-[var(--hero-ink)] opacity-70"
+            >
+              Email đăng ký
+            </label>
+            <input
+              id="hero-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-8 w-48 rounded-lg border border-line bg-transparent px-2 text-[12px] text-[var(--hero-ink)] outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            />
+            <Button size="small" htmlType="submit" aria-label="Gửi">
+              Gửi
+            </Button>
+          </form>
+        )}
+
+        <nav aria-label="Chương (mini-nav)" className="mt-3 hidden items-center gap-4 md:flex">
+          {EXPERIENCE_CHAPTERS.map((c) => (
+            <a
+              key={c.id}
+              href={`#${c.id}`}
+              className="font-mono text-[11px] font-bold tracking-[2.64px] text-[var(--hero-ink)] opacity-60 no-underline transition-opacity duration-150 hover:opacity-100"
+            >
+              {c.num} · {c.title}
+            </a>
+          ))}
+        </nav>
+      </div>
 
       {/* ── SCROLL HINT — progress ring + chevron (infinite CHỈ trạng thái affordance) ── */}
       <div className="z-10 my-8 flex flex-col items-center gap-1 max-md:mx-auto md:my-0 md:absolute md:bottom-6 md:left-1/2 md:-translate-x-1/2">

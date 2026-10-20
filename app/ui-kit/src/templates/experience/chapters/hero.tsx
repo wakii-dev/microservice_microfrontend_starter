@@ -11,12 +11,11 @@
 // Nền TỰ CHỦ sáng (mood atlas — --hero-ink cố định navy, KHÔNG flip dark); dark theme
 // chỉ đảo MÀU HẠT sao (--navy-ink → #f7f8f8 "bông tuyết", Starfield tự lo).
 // reduced-motion: Parallax/Reveal tự tắt, Starfield frame tĩnh, scrollIntoView 'auto'.
-import { useState, type ChangeEvent } from 'react';
+import { useState } from 'react';
 import {
   Button,
   Chart,
   Icon,
-  Input,
   Modal,
   Parallax,
   Reveal,

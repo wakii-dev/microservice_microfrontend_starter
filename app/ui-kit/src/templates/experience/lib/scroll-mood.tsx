@@ -4,7 +4,7 @@
 // chương đặt id + data-mood + --mood-progress). Mọi chapter import TỪ FILE NÀY —
 // không tự viết scroll listener (contract EXPERIENCE-DESIGN.md mục 4).
 /* eslint-disable react-refresh/only-export-components -- engine cố ý gộp hooks + components cùng hệ mood; tách file chỉ để tắt warning fast-refresh */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 /** Progress scroll toàn trang 0..1 (rAF-throttle, 1 listener). */
 export function usePageProgress() {

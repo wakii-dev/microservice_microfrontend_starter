@@ -4,7 +4,7 @@
 // verify bằng CDP: đo computed opacity 6 layer tại 5 mốc scroll (paste trong PR).
 // Contrast readout: WCAG luminance tính runtime từ token (body ≥4.5 · heading ≥3).
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { MOOD_STOPS, MoodBackdrop, usePageProgress, type MoodStop } from './lib/scroll-mood.js';
+import { MOOD_STOPS, MoodBackdrop, type MoodStop } from './lib/scroll-mood.js';
 
 const meta = { title: 'Templates/Mood Engine', tags: ['autodocs'] } satisfies Meta;
 export default meta;
@@ -61,7 +61,6 @@ function MoodScreen({ stop, index, total }: { stop: MoodStop; index: number; tot
 }
 
 function MoodEnginePage() {
-  const pct = usePageProgress();
   return (
     <div className="relative">
       <MoodBackdrop stops={MOOD_STOPS} />
@@ -91,7 +90,7 @@ export const ContrastReadout: Story = {
   render: () => (
     <div className="mx-auto grid max-w-3xl gap-3 p-10">
       <h2 className="m-0 text-[29px] font-light text-ink">Contrast từng mood (wcag luminance)</h2>
-      {MOOD_STOPS.map((stop, i) => {
+      {MOOD_STOPS.map((stop) => {
         const ink = MOOD_INK[stop.id] ?? WHITE;
         const bg: [number, number, number] =
           stop.id === 'atlas' ? [232, 237, 244] : stop.id === 'future' ? [255, 255, 255] : [13, 24, 37];

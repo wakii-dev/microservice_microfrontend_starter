@@ -51,6 +51,11 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 - **Popover, Watermark** — overlay batch: `Popover` panel neo trigger nội dung tự do (`title` divider + `content` ReactNode, `trigger` hover/click/focus, controlled `open`/`onOpenChange`, ESC + click-outside qua `useClickAway`, `role="dialog"` + trigger `aria-expanded`) · `Watermark` overlay tile SVG data-URI lặp (`rotate` −22° mặc định, `gap`/`offset`, màu resolve token `--ink3` + re-bake khi đổi theme, overlay `pointer-events-none` children vẫn bấm được) — 18 tests + stories EN. (`291ce0d`)
 
 
+## [1.0.2] — 2026-10-20 (Orbit Identity + Cinematic hoàn chỉnh)
+
+- **Visual Identity "Orbit"** (PO duyệt hướng A): chữ ký thương hiệu — `--sig-hue` biển sâu #0A3D91 (dark sáng 1 bậc) tiết chế · Statistic **beam underline** số (prop signature) · Button primary **ripple-converge** hover · **SonarMark** glyph 4 cung (thêm bộ Icon) dùng cho Alert success + EmptyState · Card dot-grid góc.
+- **Cinematic Experience hoàn chỉnh 6/6 chương** (story VU-53-CIN): hero 9-lớp + ch1 ghost-number 7 lớp + ch2 mask-reveal + ch3 velocity + ch4 **scroll-flythrough 3D** (three.js) + ch5 SunJourney 4-pha — responsive 375 sạch, mood-engine crossfade toàn trang.
+
 ## [1.0.1] — 2026-10-20 (Depth + Team-OS + Cinematic wave)
 
 - **Design Depth hợp đồng Linear×Geist** (PO duyệt 2+3 hợp thể): tokens `--ele-1/2/3` 3 tầng elevation + `--wash` surface + `--ease-smooth` 240ms — áp ~50 component toàn 6 cụm (Forms 19 · Data A-L/M-Z · Feedback+Nav · Motion+3D) + 7 templates: hover nhấc bậc/press chìm vật lý/hairline + 1 edge-highlight/typography tracking âm + mono ID/stagger 24-40ms/counter pulse. (`95ab014` `55017c6` `f666fbe` `2032bc1` `a59e0e7` `1933d01` `fa6a440`)

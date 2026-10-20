@@ -62,3 +62,8 @@ html[data-bp-theme='dark'] {
   --ele-3: 0 6px 16px -4px rgba(0,0,0,0.6), 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
   --wash: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0) 45%);
 }
+
+  /* Orbit dark — sig sáng hơn 1 bậc giữ contrast chữ trắng */
+  --sig-hue: #2E5FCC;
+  --sig-tint: rgba(46, 95, 204, 0.14);
+  --sig-glow: rgba(46, 95, 204, 0.4);

@@ -48,6 +48,10 @@
   --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
 
 
+  /* Identity Orbit (PO duyệt 2026-10-20) — chữ ký thương hiệu, tiết chế */
+  --sig-hue: #0A3D91;
+  --sig-tint: rgba(10, 61, 145, 0.08);
+  --sig-glow: rgba(10, 61, 145, 0.35);
   /* Depth contract (PO duyệt 2+3 hợp thể): easing mềm cao cấp cho mọi state-change */
   --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
   --motion-smooth: 240ms;

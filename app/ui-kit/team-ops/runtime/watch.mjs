@@ -76,15 +76,27 @@ async function cycle() {
   for (const t of terms) {
     const age = (now - (t.lastOutputAt ?? 0)) / 1000;
     const last = age < STALL_MS ? await readLastLine(t.handle) : null; // tiết kiệm call khi rõ stall
-    agents.push({ handle: t.handle.slice(5, 13), ageS: Math.round(age), state: age > STALL_MS / 1000 ? 'stall-suspect' : isIdleLine(last) ? 'idle' : 'working' });
+    const wt = (t.worktreePath ?? '').split('/').filter(Boolean).pop() ?? '';
+    agents.push({
+      handle: t.handle.slice(5, 13),
+      worktree: wt || '(primary)',
+      branch: (t.branch ?? '').replace('refs/heads/', '') || '-',
+      title: (t.title ?? '').slice(0, 30),
+      activity: ((t.preview ?? '').replace(/\s+/g, ' ').trim().slice(0, 60)) || (last ?? '').slice(0, 60),
+      ageS: Math.round(age),
+      state: age > STALL_MS / 1000 ? 'stall-suspect' : isIdleLine(last) ? 'idle' : 'working',
+    });
   }
+  // gom theo worktree — nhìn thấy ngay dự án nào đang có người làm
+  const byWorktree = {};
+  for (const a of agents) (byWorktree[a.worktree] ??= []).push(a.state);
   const idle = agents.filter((a) => a.state === 'idle');
   const stalls = agents.filter((a) => a.state === 'stall-suspect');
   const working = agents.filter((a) => a.state === 'working');
   const fsRecent = await fsProof();
   const mailBacklog = await inboxBacklog(path.join(ROOT, 'docs/team/inbox'));
   const throttleSuspect = idle.length + stalls.length >= THROTTLE_N && fsRecent === 0;
-  const health = { at: new Date().toISOString(), mode: throttleSuspect ? 'THROTTLE-SUSPECT (giảm đội hình!)' : working.length > 0 ? 'OK' : 'QUIET', agents, stats: { working: working.length, idle: idle.length, stall: stalls.length, fsFiles10m: fsRecent, mailBacklog }, trips: [] };
+  const health = { at: new Date().toISOString(), byWorktree, mode: throttleSuspect ? 'THROTTLE-SUSPECT (giảm đội hình!)' : working.length > 0 ? 'OK' : 'QUIET', agents, stats: { working: working.length, idle: idle.length, stall: stalls.length, fsFiles10m: fsRecent, mailBacklog }, trips: [] };
   if (idle.length) health.trips.push(`IDLE: ${idle.map((a) => a.handle).join(',')}`);
   if (stalls.length) health.trips.push(`STALL: ${stalls.map((a) => a.handle).join(',')}`);
   if (mailBacklog) health.trips.push(`MAIL-BACKLOG x${mailBacklog}`);
@@ -94,7 +106,9 @@ async function cycle() {
   const key = health.trips.join('|');
   if (key && key !== lastAlertKey) { notify('wakii-team-watch', health.trips[0] ?? ''); lastAlertKey = key; }
   if (!key) lastAlertKey = '';
-  console.log(`[${health.at.slice(11, 19)}] ${health.mode} · làm=${working.length} nghỉ=${idle.length} treo=${stalls.length} fs10m=${fsRecent} thư=${mailBacklog} ${health.trips.join(' · ')}`);
+  
+  const wtLine = Object.entries(byWorktree).map(([w, st]) => `${w}[${st.filter((x) => x === 'working').length}/${st.length}]`).join(' ');
+  console.log(`[${health.at.slice(11, 19)}] ${health.mode} - ${wtLine} - lam=${working.length} nghi=${idle.length} treo=${stalls.length} fs10m=${fsRecent} thu=${mailBacklog} ${health.trips.join(' | ')}`);
 }
 
 console.log(`wakii-team-watch khởi động · root=${ROOT} · mỗi ${INTERVAL_MS / 1000}s (Ctrl+C dừng)`);

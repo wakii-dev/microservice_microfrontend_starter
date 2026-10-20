@@ -1,7 +1,10 @@
 // Alert — FILLED (mặc định): nền đặc token --alert-*-filled, chữ trắng, icon trắng, KHÔNG viền.
 // variant="outlined" giữ kiểu cũ (tint bg + border + colored text) cho ai cần.
 // WCAG AA: filled dùng màu đậm đủ contrast với trắng (≥4.5:1 trừ warning ~3.5 large-ok).
+// Identity Orbit (PO duyệt 2026-10-20): type=success — icon thành SonarMark mờ
+// (glyph thương hiệu, màu theo iconCls; success = "sóng đã hội tụ").
 import type { CSSProperties, ReactNode } from 'react';
+import { SonarMark } from '../icons/index.js';
 
 export type AlertType = 'success' | 'info' | 'warning' | 'error';
 export type AlertVariant = 'filled' | 'outlined';
@@ -86,8 +89,8 @@ export function Alert({
       className={`${base} ${borderCls} ${iconCls}${className ? ` ${className}` : ''}${slot(classNames?.wrapper)}`}
       style={{ ...containerStyle, ...style }}
     >
-      <span aria-hidden="true" className={`shrink-0 text-label leading-5 ${iconCls}${slot(classNames?.icon)}`}>
-        {iconNode}
+      <span aria-hidden="true" className={`flex shrink-0 items-center text-label leading-5 ${iconCls}${slot(classNames?.icon)}`}>
+        {type === 'success' ? <SonarMark size={16} className="opacity-75" /> : iconNode}
       </span>
       <div className="min-w-0 flex-1">
         <div className={`leading-5 ${isFilled ? 'text-white' : ''}${slot(classNames?.message)}`}

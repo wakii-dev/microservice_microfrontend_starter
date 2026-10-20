@@ -20,8 +20,8 @@ describe('EmptyState (hand-off §3)', () => {
     expect(screen.getByText('Chưa có task nào')).toBeInTheDocument();
     expect(screen.getByText('Tạo task đầu tiên để bắt đầu.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tạo task' })).toBeInTheDocument();
-    // KHÔNG icon (hand-off: icon KHÔNG, không emoji)
-    expect(document.querySelector('.bp-empty img, .bp-empty svg')).toBeNull();
+    // Identity Orbit (PO 2026-10-20): không image → SonarMark mờ mặc định (không emoji)
+    expect(document.querySelector('.bp-empty svg')).not.toBeNull();
   });
 
   it('description + action là optional — bỏ qua khi không truyền', () => {

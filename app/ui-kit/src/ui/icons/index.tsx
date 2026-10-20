@@ -280,3 +280,37 @@ export function Icon({ name, size = 14, className, 'aria-hidden': ariaHidden = t
     </svg>
   );
 }
+
+// SonarMark — glyph thương hiệu Orbit (PO duyệt 2026-10-20, direction-A): 4 cung
+// sóng hội tụ về tâm + lõi chấm vành halo. SVG inline RIÊNG — không nằm PATHS
+// primeicons (bảng fill-only sinh bằng script, cấm sửa tay); brand glyph nên
+// stroke alpha theo currentColor để ăn màu ngữ cảnh (alert success → st-done...).
+// Toạ độ scale từ direction-A-orbit.html §sonar (viewBox 132 → 24, tâm (2.9, 21.8)).
+export interface SonarMarkProps {
+  /** Kích thước px (width + height) — default 16. */
+  size?: number;
+  className?: string;
+  /** Ẩn với screen reader — default true (decorative). */
+  'aria-hidden'?: boolean;
+}
+
+export function SonarMark({ size = 16, className, 'aria-hidden': ariaHidden = true }: SonarMarkProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      aria-hidden={ariaHidden}
+      focusable="false"
+      className={className}
+    >
+      <path d="M0.7 3.8 A18.2 18.2 0 0 1 21 19.9" stroke="currentColor" strokeOpacity={0.2} strokeWidth={1.8} strokeLinecap="round" />
+      <path d="M1.2 8.1 A13.8 13.8 0 0 1 16.7 20.4" stroke="currentColor" strokeOpacity={0.4} strokeWidth={1.8} strokeLinecap="round" />
+      <path d="M1.7 12.3 A9.6 9.6 0 0 1 12.5 20.8" stroke="currentColor" strokeOpacity={0.65} strokeWidth={1.8} strokeLinecap="round" />
+      <path d="M2.2 16.2 A5.6 5.6 0 0 1 8.5 21.2" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" />
+      <circle cx="2.9" cy="21.8" r={1.5} fill="currentColor" />
+      <circle cx="2.9" cy="21.8" r={2.8} stroke="currentColor" strokeOpacity={0.3} strokeWidth={0.9} />
+    </svg>
+  );
+}

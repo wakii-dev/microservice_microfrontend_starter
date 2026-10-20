@@ -44,7 +44,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 }
 
 const BASE =
-  'inline-flex items-center justify-center gap-1 rounded-lg border font-medium tracking-[0.01em] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-[var(--bg-disabled)] disabled:text-ink4 active:scale-[0.98] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
+  'group inline-flex items-center justify-center gap-1 rounded-lg border font-medium tracking-[0.01em] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:border-line disabled:bg-[var(--bg-disabled)] disabled:text-ink4 active:scale-[0.98] hover:-translate-y-px hover:shadow-[var(--shadow-lift)]';
 
 const SIZE: Record<ButtonSize, string> = {
   small: 'h-8 px-3 text-label',
@@ -52,8 +52,10 @@ const SIZE: Record<ButtonSize, string> = {
   large: 'h-10 px-5 text-body',
 } as const;
 
+// Identity Orbit (PO duyệt 2026-10-20): CHỈ type=primary dùng sig-hue (biển sâu,
+// đậm hơn accent 2 bậc — son-moji tiết chế); danger giữ st-fail, default/text giữ accent-hệ.
 const VARIANTS: Record<ButtonType, string> = {
-  'primary': 'border-accent bg-accent text-white hover:border-accent-hi hover:bg-accent-hi',
+  'primary': 'border-[var(--sig-hue)] bg-[var(--sig-hue)] text-white hover:border-[color-mix(in_srgb,var(--sig-hue)_84%,white)] hover:bg-[color-mix(in_srgb,var(--sig-hue)_84%,white)]',
   'default': 'border-line bg-s2 text-ink hover:bg-s3',
   'text': 'border-transparent bg-transparent text-ink hover:bg-s3',
 };
@@ -120,6 +122,17 @@ export function Button({
           style={{ left: r.x, top: r.y, width: r.size, height: r.size }}
         />
       ))}
+      {/* Ripple-converge hover (Identity Orbit) — CHỈ primary thật (không danger):
+        2 vòng sóng hội tụ mép→tâm scale 1.32→1.00, opacity 0.12→0.55; vào 160ms
+        ease-enter (vòng 2 lệch pha 40ms), rút 110ms ease-exit. Chỉ transform+opacity. */}
+      {type === 'primary' && !danger &&
+        [0, 1].map((i) => (
+          <span
+            key={`converge-${i}`}
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-0 rounded-[inherit] border-2 border-white/70 scale-[1.32] opacity-[0.12] transition-[transform,opacity] duration-[110ms] ease-[var(--ease-exit)] group-hover:scale-100 group-hover:opacity-[0.55] group-hover:duration-[160ms] group-hover:ease-[var(--ease-enter)]${i === 1 ? ' group-hover:delay-[40ms]' : ''}`}
+          />
+        ))}
       {loading && <Spinner size="default" label="" className="-ml-1" aria-hidden="true" />}
       {!loading && icon}
       {children}

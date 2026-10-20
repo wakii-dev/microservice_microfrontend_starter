@@ -21,7 +21,7 @@ describe('Button', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('type=primary → class bg-accent trắng chữ; disabled chặn click', async () => {
+  it('type=primary → class bg sig-hue (Identity Orbit) trắng chữ; disabled chặn click', async () => {
     const onClick = vi.fn();
     render(
       <Button type="primary" disabled onClick={onClick}>
@@ -29,7 +29,7 @@ describe('Button', () => {
       </Button>,
     );
     const btn = screen.getByRole('button', { name: 'Tạo task' });
-    expect(btn.className).toContain('bg-accent');
+    expect(btn.className).toContain('bg-[var(--sig-hue)]');
     expect(btn).toBeDisabled();
     await userEvent.setup().click(btn);
     expect(onClick).not.toHaveBeenCalled();

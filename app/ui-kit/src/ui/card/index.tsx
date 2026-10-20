@@ -43,7 +43,7 @@ export function Card({
   const pad = PAD[size];
   return (
     <div
-      className={`overflow-hidden rounded-xl bg-s2 shadow-[var(--ele-1)] ${bordered ? 'border border-line' : ''} ${
+      className={`relative overflow-hidden rounded-xl bg-s2 shadow-[var(--ele-1)] ${bordered ? 'border border-line' : ''} ${
         hoverable
           ? // Depth contract (direction-approved): hover nhấc 1 bậc ele-1→ele-3 + viền
             // đậm mực 20% + dịch bề mặt 1px; press chìm lại + bóng nén về ele-2.
@@ -52,6 +52,14 @@ export function Card({
           : ''
       }${className ? ` ${className}` : ''}`}
     >
+      {/* Identity Orbit — dot-grid góc thẻ quan trọng (radial-gradient token, mờ,
+          mask tan dần về tâm; root đã overflow-hidden nên không tràn bo góc). */}
+      {hoverable && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-2 top-2 size-20 opacity-70 [background-image:radial-gradient(color-mix(in_srgb,var(--sig-hue)_30%,transparent)_1.5px,transparent_1.5px)] [background-size:9px_9px] [mask-image:radial-gradient(75%_75%_at_75%_25%,black,transparent)] [-webkit-mask-image:radial-gradient(75%_75%_at_75%_25%,black,transparent)]"
+        />
+      )}
       {cover}
       {(title || extra) && (
         <div className={`flex items-center justify-between border-b border-line2 ${pad.head}`}>

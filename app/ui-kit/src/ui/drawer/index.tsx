@@ -6,6 +6,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
+import { Icon } from '../icons/index.js';
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
 export interface DrawerClassNames {
@@ -100,7 +101,7 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
             className="cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70"
             onClick={() => onClose?.()}
           >
-            ×
+            <Icon name="times" size={14} />
           </button>
         </header>
         <div className={`flex-1 overflow-auto p-6 text-body text-ink2${slot(classNames?.body)}`}>{children}</div>

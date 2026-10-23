@@ -6,8 +6,8 @@
 // panel bg-s2 border shadow-pop, nút nhanh active bg-accent text-white.
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useDateLocale, type DateLocaleInput } from '../date-picker/locale.js';
 import { Icon } from '../icons/index.js';
+import { useDateLocale, type DateLocaleInput } from '../date-picker/locale.js';
 
 export interface TimeParts {
   h: number;
@@ -38,7 +38,7 @@ export function TimeSpinner({ value, onChange, locale }: TimeSpinnerProps) {
       <span className="text-meta text-ink3">{label}</span>
       <span className="flex items-center gap-1.5">
         <button type="button" aria-label={`${loc.decrease} ${label.toLowerCase()}`} className={STEP_BTN}
-          onClick={() => set(part, -1)}>−</button>
+          onClick={() => set(part, -1)}><Icon name="minus" size={12} /></button>
         {/* Counter pulse khi đổi giá trị (depth contract — remount theo key, slide-up mềm) */}
         <span
           key={val}
@@ -48,7 +48,7 @@ export function TimeSpinner({ value, onChange, locale }: TimeSpinnerProps) {
           {pad(val)}
         </span>
         <button type="button" aria-label={`${loc.increase} ${label.toLowerCase()}`} className={STEP_BTN}
-          onClick={() => set(part, 1)}>+</button>
+          onClick={() => set(part, 1)}><Icon name="plus" size={12} /></button>
       </span>
     </div>
   );

@@ -42,7 +42,8 @@ describe('notification (static)', () => {
     notification[type]('t');
     const icon = lastNote().querySelector('span[aria-hidden]');
     expect(icon?.className).toContain(colorCls);
-    expect(icon?.textContent).toBeTruthy();
+    // style sweep: icon là SVG inline (createElementNS) — textContent rỗng là đúng
+    expect(icon?.querySelector('svg')).not.toBeNull();
   });
 
   it('không description → không render div mô tả (branch omitted)', () => {

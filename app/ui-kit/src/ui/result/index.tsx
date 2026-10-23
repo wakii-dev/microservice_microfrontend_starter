@@ -1,13 +1,16 @@
-// Result — trang kết quả (antd): icon glyph lớn màu status + title + subTitle + extra.
+// Result — trang kết quả (antd): icon lớn màu status + title + subTitle + extra.
+// Icon status = Icon SVG bộ chung (style sweep 2026-10-23 — bỏ glyph ký tự text);
+// success giữ SVG check-draw vẽ tay (motion waves); 404/500 là CHỮ SỐ cố ý, không glyph.
 import type { ReactNode } from 'react';
+import { Icon, type IconName } from '../icons/index.js';
 
 export type ResultStatus = 'success' | 'error' | 'info' | 'warning' | '404' | '500';
 
-const CONFIG: Record<string, { icon: string; color: string; defaultTitle: string }> = {
-  success: { icon: '✓', color: 'var(--st-done)', defaultTitle: 'Thành công' },
-  error: { icon: '✕', color: 'var(--st-fail)', defaultTitle: 'Có lỗi xảy ra' },
-  info: { icon: 'ℹ', color: 'var(--accent)', defaultTitle: 'Thông tin' },
-  warning: { icon: '⚠', color: 'var(--st-doing)', defaultTitle: 'Cảnh báo' },
+const CONFIG: Record<string, { icon: IconName | '404' | '500'; color: string; defaultTitle: string }> = {
+  success: { icon: 'check', color: 'var(--st-done)', defaultTitle: 'Thành công' },
+  error: { icon: 'times', color: 'var(--st-fail)', defaultTitle: 'Có lỗi xảy ra' },
+  info: { icon: 'info-circle', color: 'var(--accent)', defaultTitle: 'Thông tin' },
+  warning: { icon: 'exclamation-triangle', color: 'var(--st-doing)', defaultTitle: 'Cảnh báo' },
   '404': { icon: '404', color: 'var(--ink)', defaultTitle: 'Không tìm thấy trang' },
   '500': { icon: '500', color: 'var(--ink)', defaultTitle: 'Lỗi máy chủ' },
 };
@@ -48,10 +51,16 @@ export function Result({ status = 'info', title, subTitle, extra, children, clas
       ) : (
         <div
           aria-hidden="true"
-          className={`text-5xl font-bold ${status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}`}
+          data-testid="result-icon"
+          className={status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}
           style={status === 'error' || status === 'info' || status === 'warning' ? { color: cfg.color } : undefined}
         >
-          {cfg.icon}
+          {cfg.icon === '404' || cfg.icon === '500' ? (
+            <span className="text-5xl font-bold">{cfg.icon}</span>
+          ) : (
+            // 40px — tương đương khối glyph text-5xl cũ (SVG stroke mảnh hơn font nên giữ gần khung)
+            <Icon name={cfg.icon} size={40} />
+          )}
         </div>
       )}
       <div className="text-h2 font-semibold text-ink">{title ?? cfg.defaultTitle}</div>

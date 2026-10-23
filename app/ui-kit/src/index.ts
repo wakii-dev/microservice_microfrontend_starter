@@ -100,18 +100,21 @@ export { useWindowSize } from './hooks/useWindowSize.js';
 export { useCopyToClipboard } from './hooks/useCopyToClipboard.js';
 
 // ── Hooks wave ×12 (PO 1.0.0 — lifecycle/observers/controllable) ──
-export { useMountEffect } from './hooks/useMountEffect.js';
-export { useUpdateEffect } from './hooks/useUpdateEffect.js';
-export { useIsFirstRender } from './hooks/useIsFirstRender.js';
-export { useControllableState, type UseControllableStateOptions } from './hooks/useControllableState.js';
-export { useEventListener, type EventListenerTarget } from './hooks/useEventListener.js';
-export { useScrollProgress } from './hooks/useScrollProgress.js';
-export { useInView, type UseInViewOptions, type UseInViewReturn } from './hooks/useInView.js';
-export { useInfiniteScroll, type UseInfiniteScrollOptions } from './hooks/useInfiniteScroll.js';
-export { useMeasure, type ElementSize } from './hooks/useMeasure.js';
-export { useOnlineStatus } from './hooks/useOnlineStatus.js';
-export { useFullscreen, type UseFullscreenReturn } from './hooks/useFullscreen.js';
-export { useTitle } from './hooks/useTitle.js';
+// ⚠️ 2026-10-23: 12 hooks + 3 utils modules dưới đây CHƯA có file nguồn được
+// commit (barrel 2032bc1 thêm export nhưng thiếu file → TS2307/collect-fail
+// toàn consumers). Tạm bỏ export — hooks sẽ hoàn thiện + export lại ở PR riêng.
+// export { useMountEffect } from './hooks/useMountEffect.js';
+// export { useUpdateEffect } from './hooks/useUpdateEffect.js';
+// export { useIsFirstRender } from './hooks/useIsFirstRender.js';
+// export { useControllableState, type UseControllableStateOptions } from './hooks/useControllableState.js';
+// export { useEventListener, type EventListenerTarget } from './hooks/useEventListener.js';
+// export { useScrollProgress } from './hooks/useScrollProgress.js';
+// export { useInView, type UseInViewOptions, type UseInViewReturn } from './hooks/useInView.js';
+// export { useInfiniteScroll, type UseInfiniteScrollOptions } from './hooks/useInfiniteScroll.js';
+// export { useMeasure, type ElementSize } from './hooks/useMeasure.js';
+// export { useOnlineStatus } from './hooks/useOnlineStatus.js';
+// export { useFullscreen, type UseFullscreenReturn } from './hooks/useFullscreen.js';
+// export { useTitle } from './hooks/useTitle.js';
 
 // ── Navigation mới (batch ② 2026-10-17) ──
 export { Menu, type MenuProps, type MenuItemData, MenuCompactContext, findPath } from './ui/menu/index.js';
@@ -148,12 +151,14 @@ export { Mention, type MentionProps } from './ui/mention/index.js';
 export { OrderList, type OrderListProps, type OrderListItem } from './ui/order-list/index.js';
 export { PickList, type PickListProps } from './ui/pick-list/index.js';
 export { ScrollPanel, type ScrollPanelProps } from './ui/scroll-panel/index.js';
-export { ScrollPage, type ScrollPageProps, type ScrollPageSectionProps, type ScrollPageComponent } from './ui/scroll-page/index.js';
+// ⚠️ 2026-10-23: src/ui/scroll-page/ chưa được commit (cùng lỗi barrel 2032bc1) — bỏ tạm.
+// export { ScrollPage, type ScrollPageProps, type ScrollPageSectionProps, type ScrollPageComponent } from './ui/scroll-page/index.js';
 
 // ── Utils (batch utils wave 2026-10-18) — format / array-cây / dom helpers ──
-export { formatCurrency, formatBytes, formatRelativeTime, formatNumber } from './utils/format.js';
-export { chunk, groupBy, flattenTree, findTreeNode, type FlatTreeNode } from './utils/array.js';
-export { getScrollParent, getFocusableElements, cx } from './utils/dom.js';
+// ⚠️ 2026-10-23: src/utils/ chưa được commit (cùng lỗi barrel 2032bc1) — bỏ tạm.
+// export { formatCurrency, formatBytes, formatRelativeTime, formatNumber } from './utils/format.js';
+// export { chunk, groupBy, flattenTree, findTreeNode, type FlatTreeNode } from './utils/array.js';
+// export { getScrollParent, getFocusableElements, cx } from './utils/dom.js';
 export { VirtualScroll, type VirtualScrollProps } from './ui/virtual-scroll/index.js';
 
 // ── Gap P0 parity (worker W6 2026-10-18): Input.Search · Link · Affix · Table expandable ──

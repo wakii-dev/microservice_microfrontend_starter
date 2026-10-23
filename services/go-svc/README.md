@@ -90,5 +90,4 @@ CI: [`.github/workflows/services-go-svc.yml`](../../.github/workflows/services-g
 
 - **go.sum không commit**: dev machine không có Go toolchain → `go mod tidy` chạy in-image (Dockerfile build stage) và trong CI trước build. Khi copy standalone: chạy `go mod tidy` một lần.
 - **Vendored swagger-ui** (`internal/swagger/assets/`, v5.17.14, Apache-2.0 — LICENSE + NOTICE kèm theo): offline hoàn toàn, không CDN. Đặt tên `assets` thay vì `dist` để tránh root `.gitignore` (`dist/` dành cho FE builds).
-- **`ci.compose.override.yml`**: override DB URL đúng role (`go_svc`/`go_readonly`) CHỈ cho CI của service này — compose pre-seed hiện inject sai khớp credentials (đã FLAG lên epic, xem comment REQUIREMENT-GAP FI-62). File này bỏ đi khi compose gốc được sửa.
 - Copy-dir standalone: service chạy độc lập cần `contracts/openapi/activity.yaml` NẰM CẠNH (sync-check test skip khi thiếu) — chứng minh copy-dir là việc của SF-7.

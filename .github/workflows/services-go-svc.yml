@@ -89,7 +89,7 @@ jobs:
       - name: Boot postgres + auth-svc + kafka trước + TẠO TOPIC TRƯỚC go-svc boot
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            -f services/go-svc/ci.compose.override.yml up -d --build postgres auth-svc kafka
+            up -d --build postgres auth-svc kafka
           for i in $(seq 1 30); do
             docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
               exec -T postgres pg_isready -U boilerplate -d boilerplate >/dev/null 2>&1 && break
@@ -118,7 +118,7 @@ jobs:
       - name: Boot go-svc TRƯỚC khi có tasks table — readyz PHẢI 503 (probe thật, conventions/02 rule 2)
         run: |
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
-            -f services/go-svc/ci.compose.override.yml up -d --build go-svc
+            up -d --build go-svc
           for i in $(seq 1 30); do
             curl -sf http://localhost:8082/healthz >/dev/null && break
             sleep 2

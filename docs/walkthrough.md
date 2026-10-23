@@ -92,7 +92,7 @@ Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08
 
 ## 4. Browser walkthrough (human gate — KHÔNG trong CI)
 
-Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo design direction "Linear-referenced dark" (story VU-53): nền tối `#010102`, 1 accent indigo, badge pill chấm-màu, không box-shadow.
+Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo light **antd-look** (decision 2026-10-17 — spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`): nền canvas `#f5f5f5`, khối trắng `#ffffff`, 1 accent `#1677ff`, badge pill chấm-màu; dark (palette direction B cũ) là theme phụ qua `UiKitProvider` (`data-bp-theme`).
 
 1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → thấy **dashboard chào** với quick links Tasks/Activity + box **TÀI KHOẢN DEMO** (`alice@demo.local / demo-password`, `fail@demo.local`). Login → nav phải hiện user chip (avatar + email) + nút **Đăng xuất**.
 2. Nav → **Tasks** (item nav active gạch accent): form **Tạo task** (Tiêu đề + Mô tả) → task mới xuất hiện đầu danh sách, heading **"Danh sách (x/total)"** cập nhật. Thử tiếp:
@@ -131,9 +131,9 @@ Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo des
    ```
 4. **Recovery**: re-assign cho user hợp lệ (bob, id `22222222-2222-4222-8222-222222222222`) → saga chạy lại từ đầu (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm). Trên UI task có lại badge "Cần làm" + select status.
 
-> ⚠️ Known issue (đã report coordinator story VU-53, 2026-10-14): standalone debug ở **build prod compose** (`:4001`/`:4002` container) đang treo trang trắng — share-scope init của react-dom tham chiếu chunk không tồn tại trong build output. **Load trong shell (:8080) không ảnh hưởng**; standalone có style chạy đúng trên **dev server** (đường B: `pnpm --filter @wakii/remote-tasks dev` → :4001). Chi tiết: `docs/superpowers/evidence/ui-redesign/` (conv-22/conv-23).
+> ℹ️ BUG-1 standalone prod trắng trang (report VU-53, 2026-10-14) **ĐÃ FIX** (sf-5b): shared `eager:true` + entry `standalone` static + nginx alias `/remotes/<name>/` — standalone :4001/:4002 render đầy đủ ở build prod. Evidence: `docs/superpowers/evidence/sf-5b-ui-redesign-fix/` (browser walkthrough + phantom-grep trước/sau).
 
-> CI chạy đúng chuỗi này mỗi push: job `convergence/e2e-smoke` — step saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser).
+> ℹ️ Job `convergence/e2e-smoke` (GitHub Actions) mô tả chuỗi saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser) — **hiện workflow ĐANG DISABLE (billing, xem CLAUDE.md)**; gate khi push là `.husky/pre-push` (chỉ FE checks, không chạy e2e). Cần verify saga thì chạy tay: `bash scripts/smoke/e2e.sh` (mục "Verify chain bằng smoke script" trên).
 
 ### 4c. Storybook — design system sống (Templates + 129 titles)
 

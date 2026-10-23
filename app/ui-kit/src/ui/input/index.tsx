@@ -6,6 +6,7 @@
 // focus bg-s1 nổi + ring 3px accent/40 + ele-2 — elevation đổi CÓ animate
 // (ease-smooth 200ms); press/disabled hạ bóng.
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import { Icon } from '../icons/index.js';
 import { SearchInput } from './input-search';
 
 const SMOOTH = 'transition-[background-color,border-color,box-shadow,color] duration-200 ease-[var(--ease-smooth)]';
@@ -85,7 +86,7 @@ function InputBase({
           className={`cursor-pointer border-none bg-transparent text-ink3 hover:text-ink2 ${SMOOTH}`}
           onClick={() => onChange?.({ target: { value: '' } } as unknown as ChangeEvent<HTMLInputElement>)}
         >
-          ×
+          <Icon name="times" size={12} />
         </button>
       )}
       {suffix && <span className="shrink-0 text-ink3">{suffix}</span>}

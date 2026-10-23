@@ -91,7 +91,7 @@ export function SearchInput({
           onClick={clearValue}
           className={`shrink-0 cursor-pointer border-none bg-transparent pr-0.5 text-ink3 hover:text-ink2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${SMOOTH}`}
         >
-          ×
+          <Icon name="times" size={12} />
         </button>
       )}
       <button

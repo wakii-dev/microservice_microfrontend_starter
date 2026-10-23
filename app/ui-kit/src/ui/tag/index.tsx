@@ -2,6 +2,7 @@
 // a11y TỐT HƠN antd (span + onClick không có semantic). Checked = nền accent solid
 // (antd CheckableTag checked); unchecked = viền line, chữ ink3 (mirror tsk-chip cũ).
 import type { ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface TagProps {
   children: ReactNode;
@@ -37,7 +38,7 @@ function TagBase({ children, icon, closable = false, onClose, className }: TagPr
           className="cursor-pointer border-none bg-transparent text-ink3 transition-colors hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
           onClick={() => onClose?.()}
         >
-          ×
+          <Icon name="times" size={12} />
         </button>
       )}
     </span>

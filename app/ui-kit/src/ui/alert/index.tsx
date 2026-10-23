@@ -2,22 +2,23 @@
 // variant="outlined" giữ kiểu cũ (tint bg + border + colored text) cho ai cần.
 // WCAG AA: filled dùng màu đậm đủ contrast với trắng (≥4.5:1 trừ warning ~3.5 large-ok).
 import type { CSSProperties, ReactNode } from 'react';
+import { Icon, type IconName } from '../icons/index.js';
 
 export type AlertType = 'success' | 'info' | 'warning' | 'error';
 export type AlertVariant = 'filled' | 'outlined';
 
-const FILLED: Record<AlertType, { bg: string; icon: string }> = {
-  success: { bg: 'var(--alert-success-filled)', icon: '✓' },
-  info: { bg: 'var(--alert-info-filled)', icon: 'ℹ' },
-  warning: { bg: 'var(--alert-warning-filled)', icon: '⚠' },
-  error: { bg: 'var(--alert-error-filled)', icon: '✕' },
+const FILLED: Record<AlertType, { bg: string; icon: IconName }> = {
+  success: { bg: 'var(--alert-success-filled)', icon: 'check' },
+  info: { bg: 'var(--alert-info-filled)', icon: 'info-circle' },
+  warning: { bg: 'var(--alert-warning-filled)', icon: 'exclamation-triangle' },
+  error: { bg: 'var(--alert-error-filled)', icon: 'times' },
 };
 
-const OUTLINED: Record<AlertType, { bg: string; border: string; icon: string; iconCls: string }> = {
-  success: { bg: 'var(--alert-success-bg)', border: 'var(--alert-success-border)', icon: '✓', iconCls: 'text-st-done' },
-  info: { bg: 'var(--alert-info-bg)', border: 'var(--alert-info-border)', icon: 'ℹ', iconCls: 'text-accent' },
-  warning: { bg: 'var(--alert-warning-bg)', border: 'var(--alert-warning-border)', icon: '⚠', iconCls: 'text-st-doing' },
-  error: { bg: 'var(--alert-error-bg)', border: 'var(--alert-error-border)', icon: '✕', iconCls: 'text-st-fail' },
+const OUTLINED: Record<AlertType, { bg: string; border: string; icon: IconName; iconCls: string }> = {
+  success: { bg: 'var(--alert-success-bg)', border: 'var(--alert-success-border)', icon: 'check', iconCls: 'text-st-done' },
+  info: { bg: 'var(--alert-info-bg)', border: 'var(--alert-info-border)', icon: 'info-circle', iconCls: 'text-accent' },
+  warning: { bg: 'var(--alert-warning-bg)', border: 'var(--alert-warning-border)', icon: 'exclamation-triangle', iconCls: 'text-st-doing' },
+  error: { bg: 'var(--alert-error-bg)', border: 'var(--alert-error-border)', icon: 'times', iconCls: 'text-st-fail' },
 };
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
@@ -87,7 +88,7 @@ export function Alert({
       style={{ ...containerStyle, ...style }}
     >
       <span aria-hidden="true" className={`shrink-0 text-label leading-5 ${iconCls}${slot(classNames?.icon)}`}>
-        {iconNode}
+        <Icon name={iconNode} size={14} />
       </span>
       <div className="min-w-0 flex-1">
         <div className={`leading-5 ${isFilled ? 'text-white' : ''}${slot(classNames?.message)}`}
@@ -109,7 +110,7 @@ export function Alert({
           }`}
           onClick={onClose}
         >
-          ×
+          <Icon name="times" size={14} />
         </button>
       )}
     </div>

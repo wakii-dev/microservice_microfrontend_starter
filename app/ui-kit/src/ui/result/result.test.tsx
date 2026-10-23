@@ -40,13 +40,14 @@ describe('Result', () => {
       // success dùng check-draw svg (motion waves) — màu nằm trên svg
       expect(document.querySelector('[data-testid="result-check"]')).toHaveClass('text-st-done');
     } else {
-      expect(document.querySelector('.text-5xl')?.className).toContain(colorCls);
+      // style sweep: icon = SVG bộ chung trong wrapper testid (404/500 giữ chữ số text)
+      expect(document.querySelector('[data-testid="result-icon"]')?.className).toContain(colorCls);
     }
   });
 
   it('icon là aria-hidden (decorative)', () => {
     render(<Result status="error" />);
-    expect(document.querySelector('.text-5xl')).toHaveAttribute('aria-hidden', 'true');
+    expect(document.querySelector('[data-testid="result-icon"]')).toHaveAttribute('aria-hidden', 'true');
   });
 
   it('className passthrough', () => {

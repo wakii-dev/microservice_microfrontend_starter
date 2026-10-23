@@ -132,10 +132,11 @@ docs:
   conventions: platform/conventions/       # 01–09 — BẮT BUỘC, không đúng = review fail
   adr: docs/adr/                           # 0001–0009 — quyết định kiến trúc đã chốt
   toolchain: docs/toolchain.md
-  ci: .github/workflows/                   # 10 workflows — xem CLAUDE.md bảng CI
+  ci: .github/workflows/                   # 10 workflows (HIỆN DISABLE — xem gotchas) — bảng mô tả ở CLAUDE.md
   evidence: docs/superpowers/evidence/     # test-run + screenshots theo story
 
 gotchas:
+  - "CI GitHub Actions ĐANG DISABLE (billing, 2026-10) — gate khi push là .husky/pre-push (branch rule + FE checks theo path); workflows trong .github/ chỉ còn giá trị tham khảo khi bật lại"
   - "Vitest test ranh giới ngày: TZ pin qua test.env trong vitest.config — môi trường dev +07 che bug, đừng bỏ pin"
   - "node-svc + auth-svc: standalone lockfile — pnpm install PHẢI --ignore-workspace, chạy TRONG thư mục service, không phải workspace root"
   - "fe-shared standalone: khai catalog: → cần mini workspace (sed catalog block từ root pnpm-workspace.yaml) — mẫu ở .github/workflows/convergence.yml step copy-dir"

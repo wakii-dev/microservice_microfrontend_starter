@@ -36,7 +36,7 @@ REMOTE_TASKS_URL=http://localhost:4001/remoteEntry.js pnpm --filter @wakii/shell
 ## Tests + build
 
 ```bash
-pnpm --filter @wakii/shell test        # vitest + testing-library (38 tests: a11y, login, remote-down, api-timeout, integration, primitives, shell-chrome)
+pnpm --filter @wakii/shell test        # vitest + testing-library (48 tests / 9 file: a11y, login, remote-down, api-timeout, integration, primitives, shell-chrome)
 pnpm --filter @wakii/shell typecheck
 pnpm --filter @wakii/shell build       # rspack production build → dist/
 ```
@@ -64,16 +64,16 @@ Copy thư mục này **KÈM `app/shared/`** (workspace dep `@wakii/fe-shared`) +
 ## Kiến trúc nhanh
 
 - `src/index.tsx` → async boundary `import('./bootstrap')` (bắt buộc MF — tránh loadShareSync)
-- `src/bootstrap.tsx` — import global `@wakii/fe-shared/styles/tokens.css` + `base.css` (shell LÀM CHỦ global base — remotes KHÔNG import lại base khi chạy trong shell)
+- `src/bootstrap.tsx` — import global `@wakii/ui-kit/styles/tokens.css` + `base.css` + `themes/dark.css` + `./app.css` (shell LÀM CHỦ global base — remotes KHÔNG import lại base khi chạy trong shell)
 - `src/App.tsx` — routes `/`, `/tasks`, `/activity` (remote slots), `/login`
 - `src/components/RemoteSlot.tsx` — lazy remote + error boundary + retry (Suspense fallback = Skeleton primitive)
 - `src/api.ts` — ApiClient từ fe-shared, base `__API_BASE_URL__`
 - Login dùng `tokenStorage` + `ApiClient` từ `@wakii/fe-shared` (READ-ONLY — SF-1 sở hữu)
-- `src/styles.css` — scoped classes shell (`sh-*`), chỉ ăn tokens CSS vars từ fe-shared
+- `src/app.css` — Tailwind v4 entry (import `@wakii/ui-kit/styles/tailwind.css`); shell style bằng Tailwind utilities + tokens CSS vars, không còn file css scoped riêng
 
-## Design system (từ `@wakii/fe-shared` — story VU-53)
+## Design system (từ `@wakii/ui-kit` — ADR-0009)
 
-- **Tokens**: `import '@wakii/fe-shared/styles/tokens.css'` — CSS vars `--c-*` (surface ladder `#010102→#18191a`), `--ink*`, `--line*`, `--accent*`, `--st-*`, `--sp-*`, `--fs-*`, `--r-*`. Depth = surface + viền 1px, KHÔNG box-shadow.
-- **Base**: `import '@wakii/fe-shared/styles/base.css'` — reset mỏng + element defaults (`@layer reset,base`) — CHỈ shell import làm global.
-- **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/fe-shared'` — `Badge variant: todo|doing|done|failed|created|updated|assigned|deleted|assignmentFailed` (role="status"), Skeleton (aria-busy + prefers-reduced-motion), Spinner (label bắt buộc), EmptyState (title/description/action).
-- Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B, user đã duyệt).
+- **Tokens**: `import '@wakii/ui-kit/styles/tokens.css'` — CSS vars `--c-*` (canvas `#f5f5f5`, khối trắng `#ffffff` — bậc bề mặt antd), `--ink*`, `--line*`, `--accent*` (`#1677ff` antd colorPrimary), `--st-*`, `--sp-*`, `--fs-*`, `--r-*` + motion/ease scale; shadow layered cho floating surfaces (`--shadow-pop/lift`, `--ele-1..3`).
+- **Base**: `import '@wakii/ui-kit/styles/base.css'` — reset mỏng + element defaults (`@layer reset,base`) — CHỈ shell import làm global.
+- **Primitives**: `import { Badge, Button, Table, … } from '@wakii/ui-kit'` — 90+ components (xem barrel `app/ui-kit/src/index.ts`) + hooks/utils/motion; catalog sống ở Storybook (`pnpm --filter @wakii/ui-kit storybook`). `Badge variant: todo|doing|done|failed|created|updated|assigned|deleted|assignmentFailed` (role="status").
+- Hướng visual: light antd-look mặc định (spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`); dark là theme phụ qua `UiKitProvider` (`data-bp-theme` → `@wakii/ui-kit/styles/themes/dark.css`).

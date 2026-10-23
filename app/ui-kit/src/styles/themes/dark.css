@@ -9,6 +9,9 @@
  *  (Nhánh :root[data-bp-theme] thừa — chỉ html mới là :root, đã cover bởi html[...].) */
 [data-bp-theme='dark'],
 html[data-bp-theme='dark'] {
+  /* Native controls (select dropdown, scrollbar) theo theme — color-scheme là
+   * inherited: đặt ở đây (2026-10-23 dời từ base.css :root, light là default). */
+  color-scheme: dark;
   /* Bậc bề mặt (depth bằng surface, KHÔNG box-shadow) */
   --c-canvas: #010102;
   --c-s1: #0f1011;
@@ -35,21 +38,25 @@ html[data-bp-theme='dark'] {
   --st-doing: #f2c94c;
   --st-done: #3fb950;
   --st-fail: #f06a6a;
-  /* Disabled + placeholder */
-  --ink4: rgba(255, 255, 255, 0.30);
-  --bg-disabled: rgba(255, 255, 255, 0.06);
-  /* Alert tints — dark versions (deeper bg, lighter border) */
-  --alert-error-bg: #2c1214;
-  --alert-error-border: #5c2a2e;
-  --alert-warning-bg: #2c2212;
-  --alert-warning-border: #5c4a1e;
-  --alert-info-bg: #121c2c;
-  --alert-info-border: #2a4a5c;
-  --alert-success-bg: #122c1a;
-  --alert-success-border: #2a5c34;
-  /* Shadow — dark = heavier black */
-  --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.2), 0 12px 16px -4px rgba(0, 0, 0, 0.3), 0 24px 48px -12px rgba(0, 0, 0, 0.4);
-  --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  /* Disabled + placeholder — mirror antd dark colorTextQuaternary: #5c626b cùng họ
+   * --ink3 #8a8f98, sáng hơn 1 bậc (placeholder đọc được nhưng lùi sau) */
+  --ink4: #5c626b;
+  /* Disabled surface — đồng tỉ lệ 4% trắng như light (antd colorBgContainerDisabled) */
+  --bg-disabled: rgba(255, 255, 255, 0.04);
+  /* Alert tints — alpha tint màu trạng thái trên nền tối (tỉ lệ antd dark-alert:
+   * bg ~12% / border ~37%); base = --st-fail / --st-doing / --accent / --st-done
+   * của dark (đồng bộ 100% với màu trạng thái) */
+  --alert-error-bg: rgba(240, 106, 106, 0.12);
+  --alert-error-border: rgba(240, 106, 106, 0.37);
+  --alert-warning-bg: rgba(242, 201, 76, 0.12);
+  --alert-warning-border: rgba(242, 201, 76, 0.37);
+  --alert-info-bg: rgba(94, 106, 210, 0.12);
+  --alert-info-border: rgba(94, 106, 210, 0.37);
+  --alert-success-bg: rgba(63, 185, 80, 0.12);
+  --alert-success-border: rgba(63, 185, 80, 0.37);
+  /* Shadow — dark = heavier black (alpha ×1.6 so bản dark cũ — tách nổi trên canvas tối) */
+  --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.32), 0 12px 16px -4px rgba(0, 0, 0, 0.48), 0 24px 48px -12px rgba(0, 0, 0, 0.64);
+  --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.48), 0 2px 4px -2px rgba(0, 0, 0, 0.32);
   /* Mask scrim — dark đậm hơn (đồng bộ shadow heavy) */
   --mask: rgba(0, 0, 0, 0.6);
 

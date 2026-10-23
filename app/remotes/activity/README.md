@@ -56,4 +56,4 @@ Copy thư mục này **KÈM `app/shared/` + `app/ui-kit/`** (+ root `pnpm-worksp
 - **Trong shell**: KHÔNG import lại `base.css` — shell import global làm chủ; remote chỉ ăn **tokens** CSS vars (`--c-* --ink* --line* --accent* --st-* --sp-* --fs-* --r-*`) + scoped classes riêng (`act-*`), không element selector toàn cục.
 - **Standalone** (`src/standalone.tsx`): tự import `tokens.css` + `base.css` để trang debug có style đầy đủ.
 - **Primitives**: `import { Badge, EmptyState, Skeleton, Spinner } from '@wakii/ui-kit'` — badge action feed = `Badge variant created|updated|assigned|deleted|assignmentFailed` (mỗi action một màu chấm); loading stats/feed skeleton ĐỘC LẬP (giữ `Promise.allSettled`); empty = `EmptyState` hướng dẫn sang Tasks; nút *Làm mới* busy = `Spinner`.
-- Hướng visual: `docs/superpowers/designs/ui-redesign-direction.md` (hướng B "Linear-referenced dark").
+- Hướng visual: light antd-look mặc định (spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`); dark là theme phụ qua `UiKitProvider` (`data-bp-theme` → `@wakii/ui-kit/styles/themes/dark.css`).

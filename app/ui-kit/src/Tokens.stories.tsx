@@ -168,6 +168,26 @@ export const TốiDirectionB: Story = {
           ['--st-fail', '#f06a6a'],
         ]}
       />
+      <Swatches
+        title="Mực phụ + disabled (mirror antd dark quaternary)"
+        items={[
+          ['--ink4', '#5c626b'],
+          ['--bg-disabled', 'rgba(255,255,255,.04)'],
+        ]}
+      />
+      <Swatches
+        title="Alert tints — alpha màu trạng thái trên nền tối (bg 12% / border 37%)"
+        items={[
+          ['--alert-error-bg', 'rgba(240,106,106,.12)'],
+          ['--alert-error-border', 'rgba(240,106,106,.37)'],
+          ['--alert-warning-bg', 'rgba(242,201,76,.12)'],
+          ['--alert-warning-border', 'rgba(242,201,76,.37)'],
+          ['--alert-info-bg', 'rgba(94,106,210,.12)'],
+          ['--alert-info-border', 'rgba(94,106,210,.37)'],
+          ['--alert-success-bg', 'rgba(63,185,80,.12)'],
+          ['--alert-success-border', 'rgba(63,185,80,.37)'],
+        ]}
+      />
     </div>
   ),
 };

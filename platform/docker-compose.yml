@@ -20,6 +20,7 @@
 #     mount users.json; role auth_svc + schema auth; go-svc AUTH_MOCK_URL
 #     đổi VALUE giữ KEY — gap-answer epic VU-59 mục ①②④⑤⑥⑦, coordinator
 #     APPROVED).
+#   2026-10-23: go-svc env roles đã đúng ở entry (đã fix từ trước) — xoá services/go-svc/ci.compose.override.yml (redundant) — coordinator duyệt.
 # ============================================================================
 
 name: boilerplate

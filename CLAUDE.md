@@ -75,6 +75,8 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 
 ## CI (`.github/workflows/` — chạy mỗi push theo thư mục đổi)
 
+> ⚠️ **Trạng thái 2026-10: các workflow GitHub Actions hiện ĐANG DISABLE (billing).** Gate thực tế khi push là **`.husky/pre-push`** (cài sẵn qua `pnpm install` root): branch rule `wakii-dev/<loại>-<slug>` (mirror git-guard) + FE checks theo path package đổi — ui-kit (typecheck/test/build-storybook), shell (typecheck/test/build), remote-tasks/remote-activity (typecheck/test). Bảng dưới giữ làm mô tả các workflow để bật lại khi cần.
+
 | Workflow | Nội dung |
 |---|---|
 | `contracts` | spectral + gitleaks + compose config + boot auth-svc + schemathesis FULL |

@@ -21,8 +21,10 @@
 
 @layer base {
   :root {
-    /* Native controls (select dropdown, scrollbar) theo dark theme */
-    color-scheme: dark;
+    /* Native controls (select dropdown, scrollbar) — light default (decision
+     * antd-look 2026-10-17); dark qua data-bp-theme (color-scheme: dark override
+     * trong themes/dark.css, cùng block token). */
+    color-scheme: light;
   }
 
   body {

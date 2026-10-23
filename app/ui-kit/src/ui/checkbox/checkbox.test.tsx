@@ -65,10 +65,11 @@ describe('Checkbox — tri-state (PrimeReact parity, 2026-10-18)', () => {
     const box = screen.getByRole('checkbox');
     expect(box).toHaveAttribute('aria-checked', 'mixed');
     expect(box.className).toContain('bg-accent'); // nền accent khi tri
-    const marks = container.querySelectorAll('span[aria-hidden="true"]');
-    const dash = Array.from(marks).find((el) => el.textContent === '\u2212');
-    const tick = Array.from(marks).find((el) => el.textContent === '\u2713');
-    expect(dash).not.toBeNull();
+    const marks = Array.from(container.querySelectorAll('span[aria-hidden="true"]'));
+    // dash = span chứa thanh bar; tick = span chứa SVG Icon 'check'
+    const dash = marks.find((el) => el.querySelector('span.bg-white'));
+    const tick = marks.find((el) => el.querySelector('svg'));
+    expect(dash).toBeDefined();
     expect(dash!).toHaveClass('grid');
     expect(tick).toBeDefined();
     expect(tick!).toHaveClass('hidden');
@@ -85,7 +86,7 @@ describe('Checkbox — tri-state (PrimeReact parity, 2026-10-18)', () => {
     rerender(<Checkbox checked={false} onChange={vi.fn()} />);
     expect(screen.getByRole('checkbox')).toHaveAttribute('aria-checked', 'false');
     const marks = Array.from(container.querySelectorAll('span[aria-hidden="true"]'));
-    const dash = marks.find((el) => el.textContent === '−')!;
+    const dash = marks.find((el) => el.querySelector('span.bg-white'))!;
     expect(dash).toHaveClass('hidden');
   });
 

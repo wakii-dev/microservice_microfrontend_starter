@@ -1,9 +1,11 @@
-// Checkbox — antd look: 16×16 radius 4, checked = nền accent + tick trắng; label
+// Checkbox — antd look: 16×16 radius 4, checked = nền accent + tick SVG (Icon
+// 'check' — user feedback 2026-10-23: ký tự ✓ text mảnh tùy font, không đẹp); label
 // children bọc <label> (click cả chữ); disabled.
 // Tri-state (PrimeReact triStateCheckbox parity): checked = boolean | null —
 // null = indeterminate (nền accent + dash —, aria-checked="mixed"); prop
 // `indeterminate` override kiểu antd. Parent điều khiển cycle true → null → false.
 import type { InputHTMLAttributes, ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'checked' | 'onChange'> {
   /** true / false / null (null = indeterminate — dash + aria-checked mixed). */
@@ -35,14 +37,14 @@ export function Checkbox({ checked = false, indeterminate = false, onChange, dis
         aria-hidden="true"
         className={`-ml-5 hidden size-4 place-items-center text-[10px] font-bold text-white ${inputChecked && !tri ? 'grid peer-checked:grid peer-checked:animate-[bp-check-pop_160ms_cubic-bezier(0.34,1.56,0.64,1)]' : ''}`}
       >
-        ✓
+        <Icon name="check" size={12} />
       </span>
       {/* dash indeterminate — nền accent, không animation pop */}
       <span
         aria-hidden="true"
         className={`-ml-5 size-4 items-center justify-center text-[10px] font-bold leading-none text-white ${tri ? 'grid' : 'hidden'}`}
       >
-        −
+        <span className="h-0.5 w-2 rounded-[1px] bg-white" />
       </span>
       {children}
     </label>

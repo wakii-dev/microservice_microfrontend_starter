@@ -97,6 +97,25 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.20.5)(jiti@2.7.0)(jsdom@27.0.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  app/create-wakii-app:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.8.1
+        version: 1.8.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      tsup:
+        specifier: ^9.0.0
+        version: 9.0.0(@swc/core@1.16.18)(jiti@2.7.0)(postcss@8.5.29)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@22.20.5)(jiti@2.7.0)(jsdom@27.0.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
   app/remotes/activity:
     dependencies:
       '@tanstack/react-query':

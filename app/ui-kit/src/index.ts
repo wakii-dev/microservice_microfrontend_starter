@@ -63,7 +63,9 @@ export { Password, type PasswordProps } from './ui/password/index.js';
 export { InputOTP, type InputOTPProps } from './ui/input-otp/index.js';
 export { InputMask, type InputMaskProps } from './ui/input-mask/index.js';
 export { Listbox, type ListboxProps, type ListboxOption } from './ui/listbox/index.js';
-export { Carousel, type CarouselProps } from './ui/carousel/index.js';
+// 0.5.0 BREAKING: Carousel rời barrel chính (nh phụ thuộc swiper/react — phá
+// nguyên tắc 0-deps của barrel, consumer không cài swiper fail vite build).
+// Import qua subpath: `import { Carousel } from '@wakii/ui-kit/carousel'`.
 export { ColorPicker, type ColorPickerProps } from './ui/color-picker/index.js';
 export { SpeedDial, type SpeedDialProps, type SpeedDialAction } from './ui/speed-dial/index.js';
 export { Galleria, type GalleriaProps, type GalleriaImage } from './ui/galleria/index.js';

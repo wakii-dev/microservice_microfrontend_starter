@@ -30,10 +30,38 @@ cp -r src/styles "$TMP/src/"
 
 # Giữ NGUYÊN name @wakii/ui-kit (canonical npmjs); registry đích npmjs; bỏ phần
 # không cần khi publish (devDeps/scripts/overrides — mirror publish-github.sh).
+# QUAN TRỌNG — exports ĐỔI SANG DIST (hotfix 0.4.1): repo exports trỏ TS source
+# (ADR-0009 consumed-qua-source cho monorepo) nhưng consumers npm (vite/webpack
+# ngoài monorepo) KHÔNG resolve được package entry .ts → build fail. npm package
+# nhận dist (js/cjs/d.ts đủ 6 entry) — styles giữ src (css thuần, có trong tarball).
 python3 - "$TMP" << 'PY'
 import json, sys
 p = json.load(open(f'{sys.argv[1]}/package.json'))
 p['publishConfig']['registry'] = 'https://registry.npmjs.org'
+
+def dist_entry(name):
+    return {
+        'types': f'./dist/{name}.d.ts',
+        'import': f'./dist/{name}.js',
+        'require': f'./dist/{name}.cjs',
+    }
+
+p['exports'] = {
+    '.': dist_entry('index'),
+    './carousel': dist_entry('carousel'),
+    './chart': dist_entry('chart'),
+    './schedule': dist_entry('schedule'),
+    './editor': dist_entry('editor'),
+    './experience3d': dist_entry('experience3d'),
+    './styles/tokens.css': './src/styles/tokens.css',
+    './styles/base.css': './src/styles/base.css',
+    './styles/tailwind.css': './src/styles/tailwind.css',
+    './styles/themes/dark.css': './src/styles/themes/dark.css',
+    './styles/ui-kit.css': './dist/ui-kit.css',
+}
+p['main'] = './dist/index.cjs'
+p['module'] = './dist/index.js'
+p['types'] = './dist/index.d.ts'
 for k in ('devDependencies', 'scripts', 'overrides'): p.pop(k, None)
 json.dump(p, open(f'{sys.argv[1]}/package.json', 'w'), indent=2, ensure_ascii=False)
 open(f'{sys.argv[1]}/package.json', 'a').write('\n')

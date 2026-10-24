@@ -3,10 +3,15 @@
 // vì vi.mock hoist cấp file.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-// Mock reject để mô phỏng consumer CHƯA cài (peer-dep fallback path)
-vi.mock('@fullcalendar/core', async () => { throw new Error('not installed'); });
-vi.mock('@fullcalendar/daygrid', async () => { throw new Error('not installed'); });
-vi.mock('@fullcalendar/interaction', async () => { throw new Error('not installed'); });
+// Giả lập consumer CHƯA cài peer qua DI loader reject — vi.mock module không
+// bắt được dynamic import với biến specifier (resolve runtime qua vite server).
+import { __setLoadFcForTest } from './index.js';
+beforeEach(() => {
+  __setLoadFcForTest(() => Promise.reject(new Error('not installed')));
+});
+afterEach(() => {
+  __setLoadFcForTest(null);
+});
 import { Schedule } from './index.js';
 afterEach(cleanup);
 

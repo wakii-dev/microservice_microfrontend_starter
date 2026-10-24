@@ -4,6 +4,43 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.5.0] — 2026-10-24 (BREAKING — barrel chính sạch彻底 peer imports)
+
+### Breaking
+
+- **`Carousel` rời barrel chính** → `import { Carousel } from '@wakii/ui-kit/carousel'`. Component phụ thuộc `swiper/react` (peer) — nằm trong barrel phá nguyên tắc 0-deps: consumer KHÔNG cài swiper fail vite build (`"Swiper" is not exported` — bắt từ gate create-wakii-app end-to-end). Không consumer nào trong monorepo import từ barrel (đã grep).
+
+### Fixed (chuỗi hotfix 0.4.1→0.5.0 — tất cả bắt từ gate scaffold thật + install + vite build)
+
+- 0.4.1: npm exports trỏ TS source → consumer vite không resolve package entry; publish script rewrite exports sang dist (6 entry)
+- 0.4.2/0.4.3: dynamic peer imports (chart.js/auto, @fullcalendar/*) qua biến specifier — rollup consumer không phân tích
+- 0.4.4: EditorInner entry riêng + tsup splitting:false — @tiptap/starter-kit không lọt index bundle qua shared chunk
+- 0.5.0: Carousel dời subpath — swiper/react không lọt barrel (này)
+
+## [0.4.4] — 2026-10-24 (hotfix 4 — index bundle sạch peer static imports)
+
+### Fixed
+
+- **`@tiptap/starter-kit` static import lọt vào index bundle qua shared chunk** — consumer không cài tiptap vẫn fail build dù không dùng Editor. tsup `splitting: false` (mỗi entry self-contained) + **EditorInner thành entry riêng** (`dist/editorInner.js`) — wrapper `React.lazy` import qua biến specifier (esbuild inline dynamic import khi không splitting; type giữ qua `import type`). Sau fix: `grep tiptap dist/index.js` chỉ còn fallback message string. Chuỗi hotfix 0.4.1→0.4.4 đều bắt từ gate end-to-end create-wakii-app (scaffold thật + install + vite build).
+
+## [0.4.3] — 2026-10-24 (hotfix 3 — dynamic peer import qua biến specifier)
+
+### Fixed
+
+- `/* @vite-ignore */` bị esbuild strip khỏi dist (comment) — consumer build vẫn fail. Dynamic peer imports (chart.js/auto, @fullcalendar/*) chuyển sang **biến specifier** (`const FC_CORE = '@fullcalendar/core'; import(FC_CORE)`) — rollup/vite của consumer không thể phân tích tĩnh, giữ nguyên runtime import + fallback khi peer thiếu.
+
+## [0.4.2] — 2026-10-24 (hotfix 2 — consumer vite build với dynamic peer imports)
+
+### Fixed
+
+- **Consumer Vite production build fail: `Rollup failed to resolve import "@fullcalendar/daygrid"`** — rollup phân tích cả dynamic import peer trong dist chunk dù consumer không cài peer đó. Dynamic imports peer (chart `chart.js/auto`, schedule `@fullcalendar/*`) thêm `/* @vite-ignore */` — bundler bỏ phân tích, runtime import bình thường (fallback sẵn khi peer thiếu). Bắt khi gate create-wakii-app: scaffold thật + install + `vite build` end-to-end.
+
+## [0.4.1] — 2026-10-24 (hotfix publish — exports dist cho npm consumers)
+
+### Fixed
+
+- **npm exports trỏ TS source → consumers ngoài monorepo không build được** — repo exports `./src/index.ts` (ADR-0009 đúng cho monorepo) nhưng Vite/webpack consumers qua npm KHÔNG resolve được package entry `.ts` (`Failed to resolve entry for package` — bắt được khi gate create-wakii-app scaffold thật install + build). Publish script giờ rewrite exports sang **dist** (6 entry js/cjs/d.ts kể cả experience3d — tsup thêm entry) + main/module/types; styles giữ src (css thuần, có trong tarball). Repo không đổi (monorepo vẫn consumed-qua-source).
+
 ## [0.4.0] — 2026-10-24 (depth & motion wave — dark toàn diện + hooks mở trọn barrel)
 
 > 23 commits (PR #55–#67 squash + trực tiếp): depth/elevation tokens, cinematic experience template, 12 hooks + 3 utils mở trọn barrel, Storybook manager 2 palette, landing ×2 motion showcase, sweep glyph→Icon SVG, app FE dark+motion pass, chart probe dark-live, Introduction redesign. Suite tại HEAD: **163 files / 1290 tests PASS** · **683 story exports / 142 file stories** (đếm tĩnh).

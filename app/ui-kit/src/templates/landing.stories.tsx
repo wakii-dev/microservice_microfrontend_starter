@@ -1,8 +1,10 @@
 // Templates/Landing — trang marketing HOÀN CHỈNH ghép từ kit: hero (Tag +
-// Typography Title/Text + CTA + Parallax ảnh picsum) · stats strip (Statistic +
-// CountUp) · features grid 6 (Reveal stagger + Card + Icon) · pricing 3 gói
-// (Card hoverable + Segmented monthly/yearly, giá CountUp replay khi đổi kỳ) ·
-// testimonials (Avatar + Divider) · CTA cuối + footer.
+// Typography Title/Text + CTA reveal-stagger + ảnh đôi Parallax 2 tầng lệch
+// depth) · stats strip (Statistic + CountUp) · features grid 6 (Reveal stagger
+// + Card + Icon) · motion lab (Reveal 4 hướng + Parallax layers + CountUp
+// replay — từng primitive demo sống, gắn nhãn tên) · pricing 3 gói (Card
+// hoverable + Segmented monthly/yearly, giá CountUp replay khi đổi kỳ) ·
+// testimonials (Avatar + Divider, Reveal stagger theo cột) · CTA cuối + footer.
 // 100% component ui-kit, tokens-only mọi className — dark ăn nhờ cascade
 // data-bp-theme="dark" (toolbar Theme). Motion: mỗi primitive một element
 // (Parallax scroll · Reveal viewport · CountUp state — không giành transform).
@@ -58,33 +60,58 @@ const QUOTES = [
   { initials: 'CT', name: 'Chi Tran', role: 'PM, Loopscale', quote: 'Pricing page, dashboard, onboarding — all from the same tokens. It just looks like one product.' },
 ];
 
-/** Hero — Tag + Title + Text + CTA; ảnh drift chậm hơn trang (Parallax). */
+/** Hero — Tag + Title + Text + CTA reveal stagger khi mount; ảnh đôi Parallax
+ * 2 tầng (speed 0.3/0.5) trôi lệch depth khi scroll — mỗi lớp một element. */
 function Hero({ onCta }: { onCta?: () => void }) {
   return (
     <section className="flex flex-col items-center gap-5 pt-8 text-center">
-      <Tag icon={<Icon name="check-circle" size={12} />}>v1.0 — production ready</Tag>
-      <Title level={1} style={{ marginBottom: 0 }} className="max-w-2xl">
-        Ship work, not tooling
-      </Title>
-      <Text type="secondary" className="max-w-xl text-body">
-        A task platform assembled from one design system — dashboards, boards and landing pages that
-        all speak the same token language.
-      </Text>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button type="primary" size="large" onClick={onCta} className="whitespace-nowrap">
-          Get started free
-        </Button>
-        <Button size="large" icon={<Icon name="external-link" size={14} />} className="whitespace-nowrap">
-          Read the docs
-        </Button>
+      <Reveal direction="down">
+        <Tag icon={<Icon name="check-circle" size={12} />}>v1.0 — production ready</Tag>
+      </Reveal>
+      <Reveal direction="down" delay={80}>
+        <Title level={1} style={{ marginBottom: 0 }} className="max-w-2xl">
+          Ship work, not tooling
+        </Title>
+      </Reveal>
+      <Reveal direction="down" delay={160}>
+        <Text type="secondary" className="max-w-xl text-body">
+          A task platform assembled from one design system — dashboards, boards and landing pages that
+          all speak the same token language.
+        </Text>
+      </Reveal>
+      <Reveal direction="down" delay={240}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button type="primary" size="large" onClick={onCta} className="whitespace-nowrap">
+            Get started free
+          </Button>
+          <Button size="large" icon={<Icon name="external-link" size={14} />} className="whitespace-nowrap">
+            Read the docs
+          </Button>
+        </div>
+      </Reveal>
+      {/* Depth duo — 2 lớp Parallax speed khác nhau: ảnh chính trôi chậm hơn
+          trang, ảnh phụ trôi nhanh hơn → cảm giác chiều sâu khi scroll. Mini
+          card strength 50 + mb-12 đệm: dao động ~28px không tràn đè stats strip. */}
+      <div className="relative mb-12 w-full">
+        <Parallax speed={0.3} strength={200} scale className="w-full overflow-hidden rounded-xl">
+          <img
+            src={photo('orca-landing-hero', 1280, 640)}
+            alt="Product hero — team workspace overview (picsum seed: orca-landing-hero)"
+            className="aspect-[2/1] w-full object-cover"
+          />
+        </Parallax>
+        <Parallax
+          speed={0.55}
+          strength={50}
+          className="absolute -bottom-8 -right-2 hidden w-56 overflow-hidden rounded-xl border border-line bg-s1 shadow-[var(--shadow-pop)] sm:block"
+        >
+          <img
+            src={photo('orca-landing-hero-mini', 560, 420)}
+            alt="Detail — board view close-up (picsum seed: orca-landing-hero-mini)"
+            className="aspect-[4/3] w-full object-cover"
+          />
+        </Parallax>
       </div>
-      <Parallax speed={0.25} scale className="mt-4 w-full overflow-hidden rounded-xl">
-        <img
-          src={photo('orca-landing-hero', 1280, 640)}
-          alt="Product hero — team workspace overview (picsum seed: orca-landing-hero)"
-          className="aspect-[2/1] w-full object-cover"
-        />
-      </Parallax>
     </section>
   );
 }
@@ -120,6 +147,74 @@ function FeaturesGrid() {
             </Card>
           </Reveal>
         ))}
+      </div>
+    </section>
+  );
+}
+
+/** Motion lab — từng primitive demo SỐNG, gắn nhãn tên: Reveal 4 hướng
+ * (stagger 0/100/200/300, once=false để scroll lại xem lại) · Parallax layers
+ * (2 ảnh speed lệch) · CountUp replay bằng key đổi. Scroll qua là thấy. */
+function MotionLab() {
+  const [replayKey, setReplayKey] = useState(0);
+  const dirs = ['up', 'left', 'right', 'down'] as const;
+  return (
+    <section className="flex flex-col gap-5">
+      <Title level={2} style={{ marginBottom: 0 }} className="text-center">
+        Motion, built in — not bolted on
+      </Title>
+      <Text type="secondary" className="mx-auto -mt-2 max-w-lg text-center text-body">
+        Every effect below is a stock kit primitive on this very page — scroll back and forth, they
+        replay. prefers-reduced-motion turns them all off.
+      </Text>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Reveal — 4 hướng, once=false để replay mỗi lần vào viewport */}
+        <Card hoverable={false}>
+          <div className="text-label font-medium text-ink">Reveal × 4 directions</div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {dirs.map((d, i) => (
+              <Reveal key={d} direction={d} delay={i * 100} once={false}>
+                <div className="grid h-14 place-items-center rounded-lg border border-line bg-s2 text-meta text-ink2">
+                  {d}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <p className="m-0 mt-3 text-meta text-ink3">IntersectionObserver — no listeners per card.</p>
+        </Card>
+        {/* Parallax — 3 lớp speed lệch (0.15/0.45/0.8), cột cao bằng nhau
+            phủ kín khung — không dead-space dưới ảnh */}
+        <Card hoverable={false} className="overflow-hidden">
+          <div className="text-label font-medium text-ink">Parallax layers</div>
+          <div className="mt-3 flex h-[150px] items-center justify-center gap-2 overflow-hidden">
+            <Parallax speed={0.15} strength={70} className="h-[142px] w-28 shrink-0 overflow-hidden rounded-lg">
+              <img src={photo('orca-motion-far', 280, 360)} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+            </Parallax>
+            <Parallax speed={0.45} strength={110} className="h-[142px] w-36 shrink-0 overflow-hidden rounded-lg">
+              <img src={photo('orca-motion-near', 360, 360)} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+            </Parallax>
+            <Parallax speed={0.8} strength={60} className="h-[142px] w-20 shrink-0 overflow-hidden rounded-lg">
+              <img src={photo('orca-motion-front', 200, 300)} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+            </Parallax>
+          </div>
+          <p className="m-0 mt-3 text-meta text-ink3">rAF-throttled scroll — transform only, 60fps.</p>
+        </Card>
+        {/* CountUp — replay bằng key */}
+        <Card hoverable={false}>
+          <div className="text-label font-medium text-ink">CountUp on demand</div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span key={replayKey} className="text-4xl font-semibold tabular-nums text-ink">
+              <CountUp value={98.6} decimals={1} duration={1.2} />
+            </span>
+            <span className="text-meta text-ink3">% fleet adoption</span>
+          </div>
+          <div className="mt-4">
+            <Button icon={<Icon name="refresh" size={14} />} onClick={() => setReplayKey((k) => k + 1)}>
+              Replay
+            </Button>
+          </div>
+          <p className="m-0 mt-3 text-meta text-ink3">Ease-out rAF — remount via key, zero libs.</p>
+        </Card>
       </div>
     </section>
   );
@@ -191,8 +286,8 @@ function Testimonials() {
         Teams talk, numbers back it up
       </Title>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {QUOTES.map((q) => (
-          <Reveal key={q.name} direction="up">
+        {QUOTES.map((q, i) => (
+          <Reveal key={q.name} direction="up" delay={i * 120}>
             <figure className="m-0 flex h-full flex-col gap-3 rounded-xl border border-line bg-s1 p-4">
               <blockquote className="m-0 text-body text-ink2">“{q.quote}”</blockquote>
               <figcaption className="mt-auto flex items-center gap-2">
@@ -254,14 +349,15 @@ function Footer() {
   );
 }
 
-/** Landing — trang đầy đủ: hero → stats → features → pricing → testimonials → CTA → footer. */
+/** Landing — trang đầy đủ: hero → stats → features → motion lab → pricing → testimonials → CTA → footer. */
 export const Landing: Story = {
-  name: 'Landing — full page (hero → stats → features → pricing → quotes → CTA)',
+  name: 'Landing — full page (hero → stats → features → motion → pricing → quotes → CTA)',
   render: () => (
-    <div className="mx-auto flex max-w-4xl flex-col gap-12 pb-6">
+    <div className="mx-auto flex max-w-4xl flex-col gap-12 pb-16">
       <Hero />
       <StatsStrip />
       <FeaturesGrid />
+      <MotionLab />
       <Pricing />
       <Testimonials />
       <FinalCta />

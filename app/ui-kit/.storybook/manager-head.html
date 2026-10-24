@@ -18,6 +18,28 @@
     --bp-r2: 8px;           /* --r-2 */
   }
 
+  /* Dark — manager.ts đặt data-bp-theme trên body manager khi globals=dark.
+     Giá trị mirror themes/dark.css. */
+  body[data-bp-theme='dark'] {
+    --bp-canvas: #010102;
+    --bp-s1: #0f1011;
+    --bp-s3: #18191a;
+    --bp-ink: #f7f8f8;
+    --bp-ink2: #d0d6e0;
+    --bp-ink3: #8a8f98;
+    --bp-line: #23252a;
+    --bp-line2: #2b2d33;
+    --bp-accent: #828fff;   /* --accent-hi — selected/hover đọc được trên tối */
+  }
+  body[data-bp-theme='dark'] .search-field:focus-within {
+    box-shadow: 0 0 0 2px rgba(130, 143, 255, 0.15);
+  }
+  /* Element iframe bị emotion set nền trắng — lộ dải trắng lúc loading và
+     khi nội dung ngắn hơn viewport (fix judge 2026-10-23). */
+  body[data-bp-theme='dark'] #storybook-preview-iframe {
+    background: #010102; /* --c-canvas dark */
+  }
+
   /* ── Brand area ── */
   .sidebar-header img[alt='Wakii UI Kit'] { border-radius: var(--bp-r1); }
 

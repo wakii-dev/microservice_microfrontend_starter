@@ -117,7 +117,7 @@ function StatsStrip() {
       {STATS.map((s) => (
         <div key={s.title} className="flex flex-col">
           <Statistic title={s.title} value={<CountUp value={s.value} />} suffix={s.suffix} />
-          <div className="mt-1 text-meta text-ink3">{s.note}</div>
+          <div className="mt-1 text-meta text-ink2">{s.note}</div>
         </div>
       ))}
     </section>
@@ -227,7 +227,7 @@ function WhyGrid() {
                 <Icon name={r.icon} size={18} />
               </span>
               <div className="text-body font-medium text-ink">{r.title}</div>
-              <p className="m-0 mt-1 text-meta text-ink3">{r.body}</p>
+              <p className="m-0 mt-1 text-meta text-ink2">{r.body}</p>
             </Card>
           </Reveal>
         ))}

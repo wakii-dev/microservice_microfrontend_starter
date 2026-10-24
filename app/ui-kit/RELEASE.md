@@ -42,6 +42,22 @@ cd storybook-static && vercel deploy --prod --team vuhois-projects && cd ..
 git add -A && git commit -m "release: <version>" && git push   # PR → merge main
 ```
 
+## 6. Publish npmjs qua CI (GitHub Action — nhánh `release/ui-kit`)
+
+Workflow `.github/workflows/publish-uikit.yml` tự publish khi push vào nhánh
+`release/ui-kit` (hoặc chạy tay qua tab Actions → Run workflow). Điều kiện:
+
+1. Repo bật GitHub Actions (2026-10-24 đang DISABLE vì billing — xem CLAUDE.md mục CI).
+2. Secret `NPM_TOKEN` (bảng token ở đầu file này) set trong Settings → Secrets
+   and variables → Actions.
+3. Bump version trong `app/ui-kit/package.json` + thêm mục CHANGELOG.md, rồi
+   push/merge vào `release/ui-kit`.
+
+CI tự làm: install workspace → gate test + typecheck + build → gọi
+`scripts/publish-npm.sh` với `NPM_TOKEN` từ secret → tag `v<version>` +
+GitHub release với notes trích từ CHANGELOG.md (tag đã tồn tại = bỏ qua,
+chạy lại an toàn).
+
 ## Bản đồ tên (đừng nhầm)
 
 | Registry | Package | Ai cài |

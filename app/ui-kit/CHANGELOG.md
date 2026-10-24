@@ -4,6 +4,39 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.4.0] — 2026-10-24 (depth & motion wave — dark toàn diện + hooks mở trọn barrel)
+
+> 23 commits (PR #55–#67 squash + trực tiếp): depth/elevation tokens, cinematic experience template, 12 hooks + 3 utils mở trọn barrel, Storybook manager 2 palette, landing ×2 motion showcase, sweep glyph→Icon SVG, app FE dark+motion pass, chart probe dark-live, Introduction redesign. Suite tại HEAD: **163 files / 1290 tests PASS** · **683 story exports / 142 file stories** (đếm tĩnh).
+
+### Added
+
+- **Depth & elevation tokens (coordinator)** — elevation 3 tầng `--ele-1..3` (shadow + inset highlight viền trên — component dùng theo trạng thái rest/hover/active, overlay giữ `--shadow-pop`) · surface wash `--wash` (kết hợp utilities `bg-s1/s2`) · depth contract `--ease-smooth`/`--motion-smooth` cho state-change. (`95ab014`, `55017c6`)
+- **Experience cinematic template (workers V2, D)** — nhóm mới `templates/experience/`: `ChapterShell` lib + hero/chapters "chaptershell" (glass-nav contract sf3, design contract typography/palette/mood engine sf1) — chapter-shell test 77 assertions, sf3 **44 tests**. (`3ac8044`, `46f6807`)
+- **Hooks wave ×12 + 3 utils + ScrollPage — MỞ TRỌN BARREL (PR #65)** — lifecycle/observers/controllable: `useMountEffect` · `useUpdateEffect` · `useIsFirstRender` · `useControllableState` · `useEventListener` · `useScrollProgress` · `useInView` · `useInfiniteScroll` · `useMeasure` · `useOnlineStatus` · `useFullscreen` · `useTitle` + utils `format` (`formatCurrency`/`formatBytes`/`formatRelativeTime`/`formatNumber`), `array` (`chunk`/`groupBy`/`flattenTree`/`findTreeNode`), `dom` (`getScrollParent`/`getFocusableElements`/`cx`) + `ScrollPage` section-snap; gỡ nợ barrel treo từ `267a273` — hooks suite **110 tests / 30 files**. (`1476eaf`)
+- **Team-OS domain (worker V1)** — `PingFeed` (+`relTime`) · `StagePipeline` · `DebtBoard` · `TeamDashboard` · `InboxThread` — 29 tests. (`e22db92`)
+- **Motion depth cluster (worker W8)** — transition family mở rộng 11 types, barrel dedupe (`Collapse`→`CollapseTransition` precedent) — 102 tests. (`2032bc1`)
+- **Depth pass forms + data display (workers W6, D)** — 19 form + 7 data component polish theo depth contract (`ease-smooth`, elevation tier) — suite 1244 tại thời điểm đợt. (`f666fbe`)
+- **Storybook manager chrome 2 palette (PR #57, #60)** — manager UI đồng bộ ngôn ngữ ui-kit (light antd / dark direction-B, brand + head html), trang showcase `Intro/Showcase` "Why Wakii UI Kit" (hero Reveal + stats CountUp + live demo + why-grid + footer CTA). (`ab2ac81`, `04cf002`)
+- **Landing + Parallax Landing motion showcase (PR #62, #63)** — `landing.stories` motion hero + dọn prose dark contrast; `parallax-landing` depth-trio hero + parallax lab. (`dcdc4f8`, `3254185`)
+- **Hooks demo stories ×9 (PR #67)** — `hooks-new.stories` (Theming & Motion/Hooks/New Wave): demo tương tác thật cho cả 12 hook mới (log timeline, controlled/uncontrolled toggle, scroll/in-view/infinite labs, online stub tự khôi phục, fullscreen + title). (`e4d2229`)
+- **Chart probe dark-live (PR #66)** — pattern `useChartColors` (span ẩn + `getComputedStyle` đọc token trong theme scope, fallback hex như dashboard template) + `MutationObserver` trên `<html data-bp-theme>` → chart re-resolve màu NGAY khi dark toggle, không F5; áp `admin` Dashboard. (`f6469cd`)
+- **Input.Search attached-button + InputNumber antd-fidelity redo (worker W6)**. (`c456866`)
+
+### Fixed
+
+- **Chart 2-shape bug (PR #67)** — `<Chart>` ép rebuild config theo shape flat (`config.labels`) trong khi consumer (admin Dashboard) truyền shape native chart.js v4 (`data:{labels,datasets}` lồng) → chart RỖNG im lặng (canvas 0 pixel, 0 lỗi console — chỉ bắt được bằng browser verify thật). Fix: component resolve cả 2 shape (`labels ?? data.labels`), type thêm nested optional + test nested mới; admin Dashboard chuẩn hoá về flat theo type. (`e4d2229`)
+- **Dark docs text chìm (PR #61, #62)** — heading h1-h4 + inline code + note `ink2` trong docs/preview; dọn hết prose contrast sót (`preview-head` + `intro.docs`). (`a5f3414`, `dcdc4f8`)
+- **Dark tokens polish (PR #60)** — `--ink4` `#5c626b` (mirror antd dark colorTextQuaternary, cùng họ `--ink3` `#8a8f98`) · `--bg-disabled` 4% đồng tỉ lệ light · alert tints dark chuyển alpha tint màu trạng thái (bg 12% / border 37%, error base = `--st-fail` dark `#f06a6a` — đồng bộ 100% 4 type) · shadow dark đậm ×1.6 · `color-scheme: light` default + `color-scheme: dark` scoped `[data-bp-theme="dark"]` (native controls ăn theo theme). (`04cf002`)
+- **Sweep glyph ký tự → Icon SVG (PR #59, #60)** — đợt 1: 9 components (alert/drawer/input/input-search/table…); đợt 2: steps tick ✓, select marker ✓, upload-core/dropzone 4 SVG tự vẽ → Icon file/check/times/upload + **icon set 50→52** (`filter-fill`/`filter-slash`) + rounded chuẩn controls + focus-visible sót. (`ec7e1dc`, `04cf002`)
+- **Table first-column sticky + Calendar responsive 375 (worker W6, PR #55)**. (`85cc797`)
+- **Repo debts (PR #56)** — barrel `index.ts` export module chưa commit treo typecheck/test/build-storybook (gỡ export, mở khoá bằng `262e512`) · theme tokens dark · xoá `go-svc/ci.compose.override.yml` redundant · docs drift (CI disabled note, ADR-0009 index, ink3 templates, known-issue standalone). (`267a273`)
+
+### Changed
+
+- **Templates ink3→ink2 (PR #64)** — dark audit M#3: body mô tả chính (auth subtitle ×4, crud/settings emptyMessage, settings danger-zone caption) `text-ink3` → `text-ink2`; meta phụ giữ ink3. (`1ab7585`)
+- **App FE dark + motion pass (PR #66)** — shell · tasks · activity · admin: nội dung chính ink2, nav link rest + CTA "Đăng nhập" nâng contrast (hover→ink), page subtitles admin ink2; chart admin probe dark-live. (`f6469cd`)
+- **Introduction docs redesign ×2 vòng (PR #58, #67)** — #58 hero + stats + card layout; #67 đem ngang tầm showcase: wash hero + Reveal stagger, kicker accent + `Title level={2}` thay markdown trần, card hover-lift, demo bọc `Card`, CTA cuối dẫn Showcase. (`5490c8c`, `e4d2229`)
+
 ## [0.3.0] — 2026-10-19 (story VU-53 UI redesign — OCD parity wave)
 
 > ~110 commits: 30+ component mới (Timesheet/Kanban/3D/Parallax-họ/Layout/TreeTable...), 6+1 templates, motion-max, a11y pass, app-fit 4 apps Wakii, storybook 131 titles/641 stories, eslint 0/0, 1111+ tests. Chi tiết mục dưới.

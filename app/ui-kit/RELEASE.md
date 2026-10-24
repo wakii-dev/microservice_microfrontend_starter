@@ -24,7 +24,9 @@ GH_PACKAGES_TOKEN=ghp_xxx pnpm --filter "@wakii/ui-kit" publish --no-git-checks
 ## 3. Publish npmjs.org (public — tên @wakii/ui-kit)
 
 ```bash
-NPM_TOKEN=npm_xxx ./scripts/publish-npm.sh    # tự build + đổi scope + publish
+./scripts/publish-npm.sh
+# 2026-10-24: token wakii đã lưu trong ~/.npmrc (user duyệt) — chạy thẳng
+# không cần env. NPM_TOKEN=npm_xxx vẫn ưu tiên nếu có.
 ```
 
 ## 4. Deploy Storybook mới lên Vercel

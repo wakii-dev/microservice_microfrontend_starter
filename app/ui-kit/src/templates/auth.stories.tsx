@@ -56,7 +56,7 @@ function SignInCard() {
     <div className="flex w-full max-w-[400px] flex-col gap-4">
       <div>
         <div className="text-h2 font-bold text-ink">Đăng nhập</div>
-        <div className="text-body text-ink3">Vào bảng công việc của bạn</div>
+        <div className="text-body text-ink2">Vào bảng công việc của bạn</div>
       </div>
       <form
         noValidate
@@ -167,7 +167,7 @@ function SignUpCard() {
     <div className="flex w-full max-w-[440px] flex-col gap-4">
       <div>
         <div className="text-h2 font-bold text-ink">Tạo tài khoản</div>
-        <div className="text-body text-ink3">Miễn phí — không cần thẻ</div>
+        <div className="text-body text-ink2">Miễn phí — không cần thẻ</div>
       </div>
       <form
         noValidate
@@ -334,7 +334,7 @@ function ForgotPasswordDemo() {
     <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
       <div>
         <div className="text-h2 font-bold text-ink">Quên mật khẩu</div>
-        <div className="text-body text-ink3">Nhập email — chúng tôi gửi mã xác nhận 6 số.</div>
+        <div className="text-body text-ink2">Nhập email — chúng tôi gửi mã xác nhận 6 số.</div>
       </div>
       {reset ? (
         <Result status="success" title="Đã đặt lại" subTitle="Mật khẩu mới đã gửi vào email của bạn." />
@@ -405,7 +405,7 @@ function MagicLinkDemo() {
     <div className="flex w-full max-w-[380px] flex-col gap-4 rounded-xl border border-line bg-s2 p-6">
       <div>
         <div className="text-h2 font-bold text-ink">Đăng nhập bằng link</div>
-        <div className="text-body text-ink3">Không cần mật khẩu — một link, một lần dùng.</div>
+        <div className="text-body text-ink2">Không cần mật khẩu — một link, một lần dùng.</div>
       </div>
       <Field label="Email" htmlFor="magic-email" required>
         <Input id="magic-email" type="email" placeholder="name@company.vn" value={email} onChange={(e) => setEmail(e.target.value)} />

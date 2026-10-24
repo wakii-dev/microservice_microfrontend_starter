@@ -348,7 +348,7 @@ function BillingPanel() {
           rowKey="id"
           striped
           loading={demo === 'loading'}
-          emptyMessage={<p className="p-6 text-body text-ink3">Chưa có hóa đơn nào trong kỳ này.</p>}
+          emptyMessage={<p className="p-6 text-body text-ink2">Chưa có hóa đơn nào trong kỳ này.</p>}
         />
       </Card>
     </div>
@@ -418,7 +418,7 @@ function DangerZonePanel() {
   return (
     <Card title="Vùng nguy hiểm">
       <div className="grid max-w-lg gap-3">
-        <p className="m-0 text-label text-ink3">
+        <p className="m-0 text-label text-ink2">
           Xoá tài khoản xoá luôn mọi task, token và lịch sử hoạt động. Gõ <strong className="text-ink">Alice Nguyen</strong> để
           mở khoá nút.
         </p>

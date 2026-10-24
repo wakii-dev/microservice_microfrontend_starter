@@ -56,6 +56,22 @@ describe('Chart', () => {
     vi.doUnmock('chart.js/auto');
   });
 
+  it('config native nested (data lồng) vẫn vẽ dữ liệu — app/admin pass-through', async () => {
+    const ChartStub = vi.fn(() => ({ destroy: vi.fn() }));
+    vi.doMock('chart.js/auto', () => Promise.resolve({ Chart: ChartStub, __esModule: true }));
+    const { Chart: ChartMocked } = await import('./index.js');
+    const NESTED = {
+      type: 'line' as const,
+      data: { labels: ['T2', 'T3'], datasets: [{ label: 'n', data: [3, 4] }] },
+    };
+    render(<ChartMocked config={NESTED} />);
+    await vi.waitFor(() => expect(ChartStub).toHaveBeenCalled());
+    const cfg = (ChartStub.mock.calls[0] as unknown[] | undefined)?.[1];
+    // nested vẫn resolve đủ → chart.js nhận labels/datasets trong `data` (không rỗng câm lặng)
+    expect(cfg).toMatchObject({ type: 'line', data: { labels: ['T2', 'T3'], datasets: [{ label: 'n', data: [3, 4] }] } });
+    vi.doUnmock('chart.js/auto');
+  });
+
   it('Chart class không resolve được (module rỗng) → fallback, KHÔNG để canvas trắng câm lặng', async () => {
     vi.doMock('chart.js/auto', () => Promise.resolve({}));
     const { Chart: ChartMocked } = await import('./index.js');

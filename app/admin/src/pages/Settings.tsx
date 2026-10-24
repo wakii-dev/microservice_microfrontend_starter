@@ -63,7 +63,7 @@ export function Settings() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="m-0 text-h1 font-semibold text-ink">Cài đặt</h1>
-        <p className="mt-1 mb-0 text-body text-ink3">Cấu hình workspace — lưu vào localStorage (demo).</p>
+        <p className="mt-1 mb-0 text-body text-ink2">Cấu hình workspace — lưu vào localStorage (demo).</p>
       </div>
 
       <Tabs

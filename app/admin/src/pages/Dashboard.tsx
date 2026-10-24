@@ -7,6 +7,7 @@
 // - Cột phải: Timeline + EmptyState stacked flex-1 — hai card CAO ĐỀU
 // - Headers: chart + timeline cùng pattern title trái + Tag phải
 // Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button, Card, Chart, Col, EmptyState, Icon, Row, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
 
 const STATS = [
@@ -49,14 +50,58 @@ const CHART_CONFIG_NATIVE = {
   options: { responsive: true, maintainAspectRatio: false, animation: false },
 };
 
-// Cast tại biên JSX — type flat của ui-kit chưa phản ánh shape native chart.js (xác trên)
-const CHART_CONFIG = CHART_CONFIG_NATIVE as unknown as ChartConfig;
+// Màu chart — probe token theo theme scope (port pattern app/ui-kit/src/templates/
+// dashboard.stories.tsx: canvas không hiểu var(--), đọc computed style qua span ẩn,
+// fallback hex y nguyên template). Bổ sung MutationObserver trên <html data-bp-theme>:
+// AdminLayout toggle dark KHÔNG remount trang — đổi theme là chart re-resolve ngay.
+const FALLBACK_COLORS = { accent: '#1677ff', done: '#52c41a' };
+
+function useChartColors() {
+  const probeRef = useRef<HTMLSpanElement>(null);
+  const [colors, setColors] = useState(FALLBACK_COLORS);
+  useLayoutEffect(() => {
+    const read = () => {
+      const cs = probeRef.current ? getComputedStyle(probeRef.current) : null;
+      if (!cs) return;
+      setColors({
+        accent: cs.getPropertyValue('--accent').trim() || FALLBACK_COLORS.accent,
+        done: cs.getPropertyValue('--st-done').trim() || FALLBACK_COLORS.done,
+      });
+    };
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bp-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  return { probeRef, colors };
+}
 
 const HAS_CHART_DATA = CHART_CONFIG_NATIVE.data.datasets.some((dataset) => dataset.data.length > 0);
 
 export function Dashboard() {
+  // Màu chart theo theme — probe + re-resolve khi dark toggle (xem useChartColors)
+  const { probeRef, colors } = useChartColors();
+  // Cast tại biên JSX — type flat của ui-kit chưa phản ánh shape native chart.js (xác trên)
+  const CHART_CONFIG = useMemo(
+    () =>
+      ({
+        ...CHART_CONFIG_NATIVE,
+        data: {
+          ...CHART_CONFIG_NATIVE.data,
+          datasets: CHART_CONFIG_NATIVE.data.datasets.map((ds, i) => {
+            const color = i === 0 ? colors.accent : colors.done;
+            // Fill giữ alpha 12% như bản cũ — color-mix trên token (canvas không support
+            // color-mix thì chỉ bỏ fill, line vẫn vẽ đúng màu token)
+            return { ...ds, borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` };
+          }),
+        },
+      }) as unknown as ChartConfig,
+    [colors],
+  );
   return (
     <div className="flex flex-col gap-6">
+      {/* Probe đọc token trong đúng theme scope (dark toggle cascade tới đây) */}
+      <span ref={probeRef} aria-hidden="true" className="hidden" />
       <div className="flex items-center justify-between">
         <h1 className="m-0 text-h1 font-semibold text-ink">Dashboard</h1>
         <Button icon={<Icon name="refresh" size={12} />}>Làm mới</Button>

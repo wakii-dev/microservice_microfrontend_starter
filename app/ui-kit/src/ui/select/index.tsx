@@ -277,7 +277,7 @@ export function Select({
                       >
                         {multiple && (
                           <span className={`mr-2 size-3.5 shrink-0 rounded-[4px] border ${isSelected ? 'border-accent bg-accent' : 'border-line bg-s2'}`}>
-                            {isSelected && <span className="grid size-full place-items-center text-[8px] font-bold text-white">✓</span>}
+                            {isSelected && <span className="grid size-full place-items-center"><Icon name="check" size={10} className="text-white" /></span>}
                           </span>
                         )}
                         {/* label chiếm phần còn — check icon selected bám mép phải (single; multiple có checkbox riêng) */}

@@ -4,14 +4,8 @@
 // role=button + tabIndex — Enter/Space mở dialog, aria-disabled khi disabled.
 // Chia sẻ props + controller với Upload qua upload-core.
 import { useState, type DragEvent, type KeyboardEvent } from 'react';
+import { Icon } from '../icons/index.js';
 import { UploadFileList, useUploadController, type UploadProps } from './upload-core.js';
-
-const HINT_ICON = (
-  <svg viewBox="0 0 24 24" width={28} height={28} fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden="true">
-    <path d="M12 16V6m0 0L8 10m4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1" strokeLinecap="round" />
-  </svg>
-);
 
 const BASE =
   'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-s2 px-6 py-8 text-center text-ink transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent';
@@ -73,7 +67,7 @@ export function UploadDropzone(props: UploadProps) {
         {children ?? (
           <>
             <span className="text-ink3" aria-hidden="true">
-              {HINT_ICON}
+              <Icon name="upload" size={28} />
             </span>
             <span className="text-body">Kéo thả hoặc click để chọn</span>
           </>

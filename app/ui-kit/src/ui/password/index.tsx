@@ -49,7 +49,7 @@ export function Password({ value: valueProp, onChange, placeholder, showStrength
           type="button"
           aria-label={visible ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
           onClick={() => setVisible((v) => !v)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer border-none bg-transparent text-label text-ink3 transition-colors duration-200 ease-[var(--ease-smooth)] hover:text-ink2"
+          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer rounded-1 border-none bg-transparent text-label text-ink3 transition-colors duration-200 ease-[var(--ease-smooth)] hover:text-ink2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         >
           <Icon name={visible ? 'eye-slash' : 'eye'} size={16} />
         </button>

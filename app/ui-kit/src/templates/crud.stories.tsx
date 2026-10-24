@@ -319,7 +319,7 @@ function CrudPage({ initialLoading = false, initialQuery = '' }: { initialLoadin
           expandable={{ expandedRowRender: (r) => <p className="text-label text-ink2">{r.note}</p> }}
           paginator
           pageSize={8}
-          emptyMessage={<p className="p-6 text-body text-ink3">Không có task khớp bộ lọc — xoá từ khoá thử xem.</p>}
+          emptyMessage={<p className="p-6 text-body text-ink2">Không có task khớp bộ lọc — xoá từ khoá thử xem.</p>}
           summary={(page) => (
             <div className="flex items-center justify-between text-label text-ink2">
               <span>{page.length} trên trang</span>

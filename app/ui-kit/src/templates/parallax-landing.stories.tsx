@@ -1,13 +1,19 @@
-// Templates/Parallax Landing — v2 theo phản hồi PO (nâng toàn diện):
-// 1. Parallax `strength` mới (default 120 giữ tương thích; 240–360 chuyển động đậm).
-// 2. Nền ĐỨNG YÊN kiểu Apple/Jira: hero BG speed 0.08 (drift ~13px/600 scroll) +
-//    nội dung speed 0.5 strength 280 (drift ~187px) — đảo chiều so với v1.
-// 3. Hiệu ứng đỉnh: sticky-pinned section (200vh + sticky h-screen, 3 lớp speed
-//    khác nhau — pure CSS sticky, 0 scroll-hijack) · mask-reveal ảnh (clip-path
-//    inset theo scroll progress — template-local helper rAF, không component mới)
-//    · nền crossfade 3 layer (canvas → s2 → accent/10) theo scroll.
-// 4. Độ đọc: scrim đậm from-black/75 via-black/40 + chữ hero drop-shadow-md.
-// reduced-motion: Parallax tự tắt (useMediaQuery); gallery đảo: ảnh chậm, caption nhanh.
+// Templates/Parallax Landing — v3 "deepest parallax showcase" (mission #5 worker-tokens,
+// pattern: Landing hero depth-duo + MotionLab):
+// 1. Hero DEPTH-TRIO — 3 lớp ảnh speed lệch (BG 0.08 gần đứng · mid 0.28/110 ·
+//    front 0.65/70) + lớp nội dung 0.5/340 trôi qua; mỗi lớp có chip nhãn
+//    speed/strength kiểu MotionLab (scrim var, không hex mới).
+// 2. Parallax Lab — khung 4 lớp ảnh far→front (0.1/60 · 0.3/110 · 0.5/150 ·
+//    0.75/190), mỗi lớp gắn nhãn — "thang đo chiều sâu" xem ngay một chỗ.
+// 3. Ảnh FeatureSections trôi nhẹ theo scroll (Parallax bọc ảnh, speed xen kẽ
+//    0.1/0.16 strength 100 — dao động ±10/16px < gap-8 32px, không đè cột kề).
+// 4. Giữ nguyên đỉnh cũ: pinned 200vh 3 lớp · mask reveal clip-path · sun journey
+//    4 pha (hex theo spec PO sun-journey — Ngoại lệ tokens-only CÓ CHỦ ĐÍCH) ·
+//    gallery đảo · crossfade backdrop · progress rail · CountUp KPI.
+// Chuẩn: tokens-only mọi className mới (hex/rgba chỉ còn lại ở SunJourney theo
+// spec PO) · chỉ animate transform/opacity QUA PRIMITIVES (0 keyframe mới) ·
+// prefers-reduced-motion: Parallax/Reveal tự tắt, sun journey đứng ở noon ·
+// story name + nội dung TIẾNG ANH · alt ảnh có nghĩa (ảnh trang trí alt="").
 import { useEffect, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { CSSProperties } from 'react';
@@ -17,7 +23,20 @@ const meta = { title: 'Templates/Parallax Landing', tags: ['autodocs'] } satisfi
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const fmt = (n: number) => n.toLocaleString('vi-VN');
+const fmt = (n: number) => n.toLocaleString('en-US');
+
+function photo(seed: string, w: number, h: number) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+}
+
+/** Chip nhãn speed/strength kiểu MotionLab — scrim var, chữ trắng (đọc trên ảnh). */
+function LayerChip({ label }: { label: string }) {
+  return (
+    <span className="absolute left-2 top-2 rounded-pill bg-[var(--scrim-3)] px-2 py-0.5 text-meta text-white">
+      {label}
+    </span>
+  );
+}
 
 /** Progress scroll toàn trang 0..1 — 1 listener duy nhất ở root (rAF-throttle). */
 function usePageProgress() {
@@ -110,18 +129,33 @@ function Kpi({ value, decimals = 0, suffix, label }: { value: number; decimals?:
   );
 }
 
-/** Hero NỀN ĐỨNG YÊN: BG speed 0.08 (drift ~13px/600 — gần fixed), nội dung
- * speed 0.5 strength 280 (drift ~187px — trôi QUA nền đứng). Scrim đậm + drop-shadow. */
+/** Hero DEPTH-TRIO — 3 lớp ảnh speed lệch tạo chiều sâu thật + lớp nội dung
+ * trôi qua: BG 0.08 (gần đứng, drift ~13px/600 scroll) · mid 0.28/110 (±31px,
+ * góc trái-dưới) · front 0.65/70 (±46px, góc phải-trên) · content 0.5/340
+ * (±170px). Header overflow-hidden CLIP mọi dao động — không tràn đè section
+ * kề (buffer không cần margin vì clip; các lớp góc vẫn trong khung ở y=0). */
 function Hero() {
   return (
     <header className="relative h-[560px] overflow-hidden">
       <Parallax speed={0.08} className="absolute inset-0">
-        <img
-          src="https://picsum.photos/seed/wakii-hero/1600/1000"
-          alt=""
-          className="size-full scale-125 object-cover"
-        />
+        <img src={photo('wakii-hero', 1600, 1000)} alt="" className="size-full scale-125 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
+      </Parallax>
+      <Parallax
+        speed={0.28}
+        strength={110}
+        className="absolute bottom-16 left-4 hidden w-60 overflow-hidden rounded-xl border border-white/20 shadow-[var(--shadow-pop)] sm:block"
+      >
+        <LayerChip label="mid · 0.28 / 110" />
+        <img src={photo('wakii-hero-mid', 640, 420)} alt="Mid layer — board close-up drifting slower than the page" className="aspect-[3/2] w-full object-cover" />
+      </Parallax>
+      <Parallax
+        speed={0.65}
+        strength={70}
+        className="absolute -right-2 top-20 hidden w-40 overflow-hidden rounded-xl border border-white/20 shadow-[var(--shadow-pop)] lg:block"
+      >
+        <LayerChip label="front · 0.65 / 70" />
+        <img src={photo('wakii-hero-front', 480, 360)} alt="Front layer — activity feed card rushing past the headline" className="aspect-[4/3] w-full object-cover" />
       </Parallax>
       <Parallax speed={0.5} strength={340} className="absolute inset-0 flex flex-col items-center justify-center gap-5 p-6 text-center">
         <Reveal direction="up">
@@ -131,24 +165,25 @@ function Hero() {
         </Reveal>
         <Reveal direction="up" delay={80}>
           <h1 className="m-0 max-w-2xl text-[44px] font-bold leading-tight text-white drop-shadow-md">
-            Ship work, not tooling — kể chuyện bằng chuyển động
+            Ship work, not tooling — told in motion
           </h1>
         </Reveal>
         <Reveal direction="up" delay={160}>
           <p className="m-0 max-w-xl text-body text-white/85 drop-shadow-sm">
-            Nền đứng yên, nội dung trôi qua — mắt khoá ngay tiêu đề giữa chuyển động.
+            Three photo layers at three speeds under a near-still backdrop — the eye locks onto the
+            headline while the page breathes depth.
           </p>
         </Reveal>
         <Reveal direction="up" delay={240}>
           <div className="flex flex-wrap items-center justify-center gap-10 rounded-xl border border-white/15 bg-[var(--scrim-3)] px-10 py-4 backdrop-blur-sm">
-            <Kpi value={12480} label="task đã giao" />
+            <Kpi value={12480} label="tasks assigned" />
             <Kpi value={99.98} decimals={2} suffix="%" label="uptime" />
-            <Kpi value={320} label="đội nhóm" />
+            <Kpi value={320} label="teams" />
           </div>
         </Reveal>
         <Reveal direction="up" delay={320}>
           <Button type="primary" size="large">
-            Khởi đầu miễn phí
+            Start free
           </Button>
         </Reveal>
       </Parallax>
@@ -159,25 +194,30 @@ function Hero() {
 const SECTIONS = [
   {
     seed: 'wakii-board',
-    title: 'Bảng việc biết đi về đâu',
-    desc: 'Cột, thẻ, kéo-thả — WIP limit chặn trước khi quá tải.',
-    features: ['Kéo-thả native 0 deps', 'Keyboard: Space → Arrows → Enter', 'Badge count realtime qua Kafka events'],
+    speed: 0.1,
+    title: 'A board that knows where work flows',
+    desc: 'Columns, cards, drag-and-drop — WIP limits block overload before it happens.',
+    features: ['Native drag-and-drop, 0 deps', 'Keyboard: Space → Arrows → Enter', 'Realtime badge counts via Kafka events'],
   },
   {
     seed: 'wakii-saga',
-    title: 'Saga rõ ràng — thất bại không im lặng',
-    desc: 'Gán task fail@demo.local để thấy compensation chạy thật.',
-    features: ['Outbox pattern — event không mất', 'DLQ + badge “gán thất bại”', 'Re-assign có chủ đích, không tự reset'],
+    speed: 0.16,
+    title: 'Sagas in the open — failures never silent',
+    desc: 'Assign a task to fail@demo.local and watch the compensation run for real.',
+    features: ['Outbox pattern — events never lost', 'DLQ + an “assignment failed” badge', 'Re-assign on purpose, never auto-reset'],
   },
   {
     seed: 'wakii-dark',
-    title: 'Một token — hai theme',
-    desc: 'data-bp-theme cascade; component không code riêng cho dark.',
-    features: ['Contrast audit 0 lỗi', 'Tooltip surface sáng hơn trên dark', 'prefers-reduced-motion tự tắt motion'],
+    speed: 0.1,
+    title: 'One token — two themes',
+    desc: 'data-bp-theme cascade; components ship zero dark-specific code.',
+    features: ['Contrast audit, 0 issues', 'Tooltip surface brightens on dark', 'prefers-reduced-motion switches motion off'],
   },
 ];
 
-/** Section xen kẽ — ảnh Reveal theo chiều vào + features stagger delay. */
+/** Section xen kẽ — ảnh bọc Parallax trôi nhẹ (speed xen kẽ 0.1/0.16, strength
+ * 100 → dao động ±10/16px, nhỏ hơn gap-8 32px giữa 2 cột: không đè text kề);
+ * Reveal bọc NGOÀI Parallax — mỗi primitive một element (opacity vs transform). */
 function FeatureSections() {
   return (
     <>
@@ -187,11 +227,13 @@ function FeatureSections() {
         return (
           <section key={s.seed} className="mx-auto grid max-w-5xl items-center gap-8 px-10 py-16 md:grid-cols-2">
             <Reveal direction={imgDir}>
-              <img
-                src={`https://picsum.photos/seed/${s.seed}/720/480`}
-                alt=""
-                className="w-full rounded-xl border border-line object-cover"
-              />
+              <Parallax speed={s.speed} strength={100} className="overflow-hidden rounded-xl border border-line">
+                <img
+                  src={`https://picsum.photos/seed/${s.seed}/720/480`}
+                  alt={`Product visual — ${s.title.toLowerCase()}`}
+                  className="w-full object-cover"
+                />
+              </Parallax>
             </Reveal>
             <div className="grid gap-4">
               <Reveal direction={textDir}>
@@ -218,28 +260,62 @@ function FeatureSections() {
   );
 }
 
+const LAB_LAYERS: Array<{ seed: string; speed: number; strength: number; pos: string; size: string }> = [
+  { seed: 'wakii-lab-far', speed: 0.1, strength: 60, pos: 'left-4 top-6', size: 'w-40' },
+  { seed: 'wakii-lab-mid', speed: 0.3, strength: 110, pos: 'left-[30%] top-16', size: 'w-44' },
+  { seed: 'wakii-lab-near', speed: 0.5, strength: 150, pos: 'right-28 top-8', size: 'w-48' },
+  { seed: 'wakii-lab-front', speed: 0.75, strength: 190, pos: 'right-3 bottom-4', size: 'w-40' },
+];
+
+/** PARALLAX LAB — thang đo chiều sâu trong 1 khung: 4 lớp ảnh far→front,
+ * speed 0.1→0.75, strength 60→190 (dao động ±6→±142px). Khung overflow-hidden
+ * + các lớp đặt so le (không chồng mép): extremes chỉ xảy ra khi khung gần
+ * ra khỏi viewport nên nhìn vẫn liền. Nhãn speed/strength trên từng lớp —
+ * đọc hiểu ngay tầng nào trôi nhanh hơn. */
+function ParallaxLab() {
+  return (
+    <section className="mx-auto flex max-w-5xl flex-col gap-4 px-10 py-16">
+      <h2 className="m-0 text-h2 font-bold text-ink">The depth scale — four layers, four speeds</h2>
+      <div className="relative h-[320px] overflow-hidden rounded-xl border border-line bg-s2">
+        {LAB_LAYERS.map((l) => (
+          <Parallax
+            key={l.seed}
+            speed={l.speed}
+            strength={l.strength}
+            className={`absolute ${l.pos} ${l.size} overflow-hidden rounded-lg border border-line shadow-[var(--shadow-pop)]`}
+          >
+            <LayerChip label={`${l.speed.toFixed(2)} / ${l.strength}`} />
+            <img src={photo(l.seed, 480, 360)} alt="" aria-hidden="true" className="aspect-[4/3] w-full object-cover" />
+          </Parallax>
+        ))}
+      </div>
+      <p className="m-0 text-meta text-ink3">
+        Same scroll, four displacements — far layers barely breathe while the front layer rushes
+        past. Every layer is the stock Parallax primitive; labels show speed / strength.
+      </p>
+    </section>
+  );
+}
+
 /** STICKY-PINNED — 200vh ngoài, khung sticky h-screen trong; 3 lớp parallax
  * (nền 0.08 strength 280 · mid 0.3 strength 240 · chữ 0.5 strength 280) trôi
  * lệch nhịp SUỐT thời gian ghim — pure CSS sticky, 0 scroll-hijack. */
 function PinnedShowcase() {
   return (
-    <section aria-label="Showcase ghim khung hình" className="relative h-[200vh]">
+    <section aria-label="Pinned showcase frame" className="relative h-[200vh]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
         <Parallax speed={0.08} strength={280} className="absolute inset-0">
-          <img
-            src="https://picsum.photos/seed/wakii-pinned/1600/1000"
-            alt=""
-            className="size-full scale-125 object-cover"
-          />
+          <img src={photo('wakii-pinned', 1600, 1000)} alt="" className="size-full scale-125 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-transparent" />
         </Parallax>
         <Parallax speed={0.3} strength={240} className="absolute left-10 top-1/4 rounded-xl border border-white/20 bg-[var(--scrim-3)] px-5 py-3 backdrop-blur-sm">
-          <span className="text-meta uppercase tracking-[0.08em] text-white/80">lớp giữa — 0.3 / 240</span>
+          <span className="text-meta uppercase tracking-[0.08em] text-white/80">mid layer — 0.3 / 240</span>
         </Parallax>
         <Parallax speed={0.5} strength={280} className="relative max-w-2xl text-center">
-          <h2 className="m-0 text-h1 font-bold text-white drop-shadow-md">Ghim khung — ba lớp ba nhịp</h2>
+          <h2 className="m-0 text-h1 font-bold text-white drop-shadow-md">Pinned frame — three layers, three tempos</h2>
           <p className="m-0 mt-3 text-body text-white/85">
-            Cuộn tiếp 1 màn hình nữa: nền hầu như đứng, thẻ giữa trôi chậm, chữ dẫn đầu.
+            Scroll one more screen: the backdrop barely moves, the mid card drifts slowly, the copy
+            leads the way.
           </p>
         </Parallax>
       </div>
@@ -256,8 +332,8 @@ function MaskRevealShowcase() {
     <section ref={ref} className="mx-auto grid max-w-5xl items-center gap-8 px-10 py-16 md:grid-cols-2">
       <div className="relative">
         <img
-          src="https://picsum.photos/seed/wakii-mask/720/480"
-          alt=""
+          src={photo('wakii-mask', 720, 480)}
+          alt="Screenshot uncovering left to right as the section scrolls"
           className="w-full rounded-xl border border-line object-cover"
           style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
         />
@@ -266,10 +342,10 @@ function MaskRevealShowcase() {
         </span>
       </div>
       <div className="grid gap-3">
-        <h2 className="m-0 text-h2 font-bold text-ink">Mask reveal theo cuộn</h2>
+        <h2 className="m-0 text-h2 font-bold text-ink">Mask reveal on scroll</h2>
         <p className="m-0 text-body text-ink2">
-          clip-path inset chạy theo tiến độ section — ảnh lộ dần từ trái sang phải
-          khi bạn cuộn qua (cuộn lên sẽ phủ ngược lại).
+          A clip-path inset driven by the section's scroll progress — the photo uncovers left to
+          right as you scroll past (and re-covers when you scroll back).
         </p>
       </div>
     </section>
@@ -281,18 +357,14 @@ function QuoteStrip() {
   return (
     <figure className="relative m-0 h-[380px] overflow-hidden">
       <Parallax speed={0.08} className="absolute inset-0">
-        <img
-          src="https://picsum.photos/seed/wakii-quote/1600/900"
-          alt=""
-          className="size-full scale-125 object-cover"
-        />
+        <img src={photo('wakii-quote', 1600, 900)} alt="" className="size-full scale-125 object-cover" />
         <div className="absolute inset-0 bg-[var(--scrim-3)]" />
       </Parallax>
       <Parallax speed={0.35} strength={240} className="absolute inset-0 flex items-center justify-center p-12">
         <Reveal direction="up">
           <blockquote className="m-0 max-w-2xl text-center">
             <p className="m-0 text-[28px] font-semibold leading-snug text-white drop-shadow-md">
-              «Depth không phải trang trí — nó là cách mắt biết đang ở đâu.»
+              “Depth isn't decoration — it's how the eye knows where it is.”
             </p>
             <figcaption className="mt-3 text-meta uppercase tracking-[0.08em] text-white/70">
               — motion identity, hand-off §6
@@ -314,27 +386,23 @@ const GALLERY: Array<[string, number, number]> = [
 function ParallaxGallery() {
   return (
     <section className="mx-auto max-w-5xl px-10 pb-6 pt-2">
-      <h2 className="m-0 mb-4 text-h2 font-bold text-ink">Gallery — ảnh đứng, caption trôi</h2>
+      <h2 className="m-0 mb-4 text-h2 font-bold text-ink">Gallery — still photos, drifting captions</h2>
       <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
         {GALLERY.map(([seed, imgSpeed, capSpeed]) => (
           <div key={seed} className="relative h-56 overflow-hidden rounded-xl border border-line">
             <Parallax speed={imgSpeed} className="absolute inset-0">
-              <img
-                src={`https://picsum.photos/seed/${seed}/600/760`}
-                alt=""
-                className="size-full scale-125 object-cover"
-              />
+              <img src={photo(seed, 600, 760)} alt="" className="size-full scale-125 object-cover" />
             </Parallax>
             <Parallax speed={capSpeed} strength={240} className="absolute inset-x-3 bottom-3">
               <span className="block rounded-lg bg-[var(--scrim-3)] px-3 py-1.5 text-label text-white backdrop-blur-sm">
-                {seed} — ảnh {imgSpeed}, caption {capSpeed}
+                {seed} — image {imgSpeed}, caption {capSpeed}
               </span>
             </Parallax>
           </div>
         ))}
       </div>
       <p className="mb-0 mt-2 text-meta text-ink3">
-        Đảo chiều so với v1: ảnh gần đứng (0.08–0.16), caption trôi nhanh (0.4–0.5).
+        Inverted vs v1: photos are almost still (0.08–0.16) while captions rush past (0.4–0.5).
       </p>
     </section>
   );
@@ -344,7 +412,8 @@ function ParallaxGallery() {
  * rAF set CSS custom props (--sun-x/--sun-y/--sun-core/--o-dawn|day|dusk|night/
  * --sun-ink/--sun-text-shadow) — 0 re-render/frame. 4 pha: dawn #ffb26b → noon
  * #fff7d6 → dusk #ff7e47 → night (trăng nhỏ + starfield, trời token ink→scrim-4).
- * Hex theo spec PO (sun-journey); reduced-motion: đứng ở noon. */
+ * ⚠️ Hex/rgba ở section này theo spec PO (sun-journey) — NGOẠI LỆ tokens-only
+ * CÓ CHỦ ĐÍCH, không phải quét sót. reduced-motion: đứng ở noon. */
 const SUN_PHASES = ['#ffb26b', '#fff7d6', '#ff7e47', '#dfe7ff'];
 const SUN_TEXT = [
   '0 1px 10px rgba(255, 140, 60, 0.5)',
@@ -404,7 +473,7 @@ function SunJourney() {
     window.addEventListener('resize', onScroll);
     return () => {
       document.removeEventListener('scroll', onScroll, true);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('scroll', onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
   }, [reduced]);
@@ -456,9 +525,10 @@ function SunJourney() {
           style={{ color: 'var(--sun-ink)', textShadow: 'var(--sun-text-shadow, none)' }}
         >
           <p className="m-0 text-[12px] font-bold uppercase tracking-[2.4px] opacity-70">Sun journey</p>
-          <h2 className="m-0 max-w-2xl text-h2 font-bold">Mặt trời đi cung theo cuộn — dawn, noon, dusk, night</h2>
+          <h2 className="m-0 max-w-2xl text-h2 font-bold">The sun arcs across your scroll — dawn, noon, dusk, night</h2>
           <p className="m-0 max-w-xl text-body opacity-80">
-            Vị trí, màu và ánh sáng phủ toàn bộ chạy bằng 4 CSS custom props — không re-render từng frame.
+            Position, color and the light wash run on four CSS custom props — zero re-renders per
+            frame.
           </p>
         </div>
       </div>
@@ -471,24 +541,24 @@ function FinalCta() {
   return (
     <section className="grid justify-items-center gap-5 px-10 py-20 text-center">
       <Reveal direction="up">
-        <h2 className="m-0 text-h1 font-bold text-ink">Sẵn sàng kể chuyện bằng chuyển động?</h2>
+        <h2 className="m-0 text-h1 font-bold text-ink">Ready to tell it in motion?</h2>
       </Reveal>
       <Reveal direction="up" delay={100}>
         <div className="flex flex-wrap items-center justify-center gap-10 text-body text-ink2">
           <span className="text-h2 font-bold text-ink">
-            <CountUp value={12480} format={fmt} /> <span className="text-body font-normal text-ink3">task</span>
+            <CountUp value={12480} format={fmt} /> <span className="text-body font-normal text-ink3">tasks</span>
           </span>
           <span className="text-h2 font-bold text-ink">
-            <CountUp value={320} /> <span className="text-body font-normal text-ink3">đội nhóm</span>
+            <CountUp value={320} /> <span className="text-body font-normal text-ink3">teams</span>
           </span>
           <span className="text-h2 font-bold text-ink">
-            <CountUp value={0} /> <span className="text-body font-normal text-ink3">deps chuyển động</span>
+            <CountUp value={0} /> <span className="text-body font-normal text-ink3">motion deps</span>
           </span>
         </div>
       </Reveal>
       <Reveal direction="up" delay={200}>
         <Button type="primary" size="large" icon={<Icon name="arrow-right" size={14} />}>
-          Bắt đầu miễn phí
+          Start free
         </Button>
       </Reveal>
     </section>
@@ -503,6 +573,7 @@ function ParallaxLandingPage() {
       <ScrollProgressRail pct={pct} />
       <Hero />
       <FeatureSections />
+      <ParallaxLab />
       <PinnedShowcase />
       <MaskRevealShowcase />
       <SunJourney />
@@ -513,20 +584,22 @@ function ParallaxLandingPage() {
   );
 }
 
-/** Full page — nền đứng yên + nội dung trôi qua, pinned 200vh, mask reveal, crossfade. */
+/** Full page — depth-trio hero → features → parallax lab → pinned → mask →
+ * sun journey → quote → gallery → CTA. */
 export const Landing: Story = {
-  name: 'Landing v2 — nền đứng (0.08) + content 0.5/280 + pinned + mask + crossfade',
+  name: 'Parallax Landing — full page (depth-trio hero · lab · pinned · mask · sun journey)',
   render: () => <ParallaxLandingPage />,
 };
 
-/** HeroDepth — riêng hero để đo: BG drift <15px, content drift >120px trên 600 scroll. */
+/** HeroDepth — riêng hero để đo: BG drift ~13px · mid ±31px · front ±46px ·
+ * content ±170px trên cùng một khoảng scroll. */
 export const HeroDepth: Story = {
-  name: 'Hero depth đảo — nền 0.08 gần đứng, nội dung 0.5/280 trôi qua',
+  name: 'Hero depth trio — BG 0.08 near-still · mid 0.28/110 · content 0.5/340 · front 0.65/70',
   render: () => (
     <div>
       <Hero />
       <div className="grid h-[420px] place-items-center text-body text-ink3">
-        Cuộn 600px: nền dịch ~13px, nội dung dịch ~187px.
+        Scroll 600px: backdrop ~13px · mid card ±31px · front card ±46px · copy ±170px.
       </div>
     </div>
   ),
@@ -534,7 +607,7 @@ export const HeroDepth: Story = {
 
 /** PinnedAndMask — sticky-pinned + mask reveal gọn để soi từng hiệu ứng. */
 export const PinnedAndMask: Story = {
-  name: 'Pinned showcase + mask reveal — 2 hiệu ứng đỉnh',
+  name: 'Pinned showcase + mask reveal — two peak effects',
   render: () => (
     <div>
       <PinnedShowcase />
@@ -543,8 +616,18 @@ export const PinnedAndMask: Story = {
   ),
 };
 
+/** ParallaxLabOnly — khung thang đo 4 lớp, không/pagescroll noise. */
+export const ParallaxLabOnly: Story = {
+  name: 'Parallax lab — the depth scale, four labeled layers (0.1 → 0.75)',
+  render: () => (
+    <div className="py-8">
+      <ParallaxLab />
+    </div>
+  ),
+};
+
 /** SunJourney — mặt trời đi cung 4 pha dawn/noon/dusk/night theo scroll. */
 export const SunJourneyPhase: Story = {
-  name: 'Sun journey — mặt trời đi cung, 4 pha trời crossfade, night moon+stars',
+  name: 'Sun journey — arcing sun, 4 sky phases, night moon + stars',
   render: () => <SunJourney />,
 };

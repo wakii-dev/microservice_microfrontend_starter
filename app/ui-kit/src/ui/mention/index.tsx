@@ -65,7 +65,7 @@ export function Mention({ value: valueProp, onChange, suggestions = [], placehol
             <li key={s}>
               <button type="button" role="option" aria-selected={i === activeIdx}
                 style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
-                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${i === activeIdx ? 'bg-s3' : 'hover:bg-accent/5'}`}
+                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${i === activeIdx ? 'bg-s3' : 'hover:bg-accent/5'}`}
                 onClick={() => selectMention(s)}>@{s}</button>
             </li>
           ))}

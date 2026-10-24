@@ -4,6 +4,7 @@
 // Status per file: beforeUpload false → chặn; Promise → 'uploading' (Progress ticker display-only)
 // → resolve true 'done' / resolve false gỡ dòng / reject 'error'.
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 import { Progress } from '../progress/index';
 
 export type UploadStatus = 'uploading' | 'done' | 'error';
@@ -162,19 +163,6 @@ export function useUploadController(props: UploadProps) {
   return { inputRef, openDialog, items, removeItem, handleFiles, onInputChange };
 }
 
-const FILE_ICON = (
-  <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
-    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-    <path d="M14 3v5h5" />
-  </svg>
-);
-
-const CLOSE_ICON = (
-  <svg viewBox="0 0 24 24" width={12} height={12} fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-    <path d="M6 6l12 12M18 6L6 18" />
-  </svg>
-);
-
 /** Danh sách file: tên + size + Progress (đang upload) / ✓ (done) / Lỗi (error) + × remove. */
 export function UploadFileList({
   items,
@@ -192,14 +180,14 @@ export function UploadFileList({
           className="flex items-center gap-2 rounded-lg border border-line bg-s2 px-3 py-2 text-body text-ink"
         >
           <span className="shrink-0 text-ink3" aria-hidden="true">
-            {FILE_ICON}
+            <Icon name="file" size={16} />
           </span>
           <span className="min-w-0 flex-1 truncate">{item.file.name}</span>
           <span className="shrink-0 text-meta text-ink3">{formatSize(item.file.size)}</span>
           {item.status === 'uploading' && item.progress != null && (
             <Progress percent={item.progress} showInfo={false} className="w-24 shrink-0" />
           )}
-          {item.status === 'done' && <span className="shrink-0 text-meta text-st-done">✓</span>}
+          {item.status === 'done' && <span className="shrink-0 text-meta text-st-done"><Icon name="check" size={12} /></span>}
           {item.status === 'error' && <span className="shrink-0 text-meta text-st-fail">Lỗi</span>}
           <button
             type="button"
@@ -207,7 +195,7 @@ export function UploadFileList({
             className="shrink-0 cursor-pointer rounded-1 border-0 bg-transparent p-1 text-ink3 hover:text-st-fail"
             onClick={() => onRemove(item)}
           >
-            {CLOSE_ICON}
+            <Icon name="times" size={12} />
           </button>
         </li>
       ))}

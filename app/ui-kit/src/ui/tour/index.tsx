@@ -17,6 +17,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../button/index.js';
+import { Icon } from '../icons/index.js';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 /** 1 bước tour — bỏ `target` → panel căn giữa (giới thiệu/kết thúc kiểu antd). */
@@ -189,7 +190,7 @@ export function Tour({ steps, open, onClose, current, onCurrentChange, className
             className="cursor-pointer rounded-1 border-none bg-transparent p-1 text-base leading-3 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             onClick={onClose}
           >
-            ×
+            <Icon name="times" size={14} />
           </button>
         </div>
         {step?.title && <div className="text-h3 font-semibold text-ink">{step.title}</div>}

@@ -1,6 +1,7 @@
 // Steps — tiến trình (antd lite horizontal): done = chấm accent + tick, current =
 // viền accent + chữ accent, waiting = ink3; connector line giữa các step.
 import type { ReactNode } from 'react';
+import { Icon } from '../icons/index.js';
 
 export interface StepItem {
   title: ReactNode;
@@ -21,8 +22,8 @@ export function Steps({ items, current, className }: StepsProps) {
         const state = i < current ? 'done' : i === current ? 'current' : 'waiting';
         const dot =
           state === 'done' ? (
-            <span className="grid size-7 place-items-center rounded-pill border border-accent bg-accent text-[11px] font-bold text-white">
-              ✓
+            <span data-testid="step-done" className="grid size-7 place-items-center rounded-pill border border-accent bg-accent text-[11px] font-bold text-white">
+              <Icon name="check" size={12} />
             </span>
           ) : state === 'current' ? (
             <span className="grid size-7 place-items-center rounded-pill border-2 border-accent text-[11px] font-bold text-accent">

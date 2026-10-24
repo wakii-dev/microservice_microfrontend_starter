@@ -42,7 +42,7 @@ export function AutoComplete({ value: valueProp, onChange, onSelect, suggestions
             <li key={s.value} role="option" aria-selected={value === s.value}>
               <button type="button"
                 onClick={() => { setInternal(s.label); onSelect?.(s.value); setOpen(false); }}
-                className={`w-full cursor-pointer border-none bg-transparent px-3 py-1.5 text-left text-body text-ink hover:bg-s3 ${value === s.value ? 'bg-s3 font-medium' : ''}`}>
+                className={`w-full cursor-pointer border-none bg-transparent px-3 py-1.5 text-left text-body text-ink hover:bg-s3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${value === s.value ? 'bg-s3 font-medium' : ''}`}>
                 {s.label}
               </button>
             </li>

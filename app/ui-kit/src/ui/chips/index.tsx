@@ -30,7 +30,7 @@ export function Chips({ value = [], onChange, placeholder = 'Thêm tag…', disa
           {tag}
           {!disabled && (
             <button type="button" aria-label={`Xoá ${tag}`} onClick={() => removeTag(tag)}
-              className="cursor-pointer border-none bg-transparent p-0 text-ink3 transition-colors duration-200 ease-[var(--ease-smooth)] hover:text-st-fail"><Icon name="times" size={10} /></button>
+              className="cursor-pointer rounded-1 border-none bg-transparent p-0 text-ink3 transition-colors duration-200 ease-[var(--ease-smooth)] hover:text-st-fail focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"><Icon name="times" size={10} /></button>
           )}
         </span>
       ))}

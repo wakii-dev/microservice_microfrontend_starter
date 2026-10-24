@@ -24,7 +24,7 @@ export function SpeedDial({ icon, actions, className }: SpeedDialProps) {
       ))}
       <button type="button" aria-label="Thao tác" aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`grid size-12 cursor-pointer place-items-center rounded-pill border-none bg-accent text-xl text-white shadow-[var(--shadow-pop)] transition-transform ${open ? 'rotate-45' : ''}`}>
+        className={`grid size-12 cursor-pointer place-items-center rounded-pill border-none bg-accent text-xl text-white shadow-[var(--shadow-pop)] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${open ? 'rotate-45' : ''}`}>
         {icon}
       </button>
     </div>

@@ -3,4 +3,20 @@
   #storybook-root {
     padding: 24px;
   }
+
+  /* addon-docs tự set nền trắng (.sbdocs/.sbdocs-wrapper/.sb-wrapper) — ở dark
+     mode chúng đè lên body tối làm docs canvas trắng chói. Trả về token canvas
+     (dark.css override sẵn --c-canvas). Story mode không đụng các class này. */
+  body[data-bp-theme='dark'] .sb-wrapper,
+  body[data-bp-theme='dark'] .sbdocs,
+  body[data-bp-theme='dark'] .sbdocs-wrapper,
+  body[data-bp-theme='dark'] .sb-previewBlock {
+    background: var(--c-canvas);
+  }
+
+  /* addon-docs cũng ép màu chữ đen cứng cho heading trang docs — trên canvas
+     tối thành chữ mờ khó đọc. Trả về token ink (dark: #f7f8f8). */
+  body[data-bp-theme='dark'] .sbdocs-title {
+    color: var(--ink);
+  }
 </style>

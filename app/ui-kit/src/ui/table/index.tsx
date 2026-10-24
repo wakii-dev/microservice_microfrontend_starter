@@ -25,7 +25,6 @@ import { Skeleton } from '../skeleton/index';
 import { Button } from '../button/index';
 import { Checkbox } from '../checkbox/index';
 import { Icon } from '../icons';
-import { FilterIcon, FilterFillIcon, FilterSlashIcon } from './icons';
 import type {
   SortMeta, SortOrder, FilterMatchMode, FilterOperator,
   FilterConstraint, TableColumn, TableProps, TableVirtualConfig,
@@ -89,8 +88,8 @@ function FilterMenu({ col, filter, onChange }: {
         className={`inline-flex cursor-pointer items-center border-none bg-transparent p-0 text-ink3 transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${activeCount > 0 ? 'text-accent' : ''}`}
       >
         {activeCount > 0
-          ? <FilterFillIcon className="text-accent" />
-          : <FilterIcon className="text-ink3" />}
+          ? <Icon name="filter-fill" size={14} className="text-accent" />
+          : <Icon name="filter" size={14} className="text-ink3" />}
         {activeCount > 0 && (
           <span className="absolute -right-2 -top-1.5 grid size-3.5 place-items-center rounded-pill bg-st-fail text-[8px] font-bold text-white">
             {activeCount}
@@ -110,7 +109,7 @@ function FilterMenu({ col, filter, onChange }: {
                     className="ml-1 cursor-pointer border-none bg-transparent p-0 text-ink3 hover:text-st-fail active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
                     onClick={() => onChange({ ...filter, constraints: filter.constraints.filter((_, j) => j !== i) })}
                   >
-                    <FilterSlashIcon className="inline size-3" />
+                    <Icon name="filter-slash" size={12} className="inline" />
                   </button>
                 )}
               </label>

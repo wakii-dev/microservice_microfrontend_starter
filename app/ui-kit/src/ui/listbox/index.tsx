@@ -16,7 +16,7 @@ export function Listbox({ options, value, onChange, className }: ListboxProps) {
       {options.map((option) => (
         <li key={option.value} role="option" aria-selected={value === option.value}
           onClick={() => !option.disabled && onChange?.(option.value)}
-          className={`flex cursor-pointer items-center rounded-2 px-3 py-1.5 text-body transition-colors ${
+          className={`flex cursor-pointer items-center rounded-lg px-3 py-1.5 text-body transition-colors ${
             value === option.value ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-s3'
           } ${option.disabled ? 'cursor-not-allowed text-ink3' : ''}`}>
           {option.label}

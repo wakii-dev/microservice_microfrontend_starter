@@ -6,6 +6,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../button/index';
+import { Icon } from '../icons/index.js';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
@@ -132,7 +133,7 @@ export function Modal({
           className={`absolute right-4 top-4 cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70${slot(classNames?.closeButton)}`}
           onClick={() => onCancel?.()}
         >
-          ×
+          <Icon name="times" size={14} />
         </button>
       </div>
     </div>,

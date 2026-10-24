@@ -16,12 +16,23 @@ export interface ChartDataset {
   borderWidth?: number;
   /** Override type PER-DATASET cho mixed chart (vd bar + line cùng trục — chart.js v4). */
   type?: 'bar' | 'line';
+  /** Passthrough tuỳ chọn chart.js v4 khác (tension, fill, pointRadius…) —
+   * surface options quá rộng để liệt kê hết; đánh đổi: typo không bắt tại type. */
+  [key: string]: unknown;
 }
 
 export interface ChartConfig {
   type: 'bar' | 'line' | 'pie' | 'doughnut' | 'radar';
-  labels: string[];
-  datasets: ChartDataset[];
+  /** Shape FLAT (chuẩn kit — khuyến nghị): labels/datasets top-level. */
+  labels?: string[];
+  datasets?: ChartDataset[];
+  /** Shape NATIVE chart.js v4 (nested) — Chart chấp nhận CẢ HAI (fix 2026-10-24:
+   * app/admin truyền native rồi mà component chỉ đọc flat → chart rỗng câm lặng).
+   * Resolve: flat trước, rơi về `data.*` khi flat thiếu. */
+  data?: {
+    labels?: string[];
+    datasets?: ChartDataset[];
+  };
   options?: Record<string, unknown>;
 }
 
@@ -120,9 +131,18 @@ export function Chart({ config, height = 260, className, fallback }: ChartProps)
         // Shape chart.js v4: { type, data: { labels, datasets }, options } — NHẤT QUÁN
         // wrap `data`. (Bug "canvas mounted mà alpha=0": labels/datasets truyền
         // top-level → chart init/resize OK nhưng data rỗng → không vẽ, 0 lỗi console.)
+        // Fix 2026-10-24 (admin Dashboard chart trống): consumer có thể truyền FLAT
+        // (chuẩn kit) lẫn NESTED (native chart.js) — resolve cả 2, flat ưu tiên.
+        const src = stableConfig as {
+          labels?: string[];
+          datasets?: ChartDataset[];
+          data?: { labels?: string[]; datasets?: ChartDataset[] };
+        };
+        const labels = src.labels ?? src.data?.labels;
+        const datasets = src.datasets ?? src.data?.datasets;
         chart = new (Ctor as new (...args: unknown[]) => unknown)(canvasRef.current, {
           type: stableConfig.type,
-          data: { labels: stableConfig.labels, datasets: stableConfig.datasets },
+          data: { labels, datasets },
           options: { responsive: true, maintainAspectRatio: false, ...(stableConfig.options ?? {}) },
         });
         chartRef.current = chart;

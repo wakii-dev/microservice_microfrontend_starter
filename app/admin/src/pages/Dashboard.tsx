@@ -8,7 +8,7 @@
 // - Headers: chart + timeline cùng pattern title trái + Tag phải
 // Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, Chart, Col, EmptyState, Icon, Row, Tag, Timeline, message, type ChartConfig } from '@wakii/ui-kit';
+import { Button, Card, Chart, Col, EmptyState, Icon, Row, Tag, Timeline, message } from '@wakii/ui-kit';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },
@@ -17,34 +17,26 @@ const STATS = [
   { title: 'Uptime', value: '99,98%', tag: 'SLA', icon: 'info-circle' as const },
 ];
 
-// ⚠️ SHAPE NATIVE chart.js v4 — ui-kit <Chart> pass config THẲNG vào `new ChartJs(canvas, config)`,
-// nên data phải LỒNG trong `data: {labels, datasets}`. Interface ChartConfig flat của ui-kit
-// (labels/datasets top-level, như stories họ viết) → chart.js đọc config.data = undefined →
-// chart RỖNG im lặng (probe diagnose-chart.mjs: instance attached + sized nhưng labels:0,
-// datasets:[], 0 pixel). Cast qua unknown vì type ui-kit đang khai báo flat — flag coordinator.
-const CHART_CONFIG_NATIVE = {
+// Shape FLAT chuẩn kit (labels/datasets top-level — Chart component wrap `data`
+// khi đẩy vào chart.js; fix 2026-10-24: component giờ hiểu cả flat lẫn nested,
+// consumer chuẩn hoá về flat theo type khai báo — hết cast `as unknown`).
+const CHART_CONFIG_BASE = {
   type: 'line' as const,
-  data: {
-    labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
-    datasets: [
-      {
-        label: 'Tasks',
-        data: [12, 19, 8, 22, 30, 25, 18],
-        borderColor: '#1677ff',
-        backgroundColor: 'rgba(22,119,255,0.12)',
-        tension: 0.35,
-        fill: true,
-      },
-      {
-        label: 'Uploads',
-        data: [4, 7, 3, 9, 12, 8, 6],
-        borderColor: '#52c41a',
-        backgroundColor: 'rgba(82,196,26,0.12)',
-        tension: 0.35,
-        fill: true,
-      },
-    ],
-  },
+  labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+  datasets: [
+    {
+      label: 'Tasks',
+      data: [12, 19, 8, 22, 30, 25, 18],
+      tension: 0.35,
+      fill: true,
+    },
+    {
+      label: 'Uploads',
+      data: [4, 7, 3, 9, 12, 8, 6],
+      tension: 0.35,
+      fill: true,
+    },
+  ],
   // animation:false — render đồng bộ lúc constructor, không phụ thuộc rAF (headless/tab
   // background vẫn vẽ đúng frame đầu)
   options: { responsive: true, maintainAspectRatio: false, animation: false },
@@ -76,26 +68,22 @@ function useChartColors() {
   return { probeRef, colors };
 }
 
-const HAS_CHART_DATA = CHART_CONFIG_NATIVE.data.datasets.some((dataset) => dataset.data.length > 0);
+const HAS_CHART_DATA = CHART_CONFIG_BASE.datasets.some((dataset) => dataset.data.length > 0);
 
 export function Dashboard() {
   // Màu chart theo theme — probe + re-resolve khi dark toggle (xem useChartColors)
   const { probeRef, colors } = useChartColors();
-  // Cast tại biên JSX — type flat của ui-kit chưa phản ánh shape native chart.js (xác trên)
+  // Dataset màu theo token theme (probe span ẩn + MutationObserver dark toggle)
   const CHART_CONFIG = useMemo(
-    () =>
-      ({
-        ...CHART_CONFIG_NATIVE,
-        data: {
-          ...CHART_CONFIG_NATIVE.data,
-          datasets: CHART_CONFIG_NATIVE.data.datasets.map((ds, i) => {
-            const color = i === 0 ? colors.accent : colors.done;
-            // Fill giữ alpha 12% như bản cũ — color-mix trên token (canvas không support
-            // color-mix thì chỉ bỏ fill, line vẫn vẽ đúng màu token)
-            return { ...ds, borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` };
-          }),
-        },
-      }) as unknown as ChartConfig,
+    () => ({
+      ...CHART_CONFIG_BASE,
+      datasets: CHART_CONFIG_BASE.datasets.map((ds, i) => {
+        const color = i === 0 ? colors.accent : colors.done;
+        // Fill giữ alpha 12% như bản cũ — color-mix trên token (canvas không support
+        // color-mix thì chỉ bỏ fill, line vẫn vẽ đúng màu token)
+        return { ...ds, borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` };
+      }),
+    }),
     [colors],
   );
   return (

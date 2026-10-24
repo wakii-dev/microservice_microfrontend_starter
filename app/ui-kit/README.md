@@ -2,13 +2,13 @@
 
 # 🎨 @wakii/ui-kit
 
-**A production-grade React design system built AI-first — 90+ components, 17 hooks, tokens-first, dark theme.**
+**A production-grade React design system built AI-first — 90+ components, 31 hooks, tokens-first, motion, dark theme.**
 
 Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
 
 [![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+[![Storybook](https://img.shields.io/badge/Storybook-683%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
 
 ## 🤖 Built for AI agents — not just humans
 
@@ -18,16 +18,16 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 |---|---|
 | **[`AGENTS.md`](../../AGENTS.md)** (repo root) | Auto-read by agent CLIs on session start — feature→component map, mandatory rules, anti-patterns. Zero onboarding cost. |
 | **[`docs/ai/recipes.md`](../../docs/ai/recipes.md)** | 10 copy-paste recipes for real features: CRUD pages, login flows, wizards, upload pipelines, dashboards. Agent picks a recipe, renames fields, ships. |
-| **Behavior tests (580+)** | Every component tested by *what it does* (clicks→callbacks, state classes, keyboard flows) — agents verify their work against the same assertions. |
+| **Behavior tests (1290)** | Every component tested by *what it does* (clicks→callbacks, state classes, keyboard flows) — agents verify their work against the same assertions. |
 | **Tokens-first + z-scale + size scale** | Hard constraints instead of conventions: one source of truth CSS vars, `--z-*` layers, `h-8/9/10`. Machine-checkable, no aesthetic guessing. |
-| **Living Storybook (301+ stories, [live](https://storybook-static-khaki-two.vercel.app))** | Every state of every component rendered — ground truth for visual verification loops. |
+| **Living Storybook (683 stories, [live](https://storybook-static-khaki-two.vercel.app))** | Every state of every component rendered — ground truth for visual verification loops. |
 | **Strict single-button rule & friends** | Sharp opinions (no dividers on split buttons, focus-ring standard) so agents converge on ONE correct output, not five variants. |
 
 **Dogfooded by the multi-agent workflow itself**: this library was audited, restyled and completed by *5 coordinated AI terminals in parallel* (coordinator + workers pattern), gated by pixel-level automated verification. The AI-facing docs, checklists and recipes in this repo are the same ones those agents used.
 
-> Practical loop that works today: agent reads `AGENTS.md` → picks recipe → implements → runs `vitest` (580 tests catch wiring mistakes) → checks Storybook for visual truth → done.
+> Practical loop that works today: agent reads `AGENTS.md` → picks recipe → implements → runs `vitest` (1290 tests catch wiring mistakes) → checks Storybook for visual truth → done.
 
-[![Tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#-quality)
+[![Tests](https://img.shields.io/badge/tests-1290%20passing-brightgreen)](#-quality)
 [![React](https://img.shields.io/badge/React-%E2%89%A518-61dafb?logo=react)](#)
 
 [📖 Live Storybook](https://storybook-static-khaki-two.vercel.app) ·
@@ -44,13 +44,13 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 | | |
 |---|---|
 | 🧩 **90+ components** | From DataTable with **virtual scroll (5k+ rows)** to Upload Dropzone, TreeSelect, TimePicker, range DatePicker — the parts real apps actually need |
-| 🪝 **17 battle-tested hooks** | `useForm` (zod-powered), `useDebounce`, `useClickAway`, `useFocusTrap`… every hook ships behavior tests |
-| 🌗 **Dark theme, done right** | One attribute — `<html data-bp-theme="dark">`. CSS-variable cascade, no flash, no JS, no rebuild |
+| 🪝 **31 battle-tested hooks** | `useForm` (zod-powered), `useDebounce`, `useClickAway`, `useInView`, `useScrollProgress`, `useControllableState`… every hook ships behavior tests |
+| 🌗 **Dark theme, done right** | One attribute — `<html data-bp-theme="dark">`. CSS-variable cascade, no flash, no JS, no rebuild — dark tokens polished mirror-antd (alert tints, disabled, shadows), Storybook manager chrome ships both palettes |
 | 🎯 **Tokens-first** | One `tokens.css` is the single source of truth — colors, spacing, radii, shadows, even a **z-index scale**. No hardcoded hex in components |
-| 🚀 **Motion with taste** | Pure-CSS keyframes (zero animation deps), respects `prefers-reduced-motion` |
+| 🚀 **Motion with taste** | Scroll-linked & mount primitives — `Reveal`, `Parallax`, `CountUp`, `Transition` family (Fade/Zoom/Collapse), `ScrollPage` — zero animation deps, respects `prefers-reduced-motion` |
 | ♿ **Real a11y** | Focus trap + focus restore in Modal/Drawer, ARIA roles, full keyboard support — verified in Storybook |
 | 🪶 **Smart weight** | Heavy engines (Swiper, Chart.js, Tiptap, FullCalendar) are optional peers behind subpath exports — your bundle stays lean |
-| 🧪 **540 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
+| 🧪 **1290 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
 
 ## 🚀 Quick start
 
@@ -97,6 +97,15 @@ const form = useForm({ schema, mode: 'onBlur' });
 </Field>
 ```
 
+## 🆕 What's new in 0.4.0
+
+- **Hooks wave — barrel mở trọn**: 12 lifecycle/scroll hooks (`useScrollProgress`, `useInView`, `useInfiniteScroll`, `useControllableState`, `useMeasure`…) + **utils** (`formatCurrency`, `formatRelativeTime`, `chunk`, `groupBy`, `flattenTree`, `getScrollParent`, `cx`…) + `ScrollPage` section-snap — table grouped below.
+- **Dark theme, toàn diện**: dark tokens polish mirror-antd (alert alpha tints, disabled surface, heavier shadows) + `color-scheme` per-theme — Storybook **manager chrome ships both palettes**.
+- **Motion showcases**: `Landing` + `Parallax Landing` (depth-trio hero, parallax lab) + `Cinematic Experience` (glass-nav chaptershell) templates.
+- **Team-OS domain pack**: `PingFeed`, `StagePipeline`, `DebtBoard`, `TeamDashboard`, `InboxThread`.
+- **Chart dark-live**: `useChartColors` probe + `data-bp-theme` observer — charts re-resolve colors on theme toggle, no reload.
+- **Icon set 52** (`filter-fill` / `filter-slash` mới) — glyph characters swept to SVG everywhere. Full detail: [CHANGELOG.md](./CHANGELOG.md).
+
 ## 🧩 Component map
 
 | Group | Components |
@@ -106,24 +115,23 @@ const form = useForm({ schema, mode: 'onBlur' });
 | **Forms** | Input · Textarea · InputNumber · InputMask · InputOTP · Select · AutoComplete · CascadeSelect · Checkbox · Radio · Switch · Slider · Rate · ColorPicker · Upload + UploadDropzone (drag & drop) · Field wrapper · Editor (Tiptap) |
 | **Feedback** | Alert (filled by default + outlined) · Message · Notification · Modal · Drawer · Popconfirm · Progress · Skeleton · Spinner · Result · EmptyState · BlockUI |
 | **Overlay** | Tooltip · Popover · ContextMenu — all on the tokenized `--z-*` scale |
-| **Icons** | `Icon` component — 40+ primeicons SVG paths, tree-shakeable |
+| **Motion & scroll** | `Reveal` (IntersectionObserver stagger) · `Parallax` (scroll-linked) · `CountUp` · `Transition` family (Fade / Zoom / CollapseTransition) · `Backdrop` · `ScrollPage` (section snap) |
+| **Team-OS domain** | `PingFeed` · `StagePipeline` · `DebtBoard` · `TeamDashboard` · `InboxThread` |
+| **Utils** | `formatCurrency` / `formatBytes` / `formatRelativeTime` / `formatNumber` · `chunk` / `groupBy` / `flattenTree` / `findTreeNode` · `getScrollParent` / `getFocusableElements` / `cx` |
+| **Icons** | `Icon` component — 52 primeicons-derived SVG paths, tree-shakeable |
 
 <details>
-<summary><b>17 Hooks</b></summary>
+<summary><b>31 Hooks — grouped</b></summary>
 
-`useForm` (zod) · `useLocalStorage` · `useSessionStorage` · `useDebounce` · `useThrottle` · `useTimeout` · `useCountdown` · `useClickAway` · `useHover` · `useKeyPress` · `useMediaQuery` · `useLockBodyScroll` · `useWindowSize` · `useCopyToClipboard` · `useToggle` · `usePrevious` · `useDefault` · `useFocusTrap`
+| Group | Hooks |
+|---|---|
+| **Forms** | `useForm` (zod) · `useFieldArray` · `useFocusTrap` |
+| **State** | `useLocalStorage` · `useSessionStorage` · `useToggle` · `usePrevious` · `useDefault` · `useControllableState` |
+| **Time** | `useDebounce` · `useThrottle` · `useTimeout` · `useCountdown` |
+| **DOM & viewport** | `useHover` · `useKeyPress` · `useClickAway` · `useMediaQuery` · `useWindowSize` · `useLockBodyScroll` · `useCopyToClipboard` · `useEventListener` · `useMeasure` · `useFullscreen` |
+| **Scroll & lifecycle** | `useScrollProgress` · `useInView` · `useInfiniteScroll` · `useOnlineStatus` · `useTitle` · `useMountEffect` · `useUpdateEffect` · `useIsFirstRender` |
 
 </details>
-
-## 📦 Distribution
-
-| Registry | Package | Audience |
-|---|---|---|
-| **npmjs.org** | [`@wakii/ui-kit`](https://www.npmjs.com/package/@wakii/ui-kit) | Public — no auth needed |
-| **GitHub Packages** | `@wakii/ui-kit` | Org-internal — add `@wakii-dev:registry=https://npm.pkg.github.com` to `.npmrc` |
-
-Heavy engines are **optional peer dependencies** — install them only if you use the subpath:
-`@wakii/ui-kit/carousel` → `swiper` · `chart` → `chart.js` · `useForm` → `zod` · schedule → `@fullcalendar/*` · editor → `@tiptap/*`
 
 ## 🧩 Templates — full pages composed from the kit
 
@@ -136,18 +144,20 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 | **Kanban Project** | `KanbanBoard` (4 cột + WIP limit) · `Segmented`/`Input.Search`/`Select` filter · `Avatar`/`Badge`/`Tag` · `Timesheet` · `message` | `templates-kanban-project--project-board` |
 | **CRUD Table** | `Table` (sort/filter/pagination/expandable/loading) · `Modal` form · `message` | `templates-crud-table--full-demo` |
 | **Auth** (Sign in / Sign up / split) | `useForm` + `zod` · `Field`/`Input`/`Button`/`Checkbox` · `Layout` split | `templates-auth--sign-in` · `--sign-up` · `--split-layout` |
-| **Settings** | `Tabs` · `Switch` · `Field`/`Select` — *đang chuẩn bị; recipe 9 sẵn ở [recipes.md](../../docs/ai/recipes.md)* | — |
-| **Landing** | `Button` · `Tag` · `Typography` · `Divider` — *đang chuẩn bị; recipe 10 sẵn* | — |
+| **Settings** | `Tabs`/`Segmented` · `Switch`/`Checkbox` · `ColorPicker` (accent live qua `UiKitProvider`) · dark preview | `templates-settings--settings` |
+| **Landing** | `Button` · `Tag` · `Typography` · `Divider` + motion hero | `templates-landing--landing-alive` · `--landing-minimal` |
+| **Parallax Landing** | `Parallax` · `Reveal` · `CountUp`/`Statistic` — depth-trio hero + parallax lab | `templates-parallax-landing--landing` · `--hero-depth` · `--parallax-lab-only` |
+| **Cinematic Experience** | `ChapterShell` glass-nav chapters + hero variants | `templates-cinematic-experience--experience` · `--hero-only` · `--atlas` · `--dark-snow` |
 
-> Trạng thái thật (đếm từ Storybook index 2026-10-18): **4/6 template live** (Dashboard,
-> Kanban Project, CRUD Table, Auth — 13 story). Settings/Landing theo roadmap — recipe
-> tương ứng đã có sẵn để copy ngay.
+> Trạng thái thật (0.4.0): **8 templates live** — Dashboard, Kanban Project, CRUD Table,
+> Auth, Settings, Landing, Parallax Landing, Cinematic Experience (kèm demo Team-OS
+> components trong story riêng). Recipes copy-chạy: [recipes.md](../../docs/ai/recipes.md).
 
 ## 🔬 Quality
 
-- **540 behavior tests** (clicks → callbacks, state classes, keyboard flows)
-- **Storybook test-runner**: 215/215 stories render-verified on every push
-- Dark-mode audited across every component
+- **1290 behavior tests / 163 test files** (clicks → callbacks, state classes, keyboard flows)
+- **Storybook test-runner**: stories render-verified on every push
+- Dark-mode audited across every component (light antd default + dark direction-B)
 - `prefers-reduced-motion` respected globally
 
 ## 📚 Documentation

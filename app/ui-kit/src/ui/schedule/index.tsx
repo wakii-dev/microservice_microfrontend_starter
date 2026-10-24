@@ -54,6 +54,22 @@ if (typeof document !== 'undefined' && !document.querySelector('style[data-bp-fc
   document.head.appendChild(style);
 }
 
+// Specifier qua BIẾN — bundler của consumer không phân tích được dynamic import
+// peer này khi build production (peer có thể chưa cài — fallback sẵn).
+const FC_CORE = '@fullcalendar/core';
+const FC_DAYGRID = '@fullcalendar/daygrid';
+const FC_INTERACTION = '@fullcalendar/interaction';
+
+/** Loader mặc định — dynamic import qua biến specifier (xem comment trên). */
+const loadFc = () =>
+  Promise.all([import(FC_CORE), import(FC_DAYGRID), import(FC_INTERACTION)]) as Promise<[any, any, any]>;
+
+/** @internal — test thay loader để giả lập peer chưa cài một cách deterministic. */
+export let __loadFcForTest: typeof loadFc | null = null;
+export function __setLoadFcForTest(loader: typeof loadFc | null): void {
+  __loadFcForTest = loader;
+}
+
 export function Schedule({ events = [], onEventClick, fallback, height = 650, className }: ScheduleProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
@@ -63,11 +79,8 @@ export function Schedule({ events = [], onEventClick, fallback, height = 650, cl
     (async () => {
       try {
         // Lazy peer-dep imports — @ts-nocheck đầu file lo phần type (deps tuỳ consumer)
-        const [{ Calendar }, dayGridPlugin, interactionPlugin] = await Promise.all([
-          import('@fullcalendar/core'),
-          import('@fullcalendar/daygrid'),
-          import('@fullcalendar/interaction'),
-        ]);
+        // specifier qua BIẾN — bundler consumer không phân tích được (peer có thể chưa cài)
+        const [{ Calendar }, dayGridPlugin, interactionPlugin] = await (__loadFcForTest ?? loadFc)();
         if (cancelled || !ref.current) return;
         calendar = new Calendar(ref.current, {
           plugins: [dayGridPlugin.default, interactionPlugin.default],

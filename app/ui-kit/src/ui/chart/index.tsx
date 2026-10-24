@@ -118,7 +118,10 @@ export function Chart({ config, height = 260, className, fallback }: ChartProps)
     (async () => {
       try {
         // Peer-dep lazy (consumer tự cài chart.js) — import qua cast thủ công.
-        const mod = (await import('chart.js/auto')) as unknown;
+        const CHARTJS_AUTO = 'chart.js/auto';
+        // specifier qua BIẾN: bundler consumer không phân tích được dynamic import
+        // peer khi build production (comment @vite-ignore bị esbuild strip khỏi dist)
+        const mod = (await import(CHARTJS_AUTO)) as unknown;
         // Robust interop: ESM thuần có named Chart; một số bundler/interop chỉ trả
         // default. Resolve theo thứ tự — không khớp cái nào → throw (hiện fallback
         // thay vì canvas trắng câm lặng).

@@ -16,7 +16,13 @@ pnpm build
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-cp -r dist src/styles README.md LICENSE package.json "$TMP/"
+# Giữ ĐÚNG đường dẫn src/styles trong tarball (files field pack theo src/styles).
+# cp nhiều nguồn copy theo BASENAME — 'src/styles' sẽ thành 'styles/' ở gốc và
+# npm pack bỏ hết CSS tokens — nên copy tách nguồn, kèm guard.
+cp -r dist README.md LICENSE package.json "$TMP/"
+mkdir -p "$TMP/src"
+cp -r src/styles "$TMP/src/"
+[ -d "$TMP/src/styles" ] || { echo "✗ thiếu src/styles sau copy"; exit 1; }
 
 # Giữ NGUYÊN name @wakii/ui-kit (canonical npmjs); registry đích npmjs; bỏ phần
 # không cần khi publish (devDeps/scripts/overrides — mirror publish-github.sh).

@@ -14,15 +14,30 @@
     background: var(--c-canvas);
   }
 
-  /* addon-docs cũng ép màu chữ đen cứng cho heading trang docs — trên canvas
-     tối thành chữ mờ khó đọc. Trả về token ink (dark: #f7f8f8). Bao mọi cấp
-     h1-h4 (kể heading render qua markdown ## — không chỉ .sbdocs-title). */
-  body[data-bp-theme='dark'] .sbdocs-title,
-  body[data-bp-theme='dark'] .sbdocs h1,
-  body[data-bp-theme='dark'] .sbdocs h2,
-  body[data-bp-theme='dark'] .sbdocs h3,
-  body[data-bp-theme='dark'] .sbdocs h4 {
+  /* Prose docs — addon-docs ép màu light #2e3438 lên MỌI tag trần trong
+     .sbdocs-content qua :where(p, li, h1-h5, th, td...):not(.sb-unstyled *)
+     (phep :where giữ specificity 0, trừ vùng render component). Phủ lại theo
+     ĐÚNG pattern đó khi dark — heading → --ink, thân/table → --ink2. Selector
+     có prefix body[...] nên đặc hiệu hơn rule addon, và :not(...) không đụng
+     component trong autodocs (tự màu qua utility kit). */
+  body[data-bp-theme='dark'] .sbdocs-content :where(h1, h2, h3, h4, h5, h6):not(.sb-anchor, .sb-unstyled, .sb-unstyled :is(h1, h2, h3, h4, h5, h6)) {
     color: var(--ink);
+  }
+  body[data-bp-theme='dark'] .sbdocs-content :where(p, li, dt, dd, figcaption, blockquote):not(.sb-unstyled, .sb-unstyled *) {
+    color: var(--ink2);
+  }
+  body[data-bp-theme='dark'] .sbdocs-content :where(table th, table td):not(.sb-unstyled, .sb-unstyled *) {
+    color: var(--ink2);
+  }
+  /* .sbdocs-title (h1.sb-unstyled) bị emotion css riêng ép màu, :not() ở trên
+     loại nó ra — override trực tiếp. */
+  body[data-bp-theme='dark'] .sbdocs-title {
+    color: var(--ink);
+  }
+  /* ArgsTable header (autodocs) — span cột bị docblock ép đen mờ
+     rgba(46,52,56,.75) trên canvas tối. */
+  body[data-bp-theme='dark'] .sb-argstableBlock-head span {
+    color: var(--ink2);
   }
 
   /* Code inline addon-docs: chip nền trắng-sáng chữ đen — giữa canvas tối

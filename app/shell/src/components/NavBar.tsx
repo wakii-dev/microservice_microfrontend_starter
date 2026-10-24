@@ -39,7 +39,7 @@ function useHostTheme() {
  * navigate là re-render trigger, nav cập nhật email ngay.
  */
 const NAV_LINK =
-  "relative flex items-center self-stretch rounded-2 px-2.5 text-label no-underline text-ink3 transition-colors hover:text-ink2 aria-[current=page]:text-ink aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-2 aria-[current=page]:after:right-2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:rounded-[1px] aria-[current=page]:after:bg-accent aria-[current=page]:after:content-['']";
+  "relative flex items-center self-stretch rounded-2 px-2.5 text-label no-underline text-ink2 transition-colors hover:text-ink aria-[current=page]:text-ink aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-2 aria-[current=page]:after:right-2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:rounded-[1px] aria-[current=page]:after:bg-accent aria-[current=page]:after:content-['']";
 
 export function NavBar() {
   const navigate = useNavigate();
@@ -106,7 +106,7 @@ export function NavBar() {
           </>
         ) : (
           <Link
-            className="inline-flex h-8 cursor-pointer items-center rounded-2 border-transparent bg-transparent px-[15px] text-body text-ink3 transition-colors hover:bg-s3 hover:text-ink2"
+            className="inline-flex h-8 cursor-pointer items-center rounded-2 border-transparent bg-transparent px-[15px] text-body text-ink2 transition-colors hover:bg-s3 hover:text-ink"
             to="/login"
           >
             Đăng nhập

@@ -138,7 +138,7 @@ export function HooksDemo() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="m-0 text-h1 font-semibold text-ink">Hooks demo</h1>
-        <p className="mt-1 mb-0 text-body text-ink3">6/16 hooks native — bản đầy đủ xem Storybook section “Hooks”.</p>
+        <p className="mt-1 mb-0 text-body text-ink2">6/16 hooks native — bản đầy đủ xem Storybook section “Hooks”.</p>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <DebounceCard />

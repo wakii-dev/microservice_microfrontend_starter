@@ -7,7 +7,7 @@ export function UploadPage() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="m-0 text-h1 font-semibold text-ink">Upload files</h1>
-        <p className="mt-1 mb-0 text-body text-ink3">
+        <p className="mt-1 mb-0 text-body text-ink2">
           Tải lên avatar, tài liệu — list trạng thái (đang tải / xong / lỗi) tự quản nội bộ.
         </p>
       </div>

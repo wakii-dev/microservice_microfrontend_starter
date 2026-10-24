@@ -27,7 +27,7 @@ export function ComponentsDemo() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="m-0 text-h1 font-semibold text-ink">Components</h1>
-        <p className="mt-1 mb-0 text-body text-ink3">
+        <p className="mt-1 mb-0 text-body text-ink2">
           Gallery nhanh — full variants + docs sống tại Storybook :6006.
         </p>
       </div>

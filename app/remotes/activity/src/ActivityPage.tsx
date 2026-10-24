@@ -9,7 +9,7 @@ import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Icon, Link, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, Icon, Link, Reveal, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -69,37 +69,42 @@ export function ActivityPage() {
         </Button>
       </header>
 
-      <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-        {statsError && (
-          <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
-        )}
-        {loadingStats ? (
-          <div className="col-span-full grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-            <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
-          </div>
-        ) : (
-          stats && (
-            <>
-              <StatTile ariaLabel="Tổng số task" label="Tổng task" value={stats.totalTasks} />
-              {STATUS_TILES.map(({ key, label }) => (
-                <StatTile
-                  key={key}
-                  ariaLabel={`Task ${label}`}
-                  label={label}
-                  value={stats.tasksByStatus[key]}
-                />
-              ))}
-              {stats.recentEvents !== undefined && (
-                <StatTile
-                  ariaLabel="Sự kiện 24h qua"
-                  label="Sự kiện 24h qua"
-                  value={stats.recentEvents}
-                />
-              )}
-            </>
-          )
-        )}
-      </div>
+      {/* Motion pass tiết chế (mission #8): Reveal wrap NGOÀI stats grid + feed
+       * (feed MỘT wrap cho cả nhóm — không từng item); 0 đổi logic/data flow.
+       * jsdom không IO → Reveal fallback hiện luôn, tests không ảnh hưởng. */}
+      <Reveal direction="up" delay={80}>
+        <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+          {statsError && (
+            <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
+          )}
+          {loadingStats ? (
+            <div className="col-span-full grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+              <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
+            </div>
+          ) : (
+            stats && (
+              <>
+                <StatTile ariaLabel="Tổng số task" label="Tổng task" value={stats.totalTasks} />
+                {STATUS_TILES.map(({ key, label }) => (
+                  <StatTile
+                    key={key}
+                    ariaLabel={`Task ${label}`}
+                    label={label}
+                    value={stats.tasksByStatus[key]}
+                  />
+                ))}
+                {stats.recentEvents !== undefined && (
+                  <StatTile
+                    ariaLabel="Sự kiện 24h qua"
+                    label="Sự kiện 24h qua"
+                    value={stats.recentEvents}
+                  />
+                )}
+              </>
+            )
+          )}
+        </div>
+      </Reveal>
 
       {feedError && <Alert type="error" message={feedError} />}
 
@@ -121,7 +126,11 @@ export function ActivityPage() {
             title="Chưa có hoạt động nào"
           />
         ) : (
-          items.length > 0 && <Timeline items={items} />
+          items.length > 0 && (
+            <Reveal direction="up" delay={120}>
+              <Timeline items={items} />
+            </Reveal>
+          )
         )}
       </section>
     </section>

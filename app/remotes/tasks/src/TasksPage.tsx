@@ -13,7 +13,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { Alert, EmptyState, message, Skeleton, Tag } from '@wakii/ui-kit';
+import { Alert, EmptyState, message, Reveal, Skeleton, Tag } from '@wakii/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
@@ -231,44 +231,51 @@ export function TasksPage() {
 
       <TaskForm onCreate={handleCreate} />
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
-        <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
-          Tất cả
-        </Tag.Checkable>
-        {WRITABLE_STATUSES.map((status) => (
-          <Tag.Checkable
-            key={status}
-            checked={statusFilter === status}
-            onChange={() => setStatusFilter(status)}
-          >
-            {STATUS_LABELS[status]}
+      {/* Motion pass tiết chế (mission #8): Reveal wrap NGOÀI filter + bảng
+       * (một wrap duy nhất cho khối list — không wrap từng hàng); 0 đổi logic.
+       * jsdom không IO → Reveal fallback hiện luôn, tests không ảnh hưởng. */}
+      <Reveal direction="up" delay={80}>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
+          <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
+            Tất cả
           </Tag.Checkable>
-        ))}
-      </div>
+          {WRITABLE_STATUSES.map((status) => (
+            <Tag.Checkable
+              key={status}
+              checked={statusFilter === status}
+              onChange={() => setStatusFilter(status)}
+            >
+              {STATUS_LABELS[status]}
+            </Tag.Checkable>
+          ))}
+        </div>
+      </Reveal>
 
-      {loading ? (
-        <Skeleton variant="row" count={4} />
-      ) : tasks.length === 0 ? (
-        <EmptyState
-          title="Chưa có task nào"
-          description={
-            statusFilter
-              ? 'Thử bỏ bộ lọc để xem tất cả task.'
-              : 'Tạo task đầu tiên ở form trên.'
-          }
-        />
-      ) : (
-        <TaskList
-          tasks={tasks}
-          total={total}
-          hasMore={Boolean(listQuery.hasNextPage)}
-          loadingMore={loadingMore}
-          onStatusChange={handleStatusChange}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          onLoadMore={() => void listQuery.fetchNextPage()}
-        />
-      )}
+      <Reveal direction="up" delay={120}>
+        {loading ? (
+          <Skeleton variant="row" count={4} />
+        ) : tasks.length === 0 ? (
+          <EmptyState
+            title="Chưa có task nào"
+            description={
+              statusFilter
+                ? 'Thử bỏ bộ lọc để xem tất cả task.'
+                : 'Tạo task đầu tiên ở form trên.'
+            }
+          />
+        ) : (
+          <TaskList
+            tasks={tasks}
+            total={total}
+            hasMore={Boolean(listQuery.hasNextPage)}
+            loadingMore={loadingMore}
+            onStatusChange={handleStatusChange}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onLoadMore={() => void listQuery.fetchNextPage()}
+          />
+        )}
+      </Reveal>
     </motion.section>
   );
 }

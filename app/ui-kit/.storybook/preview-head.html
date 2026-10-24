@@ -15,8 +15,22 @@
   }
 
   /* addon-docs cũng ép màu chữ đen cứng cho heading trang docs — trên canvas
-     tối thành chữ mờ khó đọc. Trả về token ink (dark: #f7f8f8). */
-  body[data-bp-theme='dark'] .sbdocs-title {
+     tối thành chữ mờ khó đọc. Trả về token ink (dark: #f7f8f8). Bao mọi cấp
+     h1-h4 (kể heading render qua markdown ## — không chỉ .sbdocs-title). */
+  body[data-bp-theme='dark'] .sbdocs-title,
+  body[data-bp-theme='dark'] .sbdocs h1,
+  body[data-bp-theme='dark'] .sbdocs h2,
+  body[data-bp-theme='dark'] .sbdocs h3,
+  body[data-bp-theme='dark'] .sbdocs h4 {
     color: var(--ink);
+  }
+
+  /* Code inline addon-docs: chip nền trắng-sáng chữ đen — giữa canvas tối
+     thành khối chói lấn chữ. Trả về mono surface: nền s3 + mực ink2 + viền
+     line (khối pre giữ nguyên — addon đã render syntax dark sẵn). */
+  body[data-bp-theme='dark'] .sbdocs :not(pre) > code {
+    background: var(--c-s3);
+    color: var(--ink2);
+    border: 1px solid var(--line);
   }
 </style>

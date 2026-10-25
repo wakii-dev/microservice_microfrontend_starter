@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Pagination } from './index';
+import { Segmented } from '../segmented/index';
 
 /** Page controls — ellipsis jump ±5, prev/next edge states. */
 const meta = {
@@ -58,3 +59,45 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Real-world usage (2026-10-25): table footer ──
+
+/** TableFooter — classic table footer: "1–10 của 87" range text, a page-size changer,
+ * controlled Pagination. In a real app, wire onChange to your query — not local state. */
+export const TableFooter: StoryObj = {
+  name: 'Table footer — range text + size changer + controlled page (87 items)',
+  render: () => <TableFooterDemo />,
+};
+
+function TableFooterDemo() {
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const total = 87;
+  const from = (current - 1) * pageSize + 1;
+  const to = Math.min(current * pageSize, total);
+
+  return (
+    <div className="flex w-full max-w-xl flex-col gap-3 rounded-xl border border-line bg-s1 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-meta text-ink3">{`Hiển thị ${from}–${to} của ${total} mục`}</span>
+        <span className="flex items-center gap-2 text-meta text-ink3">
+          {'Số dòng:'}
+          <Segmented
+            ariaLabel="Số dòng mỗi trang"
+            value={String(pageSize)}
+            onChange={(v) => {
+              setPageSize(Number(v));
+              setCurrent(1);
+            }}
+            options={[
+              { label: '10', value: '10' },
+              { label: '20', value: '20' },
+              { label: '50', value: '50' },
+            ]}
+          />
+        </span>
+      </div>
+      <Pagination current={current} pageSize={pageSize} total={total} onChange={setCurrent} />
+    </div>
+  );
+}

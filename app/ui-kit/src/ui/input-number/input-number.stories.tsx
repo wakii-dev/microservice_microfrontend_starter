@@ -158,3 +158,33 @@ export const Affixes: S = {
     </div>
   ),
 };
+
+/* ── Real-world cases (mission #13 — real-world stories sweep) ── */
+
+// Local wrapper — cart line: quantity drives live line total.
+function CheckoutQuantityInner() {
+  const [quantity, setQuantity] = useState(1);
+  const unitPrice = 24.5;
+  const total = quantity * unitPrice;
+  return (
+    <div className="flex w-80 max-w-full flex-col gap-3 rounded-xl border border-line bg-s1 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-body text-ink">Wireless Mouse M220</span>
+        <span className="text-meta text-ink2">$24.50 / unit</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-label text-ink2">Quantity</span>
+        <InputNumber value={1} min={1} max={10} step={1} onChange={(v) => setQuantity(v ?? 1)} ariaLabel="Quantity" />
+      </div>
+      <div className="flex items-center justify-between border-t border-line pt-3">
+        <span className="text-label text-ink2">Line total</span>
+        <span className="text-h2 font-semibold text-ink">${total.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+
+export const CheckoutQuantity: S = {
+  name: 'CheckoutQuantity — cart line with live total',
+  render: () => <CheckoutQuantityInner />,
+};

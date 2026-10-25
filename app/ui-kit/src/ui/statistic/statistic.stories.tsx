@@ -1,8 +1,12 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
 // PARITY: antd Statistic (content 24 semibold, title 14 secondary).
 // Stories — Basic / PrefixSuffix / ValueStyle / NodeValue / DarkTheme
+// + KpiRow (dashboard header: trend badges + 1 ô loading skeleton)
 // (component has no loading/disabled prop — don't invent stories).
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Badge } from '../badge/index';
+import { Skeleton } from '../skeleton/index';
+import { Tag } from '../tag/index';
 import { Statistic } from './index';
 
 /** Big-number KPI readout — title, value, prefix/suffix. */
@@ -63,6 +67,46 @@ export const DarkTheme: Story = {
       <Statistic title="Total tasks" value={128} />
       <Statistic title="Overdue" value={3} valueStyle={{ color: 'var(--st-fail)' }} />
       <Statistic title="Revenue" prefix="$" value={1284} suffix="USD" />
+    </div>
+  ),
+};
+
+// ── Real-world 2026-10-25 — KPI row của dashboard header: 4 Statistic với
+// trend Badge theo token (doanh thu ↑ xanh, chi phí ↓ xanh — giảm là tốt),
+// đơn hàng + completion rate; ô thứ 5 đang fetch → skeleton bones thay số
+// (Skeleton component, KHÔNG prop loading — Statistic không có loading).
+
+export const KpiRow: Story = {
+  name: 'KPI row — dashboard header with trend badges + loading cell',
+  render: () => (
+    <div className="rounded-xl border border-line bg-s2 px-6 py-5">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-body font-semibold text-ink">Store performance</span>
+        <Tag>live</Tag>
+      </div>
+      <div className="flex flex-wrap items-start gap-x-10 gap-y-6">
+        <div className="flex flex-col gap-1.5">
+          <Statistic prefix="$" title="Revenue" value={128.4} suffix="k" />
+          <Badge variant="done">↑ 12.4% vs last month</Badge>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Statistic prefix="$" title="Ad cost" value={18.2} suffix="k" />
+          <Badge variant="done">↓ 3.1% — under budget</Badge>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Statistic title="Orders" value={1284} />
+          <Badge variant="doing">34 shipping now</Badge>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Statistic title="Completion rate" value={92} suffix="%" />
+          <Badge variant="done">on track</Badge>
+        </div>
+        {/* Ô đang fetch — skeleton thay số, đúng tỉ lệ title + value */}
+        <div aria-busy="true" aria-label="Loading metric" className="flex flex-col gap-2 pt-1">
+          <Skeleton className="w-16" variant="text" />
+          <Skeleton className="w-24" variant="text" />
+        </div>
+      </div>
     </div>
   ),
 };

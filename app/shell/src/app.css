@@ -9,3 +9,29 @@
 
 @source './';
 @source '../node_modules/@wakii/ui-kit/src';
+
+/* ── Landing motion (mission boilerplate-redesign) ──
+ * Marquee: dải tech chạy ngang vô hạn — track nhân đôi ×2, translateX -50% = loop
+ * liền mạch. Pause on hover; prefers-reduced-motion → dừng hẳn (nội dung tĩnh). */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-x 28s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}

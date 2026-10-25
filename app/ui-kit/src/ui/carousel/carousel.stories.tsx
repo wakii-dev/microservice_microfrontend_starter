@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Carousel } from './index';
+import { Avatar } from '../avatar/index';
 import { Button } from '../button/index';
+import { CountUp } from '../count-up/index';
+import { Statistic } from '../statistic/index';
 import { Tag } from '../tag/index';
 
 // Swiper CSS moved out of ui/carousel/index.tsx into entries/carousel.ts (batch ⑩);
@@ -19,6 +22,11 @@ type S = StoryObj<typeof meta>;
 
 function Slide({ label, tone = 'bg-s3' }: { label: string; tone?: string }) {
   return <div className={`grid h-48 place-items-center rounded-lg ${tone} text-body text-ink`}>{label}</div>;
+}
+
+// Photo helper — picsum seeded (same pattern as templates/landing.stories.tsx).
+function photo(seed: string, w: number, h: number) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
 }
 
 // Gallery images — SVG data-URI (offline-safe, no network dependency in Storybook).
@@ -369,5 +377,157 @@ export const Empty: S = {
         <Carousel items={[]} className="w-full" indicators={false} />
       </div>
     </div>
+  ),
+};
+
+/* ── Real-world cases (mission #12 — user: "slides must be real photos or
+ * HTML, not placeholder boxes"): each story below is a case a product ships,
+ * with doc comment explaining when you'd use it. API unchanged. ── */
+
+const PRODUCTS = [
+  { seed: 'wakii-shoe', name: 'Trail Runner Pro', price: '$129', tag: 'sale' as const },
+  { seed: 'wakii-watch', name: 'Field Watch 38', price: '$249', tag: 'new' as const },
+  { seed: 'wakii-headphone', name: 'Studio Headphones', price: '$199', tag: undefined },
+  { seed: 'wakii-backpack', name: 'City Backpack 22L', price: '$89', tag: 'sale' as const },
+  { seed: 'wakii-lamp', name: 'Desk Lamp Arc', price: '$59', tag: undefined },
+];
+
+/** Product gallery — e-commerce PDP: photo + name/price + promo Tag per slide,
+ * loop so shoppers can keep swiping past the last product. Real photos
+ * (picsum seeded), lazy-loaded; alt describes the product for screen readers. */
+export const ProductGallery: S = {
+  name: 'Product gallery — e-commerce photos + price + promo tag',
+  render: () => (
+    <Carousel
+      circular
+      height={420}
+      className="max-w-2xl"
+      items={PRODUCTS.map((product) => (
+        <div key={product.seed} className="mr-1 flex flex-col gap-2">
+          <img
+            src={photo(product.seed, 800, 600)}
+            alt={`${product.name} — product photo`}
+            loading="lazy"
+            className="h-72 w-full rounded-lg object-cover"
+          />
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex flex-col">
+              <span className="text-body font-semibold text-ink">{product.name}</span>
+              <span className="text-meta text-ink2">{product.price}</span>
+            </div>
+            {product.tag && <Tag>{product.tag}</Tag>}
+          </div>
+        </div>
+      ))}
+    />
+  ),
+};
+
+const HERO_SLIDES = [
+  { seed: 'wakii-hero-spring', kicker: 'Spring drop', headline: 'New season, new gear', sub: 'Fresh arrivals up to 30% off this week.' },
+  { seed: 'wakii-hero-members', kicker: 'Membership', headline: 'Free shipping, always', sub: 'Join Wakii+ and never pay for delivery again.' },
+  { seed: 'wakii-hero-collab', kicker: 'Collab', headline: 'Studio Series is back', sub: 'Limited run — last drop sold out in 48 hours.' },
+];
+
+/** Hero banner — marketing homepage: autoplaying full-width slides with a
+ * scrim-gradient overlay (white copy stays readable on any photo) + CTA.
+ * Loop + pauseOnHover so the promo keeps rotating until the shopper engages. */
+export const HeroBanner: S = {
+  name: 'Hero banner — marketing autoplay + scrim overlay + CTA',
+  render: () => (
+    <Carousel
+      autoplay
+      autoplayInterval={4000}
+      pauseOnHover
+      circular
+      height={340}
+      navigators={false}
+      items={HERO_SLIDES.map((slide) => (
+        <div key={slide.seed} className="relative h-full w-full">
+          <img
+            src={photo(slide.seed, 1200, 500)}
+            alt={`${slide.headline} — campaign banner`}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+          {/* scrim gradient — same recipe as auth split hero (var(--scrim-4) base) */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--scrim-4)] via-black/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-2 p-8">
+            <span className="text-meta uppercase tracking-[0.08em] text-white/80">{slide.kicker}</span>
+            <span className="text-h1 font-bold text-white drop-shadow-md">{slide.headline}</span>
+            <span className="text-body text-white/85">{slide.sub}</span>
+            <div className="mt-1">
+              <Button type="primary">Shop now</Button>
+            </div>
+          </div>
+        </div>
+      ))}
+    />
+  ),
+};
+
+const QUOTES = [
+  { initials: 'AL', name: 'Alice Nguyen', role: 'Eng lead, Finhive', quote: 'We replaced three internal tools with one shell — the dark theme alone sold half the team.' },
+  { initials: 'BV', name: 'Binh Vu', role: 'CTO, Craftbase', quote: 'Motion is tasteful: reveal on scroll, counters on KPIs, nothing bounces for attention.' },
+  { initials: 'CT', name: 'Chi Tran', role: 'PM, Loopscale', quote: 'Pricing page, dashboard, onboarding — all from the same tokens. It looks like one product.' },
+  { initials: 'DD', name: 'Duong Do', role: 'Founder, Kite', quote: 'We shipped our landing in a weekend — the kit carried opinions so we could carry features.' },
+];
+
+/** Testimonial cards — pure HTML slides (no images at all): proof the carousel
+ * takes arbitrary content. Homepage social-proof strip, 2 cards per view. */
+export const TestimonialCards: S = {
+  name: 'Testimonial cards — HTML-only slides (quotes, no images)',
+  render: () => (
+    <Carousel
+      circular
+      itemsPerView={2}
+      height={220}
+      indicators={false}
+      items={QUOTES.map((q) => (
+        <div key={q.initials} className="mr-1 flex h-full flex-col gap-3 rounded-xl border border-line bg-s1 p-4">
+          <blockquote className="m-0 text-body text-ink2">“{q.quote}”</blockquote>
+          <div className="mt-auto flex items-center gap-2">
+            <Avatar size={28}>{q.initials}</Avatar>
+            <div className="flex flex-col">
+              <span className="text-label font-medium text-ink">{q.name}</span>
+              <span className="text-meta text-ink3">{q.role}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    />
+  ),
+};
+
+const KPIS: Array<{ title: string; value: number; suffix: string; decimals?: number }> = [
+  { title: 'Tasks shipped', value: 128, suffix: 'k' },
+  { title: 'Uptime', value: 99.95, suffix: '%', decimals: 2 },
+  { title: 'Teams onboard', value: 327, suffix: '+' },
+  { title: 'Runtime deps', value: 0, suffix: '' },
+];
+
+/** Stat carousel — dashboard/onboarding strip: one KPI per slide with CountUp
+ * animating on slide enter. HTML-rich slides carrying live components, not
+ * static media. */
+export const StatCarousel: S = {
+  name: 'Stat carousel — Statistic + CountUp per slide',
+  render: () => (
+    <Carousel
+      circular
+      autoplay
+      autoplayInterval={3000}
+      pauseOnHover
+      height={160}
+      indicators={false}
+      items={KPIS.map((kpi) => (
+        <div key={kpi.title} className="mr-1 grid h-full place-items-center rounded-xl border border-line bg-s1">
+          <Statistic
+            title={kpi.title}
+            value={<CountUp value={kpi.value} decimals={kpi.decimals ?? 0} />}
+            suffix={kpi.suffix}
+          />
+        </div>
+      ))}
+    />
   ),
 };

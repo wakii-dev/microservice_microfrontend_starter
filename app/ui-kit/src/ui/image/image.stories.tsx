@@ -181,3 +181,51 @@ function ErrorStateDemo() {
     </div>
   );
 }
+
+// ── Real-world usage (2026-10-25): product & editorial contexts ──
+
+const PRODUCTS = [
+  { seed: 'product-teapot', name: 'Stoneware teapot', price: '$42' },
+  { seed: 'product-lamp', name: 'Brass desk lamp', price: '$88' },
+  { seed: 'product-chair', name: 'Oak lounge chair', price: '$240' },
+  { seed: 'product-mug', name: 'Ceramic mug set', price: '$28' },
+];
+
+/** ProductAlbum — e-commerce grid: 4 photo tiles, name + price captions, each tile zooms. */
+export const ProductAlbum: Story = {
+  name: 'Product album — 4-photo grid with name + price captions',
+  render: () => (
+    <div className="grid max-w-2xl grid-cols-2 gap-4">
+      {PRODUCTS.map((p) => (
+        <figure key={p.seed} className="m-0 flex flex-col gap-2">
+          <UiImage
+            src={photo(p.seed, 600, 450)}
+            alt={`${p.name} on a neutral background (picsum seed: ${p.seed})`}
+            className="aspect-[4/3] w-full rounded-lg object-cover"
+          />
+          <figcaption className="flex items-baseline justify-between gap-2">
+            <span className="text-body font-medium text-ink">{p.name}</span>
+            <span className="font-mono text-meta text-ink2">{p.price}</span>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  ),
+};
+
+/** ArticleCover — editorial hero: full-width 1200×630 cover + figcaption credit line. */
+export const ArticleCover: Story = {
+  name: 'Article cover — full-width hero + figcaption credit',
+  render: () => (
+    <figure className="m-0 flex max-w-2xl flex-col gap-2">
+      <UiImage
+        src={photo('orca-article-cover', 1200, 630)}
+        alt="Rolling hills at golden hour — article cover photo (picsum seed: orca-article-cover)"
+        className="aspect-[1200/630] w-full rounded-xl object-cover"
+      />
+      <figcaption className="text-meta text-ink3">
+        Field notes from the design systems offsite, October 2026 — click the cover to zoom.
+      </figcaption>
+    </figure>
+  ),
+};

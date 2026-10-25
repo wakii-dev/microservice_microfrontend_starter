@@ -1,8 +1,26 @@
 // Card — container có head (title + extra) + body (antd: radiusLG 8, head border-b
 // colorBorderSecondary, body padding 24, hoverable = shadow + border accent-less lift).
 // loading = skeleton body (antd Card loading); size small = padding dense (antd size).
-import type { ReactNode } from 'react';
+// Customize pass (SÓNG-3): classNames slots (root/header/title/extra/body/actions)
+// + style passthrough — default path (không truyền) giữ nguyên DOM/GUI.
+import type { CSSProperties, ReactNode } from 'react';
 import { Skeleton } from '../skeleton/index.js';
+
+/** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định (consumer append). */
+export interface CardClassNames {
+  /** Div gốc bọc cả card. */
+  root?: string;
+  /** Dải head (title + extra) — chỉ render khi có title/extra. */
+  header?: string;
+  /** Div title trong head. */
+  title?: string;
+  /** Div extra (góc phải head) — chỉ render khi có extra. */
+  extra?: string;
+  /** Div body (children / skeleton). */
+  body?: string;
+  /** <ul> hàng actions dưới body — chỉ render khi có actions. */
+  actions?: string;
+}
 
 export interface CardProps {
   title?: ReactNode;
@@ -21,7 +39,14 @@ export interface CardProps {
   size?: 'default' | 'small';
   children?: ReactNode;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
+  classNames?: CardClassNames;
 }
+
+// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
+const slot = (c?: string) => (c ? ` ${c}` : '');
 
 const PAD = {
   default: { head: 'px-6 py-4', body: 'p-6', action: 'p-3' },
@@ -39,6 +64,8 @@ export function Card({
   size = 'default',
   children,
   className,
+  style,
+  classNames,
 }: CardProps) {
   const pad = PAD[size];
   return (
@@ -50,16 +77,17 @@ export function Card({
             // KHÔNG scale; mọi transition ease-smooth 200ms.
             'cursor-pointer transition-[box-shadow,border-color,transform] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-3)] hover:border-ink/20 hover:-translate-y-px active:translate-y-0 active:shadow-[var(--ele-2)]'
           : ''
-      }${className ? ` ${className}` : ''}`}
+      }${slot(classNames?.root)}${className ? ` ${className}` : ''}`}
+      style={style}
     >
       {cover}
       {(title || extra) && (
-        <div className={`flex items-center justify-between border-b border-line2 ${pad.head}`}>
-          <div className="text-body font-semibold text-ink">{title}</div>
-          {extra && <div className="text-ink2">{extra}</div>}
+        <div className={`flex items-center justify-between border-b border-line2 ${pad.head}${slot(classNames?.header)}`}>
+          <div className={`text-body font-semibold text-ink${slot(classNames?.title)}`}>{title}</div>
+          {extra && <div className={`text-ink2${slot(classNames?.extra)}`}>{extra}</div>}
         </div>
       )}
-      <div className={`${pad.body} text-body`}>
+      <div className={`${pad.body} text-body${slot(classNames?.body)}`}>
         {loading ? (
           <div className="flex flex-col gap-2" aria-busy="true" aria-label="Đang tải">
             <Skeleton variant="text" />
@@ -71,7 +99,7 @@ export function Card({
         )}
       </div>
       {actions && actions.length > 0 && (
-        <ul className="m-0 flex list-none gap-0 border-t border-line2 p-0">
+        <ul className={`m-0 flex list-none gap-0 border-t border-line2 p-0${slot(classNames?.actions)}`}>
           {actions.map((action, i) => (
             <li key={i} className={`flex flex-1 items-center justify-center text-ink2 ${pad.action} ${i > 0 ? 'border-l border-line2' : ''}`}>
               {action}

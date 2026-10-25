@@ -86,3 +86,42 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — classNames slots (root) + style passthrough (SÓNG-3 pattern)
+ * for both Tag and Tag.Checkable. Tag is a single primary element, so each
+ * exposes only the `root` slot (same element as `className`); `style` lands on
+ * that element too; the user's className always comes last. */
+// Không annotate StoryObj<typeof Tag> — render trả JSX dùng Tag.Checkable
+// (props khác Tag) nên annotation gây false positive TS2322.
+export const CustomStyled = {
+  name: 'CustomStyled (classNames + style)',
+  args: { children: 'label' },
+  render: () => (
+    <div className="flex flex-wrap items-center gap-3">
+      <Tag
+        icon={<span>●</span>}
+        closable
+        classNames={{ root: 'border-st-done text-st-done border-dashed' }}
+        style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}
+      >
+        deployed
+      </Tag>
+      <Tag.Checkable
+        checked
+        classNames={{ root: 'rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.2)]' }}
+        style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}
+      >
+        Checked chip
+      </Tag.Checkable>
+      <Tag.Checkable
+        checked={false}
+        classNames={{ root: 'border-dashed rounded-lg' }}
+        style={{ borderStyle: 'dashed', color: 'var(--accent)' }}
+      >
+        Dashed chip
+      </Tag.Checkable>
+    </div>
+  ),
+};

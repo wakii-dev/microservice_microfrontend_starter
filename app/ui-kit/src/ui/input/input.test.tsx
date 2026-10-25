@@ -104,3 +104,82 @@ describe('Input — branch phụ (Tier 5 sweep)', () => {
     expect(screen.getByText('kg')).toBeInTheDocument();
   });
 });
+
+describe('Input — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root→wrapper affix, input→input, prefix/suffix→span', () => {
+    render(
+      <Input
+        aria-label="Slot"
+        prefix="$"
+        suffix="kg"
+        value="5"
+        readOnly
+        classNames={{ root: 'slot-root', input: 'slot-input', prefix: 'slot-prefix', suffix: 'slot-suffix' }}
+      />,
+    );
+    const el = screen.getByLabelText('Slot');
+    expect(el).toHaveClass('slot-input');
+    expect(el).not.toHaveClass('slot-root'); // root → wrapper, không dính input
+    expect(el.closest('span')).toHaveClass('slot-root');
+    expect(screen.getByText('$')).toHaveClass('slot-prefix');
+    expect(screen.getByText('kg')).toHaveClass('slot-suffix');
+  });
+
+  it('style passthrough + tương tác chạy; standalone: root slot trước className người dùng', async () => {
+    const onChange = vi.fn();
+    render(
+      <Input
+        aria-label="Style"
+        style={{ background: 'rgb(1, 2, 3)' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+        onChange={onChange}
+      />,
+    );
+    const el = screen.getByLabelText('Style');
+    expect(el).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+    expect(el).toHaveClass('slot-root');
+    // className người dùng vẫn cuối cùng (append sau root slot)
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+    await userEvent.setup().type(el, 'x');
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Textarea — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root→wrapper, textarea→element, count→dòng đếm', () => {
+    render(
+      <Textarea
+        aria-label="Slots"
+        value="abcdef"
+        maxLength={10}
+        showCount
+        readOnly
+        classNames={{ root: 'slot-root', textarea: 'slot-textarea', count: 'slot-count' }}
+      />,
+    );
+    const el = screen.getByLabelText('Slots');
+    expect(el).toHaveClass('slot-textarea');
+    expect(el).not.toHaveClass('slot-root'); // root → wrapper, không dính textarea
+    expect(el.closest('div')).toHaveClass('slot-root');
+    expect(screen.getByText('6/10')).toHaveClass('slot-count');
+  });
+
+  it('style passthrough + gõ vẫn chạy; textarea slot trước className người dùng', async () => {
+    const onChange = vi.fn();
+    render(
+      <Textarea
+        aria-label="Style"
+        style={{ color: 'rgb(9, 9, 9)' }}
+        classNames={{ textarea: 'slot-textarea' }}
+        className="user-last"
+        onChange={onChange}
+      />,
+    );
+    const el = screen.getByLabelText('Style');
+    expect(el).toHaveStyle({ color: 'rgb(9, 9, 9)' });
+    expect(el.className.indexOf('slot-textarea')).toBeLessThan(el.className.indexOf('user-last'));
+    await userEvent.setup().type(el, 'ok');
+    expect(onChange).toHaveBeenCalledTimes(2);
+  });
+});

@@ -41,9 +41,13 @@ async function makeTemplates(): Promise<string> {
   await mkdir(join(t, 'template-feats', 'router', 'src'), { recursive: true });
   await writeFile(join(t, 'template-feats', 'router', 'src', 'App.tsx'), 'export default () => <h1>{{appName}} routed</h1>;');
   await writeFile(join(t, 'template-feats', 'router', 'src', 'main.tsx'), '// router main {{appName}}');
-  // overlay extra chart
+  // overlay extra chart + schedule + editor (schedule/editor: fixture cho test multi-deps)
   await mkdir(join(t, 'template-feats', 'extras', 'chart', 'src'), { recursive: true });
   await writeFile(join(t, 'template-feats', 'extras', 'chart', 'src', 'ChartPage.tsx'), '// chart page {{appName}}');
+  await mkdir(join(t, 'template-feats', 'extras', 'schedule', 'src'), { recursive: true });
+  await writeFile(join(t, 'template-feats', 'extras', 'schedule', 'src', 'SchedulePage.tsx'), '// schedule page {{appName}}');
+  await mkdir(join(t, 'template-feats', 'extras', 'editor', 'src'), { recursive: true });
+  await writeFile(join(t, 'template-feats', 'extras', 'editor', 'src', 'EditorPage.tsx'), '// editor page {{appName}}');
   return t;
 }
 
@@ -102,6 +106,18 @@ describe('scaffold — overlays + deps', () => {
     const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
     expect(pkg.dependencies['chart.js']).toBe('^4.5.1');
     expect(pkg.dependencies['react-router']).toBeUndefined(); // router=false → không thêm
+  });
+
+  it('extra nhiều peer deps → merge đủ list (schedule 3 fullcalendar, editor 2 tiptap)', async () => {
+    const templatesRoot = await makeTemplates();
+    await run({ appName: 'm-app', extras: ['schedule', 'editor'] }, templatesRoot);
+
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['@fullcalendar/core']).toBe('^6.1.22');
+    expect(pkg.dependencies['@fullcalendar/daygrid']).toBe('^6.1.22');
+    expect(pkg.dependencies['@fullcalendar/interaction']).toBe('^6.1.22');
+    expect(pkg.dependencies['@tiptap/react']).toBe('^3.32.0');
+    expect(pkg.dependencies['@tiptap/starter-kit']).toBe('^3.32.0');
   });
 
   it('overlay thiếu (extra không có trong template) → throw message rõ', async () => {

@@ -16,3 +16,6 @@
 
 @source './';
 @source '../node_modules/@wakii/ui-kit/src';
+/* Bản npm src/ chỉ chứa styles CSS (không .tsx) — thiếu dòng dist dưới đây,
+ * utilities mà component kit dùng không được generate → UI vỡ layout. */
+@source '../node_modules/@wakii/ui-kit/dist';

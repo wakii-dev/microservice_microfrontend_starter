@@ -72,6 +72,17 @@
       "devLocal": false
     },
     {
+      "id": "kafka-init",
+      "type": "infra",
+      "description": "One-shot tạo topic task-events + task-events.dlq (--if-not-exists) sau khi kafka healthy — fix gốc race auto-create (consumer join trước topic tồn tại → generation assignment rỗng vĩnh viễn; report worker-kafka 2026-10-25). requires closure của go-svc/node-svc giữ service này khi có BE kafka; selection không kafka → pruneCompose xoá block + depends_on yaml-aware.",
+      "paths": [],
+      "composeService": "kafka-init",
+      "gatewayBlocks": [],
+      "envKeys": [],
+      "requires": [],
+      "devLocal": false
+    },
+    {
       "id": "auth-svc",
       "type": "infra",
       "description": "Auth thật — register/login/refresh/RBAC, JWT HS256 (token-contract). Rules tầng 1: luôn kèm khi có BE.",
@@ -133,7 +144,8 @@
       ],
       "requires": [
         "postgres",
-        "kafka"
+        "kafka",
+        "kafka-init"
       ],
       "devLocal": false
     },
@@ -177,7 +189,8 @@
       "requires": [
         "postgres",
         "kafka",
-        "auth-svc"
+        "auth-svc",
+        "kafka-init"
       ],
       "devLocal": false
     },

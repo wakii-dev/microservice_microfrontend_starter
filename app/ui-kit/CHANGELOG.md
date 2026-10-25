@@ -4,19 +4,21 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
-## [0.6.0] — 2026-10-25 (BREAKING — Chart/Schedule/Editor rời barrel + literal peer imports)
+## [0.6.0] — 2026-10-25 (BREAKING lazy-load npm + customize pass slots toàn thư viện)
 
 ### Breaking
 
-- **`Chart` / `Schedule` / `Editor` rời barrel chính** → import qua subpath `@wakii/ui-kit/chart` · `@wakii/ui-kit/schedule` · `@wakii/ui-kit/editor` (theo Carousel 0.5.0). `useChartTheme` đi theo `Chart` qua subpath. Types (`ChartProps`/`ChartConfig`/`ChartDataset`/`ScheduleProps`/`ScheduleEvent`/`EditorProps`) **vẫn export từ barrel** — `export type` bị xoá lúc build, không kéo runtime peer vào graph. Stories/tests của 3 comp import tương đối `./index` từ đầu — không phụ thuộc barrel; consumer monorepo duy nhất dùng barrel là admin `Dashboard.tsx` (đã đổi, kể cả bản mirror `app/stack-template`).
+- **`Chart` / `Schedule` / `Editor` rời barrel chính** → import qua subpath `@wakii/ui-kit/chart` · `@wakii/ui-kit/schedule` · `@wakii/ui-kit/editor` (theo Carousel 0.5.0). `useChartTheme` đi theo `Chart` qua subpath. Types (`ChartProps`/`ChartConfig`/`ChartDataset`/`ScheduleProps`/`ScheduleEvent`/`EditorProps`) **vẫn export từ barrel**. Consumer monorepo duy nhất dùng barrel là admin `Dashboard.tsx` (đã đổi subpath, kể cả mirror `app/stack-template`).
 
 ### Fixed
 
-- **BUG #4 — npm consumers (Vite dev + prod) thấy Chart/Schedule/Editor rơi fallback vĩnh viễn**: dist 0.4.3 dynamic import peer qua **BIẾN specifier** (`const CHARTJS_AUTO = 'chart.js/auto'; import(CHARTJS_AUTO)`) — bundler consumer không phân tích tĩnh được → bundle prod giữ nguyên `import("chart.js/auto")` bare mà browser không resolve (không có import map) → fallback câm lặng **kể cả khi peer đã cài**; `.vite/deps/editorInner.js` hỏng kéo dep-optimizer đứt cả graph. Fix: **specifier LITERAL** — `import('chart.js/auto')`, `import('@fullcalendar/core'|'@fullcalendar/daygrid'|'@fullcalendar/interaction')`, wrapper Editor `import('./editorInner.js')`. Literal → vite dev prebundle + rollup consumer build đều resolve được khi peer installed; peer thiếu → **build error RÕ RÀNG** thay vì fallback câm lặng (đảo chủ ý 0.4.2/0.4.3 — khả thi vì peers giờ khai đủ, xem Added). Fallback prop + lazy + DI hook `__loadFcForTest` giữ nguyên (tests không đổi).
+- **BUG #4 — npm consumers (Vite dev + prod) thấy Chart/Schedule/Editor rơi fallback vĩnh viễn**: dist dynamic import peer qua **BIẾN specifier** — bundler không phân tích tĩnh được → bundle prod giữ `import("chart.js/auto")` bare mà browser không resolve → fallback câm lặng kể cả khi peer đã cài. Fix: **specifier LITERAL** — vite dev prebundle + rollup build đều resolve được khi peer installed; peer thiếu → build error rõ ràng. Fallback prop + lazy + DI hook `__loadFcForTest` giữ nguyên. Verify e2e consumer ngoài monorepo (tarball pack đúng quy trình publish): prod code-split + dev canvas painted thật.
+- Spinner story CustomStyled bỏ annotation StoryObj (TS2322 sót wave 2); ButtonClassNames sót barrel PR #93.
 
 ### Added
 
-- `peerDependencies` khai đủ 3 peer của lazy-import: `@fullcalendar/daygrid` `^6.1.15`, `@fullcalendar/interaction` `^6.1.15`, `@tiptap/starter-kit` `^3.32.0` (meta `optional` như các peer heavy khác — trước đây chỉ có `core`/`react`).
+- `peerDependencies` đủ 3 peer lazy-import: `@fullcalendar/daygrid` + `@fullcalendar/interaction` `^6.1.15`, `@tiptap/starter-kit` `^3.32.0` (meta optional).
+- **Customize pass (SÓNG-3, waves 1-3)**: `classNames` slots (antd v5-style) + `style` passthrough cho ~30 components — Button (root/icon), Input (root/input/prefix/suffix), Textarea, Select, Checkbox, Radio, Switch, Card, Tag (+Checkable), Spinner, Alert, v.v. Default path giữ nguyên DOM/GUI; barrel export đầy đủ `*ClassNames` types; dep `classnames`.
 
 ## [0.5.0] — 2026-10-24 (BREAKING — barrel chính sạch彻底 peer imports)
 

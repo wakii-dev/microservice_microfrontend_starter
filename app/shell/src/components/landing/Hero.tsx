@@ -31,8 +31,7 @@ function BlobGradient() {
 function Scene3DBackground() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-      <BlobGradient />
-      <Suspense fallback={null}>
+      <Suspense fallback={<BlobGradient />}>
         <Scene3D
           className="pointer-events-none absolute inset-0 rounded-none opacity-90"
           height="100%"

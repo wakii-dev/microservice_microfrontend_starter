@@ -122,7 +122,9 @@ describe('scaffold — overlays + deps', () => {
 
   it('overlay thiếu (extra không có trong template) → throw message rõ', async () => {
     const templatesRoot = await makeTemplates();
-    await expect(run({ extras: ['editor'] }, templatesRoot)).rejects.toThrow("Không thấy overlay extra 'editor'");
+    // fixture giờ có chart/schedule/editor (test multi-deps) — carousel là extra
+    // duy nhất fixture KHÔNG tạo → dùng làm case thiếu overlay
+    await expect(run({ extras: ['carousel'] }, templatesRoot)).rejects.toThrow("Không thấy overlay extra 'carousel'");
   });
 });
 

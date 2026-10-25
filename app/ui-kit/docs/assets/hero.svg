@@ -118,12 +118,12 @@
     <rect x="28" y="26" width="126" height="24" rx="12" fill="#ffffff" stroke="#dfe3ec"/>
     <text x="91" y="42" text-anchor="middle" fill="#3f4551">115 components</text>
     <rect x="862" y="26" width="70" height="24" rx="12" fill="#ffffff" stroke="#dfe3ec"/>
-    <text x="897" y="42" text-anchor="middle" fill="#3f4551">v0.5.0</text>
+    <text x="897" y="42" text-anchor="middle" fill="#3f4551">v0.6</text>
   </g>
 
   <!-- title + tagline -->
   <g font-family="ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">
-    <text x="480" y="262" font-size="40" font-weight="700" letter-spacing="0.5" fill="url(#titleGrad)">@wakii/ui-kit</text>
+    <text x="480" y="262" font-size="40" font-weight="700" letter-spacing="0.5" fill="url(#titleGrad)">wakii</text>
     <text x="480" y="288" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" letter-spacing="2" fill="#5a6270">tokens-first · dark · motion</text>
   </g>
 

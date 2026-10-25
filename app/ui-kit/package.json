@@ -1,6 +1,6 @@
 {
   "name": "@wakii/ui-kit",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Design system của Wakii — tokens + Tailwind v4 + 90 React components + hooks (antd/PrimeReact parity), dark theme, motion. Storybook: https://storybook-static-khaki-two.vercel.app",
   "type": "module",
   "main": "./src/index.ts",
@@ -68,7 +68,8 @@
   },
   "files": [
     "dist",
-    "src/styles"
+    "src/styles",
+    "docs/assets"
   ],
   "publishConfig": {
     "main": "./dist/index.js",

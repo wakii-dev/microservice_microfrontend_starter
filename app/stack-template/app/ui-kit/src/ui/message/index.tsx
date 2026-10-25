@@ -2,6 +2,8 @@
 // Container tự tạo 1 lần (portal-free: div fixed gắn body khi gọi đầu tiên);
 // auto-dismiss 3s + motion slide-down. KHÔNG thay Alert cho error cần hiển thị lâu.
 // SÓNG-3: classNames slots (wrapper/icon/content) — merge sau class mặc định.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
 import type { AlertType } from '../alert/index';
 
 export type MessageType = Exclude<AlertType, 'warning'> | 'warning';
@@ -75,21 +77,21 @@ function ensureContainer(): HTMLDivElement {
   return container;
 }
 
-// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-const slot = (c?: string) => (c ? ` ${c}` : '');
-
-function show(type: MessageType, content: string, durationMs = 3000, classNames?: MessageClassNames): void {
+function show(type: MessageType, content: string, durationMs = 3000, slots?: MessageClassNames): void {
   const root = ensureContainer();
   const el = document.createElement('div');
-  el.className = `pointer-events-auto flex items-center gap-2 rounded-xl border border-line bg-s2 px-3 py-2 text-body text-ink shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
+  el.className = classNames(
+    'pointer-events-auto flex items-center gap-2 rounded-xl border border-line bg-s2 px-3 py-2 text-body text-ink shadow-[var(--shadow-pop)]',
+    slots?.wrapper,
+  );
   el.setAttribute('role', 'status');
   // DOM API + textContent — KHÔNG innerHTML (content có thể là input user → XSS surface)
   const icon = document.createElement('span');
-  icon.className = `text-label ${COLOR[type]}${slot(classNames?.icon)}`;
+  icon.className = classNames('text-label', COLOR[type], slots?.icon);
   icon.setAttribute('aria-hidden', 'true');
   icon.append(statusIcon(type));
   const text = document.createElement('span');
-  if (classNames?.content) text.className = classNames.content;
+  text.className = classNames(slots?.content);
   text.textContent = content;
   el.append(icon, text);
   root.appendChild(el);
@@ -115,9 +117,9 @@ function show(type: MessageType, content: string, durationMs = 3000, classNames?
 }
 
 export const message = {
-  success: (content: string, classNames?: MessageClassNames) => show('success', content, 3000, classNames),
-  info: (content: string, classNames?: MessageClassNames) => show('info', content, 3000, classNames),
-  warning: (content: string, classNames?: MessageClassNames) => show('warning', content, 3000, classNames),
-  error: (content: string, classNames?: MessageClassNames) => show('error', content, 3000, classNames),
+  success: (content: string, slots?: MessageClassNames) => show('success', content, 3000, slots),
+  info: (content: string, slots?: MessageClassNames) => show('info', content, 3000, slots),
+  warning: (content: string, slots?: MessageClassNames) => show('warning', content, 3000, slots),
+  error: (content: string, slots?: MessageClassNames) => show('error', content, 3000, slots),
 };
 

@@ -22,3 +22,7 @@ catalog:
   "@rspack/core": 1.7.12
   # react-query singleton (libs adopt 2026-10-17) — share cache tasks↔activity qua MF
   "@tanstack/react-query": ^5.0.0
+  # motion (redesign Boilerplate 2026-10-23) — landing + remotes animation
+  "framer-motion": ^14.6.0
+  # Experience3d peer (redesign landing hero)
+  "three": ^0.186.1

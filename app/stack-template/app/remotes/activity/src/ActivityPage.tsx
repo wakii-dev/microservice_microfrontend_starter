@@ -3,13 +3,19 @@
 // SF-4 (story VU-53): redesign theo hand-off — stats grid StatTile + timeline feed
 // (Badge primitive theo action), skeleton từng khu ĐỘC LẬP (Promise.allSettled giữ),
 // EmptyState hướng dẫn sang Tasks, refresh busy state.
+// Motion redesign (mission remotes): MotionConfig reducedMotion="user" toàn cây ·
+// StatTile đếm số animate khi vào viewport (fallback tĩnh jsdom/reduced-motion) ·
+// feed stagger + pop-in entry (Timeline/FeedItem) · live pulse dot cạnh heading Feed ·
+// icon Làm mới quay khi đang fetch · skeleton↔feed fade mượt. framer-motion bundle
+// LOCAL (KHÔNG trong shared: rspack).
 // Tokens import idempotent (:root custom props cùng giá trị — trong shell shell đã import,
 // standalone có bản riêng qua standalone.tsx; trùng vô hại, kiến trúc hand-off §2).
 import '@wakii/ui-kit/styles/tokens.css';
 import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
+import { MotionConfig, motion } from 'motion/react';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Icon, Link, Reveal, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, Icon, Link, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -48,6 +54,11 @@ export function ActivityPage() {
   const loadingFeed = feedQuery.isFetching; // refetch (Làm mới) cũng busy — mirror load() cũ
   const loadingStats = statsQuery.isFetching;
   const loading = loadingFeed || loadingStats;
+  // Motion redesign: skeleton feed CHỈ khi chưa có data (lần đầu) — refetch giữ
+  // list cũ trên màn (stale-while-revalidate) → entry mới từ invalidate(['activity'])
+  // POP-IN trong Timeline thay vì cả khu nháy skeleton. Button Làm mới vẫn busy
+  // đúng contract (loading = isFetching).
+  const showFeedSkeleton = loadingFeed && items.length === 0 && !feedError;
 
   const load = useCallback(() => {
     void feedQuery.refetch();
@@ -55,24 +66,34 @@ export function ActivityPage() {
   }, [feedQuery, statsQuery]);
 
   return (
-    <section aria-label="Activity feed và thống kê" className="grid gap-6 max-md:gap-4">
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <h1 className="m-0 text-h1">Activity</h1>
-        <Button
-          type="default"
-          disabled={loading}
-          onClick={() => void load()}
-          icon={loading ? undefined : <Icon name="refresh" />}
-        >
-          {loading && <Spinner label="Đang tải activity" />}
-          Làm mới
-        </Button>
-      </header>
+    // Motion redesign: reducedMotion="user" — mọi animation (pulse/quay/đếm số)
+    // rơi về tức thì khi user tắt motion.
+    <MotionConfig reducedMotion="user">
+      <section aria-label="Activity feed và thống kê" className="grid gap-6 max-md:gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+          <h1 className="m-0 text-h1">Activity</h1>
+          <Button
+            type="default"
+            disabled={loading}
+            onClick={() => void load()}
+            icon={
+              // Motion redesign: icon quay đều khi đang fetch (Spinner giữ role=status
+              // cho a11y contract — icon quay là lớp visual song song)
+              <motion.span
+                aria-hidden="true"
+                className="inline-flex"
+                animate={{ rotate: loading ? 360 : 0 }}
+                transition={loading ? { repeat: Infinity, duration: 0.9, ease: 'linear' } : { duration: 0.25 }}
+              >
+                <Icon name="refresh" />
+              </motion.span>
+            }
+          >
+            {loading && <Spinner label="Đang tải activity" />}
+            Làm mới
+          </Button>
+        </header>
 
-      {/* Motion pass tiết chế (mission #8): Reveal wrap NGOÀI stats grid + feed
-       * (feed MỘT wrap cho cả nhóm — không từng item); 0 đổi logic/data flow.
-       * jsdom không IO → Reveal fallback hiện luôn, tests không ảnh hưởng. */}
-      <Reveal direction="up" delay={80}>
         <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
           {statsError && (
             <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
@@ -104,36 +125,80 @@ export function ActivityPage() {
             )
           )}
         </div>
-      </Reveal>
 
-      {feedError && <Alert type="error" message={feedError} />}
+        {feedError && <Alert type="error" message={feedError} />}
 
-      <section aria-busy={loadingFeed}>
-        <h2 className="mb-3 text-h2 font-semibold text-ink">
-          Feed ({items.length}/{total})
-        </h2>
-        {loadingFeed ? (
-          <Skeleton variant="row" count={4} />
-        ) : items.length === 0 && !feedError ? (
-          <EmptyState
-            action={
-              <Link href="/tasks">
-                Đi tới Tasks
-                <Icon name="arrow-right" size={12} />
-              </Link>
-            }
-            description="Tạo một task ở trang Tasks để thấy event tại đây."
-            title="Chưa có hoạt động nào"
-          />
-        ) : (
-          items.length > 0 && (
-            <Reveal direction="up" delay={120}>
-              <Timeline items={items} />
-            </Reveal>
-          )
-        )}
+        <section aria-busy={loadingFeed}>
+          <h2 className="mb-3 flex items-center gap-2 text-h2 font-semibold text-ink">
+            <span>Feed ({items.length}/{total})</span>
+            {/* Live pulse dot — chỉ khi có dữ liệu (dot không có text → contract
+             * getByText('Feed (…)') giữ nguyên) */}
+            {items.length > 0 && !loadingFeed && (
+              <motion.span
+                aria-hidden="true"
+                className="inline-block size-2 rounded-pill bg-st-done"
+                animate={{ opacity: [1, 0.35, 1], scale: [1, 0.8, 1] }}
+                transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+              />
+            )}
+          </h2>
+          {/* Skeleton ↔ feed/empty swap: enter-fade mỗi nhánh (motion.div), KHÔNG
+           * AnimatePresence exit ở page-level — nội dung mới có mặt NGAY khi data
+           * tới (rOBUST với jsdom rAF throttle); refetch giữ list cũ (skeleton chỉ
+           * khi chưa có data) → entry mới từ invalidate(['activity']) POP-IN trong
+           * Timeline. Exit animation nằm ở item-level (FeedItem/TaskItem). */}
+          {showFeedSkeleton ? (
+            <motion.div
+              key="feed-skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <Skeleton variant="row" count={4} />
+            </motion.div>
+          ) : items.length === 0 && !feedError ? (
+            <motion.div
+              key="feed-empty"
+              className="flex flex-col items-center"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              {/* Icon minh hoạ float nhẹ — keyframe bp-float kit; reduced-motion
+               * global block tắt duration về 0.01ms */}
+              <span
+                aria-hidden="true"
+                className="mb-1 text-ink3"
+                style={{ animation: 'bp-float 3s ease-in-out infinite' }}
+              >
+                <Icon name="clock" size={36} />
+              </span>
+              <EmptyState
+                action={
+                  <Link href="/tasks">
+                    Đi tới Tasks
+                    <Icon name="arrow-right" size={12} />
+                  </Link>
+                }
+                description="Tạo một task ở trang Tasks để thấy event tại đây."
+                title="Chưa có hoạt động nào"
+              />
+            </motion.div>
+          ) : (
+            items.length > 0 && (
+              <motion.div
+                key="feed-list"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                <Timeline items={items} />
+              </motion.div>
+            )
+          )}
+        </section>
       </section>
-    </section>
+    </MotionConfig>
   );
 }
 export default ActivityPage;

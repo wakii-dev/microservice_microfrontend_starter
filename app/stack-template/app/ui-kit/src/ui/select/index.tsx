@@ -5,7 +5,9 @@
 // Depth contract 2026-10-19: trigger rest bg-s3 + ele-1 → hover nhấc ele-2 + viền
 // đậm ink/20; panel nổi = shadow-pop + ele-3 + wash; option hover tint accent/5;
 // stagger option mount 30ms (cap 12); empty icon float; mọi transition ease-smooth.
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
+import { useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Icon } from '../icons/index.js';
 import { Spinner } from '../spinner/index';
 
@@ -17,6 +19,20 @@ export interface SelectOption {
   disabled?: boolean;
   /** Option group header — các option con thuộc group này. */
   items?: SelectOption[];
+}
+
+/** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định (consumer append). */
+export interface SelectClassNames {
+  /** Span wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** Button trigger (role=combobox) mang viền/ring. */
+  trigger?: string;
+  /** Panel nổi bên trong (mang bg/border/shadow) — chỉ render khi mở. */
+  panel?: string;
+  /** <ul> role=listbox — chỉ render khi mở + có options. */
+  listbox?: string;
+  /** Div role=option (mỗi option một div). */
+  option?: string;
 }
 
 export interface SelectProps {
@@ -39,6 +55,10 @@ export interface SelectProps {
   /** Cho gõ giá trị tự do (editable). */
   editable?: boolean;
   className?: string;
+  /** Inline style — passthrough lên span wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
+  classNames?: SelectClassNames;
 }
 
 // Flatten option groups → danh sách phẳng cho keyboard/selection
@@ -54,21 +74,24 @@ function flattenOptions(options: SelectOption[]): Array<{ label: string; value: 
   return result;
 }
 
-export function Select({
-  ariaLabel,
-  value,
-  onChange,
-  options,
-  placeholder = 'Chọn…',
-  disabled = false,
-  filterable = false,
-  multiple = false,
-  maxSelectedCount,
-  loading = false,
-  showClear = false,
-  editable = false,
-  className,
-}: SelectProps) {
+export function Select(props: SelectProps) {
+  const {
+    ariaLabel,
+    value,
+    onChange,
+    options,
+    placeholder = 'Chọn…',
+    disabled = false,
+    filterable = false,
+    multiple = false,
+    maxSelectedCount,
+    loading = false,
+    showClear = false,
+    editable = false,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [search, setSearch] = useState('');
@@ -140,7 +163,10 @@ export function Select({
   const overflowCount = selectedLabels.length - visibleChips.length;
 
   return (
-    <span className={`relative inline-flex w-full${className ? ` ${className}` : ''}`}>
+    <span
+      className={classNames('relative inline-flex w-full', slots?.root, className)}
+      style={style}
+    >
       <button
         type="button"
         role="combobox"
@@ -151,9 +177,14 @@ export function Select({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={(e) => { if (!editable) onKeyDown(e); }}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s3 px-3 text-body shadow-[var(--ele-1)] ${SMOOTH} hover:shadow-[var(--ele-2)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40 ${
-          open ? 'border-accent-hi' : 'border-line hover:border-ink/20'
-        } ${disabled ? 'cursor-not-allowed bg-ink/5 text-ink4 shadow-none' : 'text-ink'}`}
+        className={classNames(
+          'inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s3 px-3 text-body shadow-[var(--ele-1)]',
+          SMOOTH,
+          'hover:shadow-[var(--ele-2)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40',
+          open ? 'border-accent-hi' : 'border-line hover:border-ink/20',
+          disabled ? 'cursor-not-allowed bg-ink/5 text-ink4 shadow-none' : 'text-ink',
+          slots?.trigger,
+        )}
       >
         <span className="min-w-0 truncate">
           {multiple && visibleChips.length > 0 ? (
@@ -197,7 +228,12 @@ export function Select({
 
       {open && (
         <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
-          <span className="block origin-top overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
+          <span
+            className={classNames(
+              'block origin-top overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]',
+              slots?.panel,
+            )}
+          >
             {/* Filter input */}
             {filterable && (
               <span className="block border-b border-line2 p-2">
@@ -251,7 +287,7 @@ export function Select({
               </span>
             ) : (
               <ul ref={listRef} id={listId} role="listbox" aria-label={ariaLabel}
-                className="m-0 max-h-60 min-h-[104px] list-none overflow-auto p-1">
+                className={classNames('m-0 max-h-60 min-h-[104px] list-none overflow-auto p-1', slots?.listbox)}>
                 {filteredFlat.map((option, i) => {
                   const isSelected = selectedValues.includes(option.value);
                   const isActive = i === active;
@@ -271,9 +307,14 @@ export function Select({
                         onClick={() => !option.disabled && commit(option.value)}
                         // Stagger mount 30ms/option (cap 12 mục — list dài không trễ quá ~360ms)
                         style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
-                        className={`flex h-8 cursor-pointer items-center rounded-lg px-3 text-body animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${SMOOTH} ${
-                          isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-accent/5'
-                        } ${isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : ''} ${option.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
+                        className={classNames(
+                          'flex h-8 cursor-pointer items-center rounded-lg px-3 text-body animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards]',
+                          SMOOTH,
+                          isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-accent/5',
+                          isActive ? 'outline-1 -outline-offset-1 outline-accent/40' : '',
+                          option.disabled ? 'cursor-not-allowed text-ink3' : '',
+                          slots?.option,
+                        )}
                       >
                         {multiple && (
                           <span className={`mr-2 size-3.5 shrink-0 rounded-[4px] border ${isSelected ? 'border-accent bg-accent' : 'border-line bg-s2'}`}>

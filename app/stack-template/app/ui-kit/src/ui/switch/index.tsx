@@ -5,13 +5,25 @@
 // src/ui/switch/* không đụng tailwind.css; prefers-reduced-motion tự tắt nhờ
 // block global trong tailwind.css); children cross-fade 150ms; focus ring đồng
 // bộ Button (ring-accent/40 offset-2); disabled phẳng (không shadow handle).
-import { useState, type ReactNode } from 'react';
+// Customize pass (SÓNG-3): classNames slots (root/handle) + style passthrough —
+// default path (không truyền) giữ nguyên DOM/GUI.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 
 if (typeof document !== 'undefined' && !document.querySelector('style[data-bp-switch-pop]')) {
   const style = document.createElement('style');
   style.setAttribute('data-bp-switch-pop', '');
   style.textContent = '@keyframes bp-switch-pop{from{transform:scale(.9)}to{transform:scale(1)}}';
   document.head.appendChild(style);
+}
+
+/** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định (consumer append). */
+export interface SwitchClassNames {
+  /** <button> track (role=switch) — cùng element với className prop. */
+  root?: string;
+  /** Span handle trắng (knob) trượt theo checked. */
+  handle?: string;
 }
 
 export interface SwitchProps {
@@ -24,18 +36,25 @@ export interface SwitchProps {
   unCheckedChildren?: ReactNode;
   'aria-label'?: string;
   className?: string;
+  /** Inline style — passthrough thẳng lên <button> track. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
+  classNames?: SwitchClassNames;
 }
 
-export function Switch({
-  checked = false,
-  onChange,
-  disabled = false,
-  size = 'default',
-  checkedChildren,
-  unCheckedChildren,
-  className,
-  ...rest
-}: SwitchProps) {
+export function Switch(props: SwitchProps) {
+  const {
+    checked = false,
+    onChange,
+    disabled = false,
+    size = 'default',
+    checkedChildren,
+    unCheckedChildren,
+    className,
+    style,
+    ...rest
+  } = props;
+  const slots = props.classNames;
   const [popping, setPopping] = useState(false);
 
   const track = size === 'small' ? 'h-5 w-9' : 'h-6 w-11';
@@ -57,9 +76,15 @@ export function Switch({
         setPopping(true);
       }}
       {...rest}
-      className={`group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40 ${
-        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-      } ${track} ${checked ? '' : 'bg-ink/25'}${className ? ` ${className}` : ''}`}
+      style={style}
+      className={classNames(
+        'group relative inline-flex shrink-0 items-center overflow-hidden rounded-pill border-none outline-none transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40',
+        disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        track,
+        checked ? '' : 'bg-ink/25',
+        slots?.root,
+        className,
+      )}
     >
       {/* Gradient layer — opacity transition cho màu mượt (gradient không transition được trực tiếp) */}
       <span
@@ -70,9 +95,14 @@ export function Switch({
       />
       <span
         onAnimationEnd={() => setPopping(false)}
-        className={`absolute left-0 z-10 grid place-items-center rounded-pill bg-white text-[10px] text-ink2 transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active:scale-105 ${knob} ${translate} ${
-          disabled ? '' : 'shadow-[0_2px_4px_rgba(0,0,0,0.12),0_0_1px_rgba(0,0,0,0.08)]'
-        } ${popping ? 'animate-[bp-switch-pop_200ms_var(--ease-enter)]' : ''}`}
+        className={classNames(
+          'absolute left-0 z-10 grid place-items-center rounded-pill bg-white text-[10px] text-ink2 transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-active:scale-105',
+          knob,
+          translate,
+          disabled ? '' : 'shadow-[0_2px_4px_rgba(0,0,0,0.12),0_0_1px_rgba(0,0,0,0.08)]',
+          popping ? 'animate-[bp-switch-pop_200ms_var(--ease-enter)]' : '',
+          slots?.handle,
+        )}
       >
         {/* Cross-fade + slide nhẹ 150ms khi đổi state (remount theo key) */}
         <span

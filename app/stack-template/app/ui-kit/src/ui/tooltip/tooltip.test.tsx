@@ -104,6 +104,30 @@ describe('Tooltip — describedby wiring (worker H)', () => {
   });
 });
 
+describe('Tooltip — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: trigger → wrapper, bubble → bubble', () => {
+    render(
+      <Tooltip title="hint" classNames={{ trigger: 'my-trigger', bubble: 'my-bubble' }}>
+        <button>T</button>
+      </Tooltip>,
+    );
+    const wrapper = screen.getByRole('button', { name: 'T' }).parentElement as HTMLElement;
+    expect(wrapper.className).toContain('my-trigger');
+    fireEvent.mouseEnter(wrapper);
+    expect(screen.getByRole('tooltip').className).toContain('my-bubble');
+  });
+
+  it('style passthrough lên wrapper (root)', () => {
+    render(
+      <Tooltip title="hint" style={{ zIndex: 42 }}>
+        <button>T</button>
+      </Tooltip>,
+    );
+    const wrapper = screen.getByRole('button', { name: 'T' }).parentElement as HTMLElement;
+    expect(wrapper.style.zIndex).toBe('42');
+  });
+});
+
 describe('Tooltip — token surface (dark-safety, lead decision 2026-10-18)', () => {
   it('bubble + arrow dùng token --tooltip-bg (không hardcode bg-black/85)', () => {
     render(

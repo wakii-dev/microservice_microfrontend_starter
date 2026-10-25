@@ -1,6 +1,9 @@
 // Notification — static API kiểu antd: góc phải-trên, title + description,
 // auto-dismiss 4.5s, đóng ×; container isConnected guard (pattern message).
 // SÓNG-3: classNames slots (wrapper/title/content) — merge sau class mặc định.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
+
 export type NotificationType = 'success' | 'info' | 'warning' | 'error';
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
@@ -72,26 +75,25 @@ function ensureContainer(): HTMLDivElement {
   return container;
 }
 
-// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-const slot = (c?: string) => (c ? ` ${c}` : '');
-
-function show(type: NotificationType, title: string, description?: string, durationMs = 4500, classNames?: NotificationClassNames): void {
+function show(type: NotificationType, title: string, description?: string, durationMs = 4500, slots?: NotificationClassNames): void {
   const root = ensureContainer();
   const el = document.createElement('div');
   el.setAttribute('role', 'status');
-  el.className =
-    `pointer-events-auto rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop)]${slot(classNames?.wrapper)}`;
+  el.className = classNames(
+    'pointer-events-auto rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop)]',
+    slots?.wrapper,
+  );
   // DOM API + textContent — KHÔNG innerHTML (title/description là input user → XSS surface)
   const wrap = document.createElement('div');
   wrap.className = 'flex items-start gap-2';
   const icon = document.createElement('span');
-  icon.className = `text-label ${COLOR[type]}`;
+  icon.className = classNames('text-label', COLOR[type]);
   icon.setAttribute('aria-hidden', 'true');
   icon.append(statusIcon(STATUS_PATHS[type]));
   const body = document.createElement('div');
-  body.className = `min-w-0 flex-1${slot(classNames?.content)}`;
+  body.className = classNames('min-w-0 flex-1', slots?.content);
   const titleEl = document.createElement('div');
-  titleEl.className = `text-body font-semibold text-ink${slot(classNames?.title)}`;
+  titleEl.className = classNames('text-body font-semibold text-ink', slots?.title);
   titleEl.textContent = title;
   body.append(titleEl);
   if (description) {
@@ -135,8 +137,8 @@ function show(type: NotificationType, title: string, description?: string, durat
 }
 
 export const notification = {
-  success: (title: string, description?: string, classNames?: NotificationClassNames) => show('success', title, description, 4500, classNames),
-  info: (title: string, description?: string, classNames?: NotificationClassNames) => show('info', title, description, 4500, classNames),
-  warning: (title: string, description?: string, classNames?: NotificationClassNames) => show('warning', title, description, 4500, classNames),
-  error: (title: string, description?: string, classNames?: NotificationClassNames) => show('error', title, description, 4500, classNames),
+  success: (title: string, description?: string, slots?: NotificationClassNames) => show('success', title, description, 4500, slots),
+  info: (title: string, description?: string, slots?: NotificationClassNames) => show('info', title, description, 4500, slots),
+  warning: (title: string, description?: string, slots?: NotificationClassNames) => show('warning', title, description, 4500, slots),
+  error: (title: string, description?: string, slots?: NotificationClassNames) => show('error', title, description, 4500, slots),
 };

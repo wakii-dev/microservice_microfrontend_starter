@@ -3,6 +3,9 @@
 // animate zoom-in; trigger hover|click|focus; đóng: ESC + click ngoài (useClickAway).
 // A11y: trigger aria-haspopup=dialog + aria-expanded (cloneElement); panel
 // role=dialog — KHÔNG focus trap (popover phi-modal, focus đi ra ngoài tự do).
+// Customize pass (slots wave 3): classNames slots (root/trigger/panel) + style
+// passthrough — default path (không truyền) giữ nguyên DOM/GUI.
+import classNames from 'classnames';
 import {
   cloneElement,
   isValidElement,
@@ -10,6 +13,7 @@ import {
   useEffect,
   useId,
   useState,
+  type CSSProperties,
   type FocusEvent as ReactFocusEvent,
   type ReactElement,
   type ReactNode,
@@ -18,6 +22,16 @@ import { useClickAway } from '../../hooks/useClickAway.js';
 
 export type PopoverPlacement = 'top' | 'bottom';
 export type PopoverTriggerAction = 'hover' | 'click' | 'focus';
+
+/** Slot classes kiểu antd v5 — merge sau class mặc định (consumer append). */
+export interface PopoverClassNames {
+  /** Span gốc — context định vị + nhận click-away/hover/focus handlers. */
+  root?: string;
+  /** Span bọc trigger element (nơi click-toggle dính). */
+  trigger?: string;
+  /** Panel role="dialog" (không gồm title/content/arrow). */
+  panel?: string;
+}
 
 export interface PopoverProps {
   /** Nội dung chính của panel (body) — ReactNode tự do. */
@@ -36,18 +50,24 @@ export interface PopoverProps {
   onOpenChange?: (open: boolean) => void;
   /** Class bổ sung dán lên panel (vd chỉnh width). */
   className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 — merge sau class mặc định. */
+  classNames?: PopoverClassNames;
 }
 
-export function Popover({
-  content,
-  title,
-  children,
-  placement = 'top',
-  trigger = 'hover',
-  open,
-  onOpenChange,
-  className,
-}: PopoverProps) {
+export function Popover(props: PopoverProps) {
+  const {
+    content,
+    title,
+    children,
+    placement = 'top',
+    trigger = 'hover',
+    open,
+    onOpenChange,
+    className,
+    style,
+  } = props;
   const isControlled = open !== undefined;
   // A11y: panel name qua labelledby khi có title (đủ cả title ReactNode).
   const panelTitleId = useId();
@@ -105,17 +125,28 @@ export function Popover({
   const onTriggerClick = () => setOpen(!openState);
 
   return (
-    <span ref={rootRef} className="relative inline-flex" {...rootHandlers}>
-      <span onClick={trigger === 'click' ? onTriggerClick : undefined} className="inline-flex">
+    <span
+      ref={rootRef}
+      className={classNames('relative inline-flex', props.classNames?.root)}
+      style={style}
+      {...rootHandlers}
+    >
+      <span
+        onClick={trigger === 'click' ? onTriggerClick : undefined}
+        className={classNames('inline-flex', props.classNames?.trigger)}
+      >
         {triggerEl}
       </span>
       {openState && (
         <div
           role="dialog"
           aria-labelledby={title ? panelTitleId : undefined}
-          className={`absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)] ${
-            placement === 'top' ? 'bottom-[calc(100%+10px)]' : 'top-[calc(100%+10px)]'
-          }${className ? ` ${className}` : ''}`}
+          className={classNames(
+            'absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]',
+            placement === 'top' ? 'bottom-[calc(100%+10px)]' : 'top-[calc(100%+10px)]',
+            props.classNames?.panel,
+            className,
+          )}
         >
           {title != null && (
             <div id={panelTitleId} className="mb-2 border-b border-line2 pb-2 text-body font-medium text-ink">{title}</div>

@@ -61,15 +61,15 @@ describe('NavBar active state', () => {
   });
 });
 
-describe('HomePage dashboard', () => {
-  it('giữ h1 "Trang chủ" + quick links Tasks/Activity (card riêng ngoài nav)', () => {
+describe('HomePage landing', () => {
+  it('hero h1 landing + links Tasks/Activity (nav + bento/CTA — ≥2 link mỗi tên)', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <AppRoutes />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('heading', { name: 'Trang chủ' })).toBeInTheDocument();
-    // nav + quick-link card = ≥2 link cùng tên (nav link giữ exact name cho test cũ)
+    expect(screen.getByRole('heading', { name: 'Ship full-stack, not tooling' })).toBeInTheDocument();
+    // nav + hero CTA + bento + footer = ≥2 link cùng tên (regex gi anchor + footer)
     expect(screen.getAllByRole('link', { name: /Tasks/ }).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByRole('link', { name: /Activity/ }).length).toBeGreaterThanOrEqual(2);
   });

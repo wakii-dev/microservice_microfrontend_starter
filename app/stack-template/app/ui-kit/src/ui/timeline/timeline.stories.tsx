@@ -207,3 +207,26 @@ export const ActivityFeedMedia: S = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/item/dot/label) + style passthrough (slots wave 3). */
+export const CustomStyled: StoryObj = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="w-96">
+      <Timeline
+        items={[
+          { key: 's1', children: 'Deploy started', label: '09:00' },
+          { key: 's2', color: 'var(--st-done)', children: 'Smoke passed', label: '09:12' },
+          { key: 's3', children: 'Promoted to prod', label: '09:15' },
+        ]}
+        style={{ padding: 8 }}
+        classNames={{
+          root: 'rounded-xl border border-line bg-s2 p-4',
+          item: 'pb-6',
+          dot: 'ring-4 ring-accent/15',
+          label: 'font-semibold text-accent',
+        }}
+      />
+    </div>
+  ),
+};

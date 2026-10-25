@@ -3,6 +3,8 @@
 // machine: open=false → animation chạy XONG (onAnimationEnd) mới unmount.
 // A11y (batch ⑫ worker C): focus trap (Tab/Shift+Tab vòng trong panel), mở →
 // focus phần tử đầu (nút ×), đóng → trả focus về trigger (capture activeElement).
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
@@ -38,10 +40,9 @@ export interface DrawerProps {
   classNames?: DrawerClassNames;
 }
 
-// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-const slot = (c?: string) => (c ? ` ${c}` : '');
-
-export function Drawer({ open, title, width = 378, onClose, footer, children, className, classNames }: DrawerProps) {
+export function Drawer(props: DrawerProps) {
+  const { open, title, width = 378, onClose, footer, children, className } = props;
+  const slots = props.classNames;
   // A11y: dialog name qua labelledby — ăn cả title ReactNode, không chỉ string.
   const titleId = useId();
   const [mounted, setMounted] = useState(open);
@@ -76,7 +77,11 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)] ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.mask)}`}
+      className={classNames(
+        'fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)]',
+        closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]',
+        slots?.mask,
+      )}
       onClick={() => onClose?.()}
       data-testid="drawer-overlay"
     >
@@ -86,14 +91,19 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
         aria-modal="true"
         tabIndex={-1}
         aria-labelledby={titleId}
-        className={`absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]'}${className ? ` ${className}` : ''}${slot(classNames?.wrapper)}`}
+        className={classNames(
+          'absolute inset-y-0 right-0 flex flex-col bg-s2 shadow-[var(--shadow-pop)]',
+          closing ? 'animate-[bp-slide-out-right_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-enter)]',
+          className,
+          slots?.wrapper,
+        )}
         style={{ width }}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <header className={`flex items-center justify-between border-b border-line2 px-6 py-4${slot(classNames?.header)}`}>
+        <header className={classNames('flex items-center justify-between border-b border-line2 px-6 py-4', slots?.header)}>
           <div id={titleId} className="text-h2 font-semibold text-ink">{title}</div>
           <button
             type="button"
@@ -104,8 +114,8 @@ export function Drawer({ open, title, width = 378, onClose, footer, children, cl
             <Icon name="times" size={14} />
           </button>
         </header>
-        <div className={`flex-1 overflow-auto p-6 text-body text-ink2${slot(classNames?.body)}`}>{children}</div>
-        {footer && <footer className={`flex justify-end gap-2 border-t border-line2 p-4${slot(classNames?.footer)}`}>{footer}</footer>}
+        <div className={classNames('flex-1 overflow-auto p-6 text-body text-ink2', slots?.body)}>{children}</div>
+        {footer && <footer className={classNames('flex justify-end gap-2 border-t border-line2 p-4', slots?.footer)}>{footer}</footer>}
       </aside>
     </div>,
     document.body,

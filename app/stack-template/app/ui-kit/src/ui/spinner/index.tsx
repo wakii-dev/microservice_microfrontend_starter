@@ -2,7 +2,19 @@
 // ring (mặc định, viền quay) · dots (3 chấm pulse) · bars (4 vạch scaleY).
 // Mỗi variant đủ size sm/md/lg + màu accent/muted/inverse qua text-*
 // (border-current/bg-current kế màu). Label = aria-label BẮT BUỘC.
-import type { ReactNode } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/indicator) + style
+// passthrough — default path (không truyền) giữ nguyên DOM/GUI. Không có slot
+// "label" vì label chỉ là aria-label trên root (không element riêng).
+import classNames from 'classnames';
+import type { CSSProperties, ReactNode } from 'react';
+
+/** Slot classes kiểu antd v5 — merge sau class mặc định (consumer append). */
+export interface SpinnerClassNames {
+  /** Span gốc role="status" (nơi className prop cũng dính). */
+  root?: string;
+  /** Node hiển thị variant bên trong (span quay / flex chấm / flex vạch). */
+  indicator?: string;
+}
 
 export interface SpinnerProps {
   /** aria-label BẮT BUỘC — màn đọc cần biết busy của cái gì. */
@@ -14,6 +26,10 @@ export interface SpinnerProps {
   /** Màu: accent (mặc định) / muted (ink3) / inverse (trắng — trên nền tối). */
   color?: 'accent' | 'muted' | 'inverse';
   className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 — merge sau class mặc định. */
+  classNames?: SpinnerClassNames;
 }
 
 const SIZE: Record<string, string> = {
@@ -28,14 +44,15 @@ const COLOR: Record<string, string> = {
   inverse: 'text-white',
 };
 
-export function Spinner({ label, variant = 'ring', size = 'default', color = 'accent', className }: SpinnerProps) {
+export function Spinner(props: SpinnerProps) {
+  const { label, variant = 'ring', size = 'default', color = 'accent', className, style } = props;
   const colorCls = COLOR[color];
   const box = SIZE[size];
   let node: ReactNode;
 
   if (variant === 'dots') {
     node = (
-      <span className="inline-flex items-center gap-[0.2em]">
+      <span className={classNames('inline-flex items-center gap-[0.2em]', props.classNames?.indicator)}>
         {[0, 1, 2].map((i) => (
           <span
             key={i}
@@ -48,7 +65,10 @@ export function Spinner({ label, variant = 'ring', size = 'default', color = 'ac
   } else if (variant === 'bars') {
     const barH = size === 'small' ? 'h-[0.5em]' : size === 'large' ? 'h-[1em]' : 'h-[0.8em]';
     node = (
-      <span className="inline-flex items-center gap-[2px]" style={{ height: '1em' }}>
+      <span
+        className={classNames('inline-flex items-center gap-[2px]', props.classNames?.indicator)}
+        style={{ height: '1em' }}
+      >
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
@@ -61,13 +81,23 @@ export function Spinner({ label, variant = 'ring', size = 'default', color = 'ac
   } else {
     node = (
       <span
-        className={`inline-block animate-spin rounded-pill border-2 border-current border-t-transparent ${box} ${colorCls}`}
+        className={classNames(
+          'inline-block animate-spin rounded-pill border-2 border-current border-t-transparent',
+          box,
+          colorCls,
+          props.classNames?.indicator,
+        )}
       />
     );
   }
 
   return (
-    <span role="status" aria-label={label} className={`inline-flex items-center ${colorCls}${className ? ` ${className}` : ''}`}>
+    <span
+      role="status"
+      aria-label={label}
+      className={classNames('inline-flex items-center', colorCls, props.classNames?.root, className)}
+      style={style}
+    >
       {node}
     </span>
   );

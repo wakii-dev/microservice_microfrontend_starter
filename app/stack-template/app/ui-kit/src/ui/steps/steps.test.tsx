@@ -53,3 +53,33 @@ describe('Steps — branch phụ', () => {
     expect(document.querySelectorAll('[aria-current="step"]').length).toBe(0);
   });
 });
+
+describe('Steps — customize (slots wave 3)', () => {
+  const SLOTS_ITEMS = [
+    { title: 'One', description: 'first' },
+    { title: 'Two' },
+    { title: 'Three' },
+  ];
+
+  it('classNames slots đúng element: root → ol, step → li, indicator → chấm, label → title, description → desc', () => {
+    const { container } = render(
+      <Steps
+        items={SLOTS_ITEMS}
+        current={1}
+        classNames={{ root: 'my-root', step: 'my-step', indicator: 'my-indicator', label: 'my-label', description: 'my-desc' }}
+      />,
+    );
+    const ol = container.querySelector('ol') as HTMLElement;
+    expect(ol.className).toContain('my-root');
+    const lis = ol.querySelectorAll('li');
+    expect(lis[0].className).toContain('my-step');
+    expect((lis[0].firstElementChild as HTMLElement).className).toContain('my-indicator');
+    expect(lis[0].querySelector('div > span')?.className).toContain('my-label');
+    expect(lis[0].querySelector('div > span + span')?.className).toContain('my-desc');
+  });
+
+  it('style passthrough lên <ol> gốc', () => {
+    const { container } = render(<Steps items={SLOTS_ITEMS} current={0} style={{ padding: 6 }} />);
+    expect((container.querySelector('ol') as HTMLElement).style.padding).toBe('6px');
+  });
+});

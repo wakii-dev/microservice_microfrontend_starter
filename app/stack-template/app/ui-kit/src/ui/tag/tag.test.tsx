@@ -124,3 +124,46 @@ describe('Tag — combo (Tier 5 sweep)', () => {
     expect(onChange).toHaveBeenCalledWith(false);
   });
 });
+
+describe('Tag — classNames slots + style (SÓNG-3)', () => {
+  it('Tag root slot + style lên span; className người dùng sau root slot; × vẫn onClose', async () => {
+    const onClose = vi.fn();
+    render(
+      <Tag
+        closable
+        onClose={onClose}
+        style={{ margin: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      >
+        nhãn
+      </Tag>,
+    );
+    const el = screen.getByText('nhãn');
+    expect(el).toHaveStyle({ margin: '2px' });
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('Checkable root slot + style lên button; click vẫn onChange', async () => {
+    const onChange = vi.fn();
+    render(
+      <Tag.Checkable
+        checked={false}
+        onChange={onChange}
+        style={{ padding: '3px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      >
+        Lọc
+      </Tag.Checkable>,
+    );
+    const el = screen.getByRole('button', { name: 'Lọc' });
+    expect(el).toHaveStyle({ padding: '3px' });
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+    await userEvent.setup().click(el);
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+});

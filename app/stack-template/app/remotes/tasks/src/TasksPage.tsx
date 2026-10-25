@@ -1,43 +1,37 @@
-// TasksPage — expose `./TasksPage` (registry conventions/08), shell mount vào route /tasks.
-// Libs adopt 2026-10-17: data layer = TanStack Query (useInfiniteQuery + useMutation),
-// form = react-hook-form (TaskForm/TaskItem), animation = motion.
+// TasksPage — KANBAN BOARD compact pro (redesign 2026-10-25, user chê list cũ):
+// toolbar (search debounce + sort + "＋ Thêm" modal) · progress n/N xong ·
+// 3 cột writable + slim "Gán thất bại" · drag card đổi status (pickColumn
+// hit-test) với fallback StatusSelect bàn phím.
 //
-// SEMANTICS GIỮ NGUYÊN từ bản useState (F2/F3 fixes — verify bằng tests):
-// - Mutations cập nhật IN-PLACE qua setQueryData (KHÔNG refetch full — giữ draft edit
-//   inline/confirm xoá ở dòng khác); server response = nguồn sự thật từng item.
-// - Item rơi khỏi filter đang bật → remove khỏi list (total giảm theo).
-// - Trang rỗng (row chưa tải đã bị xoá hết) → hasNextPage false → ẩn "Tải thêm".
-// - Filter đổi → queryKey đổi → fetch mới tự động (r-q thay reqSeq guard thủ công).
-// - Mutation success → invalidate ['activity'] — react-query singleton MF: cùng cache
-//   với remote activity → feed/stats tự refetch (payoff của share singleton).
+// SEMANTICS GIỮ NGUYÊN từ list cũ (F2/F3 — tests là contract):
+// - Mutations cập nhật IN-PLACE qua setQueryData (KHÔNG refetch full) — draft
+//   modal/other cards không mất; server response = nguồn sự thật từng item.
+// - Board fetch KHÔNG status param (cả 3 cột từ 1 query); "Tải thêm" board-level.
+// - Mutation success → invalidate ['activity'] (singleton cache MF).
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'motion/react';
+import { MotionConfig } from 'motion/react';
 import { useState } from 'react';
-import { Alert, EmptyState, message, Reveal, Skeleton, Tag } from '@wakii/ui-kit';
+import { Alert, Skeleton, useDebounce } from '@wakii/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
+  Task,
+  TaskStatus,
   createTask,
   deleteTask,
   fetchTasks,
-  Task,
-  TaskStatus,
   updateTask,
 } from './api';
-import { STATUS_LABELS, WRITABLE_STATUSES } from './components/status';
-import { TaskForm } from './components/TaskForm';
-import { TaskList } from './components/TaskList';
-// Tokens idempotent (quyết định #5 epic): remote import tokens trong page entry —
-// shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
-// base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
+import { KanbanBoard } from './components/kanban/KanbanBoard';
+import { TaskModal } from './components/kanban/TaskModal';
+import { Toolbar } from './components/kanban/Toolbar';
+import type { BoardSort } from './components/kanban/utils';
 import '@wakii/ui-kit/styles/tokens.css';
-import './app.css'; // tailwind utilities (spec tailwind-migration)
-
-type ListKey = readonly [string, TaskStatus | null];
+import './app.css';
 
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
-    // 503 = spring-svc down khi validate user (fail-closed, contract tasks.yaml) — message rõ cho demo
+    // 503 = spring-svc down khi validate user (fail-closed, contract tasks.yaml)
     if (err.status === 503) {
       return 'Dịch vụ xác thực người dùng (spring-svc) chưa sẵn sàng — thử lại sau.';
     }
@@ -46,26 +40,28 @@ function describeError(err: unknown): string {
   return 'Không kết nối được dịch vụ tasks.';
 }
 
+interface ModalState {
+  mode: 'create' | 'edit';
+  task?: Task;
+}
+
 export function TasksPage() {
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 200);
+  const [sort, setSort] = useState<BoardSort>('newest');
+  const [modal, setModal] = useState<ModalState | null>(null);
   const queryClient = useQueryClient();
 
-  const listKey: ListKey = ['tasks', statusFilter] as const;
-
   const listQuery = useInfiniteQuery({
-    queryKey: listKey,
+    queryKey: ['tasks'],
     queryFn: ({ pageParam }) => {
-      // offset chỉ gửi khi > 0 — page đầu khớp contract cũ ({} hoặc {status})
       const offset = pageParam as number;
-      const params: { offset?: number; status?: TaskStatus } = offset > 0 ? { offset } : {};
-      if (statusFilter) params.status = statusFilter;
-      return fetchTasks(params);
+      return fetchTasks(offset > 0 ? { offset } : {});
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      // F2: trang rỗng (row chưa tải đã bị xoá hết phía server) = hết — không page kế
-      if (lastPage.items.length === 0) return undefined;
+      if (lastPage.items.length === 0) return undefined; // F2: trang rỗng = hết thật
       const loaded = allPages.reduce((n, p) => n + p.items.length, 0);
       return loaded < lastPage.total ? loaded : undefined;
     },
@@ -76,10 +72,10 @@ export function TasksPage() {
   const loading = listQuery.isLoading;
   const loadingMore = listQuery.isFetchingNextPage;
 
-  /** In-place update trên infinite-query data — trả data mới, KHÔNG refetch. */
-  function patchList(key: ListKey, patch: (pages: Array<{ items: Task[]; total: number }>) => void) {
+  /** In-place update trên infinite-query data — KHÔNG refetch (F3). */
+  function patchList(patch: (pages: Array<{ items: Task[]; total: number }>) => void) {
     queryClient.setQueryData<{ pages: Array<{ items: Task[]; total: number }>; pageParams: unknown[] }>(
-      key,
+      ['tasks'],
       (old) => {
         if (!old) return old;
         const pages = old.pages.map((p) => ({ items: [...p.items], total: p.total }));
@@ -90,53 +86,36 @@ export function TasksPage() {
   }
 
   const invalidateActivity = () => {
-    // singleton cache: remote activity đọc cùng client — feed/stats tự refetch
     void queryClient.invalidateQueries({ queryKey: ['activity'] });
   };
+
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const createMutation = useMutation({
     mutationFn: (input: CreateTaskInput) => createTask(input),
     onSuccess: (created) => {
       setError(null);
-      patchList(listKey, (pages) => {
-        // total tăng ở page đầu (nguồn count); filter bật và task mới không thuộc
-        // filter → chỉ tăng total, không chèn vào list
+      patchList((pages) => {
         pages[0]!.total += 1;
-        if (!statusFilter || created.status === statusFilter) {
-          pages[0]!.items.unshift(created);
-        }
+        pages[0]!.items.unshift(created);
       });
       invalidateActivity();
-      message.success('Đã tạo task');
     },
     onError: (err) => setError(describeError(err)),
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ task, status }: { task: Task; status: TaskStatus }) =>
-      updateTask(task.id, { status }),
+    mutationFn: ({ task, status }: { task: Task; status: TaskStatus }) => updateTask(task.id, { status }),
+    onMutate: ({ task }) => setBusyId(task.id),
+    onSettled: () => setBusyId(null),
     onSuccess: (updated) => {
       setError(null);
-      // item rơi khỏi filter đang bật → remove khỏi list (total giảm theo)
-      if (statusFilter && updated.status !== statusFilter) {
-        patchList(listKey, (pages) => {
-          for (const p of pages) {
-            const idx = p.items.findIndex((t) => t.id === updated.id);
-            if (idx !== -1) {
-              p.items.splice(idx, 1);
-              p.total -= 1;
-              break;
-            }
-          }
-        });
-      } else {
-        patchList(listKey, (pages) => {
-          for (const p of pages) {
-            const idx = p.items.findIndex((t) => t.id === updated.id);
-            if (idx !== -1) p.items[idx] = updated;
-          }
-        });
-      }
+      patchList((pages) => {
+        for (const p of pages) {
+          const idx = p.items.findIndex((t) => t.id === updated.id);
+          if (idx !== -1) p.items[idx] = updated;
+        }
+      });
       invalidateActivity();
     },
     onError: (err) => setError(describeError(err)),
@@ -145,10 +124,11 @@ export function TasksPage() {
   const saveMutation = useMutation({
     mutationFn: ({ task, patch }: { task: Task; patch: { title?: string; description?: string } }) =>
       updateTask(task.id, patch),
+    onMutate: ({ task }) => setBusyId(task.id),
+    onSettled: () => setBusyId(null),
     onSuccess: (updated) => {
       setError(null);
-      // save không đổi status → không tương tác filter, replace in-place
-      patchList(listKey, (pages) => {
+      patchList((pages) => {
         for (const p of pages) {
           const idx = p.items.findIndex((t) => t.id === updated.id);
           if (idx !== -1) p.items[idx] = updated;
@@ -161,9 +141,11 @@ export function TasksPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (task: Task) => deleteTask(task.id),
+    onMutate: (task) => setBusyId(task.id),
+    onSettled: () => setBusyId(null),
     onSuccess: (_, removed) => {
       setError(null);
-      patchList(listKey, (pages) => {
+      patchList((pages) => {
         for (const p of pages) {
           const idx = p.items.findIndex((t) => t.id === removed.id);
           if (idx !== -1) {
@@ -174,12 +156,10 @@ export function TasksPage() {
         }
       });
       invalidateActivity();
-      message.success('Đã xoá task');
     },
     onError: (err) => setError(describeError(err)),
   });
 
-  /** true = tạo OK — form chỉ xoá input khi true (lỗi → giữ draft user). */
   async function handleCreate(input: { title: string; description?: string }): Promise<boolean> {
     try {
       await createMutation.mutateAsync(input);
@@ -189,12 +169,6 @@ export function TasksPage() {
     }
   }
 
-  async function handleStatusChange(task: Task, status: TaskStatus) {
-    if (status === task.status) return;
-    await statusMutation.mutateAsync({ task, status }).catch(() => undefined);
-  }
-
-  /** true = PATCH OK — item chỉ thoát edit khi true (lỗi → giữ form + draft). */
   async function handleSave(
     task: Task,
     patch: { title?: string; description?: string },
@@ -207,78 +181,90 @@ export function TasksPage() {
     }
   }
 
-  async function handleDelete(task: Task) {
-    await deleteMutation.mutateAsync(task).catch(() => undefined);
-  }
+  // Search client-side theo tiêu đề (đã debounce) — lọc TRÊN card đã tải.
+  const visible = debouncedQuery
+    ? tasks.filter((t) => t.title.toLowerCase().includes(debouncedQuery.trim().toLowerCase()))
+    : tasks;
+  const doneCount = tasks.filter((t) => t.status === 'done').length;
 
   return (
-    <motion.section
-      className="flex flex-col gap-6 text-ink"
-      aria-label="Quản lý tasks"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
-      <h1 className="m-0 text-h1">Tasks</h1>
+    // reducedMotion="user" — tôn trọng prefers-reduced-motion toàn cây
+    <MotionConfig reducedMotion="user">
+      <section className="flex flex-col gap-4 text-ink" aria-label="Quản lý tasks">
+        <h1 className="m-0 text-h1">Tasks</h1>
 
-      {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
-        <Alert
-          className="mb-4"
-          type="error"
-          message={error ?? describeError(listQuery.error)}
-        />
-      )}
-
-      <TaskForm onCreate={handleCreate} />
-
-      {/* Motion pass tiết chế (mission #8): Reveal wrap NGOÀI filter + bảng
-       * (một wrap duy nhất cho khối list — không wrap từng hàng); 0 đổi logic.
-       * jsdom không IO → Reveal fallback hiện luôn, tests không ảnh hưởng. */}
-      <Reveal direction="up" delay={80}>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
-          <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
-            Tất cả
-          </Tag.Checkable>
-          {WRITABLE_STATUSES.map((status) => (
-            <Tag.Checkable
-              key={status}
-              checked={statusFilter === status}
-              onChange={() => setStatusFilter(status)}
-            >
-              {STATUS_LABELS[status]}
-            </Tag.Checkable>
-          ))}
-        </div>
-      </Reveal>
-
-      <Reveal direction="up" delay={120}>
-        {loading ? (
-          <Skeleton variant="row" count={4} />
-        ) : tasks.length === 0 ? (
-          <EmptyState
-            title="Chưa có task nào"
-            description={
-              statusFilter
-                ? 'Thử bỏ bộ lọc để xem tất cả task.'
-                : 'Tạo task đầu tiên ở form trên.'
-            }
-          />
-        ) : (
-          <TaskList
-            tasks={tasks}
-            total={total}
-            hasMore={Boolean(listQuery.hasNextPage)}
-            loadingMore={loadingMore}
-            onStatusChange={handleStatusChange}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onLoadMore={() => void listQuery.fetchNextPage()}
-          />
+        {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
+          <Alert type="error" message={error ?? describeError(listQuery.error)} />
         )}
-      </Reveal>
-    </motion.section>
+
+        <Toolbar
+          query={query}
+          onQueryChange={setQuery}
+          sort={sort}
+          onSortChange={setSort}
+          done={doneCount}
+          total={tasks.length}
+          onCreate={() => setModal({ mode: 'create' })}
+        />
+
+        {/* Skeleton 3 cột khi load đầu */}
+        {loading ? (
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3" aria-busy="true" role="status" aria-label="Đang tải tasks">
+            {[0, 1, 2].map((col) => (
+              <div key={col} className="flex flex-col gap-2 rounded-xl border border-line bg-s2/50 p-2.5">
+                <Skeleton variant="row" count={2} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <KanbanBoard
+              tasks={visible}
+              sort={sort}
+              busyId={busyId}
+              onStatusChange={(task, status) => void statusMutation.mutateAsync({ task, status }).catch(() => undefined)}
+              onEdit={(task) => setModal({ mode: 'edit', task })}
+              onDelete={(task) => void deleteMutation.mutateAsync(task).catch(() => undefined)}
+            />
+            {Boolean(listQuery.hasNextPage) && (
+              <button
+                type="button"
+                disabled={loadingMore}
+                onClick={() => void listQuery.fetchNextPage()}
+                className="self-center cursor-pointer rounded-lg border border-line bg-s1 px-4 py-1.5 text-label text-ink2 transition-colors hover:bg-s3 hover:text-ink disabled:cursor-wait disabled:opacity-60"
+              >
+                {loadingMore ? 'Đang tải thêm…' : 'Tải thêm'}
+              </button>
+            )}
+          </>
+        )}
+      </section>
+
+      <TaskModal
+        open={modal !== null}
+        mode={modal?.mode ?? 'create'}
+        initial={
+          modal?.mode === 'edit' && modal.task
+            ? { title: modal.task.title, description: modal.task.description ?? '' }
+            : { title: '', description: '' }
+        }
+        submitting={createMutation.isPending || saveMutation.isPending}
+        onClose={() => setModal(null)}
+        onSubmit={async (values) => {
+          if (modal?.mode === 'edit' && modal.task) {
+            const task = modal.task;
+            // chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1)
+            const patch: { title?: string; description?: string } = {};
+            if (values.title !== task.title) patch.title = values.title;
+            if ((task.description ?? '') !== values.description) patch.description = values.description;
+            if (Object.keys(patch).length === 0) return true;
+            return handleSave(task, patch);
+          }
+          return handleCreate({ title: values.title, description: values.description || undefined });
+        }}
+      />
+    </MotionConfig>
   );
 }
 
-/** total helper cho create mutation (setQueryData phức hợp — tách cho đọc dễ). */
 export default TasksPage;

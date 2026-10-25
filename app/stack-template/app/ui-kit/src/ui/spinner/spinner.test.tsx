@@ -64,3 +64,16 @@ describe('Spinner — branch phụ', () => {
     expect(screen.getByLabelText('c')).toHaveClass('my-2');
   });
 });
+
+describe('Spinner — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root → role=status, indicator → span variant', () => {
+    render(<Spinner label="sl" classNames={{ root: 'my-root', indicator: 'my-indicator' }} />);
+    expect(screen.getByRole('status').className).toContain('my-root');
+    expect((screen.getByRole('status').firstElementChild as HTMLElement).className).toContain('my-indicator');
+  });
+
+  it('style passthrough lên span gốc (root)', () => {
+    render(<Spinner label="st" style={{ padding: 8 }} />);
+    expect(screen.getByRole('status').style.padding).toBe('8px');
+  });
+});

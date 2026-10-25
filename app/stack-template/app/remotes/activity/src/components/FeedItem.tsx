@@ -3,6 +3,10 @@
 // Badge GIỮ thay Tag: Tag là chip trung tính không variant — mất mapping màu per-action
 // (created=accent, deleted=ink3, assignmentFailed=st-fail…) mà tests khóa contract dot-var.
 // User-display fields render TRỰC TIẾP từ response (spec slice mục 2 — không tự bịa placeholder).
+// Motion redesign: li = motion.li variants (hidden → show pop-in / exit fade) —
+// được Timeline stagger qua variants propagation + AnimatePresence (entry mới chèn
+// vào đầu feed pop-in khi event tới).
+import { motion } from 'motion/react';
 import { Badge } from '@wakii/ui-kit';
 import type { BadgeVariant } from '@wakii/ui-kit';
 import type { ActivityFeedItem } from '../api';
@@ -17,10 +21,20 @@ export const ACTION_BADGE: Record<string, { label: string; variant: BadgeVariant
   'task.assignment_failed': { label: 'gán thất bại', variant: 'assignmentFailed' },
 };
 
+/** Entry variants — Timeline stagger propagation + AnimatePresence exit. */
+export const feedEntryVariants = {
+  hidden: { opacity: 0, y: -6, scale: 0.985 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.25, ease: 'easeOut' as const } },
+  exit: { opacity: 0, scale: 0.97, transition: { duration: 0.18, ease: 'easeIn' as const } },
+};
+
 export function FeedItem({ item }: { item: ActivityFeedItem }) {
   const action = ACTION_BADGE[item.action];
   return (
-    <li className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 py-2 pl-4 max-md:pl-3">
+    <motion.li
+      variants={feedEntryVariants}
+      className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 py-2 pl-4 max-md:pl-3"
+    >
       <span className="act-feed-item__main min-w-0">
         <strong className="font-semibold text-ink">{item.userName}</strong>{' '}
         {action ? (
@@ -34,6 +48,6 @@ export function FeedItem({ item }: { item: ActivityFeedItem }) {
       <time className="whitespace-nowrap font-mono text-meta text-ink3" dateTime={item.timestamp}>
         {formatTime(item.timestamp)}
       </time>
-    </li>
+    </motion.li>
   );
 }

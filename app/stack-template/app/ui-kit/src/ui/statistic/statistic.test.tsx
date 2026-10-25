@@ -37,3 +37,30 @@ describe('Statistic', () => {
     expect(flex).not.toBeNull();
   });
 });
+
+describe('Statistic — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root/title/value/prefix/suffix', () => {
+    const { container } = render(
+      <Statistic
+        title="Tasks done"
+        value={42}
+        prefix="$"
+        suffix="%"
+        classNames={{ root: 'my-root', title: 'my-title', value: 'my-value', prefix: 'my-prefix', suffix: 'my-suffix' }}
+      />,
+    );
+    expect(container.firstElementChild?.className).toContain('my-root');
+    expect(screen.getByText('Tasks done').className).toContain('my-title');
+    expect(screen.getByText('42').className).toContain('my-value');
+    expect(screen.getByText('$').className).toContain('my-prefix');
+    expect(screen.getByText('%').className).toContain('my-suffix');
+  });
+
+  it('style passthrough lên div gốc (root); valueStyle vẫn lên span value', () => {
+    const { container } = render(
+      <Statistic value={7} valueStyle={{ color: 'red' }} style={{ padding: 4 }} />,
+    );
+    expect((container.firstElementChild as HTMLElement).style.padding).toBe('4px');
+    expect((screen.getByText('7') as HTMLElement).style.color).toBe('red');
+  });
+});

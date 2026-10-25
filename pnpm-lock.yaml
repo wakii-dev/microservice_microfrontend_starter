@@ -15,6 +15,9 @@ catalogs:
     '@tanstack/react-query':
       specifier: ^5.0.0
       version: 5.104.3
+    framer-motion:
+      specifier: ^14.6.0
+      version: 14.6.0
     react:
       specifier: 19.3.0
       version: 19.3.0
@@ -116,6 +119,28 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.20.5)(jiti@2.7.0)(jsdom@27.0.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  app/create-wakii-stack:
+    dependencies:
+      '@clack/prompts':
+        specifier: ^1.8.1
+        version: 1.8.1
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      tsup:
+        specifier: ^9.0.0
+        version: 9.0.0(@swc/core@1.16.18)(jiti@2.7.0)(postcss@8.5.29)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@22.20.5)(jiti@2.7.0)(jsdom@27.0.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)
+
   app/remotes/activity:
     dependencies:
       '@tanstack/react-query':
@@ -127,6 +152,9 @@ importers:
       '@wakii/ui-kit':
         specifier: workspace:*
         version: link:../../ui-kit
+      framer-motion:
+        specifier: 'catalog:'
+        version: 14.6.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -191,6 +219,9 @@ importers:
       '@wakii/ui-kit':
         specifier: workspace:*
         version: link:../../ui-kit
+      framer-motion:
+        specifier: 'catalog:'
+        version: 14.6.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -268,6 +299,9 @@ importers:
       '@wakii/ui-kit':
         specifier: workspace:*
         version: link:../ui-kit
+      framer-motion:
+        specifier: 'catalog:'
+        version: 14.6.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       motion:
         specifier: ^12
         version: 12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -366,6 +400,15 @@ importers:
         specifier: ^19.2.0
         version: 19.3.0(react@19.3.0)
 
+  app/stack-template:
+    devDependencies:
+      '@stoplight/spectral-cli':
+        specifier: ^6.17.0
+        version: 6.17.0
+      husky:
+        specifier: ^9.1.0
+        version: 9.1.7
+
   app/ui-kit:
     dependencies:
       swiper:
@@ -407,7 +450,7 @@ importers:
         version: 9.1.21(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rollup@4.64.8)(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))(typescript@5.9.3)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
       '@storybook/test-runner':
         specifier: ^0.26.0
-        version: 0.26.0(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))
+        version: 0.26.0(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))
       '@tailwindcss/cli':
         specifier: ^4.3.3
         version: 4.3.3
@@ -4996,6 +5039,17 @@ packages:
       react-dom:
         optional: true
 
+  framer-motion@14.6.0:
+    resolution: {integrity: sha512-MzBgZxGgoHPfSLEXmo4o5XlZvb+nVRFdHtGjVhm6LMIEJKTt/8hNO023euL5mYyzc8llV/hQTfjnN68tNRHalw==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   fresh@0.5.2:
     resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
@@ -6165,8 +6219,14 @@ packages:
   motion-dom@12.43.0:
     resolution: {integrity: sha512-azKON4d9S65PEoFUiQTMTgPheEmzf2QngdRc50AKfJp9Q9mmcBVw22c8eMq9k8kxOFHdL7+WZY7N/5F/lwiDag==}
 
+  motion-dom@14.6.0:
+    resolution: {integrity: sha512-lIojTl9aYSPIkeOOSzBliy1nNvpdO3JtVzW2WgTXQlOP4ZMuJhtWO3fP7OD4TVFwlRucdvxlDSMkL+fEQnQ52A==}
+
   motion-utils@12.39.0:
     resolution: {integrity: sha512-8nadJAJjTtqRkmRF36FoJTrywK9nnFmnPwnSMyxaOCU7GDjN9RTMJIxx9De8ErM+vpPhMccr/6fo5WciyQLnMQ==}
+
+  motion-utils@14.6.0:
+    resolution: {integrity: sha512-bZJo2AmQ2aOFkaato6VXrTbkPG0XhMzivWUWSaI59pxyllj8QMQUFZ84MYRQnPkK+7dr4KldyJwF2+RM0sdq/w==}
 
   motion@12.43.0:
     resolution: {integrity: sha512-BQgQbSa9Hn3/mtbib0MK53y6JSANa+YKUKlaYnWzAVDH424RYQ5LVpV3pNiWH00BA2z4ojsSdMzqT7g2FQwjuQ==}
@@ -8839,7 +8899,7 @@ snapshots:
       jest-util: 30.5.1
       slash: 3.0.0
 
-  '@jest/core@30.5.2(esbuild-register@3.6.0(esbuild@0.28.2))':
+  '@jest/core@30.5.2(esbuild-register@3.6.0(esbuild@0.25.12))':
     dependencies:
       '@jest/console': 30.5.2
       '@jest/pattern': 30.5.0
@@ -8855,7 +8915,7 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       graceful-fs: 4.2.11
       jest-changed-files: 30.5.1
-      jest-config: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))
+      jest-config: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))
       jest-haste-map: 30.5.1
       jest-message-util: 30.5.1
       jest-regex-util: 30.5.0
@@ -10314,7 +10374,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  '@storybook/test-runner@0.26.0(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))':
+  '@storybook/test-runner@0.26.0(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))(storybook@9.1.21(@testing-library/dom@10.4.2)(vite@7.3.7(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1)))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/generator': 7.29.8
@@ -10324,14 +10384,14 @@ snapshots:
       '@swc/core': 1.16.18
       '@swc/jest': 0.2.39(@swc/core@1.16.18)
       expect-playwright: 0.8.0
-      jest: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))
+      jest: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))
       jest-circus: 30.5.2
       jest-environment-node: 30.5.2
       jest-junit: 16.0.0
       jest-process-manager: 0.4.0
       jest-runner: 30.5.2
       jest-serializer-html: 7.1.0
-      jest-watch-typeahead: 3.0.1(jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2)))
+      jest-watch-typeahead: 3.0.1(jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12)))
       nyc: 15.1.0
       playwright: 1.64.1
       playwright-core: 1.64.1
@@ -12114,14 +12174,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  esbuild-register@3.6.0(esbuild@0.28.2):
-    dependencies:
-      debug: 4.4.3(supports-color@10.2.2)
-      esbuild: 0.28.2
-    transitivePeerDependencies:
-      - supports-color
-    optional: true
-
   esbuild@0.18.20:
     optionalDependencies:
       '@esbuild/android-arm': 0.18.20
@@ -12589,6 +12641,15 @@ snapshots:
     dependencies:
       motion-dom: 12.43.0
       motion-utils: 12.39.0
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
+
+  framer-motion@14.6.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+    dependencies:
+      motion-dom: 14.6.0
+      motion-utils: 14.6.0
       tslib: 2.8.1
     optionalDependencies:
       react: 19.3.0
@@ -13238,15 +13299,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2)):
+  jest-cli@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12)):
     dependencies:
-      '@jest/core': 30.5.2(esbuild-register@3.6.0(esbuild@0.28.2))
+      '@jest/core': 30.5.2(esbuild-register@3.6.0(esbuild@0.25.12))
       '@jest/test-result': 30.5.2
       '@jest/types': 30.5.1
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))
+      jest-config: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))
       jest-util: 30.5.1
       jest-validate: 30.5.1
       yargs: 17.7.3
@@ -13257,7 +13318,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2)):
+  jest-config@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12)):
     dependencies:
       '@babel/core': 7.29.7
       '@jest/get-type': 30.5.0
@@ -13284,7 +13345,7 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 22.20.5
-      esbuild-register: 3.6.0(esbuild@0.28.2)
+      esbuild-register: 3.6.0(esbuild@0.25.12)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -13510,11 +13571,11 @@ snapshots:
       leven: 3.1.0
       pretty-format: 30.5.1
 
-  jest-watch-typeahead@3.0.1(jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))):
+  jest-watch-typeahead@3.0.1(jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))):
     dependencies:
       ansi-escapes: 7.3.0
       chalk: 5.6.2
-      jest: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))
+      jest: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))
       jest-regex-util: 30.5.0
       jest-watcher: 30.5.2
       slash: 5.1.0
@@ -13540,12 +13601,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2)):
+  jest@30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12)):
     dependencies:
-      '@jest/core': 30.5.2(esbuild-register@3.6.0(esbuild@0.28.2))
+      '@jest/core': 30.5.2(esbuild-register@3.6.0(esbuild@0.25.12))
       '@jest/types': 30.5.1
       import-local: 3.2.0
-      jest-cli: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.28.2))
+      jest-cli: 30.5.2(@types/node@22.20.5)(esbuild-register@3.6.0(esbuild@0.25.12))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -13990,7 +14051,13 @@ snapshots:
     dependencies:
       motion-utils: 12.39.0
 
+  motion-dom@14.6.0:
+    dependencies:
+      motion-utils: 14.6.0
+
   motion-utils@12.39.0: {}
+
+  motion-utils@14.6.0: {}
 
   motion@12.43.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:

@@ -218,4 +218,15 @@ describe('scaffold — README sinh', () => {
     expect(readme).toContain('http://localhost:8080');
     expect(readme).toContain('http://localhost:3000');
   });
+
+  it('luôn prune tooling meta (create-wakii-app/stack, starter-templates, spike) — không phụ thuộc lựa chọn', async () => {
+    // fixture beforeEach không có các dir này — tạo giả trong template
+    await mkdir(join(templateRoot, 'app', 'create-wakii-app'), { recursive: true });
+    await writeFile(join(templateRoot, 'app', 'create-wakii-app', 'package.json'), '{}');
+    await mkdir(join(templateRoot, 'app', 'spike'), { recursive: true });
+    await writeFile(join(templateRoot, 'app', 'spike', 'x.ts'), 'x');
+    await scaffold({ selection: selection({ services: ['postgres', 'gateway', 'node-svc'] }), dest, templateRoot: templateRoot });
+    expect(existsSync(join(dest, 'app', 'create-wakii-app'))).toBe(false);
+    expect(existsSync(join(dest, 'app', 'spike'))).toBe(false);
+  });
 });

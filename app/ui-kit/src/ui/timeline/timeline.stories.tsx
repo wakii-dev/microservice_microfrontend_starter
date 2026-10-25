@@ -1,7 +1,15 @@
-// Timeline stories — Default / ActivityFeed / CustomColors / Empty / DarkTheme.
+// Timeline stories — Default / ActivityFeed / CustomColors / Empty / DarkTheme
+// + ActivityFeedMedia (rich media: avatar + thumbnail + icon-only bot event).
 // Timeline is a pure display component (items read-only) — no controlled story.
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Avatar } from '../avatar/index';
+import { Icon } from '../icons/index';
+import { Text } from '../typography/index';
 import { Timeline } from './index';
+
+function photo(seed: string, w: number, h: number) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+}
 /** Vertical activity feed — dot + text + time per entry. */
 const meta = { title: 'Data Display/Timeline', component: Timeline, tags: ['autodocs'] } satisfies Meta<typeof Timeline>;
 export default meta;
@@ -88,5 +96,114 @@ export const Pending: S = {
       ]}
       pending={<>Rolling out to production…</>}
     />
+  ),
+};
+
+// ── Rich media 2026-10-25 — activity feed như app thật: mỗi event có avatar
+// người + action text + thumbnail đính kèm (picsum 120×80); bot event chỉ icon
+// (không ảnh) — đúng mix của feed dev-tool (commit/deploy không có preview).
+
+export const ActivityFeedMedia: S = {
+  name: 'Activity feed with media — avatars, thumbnails, icon-only bot',
+  args: { items: [] },
+  render: () => (
+    <div className="max-w-md">
+      <Timeline
+        items={[
+          {
+            key: 'm1',
+            color: 'var(--st-done)',
+            children: (
+              <span className="flex items-start gap-2.5">
+                <Avatar alt="Alice Nguyen" size={28} src={photo('alice-avatar', 56, 56)} />
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="text-body text-ink">
+                    <Text strong>Alice Nguyen</Text> completed <Text strong>Design mockups</Text>
+                  </span>
+                  <img
+                    alt="Design mockups — 3 mobile screens"
+                    className="rounded-lg border border-line object-cover"
+                    height={80}
+                    src={photo('design-mockups', 120, 80)}
+                    width={120}
+                  />
+                </span>
+              </span>
+            ),
+            label: 'Today 08:30',
+          },
+          {
+            key: 'm2',
+            children: (
+              <span className="flex items-start gap-2.5">
+                <Avatar alt="Bob Pham" size={28} src={photo('bob-avatar', 56, 56)} />
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="text-body text-ink">
+                    <Text strong>Bob Pham</Text> uploaded assets to <Text strong>Checkout v2</Text>
+                  </span>
+                  <img
+                    alt="Product assets — hero banner"
+                    className="rounded-lg border border-line object-cover"
+                    height={80}
+                    src={photo('checkout-assets', 120, 80)}
+                    width={120}
+                  />
+                </span>
+              </span>
+            ),
+            label: 'Today 09:12',
+          },
+          {
+            key: 'm3',
+            color: 'var(--st-doing)',
+            children: (
+              <span className="flex items-start gap-2.5">
+                <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-pill bg-accent/10 text-accent">
+                  <Icon name="refresh" size={14} />
+                </span>
+                <span className="pt-0.5 text-body text-ink">
+                  <Text strong>Deploy bot</Text> started rolling out <Text code>web@1.4.2</Text>
+                </span>
+              </span>
+            ),
+            label: 'Today 09:40',
+          },
+          {
+            key: 'm4',
+            children: (
+              <span className="flex items-start gap-2.5">
+                <Avatar alt="Carol Le" size={28} src={photo('carol-avatar', 56, 56)} />
+                <span className="pt-0.5 text-body text-ink">
+                  <Text strong>Carol Le</Text> commented on <Text strong>API contract</Text>: “rename assigneeId?”
+                </span>
+              </span>
+            ),
+            label: 'Today 10:05',
+          },
+          {
+            key: 'm5',
+            color: 'var(--st-fail)',
+            children: (
+              <span className="flex items-start gap-2.5">
+                <Avatar alt="Dave Vo" size={28} src={photo('dave-avatar', 56, 56)} />
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="text-body text-ink">
+                    <Text strong>Dave Vo</Text> reopened <Text strong>Safari login bug</Text>
+                  </span>
+                  <img
+                    alt="Screenshot — expired token toast"
+                    className="rounded-lg border border-line object-cover"
+                    height={80}
+                    src={photo('login-bug', 120, 80)}
+                    width={120}
+                  />
+                </span>
+              </span>
+            ),
+            label: 'Today 11:20',
+          },
+        ]}
+      />
+    </div>
   ),
 };

@@ -170,3 +170,35 @@ describe('Popover', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });
+
+describe('Popover — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root/trigger → 2 span bọc, panel → dialog', async () => {
+    const user = userEvent.setup();
+    render(
+      <Popover
+        trigger="click"
+        title="T"
+        content="C"
+        classNames={{ root: 'my-root', trigger: 'my-trigger', panel: 'my-panel' }}
+      >
+        <button>Trigger</button>
+      </Popover>,
+    );
+    const triggerWrap = screen.getByRole('button', { name: 'Trigger' }).parentElement as HTMLElement;
+    const root = triggerWrap.parentElement as HTMLElement;
+    expect(triggerWrap.className).toContain('my-trigger');
+    expect(root.className).toContain('my-root');
+    await user.click(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('dialog').className).toContain('my-panel');
+  });
+
+  it('style passthrough lên span gốc (root)', () => {
+    render(
+      <Popover title="T" content="C" style={{ zIndex: 7 }}>
+        <button>T</button>
+      </Popover>,
+    );
+    const root = (screen.getByRole('button', { name: 'T' }).parentElement as HTMLElement).parentElement as HTMLElement;
+    expect(root.style.zIndex).toBe('7');
+  });
+});

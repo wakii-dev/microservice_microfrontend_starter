@@ -7,7 +7,7 @@ export {
   type BadgeVariant,
   type BadgeProps,
 } from './ui/badge/index.js';
-export { EmptyState, type EmptyStateProps } from './ui/empty-state/index.js';
+export { EmptyState, type EmptyStateProps, type EmptyStateClassNames } from './ui/empty-state/index.js';
 export { Skeleton, type SkeletonProps } from './ui/skeleton/index.js';
 export { Spinner, type SpinnerProps, type SpinnerClassNames } from './ui/spinner/index.js';
 export { Button, type ButtonProps, type ButtonType, type ButtonClassNames } from './ui/button/index.js';
@@ -25,11 +25,11 @@ export { Layout, useSiderCollapsed, type LayoutProps, type LayoutHeaderProps, ty
 export { Row, Col, type RowProps, type ColProps } from './ui/grid/index.js';
 export { Space, type SpaceProps } from './ui/space/index.js';
 export { Card, type CardProps, type CardClassNames } from './ui/card/index.js';
-export { Statistic, type StatisticProps } from './ui/statistic/index.js';
-export { Tooltip, type TooltipProps } from './ui/tooltip/index.js';
+export { Statistic, type StatisticProps, type StatisticClassNames } from './ui/statistic/index.js';
+export { Tooltip, type TooltipProps, type TooltipClassNames } from './ui/tooltip/index.js';
 export { Select, type SelectProps, type SelectClassNames, type SelectOption } from './ui/select/index.js';
 export { Popconfirm, type PopconfirmProps } from './ui/popconfirm/index.js';
-export { Popover, type PopoverProps, type PopoverPlacement, type PopoverTriggerAction } from './ui/popover/index.js';
+export { Popover, type PopoverProps, type PopoverClassNames, type PopoverPlacement, type PopoverTriggerAction } from './ui/popover/index.js';
 export { Pagination, pageList, type PaginationProps } from './ui/pagination/index.js';
 export { Checkbox, type CheckboxProps, type CheckboxClassNames } from './ui/checkbox/index.js';
 export { Radio, RadioGroup, type RadioProps, type RadioGroupClassNames } from './ui/radio/index.js';
@@ -41,19 +41,19 @@ export { Segmented, type SegmentedProps } from './ui/segmented/index.js';
 export { Avatar, type AvatarProps } from './ui/avatar/index.js';
 export { notification, type NotificationType } from './ui/notification/index.js';
 export { Drawer, type DrawerProps } from './ui/drawer/index.js';
-export { Progress, type ProgressProps } from './ui/progress/index.js';
+export { Progress, type ProgressProps, type ProgressClassNames } from './ui/progress/index.js';
 export { Result, type ResultProps, type ResultStatus } from './ui/result/index.js';
-export { Descriptions, type DescriptionsProps, type DescriptionsItem } from './ui/descriptions/index.js';
+export { Descriptions, type DescriptionsProps, type DescriptionsClassNames, type DescriptionsItem } from './ui/descriptions/index.js';
 export { Collapse, type CollapseProps, type CollapseItem } from './ui/collapse/index.js';
 export { UiImage, type ImageProps } from './ui/image/index.js';
 export { Table, type TableProps, type TableColumn } from './ui/table/index.js';
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem } from './ui/breadcrumb/index.js';
-export { Steps, type StepsProps, type StepItem } from './ui/steps/index.js';
+export { Steps, type StepsProps, type StepsClassNames, type StepItem } from './ui/steps/index.js';
 export { BusyBox, type BusyBoxProps } from './ui/busy-box/index.js';
 export { Calendar, type CalendarProps } from './ui/calendar/index.js';
 export { DatePicker, type DatePickerProps } from './ui/date-picker/index.js';
 export { Slider, type SliderProps } from './ui/slider/index.js';
-export { Timeline, type TimelineProps, type TimelineItem } from './ui/timeline/index.js';
+export { Timeline, type TimelineProps, type TimelineClassNames, type TimelineItem } from './ui/timeline/index.js';
 export { Rating, type RatingProps } from './ui/rating/index.js';
 export { Toolbar, type ToolbarProps } from './ui/toolbar/index.js';
 export { ScrollTop, type ScrollTopProps } from './ui/scrolltop/index.js';
@@ -131,7 +131,7 @@ export { Icon, type IconName } from './ui/icons/index.js';
 export { Field, type FieldProps } from './ui/field/index.js';
 
 // ── Data display mới (batch ⑨ 2026-10-18) ──
-export { List, type ListProps } from './ui/list/index.js';
+export { List, type ListProps, type ListClassNames } from './ui/list/index.js';
 export { AvatarGroup, type AvatarGroupProps } from './ui/avatar-group/index.js';
 export { TreeSelect, type TreeSelectProps, type TreeNode } from './ui/tree-select/index.js';
 

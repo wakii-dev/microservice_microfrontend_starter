@@ -192,3 +192,31 @@ export const NotificationInbox: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/header/item/footer) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="w-96">
+      <List
+        items={TASKS.slice(0, 3)}
+        renderItem={(task) => (
+          <span className="flex items-center justify-between gap-3">
+            <span className="text-body text-ink">{task.title}</span>
+            <span className="text-label text-ink3">{task.status}</span>
+          </span>
+        )}
+        header="Styled list"
+        footer="3 items"
+        bordered
+        style={{ padding: 8 }}
+        classNames={{
+          root: 'rounded-2xl',
+          header: 'uppercase tracking-wide text-accent',
+          item: 'hover:bg-s3 transition-colors',
+          footer: 'text-right',
+        }}
+      />
+    </div>
+  ),
+};

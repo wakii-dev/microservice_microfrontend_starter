@@ -55,3 +55,27 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/step/indicator/label/description) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="max-w-[560px]">
+      <Steps
+        items={[
+          { title: 'Contract', description: 'OpenAPI synced' },
+          { title: 'Implement', description: 'Services + FE' },
+          { title: 'Verify', description: 'e2e green' },
+        ]}
+        current={1}
+        style={{ padding: 12 }}
+        classNames={{
+          root: 'rounded-xl border border-line bg-s2',
+          step: 'gap-3',
+          indicator: 'shadow-[var(--ele-1)]',
+          label: 'tracking-wide',
+        }}
+      />
+    </div>
+  ),
+};

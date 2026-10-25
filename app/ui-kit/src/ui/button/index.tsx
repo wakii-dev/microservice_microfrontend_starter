@@ -11,6 +11,8 @@
 // type=default · .tsk-btn--ghost/.sh-btn--ghost → type=text · .tsk-btn--danger →
 // type=primary+danger · .tsk-btn--danger-ghost → type=text+danger.
 // API theo antd: `type` = variant, `htmlType` = HTML button type.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
 import { useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
 
@@ -77,28 +79,26 @@ const DANGER: Partial<Record<ButtonType, string>> = {
   'text': 'border-transparent bg-transparent text-st-fail hover:bg-st-fail/12',
 };
 
-// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-const slot = (c?: string) => (c ? ` ${c}` : '');
-
-export function Button({
-  type = 'default',
-  htmlType = 'button',
-  danger = false,
-  size = 'middle',
-  loading = false,
-  block = false,
-  icon,
-  className,
-  style,
-  classNames,
-  children,
-  disabled,
-  onPointerDown,
-  ...rest
-}: ButtonProps) {
+export function Button(props: ButtonProps) {
+  const {
+    type = 'default',
+    htmlType = 'button',
+    danger = false,
+    size = 'middle',
+    loading = false,
+    block = false,
+    icon,
+    className,
+    style,
+    children,
+    disabled,
+    onPointerDown,
+    ...rest
+  } = props;
+  const slots = props.classNames;
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
   // icon chỉ bọc span khi consumer truyền classNames.icon — default path giữ DOM y hệt
-  const iconSlot = classNames?.icon;
+  const iconSlot = slots?.icon;
 
   // Ripple click (motion waves): spawn span tại điểm chạm, animationend tự prune.
   // Reduced-motion: animation rơi 0.01ms → span invisible ngay + end-event vẫn fire.
@@ -127,7 +127,16 @@ export function Button({
       type={htmlType}
       disabled={disabled || loading}
       onPointerDown={handlePointerDown}
-      className={`${BASE} relative overflow-hidden ${loading ? 'cursor-wait' : 'cursor-pointer'} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${slot(classNames?.root)}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        BASE,
+        'relative overflow-hidden',
+        loading ? 'cursor-wait' : 'cursor-pointer',
+        SIZE[size],
+        variant,
+        block ? 'w-full' : '',
+        slots?.root,
+        className,
+      )}
       {...rest}
       style={style}
     >

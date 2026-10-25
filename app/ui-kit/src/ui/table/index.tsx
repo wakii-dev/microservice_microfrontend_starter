@@ -17,6 +17,8 @@
 //   rows, spacer rows giữ scrollbar, thead sticky + selection giữ nguyên)
 // - CSV export (toolbar button)
 // - Column resize (kéo viền cột)
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ template).
+import classNames from 'classnames';
 import { Fragment, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { EmptyState } from '../empty-state/index';
 import { Pagination } from '../pagination/index';
@@ -184,39 +186,40 @@ function FilterMenu({ col, filter, onChange }: {
 // ═══════════════════════════════════════════════════════════════════════════
 // Main Table
 
-export function Table<T extends object>({
-  columns,
-  dataSource,
-  rowKey,
-  sortMode = 'single',
-  metaKeySelection = true,
-  onSort,
-  globalFilter = false,
-  globalFilterPlaceholder = 'Tìm kiếm…',
-  paginator = false,
-  pageSize: pageSizeProp = 10,
-  rowsPerPageOptions = [5, 10, 20, 50],
-  selectionMode = 'none',
-  selectedRowKeys: controlledSelected,
-  onSelectionChange,
-  scrollHeight,
-  scroll,
-  summary,
-  virtual = false,
-  striped = false,
-  borderless = false,
-  size = 'normal',
-  loading = false,
-  emptyMessage,
-  rowExpansion,
-  expandable,
-  filterPlacement = 'menu',
-  csvExport = false,
-  csvFilename = 'export',
-  resizable = false,
-  classNames,
-  className,
-}: TableProps<T>) {
+export function Table<T extends object>(props: TableProps<T>) {
+  const {
+    columns,
+    dataSource,
+    rowKey,
+    sortMode = 'single',
+    metaKeySelection = true,
+    onSort,
+    globalFilter = false,
+    globalFilterPlaceholder = 'Tìm kiếm…',
+    paginator = false,
+    pageSize: pageSizeProp = 10,
+    rowsPerPageOptions = [5, 10, 20, 50],
+    selectionMode = 'none',
+    selectedRowKeys: controlledSelected,
+    onSelectionChange,
+    scrollHeight,
+    scroll,
+    summary,
+    virtual = false,
+    striped = false,
+    borderless = false,
+    size = 'normal',
+    loading = false,
+    emptyMessage,
+    rowExpansion,
+    expandable,
+    filterPlacement = 'menu',
+    csvExport = false,
+    csvFilename = 'export',
+    resizable = false,
+    className,
+  } = props;
+  const slots = props.classNames;
   const [sorts, setSorts] = useState<SortMeta[]>([]);
   const [columnFilters, setColumnFilters] = useState<Record<string, { constraints: FilterConstraint[]; operator: FilterOperator }>>({});
   const [globalFilterValue, setGlobalFilterValue] = useState('');
@@ -435,7 +438,10 @@ export function Table<T extends object>({
 
       <div
         ref={scrollerRef}
-        className={`overflow-auto rounded-xl border border-line [background-image:var(--wash)] shadow-[var(--ele-1)]${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}
+        className={classNames(
+          'overflow-auto rounded-xl border border-line [background-image:var(--wash)] shadow-[var(--ele-1)]',
+          slots?.wrapper,
+        )}
         style={scrollY !== undefined ? { maxHeight: typeof scrollY === 'number' ? `${scrollY}px` : scrollY } : undefined}
         onScroll={virtualOn ? (e) => setScrollTop(e.currentTarget.scrollTop) : undefined}
       >
@@ -445,7 +451,7 @@ export function Table<T extends object>({
           className="w-full border-collapse text-left text-body"
           style={virtualOn ? { tableLayout: 'fixed' } : undefined}
         >
-          <thead ref={theadRef} className={classNames?.header}>
+          <thead ref={theadRef} className={slots?.header}>
             <tr>
               {hasSelection && (
                 <th className={`${headPad} ${borderCls} w-10 sticky top-0 z-10 bg-s3`}>
@@ -576,18 +582,23 @@ export function Table<T extends object>({
                     <tr
                       style={virtualOn ? { height: rowHeight } : undefined}
                       aria-selected={hasSelection ? isSelected : undefined}
-                      className={`${borderCls} transition-colors duration-150 ${
-                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3/40' : ''
-                      } hover:bg-s3 transition-colors duration-150 ${selectionMode === 'single' ? 'cursor-pointer' : ''}${classNames?.row ? ` ${classNames.row}` : ''}`}
+                      className={classNames(
+                        borderCls,
+                        'transition-colors duration-150',
+                        isSelected ? 'bg-accent/10' : striped && rowIndex % 2 === 1 ? 'bg-s3/40' : '',
+                        'hover:bg-s3 transition-colors duration-150',
+                        selectionMode === 'single' ? 'cursor-pointer' : '',
+                        slots?.row,
+                      )}
                       onClick={() => selectionMode === 'single' && emitSelection([keyOf(record)])}
                     >
                       {hasSelection && (
-                        <td className={`${cellPad} ${borderCls}${classNames?.cell ? ` ${classNames.cell}` : ''}`} onClick={(e) => e.stopPropagation()}>
+                        <td className={classNames(cellPad, borderCls, slots?.cell)} onClick={(e) => e.stopPropagation()}>
                           <Checkbox aria-label={`Chọn hàng ${rowIndex + 1}`} checked={isSelected} onChange={() => toggleRow(record)} />
                         </td>
                       )}
                       {hasExpander && (
-                        <td className={`${cellPad} ${borderCls}${classNames?.cell ? ` ${classNames.cell}` : ''}`}>
+                        <td className={classNames(cellPad, borderCls, slots?.cell)}>
                           {canExpand && (
                             <button
                               type="button"
@@ -611,7 +622,12 @@ export function Table<T extends object>({
                       {columns.map((col) => (
                         <td
                           key={col.key}
-                          className={`${cellPad} ${borderCls} ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}${classNames?.cell ? ` ${classNames.cell}` : ''}`}
+                          className={classNames(
+                            cellPad,
+                            borderCls,
+                            col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : '',
+                            slots?.cell,
+                          )}
                         >
                           {col.render ? col.render(record, rowIndex) : String((record as Record<string, unknown>)[col.key] ?? '')}
                         </td>

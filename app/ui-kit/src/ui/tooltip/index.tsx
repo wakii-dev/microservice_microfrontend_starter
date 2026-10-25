@@ -2,7 +2,18 @@
 // trắng 14px, radius 8, padding 6px 8px, max-width 250, mũi tên 8px vuông xoay 45°.
 // Placement 'top' (default). Portal-free: absolute trong wrapper relative.
 // A11y: bubble id + trigger aria-describedby (cloneElement), ESC đóng khi đang mở.
-import { cloneElement, isValidElement, useId, useState, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
+// Customize pass (slots wave 3): classNames slots (trigger/bubble) + style
+// passthrough — default path (không truyền) giữ nguyên DOM/GUI.
+import classNames from 'classnames';
+import { cloneElement, isValidElement, useId, useState, type CSSProperties, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
+
+/** Slot classes kiểu antd v5 — merge sau class mặc định (consumer append). */
+export interface TooltipClassNames {
+  /** Wrapper span bọc trigger tại chỗ — context định vị bubble (nơi className prop cũng dính). */
+  trigger?: string;
+  /** Bubble role="tooltip" (không gồm arrow — arrow kế thừa nền bubble). */
+  bubble?: string;
+}
 
 export interface TooltipProps {
   /** Nội dung bubble. */
@@ -12,9 +23,14 @@ export interface TooltipProps {
   /** Vị trí bubble so với trigger. */
   placement?: 'top' | 'bottom';
   className?: string;
+  /** Inline style — passthrough lên wrapper span (root). */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 — merge sau class mặc định. */
+  classNames?: TooltipClassNames;
 }
 
-export function Tooltip({ title, children, placement = 'top', className }: TooltipProps) {
+export function Tooltip(props: TooltipProps) {
+  const { title, children, placement = 'top', className, style } = props;
   const [open, setOpen] = useState(false);
   const bubbleId = useId();
 
@@ -31,7 +47,8 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
 
   return (
     <span
-      className={`relative inline-flex${className ? ` ${className}` : ''}`}
+      className={classNames('relative inline-flex', props.classNames?.trigger, className)}
+      style={style}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       onFocus={() => setOpen(true)}
@@ -43,9 +60,11 @@ export function Tooltip({ title, children, placement = 'top', className }: Toolt
         <span
           role="tooltip"
           id={bubbleId}
-          className={`pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-[var(--tooltip-bg)] px-2 py-1.5 text-body text-white animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] ${
-            placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
-          }`}
+          className={classNames(
+            'pointer-events-none absolute left-1/2 z-[var(--z-tooltip)] w-max max-w-[250px] -translate-x-1/2 rounded-lg bg-[var(--tooltip-bg)] px-2 py-1.5 text-body text-white animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]',
+            placement === 'top' ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]',
+            props.classNames?.bubble,
+          )}
         >
           {title}
           <span

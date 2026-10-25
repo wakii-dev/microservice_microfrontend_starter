@@ -5,6 +5,8 @@
 // aria-label passthrough (role=radiogroup cần accessible name).
 // Customize pass (SÓNG-3): Radio slots (root/box/label) + Group slot (root) +
 // style passthrough — default path (không truyền) giữ nguyên DOM/GUI.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
 import { useId, type CSSProperties, type ReactNode } from 'react';
 
 /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định (consumer append). */
@@ -31,21 +33,31 @@ export interface RadioProps {
   classNames?: RadioClassNames;
 }
 
-// slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-const slot = (c?: string) => (c ? ` ${c}` : '');
-
-export function Radio({ checked = false, onChange, disabled = false, name, children, className, style, classNames }: RadioProps) {
+export function Radio(props: RadioProps) {
+  const { checked = false, onChange, disabled = false, name, children, className, style } = props;
+  const slots = props.classNames;
   return (
-    <label className={`inline-flex cursor-pointer items-center gap-2 text-body text-ink${disabled ? ' cursor-not-allowed text-ink3' : ''}${slot(classNames?.root)}${className ? ` ${className}` : ''}`} style={style}>
+    <label
+      className={classNames(
+        'inline-flex cursor-pointer items-center gap-2 text-body text-ink',
+        disabled ? 'cursor-not-allowed text-ink3' : '',
+        slots?.root,
+        className,
+      )}
+      style={style}
+    >
       <input
         type="radio"
         name={name}
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange?.(e.target.checked)}
-        className={`peer size-4 cursor-pointer appearance-none rounded-pill border border-line bg-s2 shadow-[var(--ele-1)] transition-[border-color,border-width,box-shadow,transform] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 checked:border-[5px] checked:border-accent checked:scale-[1.1] checked:shadow-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:shadow-none${slot(classNames?.box)}`}
+        className={classNames(
+          'peer size-4 cursor-pointer appearance-none rounded-pill border border-line bg-s2 shadow-[var(--ele-1)] transition-[border-color,border-width,box-shadow,transform] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 checked:border-[5px] checked:border-accent checked:scale-[1.1] checked:shadow-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-s3 disabled:shadow-none',
+          slots?.box,
+        )}
       />
-      {classNames?.label ? <span className={classNames.label}>{children}</span> : children}
+      {slots?.label ? <span className={slots.label}>{children}</span> : children}
     </label>
   );
 }
@@ -70,13 +82,15 @@ export interface RadioGroupProps {
   classNames?: RadioGroupClassNames;
 }
 
-export function RadioGroup({ value, onChange, options, disabled = false, className, style, classNames, ...rest }: RadioGroupProps) {
+export function RadioGroup(props: RadioGroupProps) {
+  const { value, onChange, options, disabled = false, className, style, ...rest } = props;
+  const slots = props.classNames;
   // Tên chung cho cả nhóm input — bật điều hướng arrow-key native giữa options.
   const name = useId();
   return (
     <div
       role="radiogroup"
-      className={`flex flex-wrap items-center gap-4${slot(classNames?.root)}${className ? ` ${className}` : ''}`}
+      className={classNames('flex flex-wrap items-center gap-4', slots?.root, className)}
       style={style}
       {...rest}
     >

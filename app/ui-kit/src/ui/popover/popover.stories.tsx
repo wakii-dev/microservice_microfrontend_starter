@@ -112,3 +112,27 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/trigger/panel) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex gap-6">
+      <Popover
+        trigger="click"
+        title="Themed panel"
+        content="Panel gets an accent border via the panel slot."
+        classNames={{
+          root: 'rounded-xl',
+          trigger: 'rounded-lg',
+          panel: 'border-accent ring-2 ring-accent/20',
+        }}
+      >
+        <Button>classNames slots</Button>
+      </Popover>
+      <Popover title="Styled root" content="The root wrapper carries inline style." style={{ padding: 4, outline: '2px dashed var(--accent)' }}>
+        <Button>style passthrough</Button>
+      </Popover>
+    </div>
+  ),
+};

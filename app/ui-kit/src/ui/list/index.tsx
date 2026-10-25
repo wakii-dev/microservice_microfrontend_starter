@@ -5,7 +5,10 @@
 // virtual=true → render ảo qua VirtualScroll (danh sách rất dài): bỏ qua
 // pagination, row div cao cố định virtualItemSize (ul/li semantics nhường chỗ
 // window hoá — antd virtual cũng vậy).
-import { useState, type ReactNode } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/header/item/footer) +
+// style passthrough — default path (không truyền) giữ nguyên DOM/GUI.
+import classNames from 'classnames';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { EmptyState } from '../empty-state/index';
 import { Pagination } from '../pagination/index';
 import { Skeleton } from '../skeleton/index';
@@ -13,6 +16,18 @@ import { VirtualScroll } from '../virtual-scroll/index';
 
 export interface ListPaginationProps {
   pageSize: number;
+}
+
+/** Slot classes kiểu antd v5 — merge sau class mặc định (consumer append). */
+export interface ListClassNames {
+  /** Div gốc bọc toàn bộ list (nơi className prop cũng dính). */
+  root?: string;
+  /** Div header — chỉ render khi có header. */
+  header?: string;
+  /** Hàng item — áp cả <li> thường lẫn row div virtual. */
+  item?: string;
+  /** Div footer — chỉ render khi có footer. */
+  footer?: string;
 }
 
 export interface ListProps<T> {
@@ -36,23 +51,29 @@ export interface ListProps<T> {
   /** Chiều cao viewport cuộn khi virtual (px, mặc định 320). */
   virtualHeight?: number;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 — merge sau class mặc định. */
+  classNames?: ListClassNames;
 }
 
-export function List<T>({
-  items,
-  renderItem,
-  loading = false,
-  emptyText = 'Không có dữ liệu',
-  pagination = false,
-  header,
-  footer,
-  bordered = false,
-  rowKey,
-  virtual = false,
-  virtualItemSize = 48,
-  virtualHeight = 320,
-  className,
-}: ListProps<T>) {
+export function List<T>(props: ListProps<T>) {
+  const {
+    items,
+    renderItem,
+    loading = false,
+    emptyText = 'Không có dữ liệu',
+    pagination = false,
+    header,
+    footer,
+    bordered = false,
+    rowKey,
+    virtual = false,
+    virtualItemSize = 48,
+    virtualHeight = 320,
+    className,
+    style,
+  } = props;
   const [page, setPage] = useState(1);
   const pageSize = pagination ? pagination.pageSize : items.length || 1;
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
@@ -66,10 +87,15 @@ export function List<T>({
 
   return (
     <div
-      className={`${bordered ? 'rounded-xl border border-line bg-s2 shadow-[var(--ele-1)]' : ''}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        bordered ? 'rounded-xl border border-line bg-s2 shadow-[var(--ele-1)]' : '',
+        props.classNames?.root,
+        className,
+      )}
+      style={style}
     >
       {header && (
-        <div className="border-b border-line2 px-4 py-3 text-label font-semibold text-ink2">
+        <div className={classNames('border-b border-line2 px-4 py-3 text-label font-semibold text-ink2', props.classNames?.header)}>
           {header}
         </div>
       )}
@@ -90,7 +116,7 @@ export function List<T>({
             <div
               key={rowKey ? rowKey(item, index) : index}
               role="listitem"
-              className={`px-4 py-3 ${itemBorder(index === paged.length - 1)}`}
+              className={classNames('px-4 py-3', itemBorder(index === paged.length - 1), props.classNames?.item)}
             >
               {renderItem(item, index)}
             </div>
@@ -106,7 +132,11 @@ export function List<T>({
                 role="listitem"
                 // Stagger mount 28ms/hàng (depth contract 24-40ms, cap 12 hàng) —
                 // reduced-motion tắt sạch.
-                className={`animate-[bp-slide-up-in_280ms_var(--ease-smooth)_backwards] motion-reduce:animate-none px-4 py-3 ${itemBorder(i === paged.length - 1)}`}
+                className={classNames(
+                  'animate-[bp-slide-up-in_280ms_var(--ease-smooth)_backwards] motion-reduce:animate-none px-4 py-3',
+                  itemBorder(i === paged.length - 1),
+                  props.classNames?.item,
+                )}
                 style={{ animationDelay: `${Math.min(i, 12) * 28}ms` }}
               >
                 {renderItem(item, index)}
@@ -116,7 +146,7 @@ export function List<T>({
         </ul>
       )}
       {footer && (
-        <div className="border-t border-line2 px-4 py-3 text-label text-ink3">
+        <div className={classNames('border-t border-line2 px-4 py-3 text-label text-ink3', props.classNames?.footer)}>
           {footer}
         </div>
       )}

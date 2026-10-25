@@ -33,7 +33,15 @@ GH_PACKAGES_TOKEN=ghp_xxx pnpm --filter "@wakii/ui-kit" publish --no-git-checks
 
 ```bash
 pnpm build-storybook
-cd storybook-static && vercel deploy --prod --team vuhois-projects && cd ..
+# 2026-10-25: deploy TRỰC TIẾP từ trong repo bị Vercel BLOCKED ("commit author
+# doesn't have permission" — git author Wakii không phải member team vuhoi).
+# Quy trình: copy ra ngoài git + link đúng project (build-storybook clean xoá
+# .vercel mỗi lần build):
+rm -rf /tmp/sb-deploy && cp -r storybook-static /tmp/sb-deploy
+cd /tmp/sb-deploy
+vercel link --project storybook-static --yes --team vuhois-projects
+vercel deploy --prod --yes --team vuhois-projects
+cd - && rm -rf /tmp/sb-deploy
 ```
 
 ## 5. Chốt

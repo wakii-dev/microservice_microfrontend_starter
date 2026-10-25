@@ -90,6 +90,11 @@ function fakeRepo(seed: Task[] = []): TaskRepo & {
       let items = [...store.values()];
       if (filter.status) items = items.filter((t) => t.status === filter.status);
       if (filter.assigneeId) items = items.filter((t) => t.assigneeId === filter.assigneeId);
+      if (filter.q) {
+        // mirror DrizzleTaskRepo: ILIKE %q% — literal (wildcard đã escape), case-insensitive
+        const needle = filter.q.toLowerCase();
+        items = items.filter((t) => t.title.toLowerCase().includes(needle));
+      }
       const total = items.length;
       items = items.slice(filter.offset, filter.offset + filter.limit);
       return { items, total };
@@ -368,6 +373,68 @@ describe('CRUD /api/tasks + outbox event matrix (contract: tasks.yaml + task-eve
     const done = await app.inject({ method: 'GET', url: '/api/tasks?status=done&limit=1&offset=0', headers: AUTH });
     expect(done.json().total).toBe(2);
     expect(done.json().items).toHaveLength(1);
+  });
+
+  it('list q — search tiêu đề substring + case-insensitive (ILIKE)', async () => {
+    const { app } = buildTestApp({
+      repo: fakeRepo([
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000001', title: 'Viết Báo Cáo Q4' }),
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000002', title: 'họp team' }),
+      ]),
+    });
+    // substring giữa câu + chữ hoa/thường ngược với title
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/tasks?q=${encodeURIComponent('bÁo c')}`,
+      headers: AUTH,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().total).toBe(1);
+    expect(res.json().items.map((t: Task) => t.id)).toEqual(['9f0e0000-0000-4000-8000-000000000001']);
+  });
+
+  it('list q — không khớp → items rỗng + total 0 (200, không lỗi)', async () => {
+    const { app } = buildTestApp({ repo: fakeRepo([makeTask({ title: 'Viết Báo Cáo Q4' })]) });
+    const res = await app.inject({ method: 'GET', url: '/api/tasks?q=khong-tontai', headers: AUTH });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ items: [], total: 0 });
+  });
+
+  it('list q — ký tự LIKE `%` `_` `\\` khớp LITERAL (escape trước ILIKE), q > 200 ký tự → 400', async () => {
+    const { app } = buildTestApp({
+      repo: fakeRepo([
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000001', title: 'Giảm giá 100%' }),
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000002', title: 'Giảm giá 100x' }),
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000003', title: 'a_b' }),
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000004', title: 'axb' }),
+      ]),
+    });
+    // % là literal — chỉ trúng title chứa thật sự '100%', không phải '100x'
+    const pct = await app.inject({ method: 'GET', url: '/api/tasks?q=100%25', headers: AUTH });
+    expect(pct.json().items.map((t: Task) => t.id)).toEqual(['9f0e0000-0000-4000-8000-000000000001']);
+    // _ là literal — chỉ trúng 'a_b', không phải 'axb'
+    const underscore = await app.inject({ method: 'GET', url: '/api/tasks?q=a_b', headers: AUTH });
+    expect(underscore.json().items.map((t: Task) => t.id)).toEqual(['9f0e0000-0000-4000-8000-000000000003']);
+    // vượt maxLength 200 (contract) → 400 VALIDATION_ERROR
+    const tooLong = await app.inject({ method: 'GET', url: `/api/tasks?q=${'x'.repeat(201)}`, headers: AUTH });
+    expect(tooLong.statusCode).toBe(400);
+    expect(tooLong.json().error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('list q — trim; rỗng sau trim → không filter; kết hợp được với status', async () => {
+    const { app } = buildTestApp({
+      repo: fakeRepo([
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000001', title: 'Báo cáo', status: 'todo' }),
+        makeTask({ id: '9f0e0000-0000-4000-8000-000000000002', title: 'Báo cáo', status: 'done' }),
+      ]),
+    });
+    // chỉ khoảng trắng → không filter (trả tất cả)
+    const blank = await app.inject({ method: 'GET', url: '/api/tasks?q=%20%20', headers: AUTH });
+    expect(blank.json().total).toBe(2);
+    // q + status — filter cộng dồn
+    const combo = await app.inject({ method: 'GET', url: '/api/tasks?q=b%C3%A1o&status=done', headers: AUTH });
+    expect(combo.json().total).toBe(1);
+    expect(combo.json().items[0].id).toBe('9f0e0000-0000-4000-8000-000000000002');
   });
 
   it('get by id → 200; không thấy → 404 TASK_NOT_FOUND; non-uuid → 400', async () => {

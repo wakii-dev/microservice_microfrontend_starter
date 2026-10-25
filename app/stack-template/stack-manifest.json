@@ -279,5 +279,16 @@
       "when": "không chọn service be nào và không chọn option fe nào",
       "action": "engine phải dừng với lỗi rõ ràng — stack trống không hợp lệ"
     }
+  },
+  "ports": {
+    "gateway": "http://localhost:8080",
+    "shell": "http://localhost:3000",
+    "remote-tasks": "http://localhost:4001",
+    "remote-activity": "http://localhost:4002",
+    "auth-svc": "http://localhost:8090",
+    "node-svc": "http://localhost:3001",
+    "spring-svc": "http://localhost:8081",
+    "go-svc": "http://localhost:8082",
+    "postgres": "localhost:5432"
   }
 }

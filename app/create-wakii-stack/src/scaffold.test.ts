@@ -217,6 +217,11 @@ describe('scaffold — README sinh', () => {
     expect(readme).toContain('bash scripts/smoke/e2e.sh');
     expect(readme).toContain('http://localhost:8080');
     expect(readme).toContain('http://localhost:3000');
+    // Section Truy cập: gateway = entry duy nhất + cảnh báo 405 khi mở port FE trực tiếp
+    expect(readme).toContain('## Truy cập');
+    expect(readme).toContain('entry duy nhất');
+    expect(readme).toContain('405');
+    expect(readme).toContain('Đăng ký');
   });
 
   it('luôn prune tooling meta (create-wakii-app/stack, starter-templates, spike) — không phụ thuộc lựa chọn', async () => {

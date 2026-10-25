@@ -23,17 +23,18 @@ Flags:
 Rules tầng 1: ≥1 BE tự kèm postgres+kafka+gateway+auth-svc; ≥1 FE tự kèm gateway.
 `;
 
-function printNextSteps(selection: StackSelection, templateRoot: string): void {
-  const steps = [`cd ${selection.appName}`];
-  if (existsSync(join(templateRoot, 'platform/.env.example')) || true) {
-    // .env.example nằm trong template — sau copy luôn có ở dest (trừ khi prune paths)
-    steps.push('cp platform/.env.example platform/.env   # điền secret trước khi up');
-  }
-  steps.push('docker compose --env-file platform/.env up -d');
+function printNextSteps(selection: StackSelection, gatewayUrl: string | undefined): void {
+  const steps = [
+    `cd ${selection.appName}`,
+    'cp platform/.env.example platform/.env   # điền secret trước khi up',
+    'docker compose --env-file platform/.env up -d',
+  ];
   if (!selection.skipInstall) steps.push('# FE apps: pnpm install trong từng app muốn chạy build cục bộ');
   p.log.info('Next steps:');
   for (const step of steps) p.log.step(`  ${step}`);
-  p.log.info('URLs: gateway http://localhost:8080 · shell http://localhost:3000 (nếu chọn FE)');
+  const entry = gatewayUrl ?? 'http://localhost:8080';
+  p.log.info(`Mở ${entry} (gateway — entry duy nhất: / là FE shell, /api/* là services). Đăng ký tài khoản trước khi login (auth-svc không seed user).`);
+  p.log.warn('Port FE trực tiếp (vd :3000) chỉ là static server — login ở đó báo HTTP 405.');
   p.log.info('FE-only SPA ngoài stack? pnpm create wakii-app');
 }
 
@@ -140,7 +141,7 @@ async function main(): Promise<void> {
   }
 
   p.outro('Stack sẵn sàng! 🎉');
-  printNextSteps(selection, DEFAULT_TEMPLATE_ROOT);
+  printNextSteps(selection, manifest.ports?.gateway);
 }
 
 main().catch((err: unknown) => {

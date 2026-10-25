@@ -1,6 +1,6 @@
 {
   "name": "create-wakii-stack",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "private": true,
   "type": "module",
   "description": "CLI scaffold full-stack (FE+BE) dùng @wakii/ui-kit — full-copy + prune theo manifest (spec Hybrid C)",
@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@clack/prompts": "^1.8.1"
+    "@clack/prompts": "^1.8.1",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

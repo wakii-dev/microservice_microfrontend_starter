@@ -27,6 +27,7 @@ export interface StackSelection {
 export interface SelectionContext {
   validServices: string[];
   layerOf: (service: string) => StackLayer | undefined;
+  requiresOf?: (service: string) => string[];
 }
 
 function parseServicesList(raw: string): string[] {
@@ -99,6 +100,20 @@ export function resolveOptions(options: CliOptions, ctx: SelectionContext): Stac
     for (const name of ['postgres', 'kafka', 'gateway', 'auth-svc']) add(name);
   }
   if (hasLayer('fe')) add('gateway');
+
+  // Per-service requires (manifest M#8: shell→gateway+remote-tasks+remote-activity…) —
+  // closure fixed-point: kéo requires đệ quy tới khi ổn định.
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const name of [...set]) {
+      for (const dep of (ctx.requiresOf?.(name) ?? [])) {
+        if (ctx.validServices.includes(dep) && !set.has(dep)) {
+          set.add(dep);
+          changed = true;
+        }
+      }
+    }
+  }
 
   const rawName = options.appName ?? 'my-wakii-stack';
   const appName = /[\\/]/.test(rawName) ? (rawName.split(/[\\/]/).pop() ?? 'my-wakii-stack') : rawName;

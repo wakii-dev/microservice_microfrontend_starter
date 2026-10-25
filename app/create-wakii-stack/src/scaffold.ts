@@ -220,6 +220,91 @@ Need a FE app (SPA) outside this stack? \`pnpm create wakii-app\`.
 `;
 }
 
+/** Tìm đệ quy mọi file theo tên (Dockerfile) — dest chưa install nên an toàn. */
+async function collectByName(root: string, name: string, out: string[] = []): Promise<string[]> {
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (entry.name === '.DS_Store' || entry.name === '.git') continue;
+    const p = join(root, entry.name);
+    if (entry.isDirectory()) await collectByName(p, name, out);
+    else if (entry.name === name) out.push(p);
+  }
+  return out;
+}
+
+/**
+ * Dọn references workspace sau khi prune dir — docker build FROM-SCRATCH gãy nếu
+ * thiếu 1 trong 3 (bắt trên stack Desktop 0.1.4, 2026-10-23):
+ * 1. Dockerfile `COPY app/spike/...` còn trỏ dir đã xoá → COPY fail ("failed to
+ *    compute cache key").
+ * 2. pnpm-lock.yaml còn importer dir đã xoá → `pnpm install --frozen-lockfile`
+ *    mismatch (lock có importer, workspace không có).
+ * 3. pnpm-workspace.yaml còn glob riêng trỏ dir đã xoá (`app/spike/*`).
+ */
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export async function pruneWorkspaceRefs(
+  dest: string,
+  prunedPaths: string[],
+  log?: (message: string) => void,
+): Promise<void> {
+  if (prunedPaths.length === 0) return;
+  const isPrunedCopy = (line: string) =>
+    prunedPaths.some((p) => line.startsWith(`COPY ${p}/`) || line === `COPY ${p}` || line.startsWith(`COPY ${p} `));
+
+  // 1. Dockerfile — bỏ dòng COPY trỏ dir đã prune
+  let dockerLines = 0;
+  for (const dockerfile of await collectByName(dest, 'Dockerfile')) {
+    const lines = (await readFile(dockerfile, 'utf8')).split('\n');
+    const kept = lines.filter((line) => !isPrunedCopy(line));
+    if (kept.length !== lines.length) {
+      await writeFile(dockerfile, kept.join('\n'));
+      dockerLines += lines.length - kept.length;
+    }
+  }
+  if (dockerLines > 0) log?.(`Pruned ${dockerLines} dòng COPY Dockerfile`);
+
+  // 2. pnpm-lock.yaml — strip importer key "  <path>:" (khối con thụt 4-space,
+  // dừng ở key 2-space kế / EOF). Chỉ strip khi key thật sự tồn tại.
+  const lockPath = join(dest, 'pnpm-lock.yaml');
+  if (existsSync(lockPath)) {
+    let lock = await readFile(lockPath, 'utf8');
+    let stripped = 0;
+    for (const p of prunedPaths) {
+      // importer = chính dir đó HOẶC con của nó (app/spike → app/spike/host)
+      const pattern = new RegExp(`^  (?:${escapeRegex(p)}(?:/[^:\\n]+)?):\\n(?:    .*\\n|\\n)*?(?=^  \\S|\\S|$)`, 'gm');
+      const before = lock;
+      lock = lock.replace(pattern, '');
+      if (lock !== before) stripped += 1;
+    }
+    if (stripped > 0) {
+      await writeFile(lockPath, lock);
+      log?.(`Pruned ${stripped} pnpm-lock importer`);
+    }
+  }
+
+  // 3. pnpm-workspace.yaml — bỏ glob riêng trỏ dir đã prune (+ comment liền trên)
+  const wsPath = join(dest, 'pnpm-workspace.yaml');
+  if (existsSync(wsPath)) {
+    const lines = (await readFile(wsPath, 'utf8')).split('\n');
+    const kept: string[] = [];
+    let globs = 0;
+    for (const line of lines) {
+      const isGlob = prunedPaths.some((p) => new RegExp(`^\\s*-\\s*["']${escapeRegex(p)}/\\*["']\\s*$`).test(line));
+      if (isGlob) {
+        globs += 1;
+        const prev = kept[kept.length - 1];
+        if (prev !== undefined && /^\s*#/.test(prev)) kept.pop(); // comment mồ côi của glob
+        continue;
+      }
+      kept.push(line);
+    }
+    if (globs > 0) {
+      await writeFile(wsPath, kept.join('\n'));
+      log?.(`Pruned ${globs} pnpm-workspace glob`);
+    }
+  }
+}
+
 /** Scaffold 1 stack: full-copy → render → prune theo manifest → README. */
 export async function scaffold(input: StackScaffoldInput): Promise<StackScaffoldResult> {
   const { selection, dest, log } = input;
@@ -240,10 +325,12 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   // các package này không thuộc stack được sinh ra (CLI scaffolders + templates
   // nguồn + spike thử nghiệm).
   const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike'];
+  const prunedPaths: string[] = [];
   for (const relPath of ALWAYS_PRUNE) {
     const target = join(dest, relPath);
     if (existsSync(target)) {
       await rm(target, { recursive: true, force: true });
+      prunedPaths.push(relPath);
       log?.(`Pruned tooling: ${relPath}`);
     }
   }
@@ -256,6 +343,7 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
       const target = join(dest, relPath);
       if (existsSync(target)) {
         await rm(target, { recursive: true, force: true });
+        prunedPaths.push(relPath);
         log?.(`Pruned path: ${relPath}`);
       }
     }
@@ -290,6 +378,11 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
       log?.(`Pruned env keys: ${keys.length}`);
     }
   }
+
+  // 4b. dọn references workspace (Dockerfile COPY / pnpm-lock importers /
+  // pnpm-workspace globs) của mọi dir đã prune — docker build from-scratch gãy
+  // nếu thiếu (bắt trên stack Desktop 0.1.4)
+  await pruneWorkspaceRefs(dest, prunedPaths, log);
 
   // 5. README sinh ở đỉnh dest
   await writeFile(join(dest, 'README.md'), renderReadme(manifest, selection));

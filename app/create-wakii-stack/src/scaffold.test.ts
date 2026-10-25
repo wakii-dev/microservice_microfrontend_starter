@@ -207,6 +207,45 @@ describe('scaffold — gateway conf + env + paths', () => {
   });
 });
 
+describe('scaffold — dọn workspace refs sau prune', () => {
+  it('Dockerfile COPY + pnpm-lock importer + workspace glob trỏ dir đã prune bị dọn hết', async () => {
+    // fixture mở rộng: tooling/spike + Dockerfile FE + lockfile + workspace
+    await mkdir(join(templateRoot, 'app', 'spike', 'host'), { recursive: true });
+    await writeFile(join(templateRoot, 'app', 'spike', 'host', 'package.json'), '{"name":"spike-host"}');
+    await mkdir(join(templateRoot, 'app', 'shell'), { recursive: true });
+    await writeFile(
+      join(templateRoot, 'app', 'shell', 'Dockerfile'),
+      'FROM node:22-alpine\nCOPY app/spike/host/package.json app/spike/host/\nCOPY app/shell/package.json app/shell/\n',
+    );
+    await writeFile(
+      join(templateRoot, 'pnpm-workspace.yaml'),
+      'packages:\n  - "app/*"\n  # Spike MF/Rspack (SF-1)\n  - "app/spike/*"\n',
+    );
+    await writeFile(
+      join(templateRoot, 'pnpm-lock.yaml'),
+      'lockfileVersion: 9.0.0\nimporters:\n  .:\n    dependencies: {}\n  app/shell:\n    dependencies: {}\n  app/spike/host:\n    dependencies: {}\n  services/node-svc:\n    dependencies: {}\n\npackages:\n',
+    );
+
+    // KHÔNG chọn node-svc → prunedPaths gồm app/spike (ALWAYS) + services/node-svc (service)
+    await scaffold({ selection: selection({ services: ['postgres', 'gateway', 'shell'] }), dest, templateRoot });
+
+    const dockerfile = await readFile(join(dest, 'app', 'shell', 'Dockerfile'), 'utf8');
+    expect(dockerfile).not.toContain('app/spike');
+    expect(dockerfile).toContain('COPY app/shell/package.json');
+
+    const lock = await readFile(join(dest, 'pnpm-lock.yaml'), 'utf8');
+    expect(lock).not.toContain('app/spike/host:');
+    expect(lock).not.toContain('services/node-svc:');
+    expect(lock).toContain('app/shell:');
+    expect(lock).toContain('  .:');
+
+    const ws = await readFile(join(dest, 'pnpm-workspace.yaml'), 'utf8');
+    expect(ws).not.toContain('app/spike/*');
+    expect(ws).not.toContain('# Spike MF/Rspack'); // comment mồ côi của glob bị dọn
+    expect(ws).toContain('- "app/*"');
+  });
+});
+
 describe('scaffold — README sinh', () => {
   it('README.md ở đỉnh dest: services chọn + up + smoke + ports', async () => {
     await scaffold({ selection: selection({ appName: 'hop-stack', services: ['postgres', 'gateway', 'node-svc', 'shell'] }), dest, templateRoot });

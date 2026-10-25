@@ -70,6 +70,19 @@ func main() {
 	}
 	consumerCtx, stopConsumer := context.WithCancel(context.Background())
 	defer stopConsumer()
+
+	// Fix gốc race auto-create (report worker-kafka 2026-10-25): topic phải tồn
+	// tại TRƯỚC khi consumer join group — join sớm → generation assignment rỗng
+	// vĩnh viễn (kafka-go không re-subscribe khi topic xuất hiện sau). Idempotent
+	// (TopicAlreadyExists = OK); KHÔNG fatal (lazy-connect conventions/09):
+	// broker chưa lên chỉ warn + consumer vẫn chạy — EnsureTopics chỉ TĂNG xác
+	// suất assign ngay, không phải điều kiện sống còn. Timeout nội bộ 5s.
+	if err := consumer.EnsureTopics(context.Background(), cfg.KafkaBrokers, cfg.KafkaTopic, cfg.KafkaDLQTopic); err != nil {
+		log.Warn("ensure kafka topics thất bại — consumer vẫn chạy (lazy-connect)", "err", err.Error())
+	} else {
+		log.Info("kafka topics ensured", "topics", []string{cfg.KafkaTopic, cfg.KafkaDLQTopic})
+	}
+
 	go runner.Run(consumerCtx)
 
 	handler := api.NewRouter(api.Deps{

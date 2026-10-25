@@ -1,0 +1,247 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { Badge, Button, Card, CountUp, Divider, Icon, Reveal, Statistic, Tag, Text, Title } from './index.js';
+
+<Meta title="Introduction" />
+
+<div className="mx-auto flex max-w-4xl flex-col gap-10 pb-8">
+  {/* ── Hero — wash card + Reveal stagger (pattern intro-showcase Hero) ── */}
+  <section className="relative overflow-hidden rounded-xl border border-line bg-s1 p-10 text-center [background-image:var(--wash)]">
+    <div className="flex flex-col items-center gap-4">
+      <Reveal direction="down">
+        <Tag icon={<Icon name="check-circle" size={12} />}>{'Design system nội bộ — v0.3.0'}</Tag>
+      </Reveal>
+      <Reveal direction="down" delay={80}>
+        <Title level={1} style={{ marginBottom: 0 }} className="tracking-[-0.01em]">
+          {'Wakii UI Kit'}
+        </Title>
+      </Reveal>
+      <Reveal direction="down" delay={160}>
+        <Text type="secondary" className="m-0 max-w-xl text-body">
+          {
+            '90+ React components antd-look, token-first, a11y-tested — consumed qua source (ADR-0009), không build step. Dark theme + motion dùng chung một hệ token.'
+          }
+        </Text>
+      </Reveal>
+      <Reveal direction="down" delay={240}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <a href="?path=/docs/intro-showcase--docs" className="no-underline">
+            <Button type="primary" size="large" className="whitespace-nowrap">
+              {'Trang giới thiệu tương tác'}
+            </Button>
+          </a>
+          <a href="?path=/docs/templates-landing--docs" className="no-underline">
+            <Button size="large" icon={<Icon name="external-link" size={14} />} className="whitespace-nowrap">
+              {'Xem templates'}
+            </Button>
+          </a>
+        </div>
+      </Reveal>
+      <Reveal direction="down" delay={320}>
+        <code className="rounded-lg border border-line bg-s3 px-3 py-1.5 font-mono text-meta text-ink2">
+          {'pnpm add @wakii/ui-kit --workspace'}
+        </code>
+      </Reveal>
+    </div>
+  </section>
+
+  {/* ── Stats strip — CountUp thật (pattern intro-showcase StatsStrip) ── */}
+  <Reveal direction="up">
+    <div className="grid grid-cols-2 gap-6 rounded-xl border border-line bg-s1 p-6 sm:grid-cols-4">
+      <div className="flex flex-col">
+        <Statistic title="Components" value={<CountUp value={90} />} suffix="+" />
+        <span className="mt-1 text-meta text-ink2">{'7 nhóm, taxonomy chuẩn'}</span>
+      </div>
+      <div className="flex flex-col">
+        <Statistic title="Tests pass" value={<CountUp value={1235} />} />
+        <span className="mt-1 text-meta text-ink2">{'vitest, chạy mỗi PR'}</span>
+      </div>
+      <div className="flex flex-col">
+        <Statistic title="Stories" value={<CountUp value={667} />} />
+        <span className="mt-1 text-meta text-ink2">{'docs sống trong Storybook'}</span>
+      </div>
+      <div className="flex flex-col">
+        <Statistic title="Deps runtime" value={<CountUp value={0} />} />
+        <span className="mt-1 text-meta text-ink2">{'barrel chính — subpath nặng tách riêng'}</span>
+      </div>
+    </div>
+  </Reveal>
+
+  {/* ── Triết lý — kicker + Title, card hover-lift + Reveal stagger 0/80/160 ── */}
+  <section className="flex flex-col gap-5">
+    <div className="flex flex-col items-center gap-1 text-center">
+      <span className="bp-kicker text-label font-semibold uppercase tracking-[0.08em] text-accent">{'01 · Tại sao'}</span>
+      <Title level={2} style={{ marginBottom: 0 }}>
+        {'Triết lý'}
+      </Title>
+    </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <Reveal direction="up" className="h-full">
+        <div className="flex h-full flex-col gap-2 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[var(--shadow-lift)]">
+          <span className="grid size-10 place-items-center rounded-lg bg-accent/10 text-accent">
+            <Icon name="settings" size={18} />
+          </span>
+          <strong className="text-body font-semibold text-ink">{'Token-first'}</strong>
+          <span className="text-body text-ink2">
+            {'Không màu/độ trễ/góc bo cứng trong component — mọi thứ đọc CSS var ('}
+            <code className="font-mono text-meta">--accent</code>
+            {', '}
+            <code className="font-mono text-meta">--motion-fast</code>
+            {', '}
+            <code className="font-mono text-meta">--shadow-pop</code>
+            {'…). Đổi token là đổi toàn hệ thống; dark tự cascade qua '}
+            <code className="font-mono text-meta">data-bp-theme</code>
+            {'.'}
+          </span>
+        </div>
+      </Reveal>
+      <Reveal direction="up" delay={80} className="h-full">
+        <div className="flex h-full flex-col gap-2 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[var(--shadow-lift)]">
+          <span className="grid size-10 place-items-center rounded-lg bg-accent/10 text-accent">
+            <Icon name="clock" size={18} />
+          </span>
+          <strong className="text-body font-semibold text-ink">{'Motion-first'}</strong>
+          <span className="text-body text-ink2">
+            {'Chỉ animate '}
+            <code className="font-mono text-meta">transform</code>
+            {'/opacity trên GPU, thang '}
+            <code className="font-mono text-meta">--motion-instant → slow</code>
+            {' + easing dedicated. '}
+            <code className="font-mono text-meta">Parallax</code>
+            {', '}
+            <code className="font-mono text-meta">Reveal</code>
+            {', '}
+            <code className="font-mono text-meta">CountUp</code>
+            {' tự tắt khi prefers-reduced-motion.'}
+          </span>
+        </div>
+      </Reveal>
+      <Reveal direction="up" delay={160} className="h-full">
+        <div className="flex h-full flex-col gap-2 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[var(--shadow-lift)]">
+          <span className="grid size-10 place-items-center rounded-lg bg-accent/10 text-accent">
+            <Icon name="eye" size={18} />
+          </span>
+          <strong className="text-body font-semibold text-ink">{'A11y-first'}</strong>
+          <span className="text-body text-ink2">
+            {'Focus ring chuẩn mọi control, '}
+            <code className="font-mono text-meta">role</code>
+            {'/aria-* wired sẵn (menu, switch, dialog, slider…), icon-only bắt buộc nhãn. Rules trong AGENTS.md — vi phạm là review fail.'}
+          </span>
+        </div>
+      </Reveal>
+    </div>
+  </section>
+
+  {/* ── Đi nhanh — link card hover-lift + Reveal ── */}
+  <section className="flex flex-col gap-5">
+    <div className="flex flex-col items-center gap-1 text-center">
+      <span className="bp-kicker text-label font-semibold uppercase tracking-[0.08em] text-accent">{'02 · Tài liệu'}</span>
+      <Title level={2} style={{ marginBottom: 0 }}>
+        {'Đi nhanh'}
+      </Title>
+    </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <Reveal direction="up" className="h-full">
+        <a
+          href="https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/AGENTS.md"
+          className="no-underline"
+        >
+          <div className="flex h-full flex-col gap-1 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-accent/40 hover:bg-s3 hover:shadow-[var(--shadow-lift)]">
+            <span className="flex items-center gap-2 text-body font-medium text-ink">
+              <Icon name="file" size={14} /> AGENTS.md
+            </span>
+            <span className="text-meta text-ink2">{'Quy tắc bắt buộc + bảng "khi nào dùng" từng nhóm'}</span>
+          </div>
+        </a>
+      </Reveal>
+      <Reveal direction="up" delay={80} className="h-full">
+        <a
+          href="https://github.com/wakii-dev/architecture-overview/blob/main/docs/ai/recipes.md"
+          className="no-underline"
+        >
+          <div className="flex h-full flex-col gap-1 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-accent/40 hover:bg-s3 hover:shadow-[var(--shadow-lift)]">
+            <span className="flex items-center gap-2 text-body font-medium text-ink">
+              <Icon name="copy" size={14} /> Recipes
+            </span>
+            <span className="text-meta text-ink2">{'16 recipe copy-chạy — form, CRUD, dashboard, landing'}</span>
+          </div>
+        </a>
+      </Reveal>
+      <Reveal direction="up" delay={160} className="h-full">
+        <a
+          href="https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/CHANGELOG.md"
+          className="no-underline"
+        >
+          <div className="flex h-full flex-col gap-1 rounded-xl border border-line bg-s1 p-5 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-accent/40 hover:bg-s3 hover:shadow-[var(--shadow-lift)]">
+            <span className="flex items-center gap-2 text-body font-medium text-ink">
+              <Icon name="refresh" size={14} /> CHANGELOG
+            </span>
+            <span className="text-meta text-ink2">{'Đổi gần đây theo từng batch'}</span>
+          </div>
+        </a>
+      </Reveal>
+    </div>
+  </section>
+
+  {/* ── Vị đầu tiên — demo thật bọc Card component của kit ── */}
+  <section className="flex flex-col gap-5">
+    <div className="flex flex-col items-center gap-1 text-center">
+      <span className="bp-kicker text-label font-semibold uppercase tracking-[0.08em] text-accent">{'03 · Sờ thật'}</span>
+      <Title level={2} style={{ marginBottom: 0 }}>
+        {'Vị đầu tiên'}
+      </Title>
+    </div>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <Reveal direction="up" className="h-full">
+        <Card className="h-full">
+          <div className="flex flex-col items-start gap-3">
+            <Button type="primary">{'Primary action'}</Button>
+            <Button>{'Secondary'}</Button>
+            <Button type="text" icon={<Icon name="refresh" size={14} />}>
+              {'Text + icon'}
+            </Button>
+          </div>
+        </Card>
+      </Reveal>
+      <Reveal direction="up" delay={80} className="h-full">
+        <Card className="h-full">
+          <div className="flex flex-col items-start gap-3">
+            <div className="flex gap-2">
+              <Tag>{'token'}</Tag>
+              <Tag icon={<Icon name="check" size={12} />}>{'a11y'}</Tag>
+            </div>
+            <Badge variant="doing">{'In progress'}</Badge>
+            <Badge variant="done">{'Gated'}</Badge>
+          </div>
+        </Card>
+      </Reveal>
+      <Reveal direction="up" delay={160} className="h-full">
+        <Card className="h-full">
+          <Statistic title="Đếm thật" value={<CountUp value={1235} duration={1.5} />} />
+          <div className="mt-1 text-meta text-ink2">
+            {'đếm ease-out bằng CountUp thật — thử nút '}
+            <strong className="text-ink">{'Theme'}</strong>
+            {' trên toolbar để xem dark cascade'}
+          </div>
+        </Card>
+      </Reveal>
+    </div>
+  </section>
+
+  {/* ── CTA cuối — wash card + mời mở Showcase (pattern FooterCta) ── */}
+  <section className="flex flex-col items-center gap-4 rounded-xl border border-line bg-s1 p-10 text-center [background-image:var(--wash)]">
+    <Title level={2} style={{ marginBottom: 0 }}>
+      {'Dựng giao diện kế tiếp bằng token'}
+    </Title>
+    <Text type="secondary" className="m-0 max-w-xl">
+      {'Sờ thử mọi component với state thật — kèm dark toggle trên toolbar, motion và template ghép sẵn.'}
+    </Text>
+    <a href="?path=/docs/intro-showcase--docs" className="no-underline">
+      <Button type="primary" size="large" icon={<Icon name="external-link" size={14} />}>
+        {'Mở Showcase tương tác'}
+      </Button>
+    </a>
+    <Divider dashed className="w-full">
+      {'tokens all the way down'}
+    </Divider>
+  </section>
+</div>

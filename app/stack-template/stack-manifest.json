@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "$comment": "Nguồn chân lý prune cho create-wakii-stack engine. Đã xác minh against platform/docker-compose.yml (11 service blocks), platform/gateway/nginx/nginx.conf (routes thật) và platform/.env.example (2026-10-25 — recon Mission #8).Ý nghĩa field: paths = đường dẫn template xoá khi service KHÔNG được chọn; composeService = tên khối trong platform/docker-compose.yml (null = không có trong compose); gatewayBlocks = route nginx thuộc service trong platform/gateway/nginx/nginx.conf; envKeys = dòng .env.example thuộc service (engine xoá dòng khi service bị prune); requires = service phải có mặt khi service này được chọn; devLocal = chạy được ngoài compose (pnpm --filter <pkg> dev).",
+  "placeholder": {
+    "stackName": "__STACK_NAME__",
+    "org": "__STACK_ORG__",
+    "appliedTo": [
+      "package.json → name",
+      "README.md → H1",
+      "platform/docker-compose.yml → name:",
+      "README.md + docs/*.md → wakii-dev (hiện chỉ docs/git-flow.md)",
+      "KHÔNG sed trong services/ — tên compose service giữ nguyên để stack chạy được ngay (quyết định thiết kế tầng 1)"
+    ]
+  },
+  "sharedEnvKeys": [
+    "JWT_SECRET",
+    "LOG_LEVEL"
+  ],
+  "groups": {
+    "fe": {
+      "label": "Frontend apps",
+      "independent": true,
+      "options": [
+        "shell",
+        "tasks",
+        "activity",
+        "admin"
+      ],
+      "optionToService": {
+        "shell": "shell",
+        "tasks": "remote-tasks",
+        "activity": "remote-activity",
+        "admin": "admin"
+      }
+    }
+  },
+  "services": [
+    {
+      "id": "postgres",
+      "type": "infra",
+      "description": "Postgres 16 — DB duy nhất của stack; init script tạo schema + role per-service (01-init.sh).",
+      "paths": [
+        "platform/postgres/**"
+      ],
+      "composeService": "postgres",
+      "gatewayBlocks": [],
+      "envKeys": [
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DB",
+        "POSTGRES_PORT",
+        "NODE_SVC_DB_PASSWORD",
+        "SPRING_SVC_DB_PASSWORD",
+        "GO_SVC_DB_PASSWORD",
+        "GO_READONLY_DB_PASSWORD",
+        "AUTH_SVC_DB_PASSWORD"
+      ],
+      "requires": [],
+      "devLocal": false
+    },
+    {
+      "id": "kafka",
+      "type": "infra",
+      "description": "Apache Kafka KRaft single-node — task-events + DLQ (conventions/09). Image-only: không có paths riêng.",
+      "paths": [],
+      "composeService": "kafka",
+      "gatewayBlocks": [],
+      "envKeys": [
+        "KAFKA_BROKERS"
+      ],
+      "requires": [],
+      "devLocal": false
+    },
+    {
+      "id": "auth-svc",
+      "type": "infra",
+      "description": "Auth thật — register/login/refresh/RBAC, JWT HS256 (token-contract). Rules tầng 1: luôn kèm khi có BE.",
+      "paths": [
+        "services/auth-svc/**"
+      ],
+      "composeService": "auth-svc",
+      "gatewayBlocks": [
+        "location /api/auth → auth-svc:8090"
+      ],
+      "envKeys": [
+        "AUTH_PORT",
+        "AUTH_SVC_DB_PASSWORD",
+        "AUTH_MOCK_URL",
+        "AUTH_DEV_PASSWORD",
+        "SVC_ACTIVITY_PASSWORD",
+        "ACCESS_TOKEN_TTL",
+        "USERS_FIXTURE_PATH"
+      ],
+      "requires": [
+        "postgres"
+      ],
+      "devLocal": false
+    },
+    {
+      "id": "gateway",
+      "type": "infra",
+      "description": "nginx gateway :8080 — cổng duy nhất browser chạm vào (conventions/08). Lazy DNS: không crash-loop khi upstream vắng.",
+      "paths": [
+        "platform/gateway/**"
+      ],
+      "composeService": "gateway",
+      "gatewayBlocks": [
+        "server listen 8080 (khối chủ)",
+        "map $uri $remote_up (registry remote)",
+        "location /remotes/ (strip prefix)"
+      ],
+      "envKeys": [
+        "GATEWAY_PORT"
+      ],
+      "requires": [],
+      "devLocal": false
+    },
+    {
+      "id": "node-svc",
+      "type": "be",
+      "description": "Fastify+TS tasks CRUD + outbox publisher → kafka (ADR-0008).",
+      "paths": [
+        "services/node-svc/**"
+      ],
+      "composeService": "node-svc",
+      "gatewayBlocks": [
+        "location = /api/tasks → node-svc:3001",
+        "location /api/tasks/ → node-svc:3001"
+      ],
+      "envKeys": [
+        "NODE_SVC_PORT",
+        "NODE_SVC_URL"
+      ],
+      "requires": [
+        "postgres",
+        "kafka"
+      ],
+      "devLocal": false
+    },
+    {
+      "id": "spring-svc",
+      "type": "be",
+      "description": "Boot 3 users/teams — chỉ đọc postgres, không đụng kafka.",
+      "paths": [
+        "services/spring-svc/**"
+      ],
+      "composeService": "spring-svc",
+      "gatewayBlocks": [
+        "location = /api/users → spring-svc:8081",
+        "location /api/users/ → spring-svc:8081"
+      ],
+      "envKeys": [
+        "SPRING_SVC_PORT",
+        "SPRING_SVC_URL",
+        "SPRING_SVC_DB_PASSWORD"
+      ],
+      "requires": [
+        "postgres"
+      ],
+      "devLocal": false
+    },
+    {
+      "id": "go-svc",
+      "type": "be",
+      "description": "chi activity — kafka consumer (task-events → feed) + saga compensation; resolver login auth-svc lấy service token.",
+      "paths": [
+        "services/go-svc/**"
+      ],
+      "composeService": "go-svc",
+      "gatewayBlocks": [
+        "location = /api/activity → go-svc:8082",
+        "location /api/activity/ → go-svc:8082"
+      ],
+      "envKeys": [
+        "GO_SVC_PORT",
+        "GO_SVC_URL",
+        "GO_SVC_DB_PASSWORD"
+      ],
+      "requires": [
+        "postgres",
+        "kafka",
+        "auth-svc"
+      ],
+      "devLocal": false
+    },
+    {
+      "id": "shell",
+      "type": "fe",
+      "description": "MF host :3000 — import remoteEntry của 2 remote qua gateway /remotes/ (chạy compose) hoặc dev server.",
+      "paths": [
+        "app/shell/**"
+      ],
+      "composeService": "shell",
+      "gatewayBlocks": [
+        "location / → shell:3000 (default upstream)",
+        "map $uri $remote_up default → shell"
+      ],
+      "envKeys": [
+        "SHELL_PORT",
+        "SHELL_URL",
+        "REMOTE_TASKS_URL",
+        "REMOTE_ACTIVITY_URL",
+        "CORS_DEV_ORIGIN"
+      ],
+      "requires": [
+        "gateway",
+        "remote-tasks",
+        "remote-activity"
+      ],
+      "devLocal": true
+    },
+    {
+      "id": "remote-tasks",
+      "type": "fe",
+      "description": "MF remote tasks :4001 — static remoteEntry, serve độc lập được (gateway strip prefix khi đi qua).",
+      "paths": [
+        "app/remotes/tasks/**"
+      ],
+      "composeService": "remote-tasks",
+      "gatewayBlocks": [
+        "map $uri $remote_up ~^/remotes/tasks/",
+        "location /remotes/ (strip prefix, forward root)"
+      ],
+      "envKeys": [
+        "REMOTE_TASKS_PORT"
+      ],
+      "requires": [],
+      "devLocal": true
+    },
+    {
+      "id": "remote-activity",
+      "type": "fe",
+      "description": "MF remote activity :4002 — như remote-tasks.",
+      "paths": [
+        "app/remotes/activity/**"
+      ],
+      "composeService": "remote-activity",
+      "gatewayBlocks": [
+        "map $uri $remote_up ~^/remotes/activity/",
+        "location /remotes/ (strip prefix, forward root)"
+      ],
+      "envKeys": [
+        "REMOTE_ACTIVITY_PORT"
+      ],
+      "requires": [],
+      "devLocal": true
+    },
+    {
+      "id": "admin",
+      "type": "fe-no-compose",
+      "description": "SPA showcase toàn bộ ui-kit — KHÔNG có khối compose hiện tại (đã xác minh: grep 'admin' trong compose = 0). Chạy dev-local; khi chọn, engine KHÔNG đụng compose.",
+      "paths": [
+        "app/admin/**"
+      ],
+      "composeService": null,
+      "gatewayBlocks": [],
+      "envKeys": [],
+      "requires": [],
+      "devLocal": true
+    }
+  ],
+  "rules": {
+    "beInfraCore": {
+      "when": ">=1 service type=be được chọn",
+      "add": [
+        "postgres",
+        "kafka",
+        "gateway",
+        "auth-svc"
+      ],
+      "why": "BE nào cũng cần postgres; node/go cần kafka (outbox/consumer); mọi API đi qua gateway; JWT do auth-svc ký — thiếu auth-svc thì login flow không chạy."
+    },
+    "feRequiresGateway": {
+      "when": ">=1 service type=fe hoặc fe-no-compose được chọn",
+      "add": [
+        "gateway"
+      ],
+      "why": "FE compose-mode phục vụ qua gateway (location / và /remotes/); shell import remoteEntry qua /remotes/ nên gateway là điểm ghép."
+    },
+    "emptySelection": {
+      "when": "không chọn service be nào và không chọn option fe nào",
+      "action": "engine phải dừng với lỗi rõ ràng — stack trống không hợp lệ"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+# Windows dev machine — ép LF toàn repo (learned: mixed eol làm gãy shell script + docker build context)
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.woff binary
+*.woff2 binary

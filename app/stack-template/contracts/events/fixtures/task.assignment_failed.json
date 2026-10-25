@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "4d5e6f70-8192-4da0-8eb1-2f3a4b5c6d7e",
+  "type": "task.assignment_failed",
+  "occurredAt": "2026-10-13T09:20:00Z",
+  "payload": {
+    "taskId": "c7c7c7c7-7777-4777-8777-777777777777",
+    "assigneeId": "55555555-5555-4555-8555-555555555555",
+    "reason": "simulate notify fail (fixture user svc-fail) — retry x3 het"
+  }
+}

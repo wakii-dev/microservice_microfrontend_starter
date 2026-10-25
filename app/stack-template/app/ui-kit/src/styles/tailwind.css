@@ -1,0 +1,220 @@
+/* Tailwind v4 entry của ui-kit — APPS import file này (KHÔNG tự @import "tailwindcss"
+ * lần 2). CSS-first config: khối @theme dưới đây CHÍNH là tailwind config (v4 không
+ * dùng tailwind.config.js).
+ *
+ * Import tách từng layer (theme + utilities) — CỐ Ý KHÔNG import preflight: base.css
+ * giữ reset/global riêng, tránh double-reset làm shift visual hàng loạt (spec
+ * tailwind-migration quyết định #4).
+ *
+ * tokens.css giữ làm NGUỒN DUY NHẤT: @theme inline map thẳng var() — utilities
+ * (bg-accent, text-ink2…) refer runtime vars → accent-override/data-bp-theme hoạt
+ * động không cần build lại.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source './';
+
+@theme inline {
+  /* Font — antd system stack (tokens.css --f/--m) */
+  --font-sans: var(--f);
+  --font-mono: var(--m);
+
+  /* Spacing base 4px — 1 đơn vị utility = 4px (gap-1.5 = 6px, p-4 = 16px khớp --sp-*) */
+  --spacing: 4px;
+
+  /* Surface */
+  --color-canvas: var(--c-canvas);
+  --color-s1: var(--c-s1);
+  --color-s2: var(--c-s2);
+  --color-s3: var(--c-s3);
+  /* Mực */
+  --color-ink: var(--ink);
+  --color-ink2: var(--ink2);
+  --color-ink3: var(--ink3);
+  --color-ink4: var(--ink4);
+  /* Viền + accent */
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-accent: var(--accent);
+  --color-accent-hi: var(--accent-hi);
+  /* Scrim — phủ đen trên media/backdrop (theme-independent, xem tokens.css) */
+  --color-scrim-1: var(--scrim-1);
+  --color-scrim-2: var(--scrim-2);
+  --color-scrim-3: var(--scrim-3);
+  --color-scrim-4: var(--scrim-4);
+  /* Trạng thái task */
+  --color-st-todo: var(--st-todo);
+  --color-st-doing: var(--st-doing);
+  --color-st-done: var(--st-done);
+  --color-st-fail: var(--st-fail);
+  /* Type scale */
+  --text-meta: var(--fs-meta);
+  --text-label: var(--fs-label);
+  --text-body: var(--fs-body);
+  --text-h3: var(--fs-h3);
+  --text-h2: var(--fs-h2);
+  --text-h1: var(--fs-h1);
+  /* Shadow layered */
+  --shadow-pop: var(--shadow-pop);
+  --shadow-lift: var(--shadow-lift);
+  /* Radius */
+  --radius-1: var(--r-1);
+  --radius-2: var(--r-2);
+  --radius-3: var(--r-3);
+  --radius-pill: var(--r-pill);
+  /* Micro-interaction: hover lift -1px + shadow grow; press scale 0.97 */
+  --animate-press: bp-press var(--motion-instant) var(--ease-toggle);
+}
+
+@keyframes bp-press {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* ── Motion keyframes dùng chung (motion identity — docs/motion.md) ─────────
+ * NGUYÊN TẮC: chỉ animate transform/opacity (GPU 60fps); KHÔNG width/height/top/left.
+ * prefers-reduced-motion: mọi animation/transition rơi về tức thì. */
+@keyframes bp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes bp-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes bp-zoom-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-zoom-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.96); }
+}
+@keyframes bp-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-slide-out-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+@keyframes bp-slide-up-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bp-dots {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-bars {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+@keyframes bp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes bp-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes bp-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes bp-bounce-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.05); }
+  80% { transform: scale(0.97); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-slide-in-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-slide-in-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bp-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  50% { box-shadow: 0 0 16px 4px color-mix(in srgb, var(--accent) 55%, transparent); }
+}
+@keyframes bp-ripple {
+  from { transform: scale(0); opacity: 0.35; }
+  to { transform: scale(2.75); opacity: 0; }
+}
+@keyframes bp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* check-draw: path set pathLength=1 + stroke-dasharray:1 → offset 1→0 vẽ đúng mọi độ dài */
+@keyframes bp-check-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes bp-indeterminate {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(400%); }
+}
+@keyframes bp-flip {
+  from { transform: perspective(800px) rotateY(70deg); opacity: 0; }
+  to { transform: perspective(800px) rotateY(0); opacity: 1; }
+}
+@keyframes bp-odometer {
+  0% { transform: translateY(0.7em); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+/* Transition family mở rộng (depth contract 2026-10-19 — exit = reverse của enter,
+ * không đúc keyframe out). Ngoại lệ duy nhất về "chỉ transform/opacity": bp-blur-in
+ * animate filter (blur) — bản chất của loại Blur, vẫn GPU-composited. */
+@keyframes bp-slide-in-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bp-grow-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes bp-rotate-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.96); }
+  to { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+@keyframes bp-blur-in {
+  from { opacity: 0; filter: blur(8px); }
+  to { opacity: 1; filter: blur(0); }
+}
+@keyframes bp-soft-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@theme inline {
+  --animate-fade-in: bp-fade-in var(--motion-base) var(--ease-enter);
+  --animate-fade-out: bp-fade-out var(--motion-fast) var(--ease-exit);
+  --animate-zoom-in: bp-zoom-in var(--motion-base) var(--ease-enter);
+  --animate-zoom-out: bp-zoom-out var(--motion-fast) var(--ease-exit);
+  --animate-slide-in-right: bp-slide-in-right var(--motion-base) var(--ease-enter);
+  --animate-slide-out-right: bp-slide-out-right var(--motion-fast) var(--ease-exit);
+  --animate-slide-up-in: bp-slide-up-in var(--motion-base) var(--ease-enter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skeleton shimmer wave (gradient translate — KHÔNG pulse opacity) */
+@keyframes bp-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}

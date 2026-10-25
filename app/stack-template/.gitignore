@@ -1,0 +1,51 @@
+# --- secrets / env ---
+.env
+.env.*
+!.env.example
+
+# --- node / pnpm ---
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+# MF dts-plugin sinh khi chạy rspack dev (SF-1 spike R2) — generated, không commit
+@mf-types/
+
+# --- java (spring-svc) ---
+target/
+*.class
+**/.mvn/wrapper/maven-wrapper.jar
+
+# --- go ---
+bin/
+*.exe
+*.test
+*.out
+
+# --- postgres local volume ---
+pgdata/
+
+# --- logs / temp ---
+*.log
+tmp/
+.cache/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Storybook build output (CI artifact — không commit)
+storybook-static/
+
+# Team internal comms (inbox/channel/board) — local only, không vào repo
+docs/team/
+
+# Ảnh evidence/trong superpowers — local only (PO 2026-10-19)
+docs/superpowers/**/*.png
+docs/superpowers/**/*.jpg
+docs/superpowers/**/*.jpeg
+docs/superpowers/**/*.webp

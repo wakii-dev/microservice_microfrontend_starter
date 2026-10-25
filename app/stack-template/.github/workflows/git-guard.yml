@@ -1,0 +1,44 @@
+name: git-guard
+
+# Enforce branch-name + commit-message rules trên MỌI PR (docs/git-flow.md).
+# CI-level = ai cũng bị bất kể setup local; muốn feedback sớm hơn → cài hook:
+#   git config core.hooksPath .githooks
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: branch + commit message rule
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # cần history so với base branch
+
+      - name: Branch name rule — wakii-dev/<loại>-<slug>
+        run: |
+          BRANCH="${GITHUB_HEAD_REF}"
+          echo "branch: $BRANCH"
+          if ! echo "$BRANCH" | grep -qE '^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$'; then
+            echo "✗ Branch '$BRANCH' vi phạm rule."
+            echo "  Đúng: wakii-dev/<story|sf|fix|docs|chore|feat>-<slug-kebab>  (vd: wakii-dev/fix-gosvc-recent-events)"
+            exit 1
+          fi
+          echo "✓ branch OK"
+
+      - name: Commit message rule — conventional (bỏ merge commits)
+        run: |
+          BASE="origin/${GITHUB_BASE_REF}"
+          git fetch origin "${GITHUB_BASE_REF}" --quiet
+          BAD="$(git log --no-merges --format='%s' "$BASE..HEAD" | grep -vE '^(feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert)(\([a-z0-9./-]+\))?!?: .+' || true)"
+          if [ -n "$BAD" ]; then
+            echo "✗ Commit message vi phạm convention (type(scope): mô tả):"
+            echo "$BAD"
+            echo "  Đúng: 'fix(go-svc): recentEvents test chết theo lịch' / 'docs(flow): git flow'"
+            exit 1
+          fi
+          echo "✓ commit messages OK"

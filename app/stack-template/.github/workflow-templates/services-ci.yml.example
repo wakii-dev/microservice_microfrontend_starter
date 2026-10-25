@@ -1,0 +1,69 @@
+# ============================================================================
+# TEMPLATE CI per-service — SF-2/3/4 COPY file này thành .github/workflows/
+# services-<svc>.yml rồi điền chỗ đánh dấu <...>. KHÔNG enable nguyên bản
+# (services chưa có code — workflow sẽ fail đỏ vô nghĩa).
+#
+# Pattern bắt buộc (epic spec rev 3): path-filtered per service + boot-smoke job
+# (container up + curl /healthz + /readyz + migration chạy xong).
+# ============================================================================
+name: services-<svc>
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/<svc>/**"
+      - "platform/docker-compose.yml"   # compose entry đổi cũng phải re-test
+      - ".github/workflows/services-<svc>.yml"
+  pull_request:
+    paths:
+      - "services/<svc>/**"
+      - "platform/docker-compose.yml"
+
+jobs:
+  build-test:
+    name: build + test (<svc>)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # --- node-svc (SF-2): pnpm + vitest
+      # - uses: pnpm/action-setup@v4
+      #   with: { version: 9 }
+      # - uses: actions/setup-node@v4
+      #   with: { node-version: 22, cache: pnpm }
+      # - run: pnpm install --frozen-lockfile
+      # - run: pnpm --filter <svc> test
+      # --- spring-svc (SF-3): mvnw trong Docker hoặc setup-java 21
+      # --- go-svc (SF-4): setup-go 1.24
+      - name: <fill in per stack>
+        run: echo "TODO SF-2/3/4"
+
+  docker-build:
+    name: docker build (<svc>)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage — platform/conventions/01)
+        run: docker build -t <svc>:ci services/<svc>
+
+  boot-smoke:
+    name: boot-smoke (<svc> + deps)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot service + postgres (+ auth-svc nếu cần JWT)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres auth-svc <svc>
+      - name: Smoke — /healthz + /readyz + migration xong
+        run: |
+          # wait rồi grep '"status":"ok"' — pattern giống workflows/contracts.yml
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:<PORT>/readyz >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:<PORT>/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:<PORT>/readyz | grep -q '"status":"ok"'
+          # <svc>-specific: vd node-svc tạo task rồi list lại; go-svc POST event rồi đọc feed

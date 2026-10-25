@@ -1,0 +1,11 @@
+/* Tailwind v4 entry của shell — import ui-kit tailwind.css (theme + utilities, KHÔNG
+ * preflight). Utilities nằm layer(theme/utilities) nên css scoped .sh-* (unlayered)
+ * vẫn thắng khi cùng specificity — parity giữ nguyên trong giai đoạn migrate dần
+ * (spec tailwind-migration).
+ * ⚠️ @source PHẢI trỏ qua node_modules symlink ĐÚNG NHƯ THẾ: path repo-relative
+ * '../ui-kit/src' bị tailwind resolve qua symlink → node_modules → BỊ IGNORE (đã
+ * nghiệm chứng 2026-10-17 — chỉ explicit node_modules path được scan). */
+@import '@wakii/ui-kit/styles/tailwind.css';
+
+@source './';
+@source '../node_modules/@wakii/ui-kit/src';

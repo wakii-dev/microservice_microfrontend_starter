@@ -1,0 +1,70 @@
+# Git flow — architecture-overview
+
+Quy ước nhánh + merge cho repo boilerplate. Mục tiêu: `main` luôn xanh CI + deployable,
+mọi thay đổi đi qua PR để có evidence + review trail (CI chạy trên PR trước khi vào main).
+
+## Nhánh
+
+| Loại | Tên | Từ | Vào |
+|---|---|---|---|
+| Story (epic/SF) | `__STACK_ORG__/story-<slug>` hoặc `__STACK_ORG__/sf-N-<slug>` | `main` | PR → `main` |
+| Fix | `__STACK_ORG__/fix-<slug>` | `main` | PR → `main` |
+| Docs/chore nhỏ | `__STACK_ORG__/docs-<slug>` / `__STACK_ORG__/chore-<slug>` | `main` | PR → `main` |
+
+Quy tắc:
+
+1. **Nhánh mới luôn từ `main` mới nhất** (`git fetch origin && git checkout -b <tên> origin/main`) — tránh mâu thuẫn với các merge đang lơ lửng.
+2. **Không push thẳng `main`.** Từ 2026-10-17: thay đổi vào main qua PR (CI gates chạy trên PR). Ngoại lệ thực tế khẩn (CI infra chết) — merge trực tiếp + nêu rõ trong commit message.
+3. **Một nhánh = một chủ đề.** Rename/chore lớn (vd `frontend/ → app/`) là commit riêng, không trộn với feature.
+4. Worktree song song (Orca/Claude sessions): mỗi session một nhánh riêng; **đọc `git log` nhánh TRƯỚC khi commit** — branch có thể đã được session khác đẩy tiến.
+
+## PR
+
+- Mở bằng `gh pr create` — template tự áp dụng (`.github/pull_request_template.md`).
+- **CI phải xanh trên PR trước merge** (convergence chạy mọi push; các workflow khác theo paths).
+- **Merge = `--no-ff`**, message theo convention: `merge(<loại>): <tóm tắt>` + ghi rõ nguồn
+  (vd `merge(feat): ui-kit — tách design system + Storybook 9 (ADR-0009)`).
+- Sau merge: xoá nhánh remote (`git push origin --delete <nhánh>`) + local khi không còn dùng.
+- Self-merge cho phép với docs/chore nhỏ; feature/fix đụng runtime cần ≥1 approve (reviewer
+  là agent `code-reviewer` hoặc người).
+
+## Commit message
+
+- Convention: `<type>(<scope>): <mô tả>` — type: `feat|fix|refactor|docs|test|chore|merge`.
+- Body ghi **root cause + evidence** khi là fix (mẫu: `fix(ci): convergence...` — nêu run ID,
+  local repro); ghi **verified gì** khi là refactor/feat (số test, build PASS).
+- Đổi behavior + story workflow → chụp evidence vào `docs/superpowers/evidence/`.
+
+## Rule được ENFORCE (husky pre-push + commit-msg)
+
+⚠️ 2026-10-17: GitHub Actions DISABLE (billing) → **hooks là lớp chính**. `.husky/pre-push`
+chặn push vi phạm 2 rule sau + chạy FE checks (typecheck/vitest/build) cho package bị đổi:
+
+1. **Branch name**: `__STACK_ORG__/<story|sf|fix|docs|chore|feat>-<slug-kebab>`
+   (vd `__STACK_ORG__/fix-gosvc-recent-events`, `__STACK_ORG__/sf-5-ui-redesign-conv`)
+2. **Commit message**: `<type>(<scope>): <mô tả>` với type ∈
+   `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`
+   (merge commits "Merge pull request #N" được ngoại lệ)
+
+pre-push CHẠY THÊM FE checks (typecheck/vitest/build-storybook) cho package có file đổi
+(so với origin/main) — thay thế lớp CI shell/remotes/ui-kit đã tắt.
+
+Feedback sớm ngay tại máy — **husky** tự cài khi `pnpm install` (root `prepare` script
+chạy `husky`, guard `test -d .git` để không chết trong docker/CI không có .git):
+
+- `.husky/commit-msg` — validate conventional commit TRƯỚC khi commit tạo (mirror
+  git-guard; merge commits được ngoại lệ; thoát khẩn `git commit --no-verify` — CI vẫn chặn)
+- CI `git-guard` vẫn là lớp enforce cuối cùng (hook chỉ là feedback sớm, ai tắt hook
+  cũng không qua nổi PR)
+
+Worktree (Orca/Claude session): `pnpm install` trong worktree cũng chạy root `prepare`
+→ husky tự active theo worktree đó. Bỏ qua khẩn: `git push --no-verify` (tự chịu trách
+nhiệm — KHÔNG có lớp CI phía sau cho đến khi billing được khôi phục).
+
+## Checklist nhanh trước merge
+
+- [ ] Suite local xanh (xem bảng lệnh trong CLAUDE.md — `test_all:` của orca.yaml)
+- [ ] CI xanh trên nhánh/PR (kể cả `convergence`)
+- [ ] Không đụng READ-LOCKED (`app/shared/src/*.ts` logic + `mfToolkit`) nếu chưa có epic duyệt
+- [ ] Đụng contract → sync đủ bề mặt (xem agent `contracts-keeper`)
+- [ ] Descriptor đồng bộ (CLAUDE.md / orca.yaml / agents) nếu đổi cấu trúc, port, lệnh

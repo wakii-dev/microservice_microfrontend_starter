@@ -1,0 +1,133 @@
+name: contracts
+
+# SF-1 (FI-64) — contract lint + compose validate + gitleaks + boot-smoke auth
+# (container up + /healthz + /readyz + login qua gateway + schemathesis).
+# SF-5 (VU-59): boot auth-svc thay auth-mock (decommission) + schemathesis FULL
+# paths (auth-svc implement đủ register/refresh/logout* — hết thời gian scope hẹp).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "contracts/**"
+      - "platform/**"
+      - ".github/workflows/contracts.yml"
+      - ".spectral.yaml"
+  pull_request:
+    paths:
+      - "contracts/**"
+      - "platform/**"
+      - ".github/workflows/contracts.yml"
+      - ".spectral.yaml"
+
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — follow-up repo-wide);
+  # job gitleaks giữ permissions riêng (pull-requests: read) — job-level override repo-level
+
+jobs:
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    # gitleaks-action đọc PR commits qua API — thiếu pull-requests:read thì 403
+    # "Resource not accessible by integration" (run 38300531175)
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  spectral:
+    name: spectral lint (openapi)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint contracts/openapi
+        run: npx --yes @stoplight/spectral-cli@6 lint "contracts/openapi/*.yaml"
+
+  compose-config:
+    name: compose config validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose.yml (KHÔNG build — services khung chưa có impl)
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q
+
+  boot-smoke-auth-svc:
+    name: boot-smoke auth-svc (+gateway) + schemathesis
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot trio (postgres + auth-svc + gateway) — chạy postgres init script thật
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres auth-svc gateway
+
+      - name: Wait /healthz + /readyz (auth-svc trực tiếp — readyz = migration + seed xong)
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8090/healthz >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:8090/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8090/readyz  | grep -q '"status":"ok"'
+
+      - name: Gateway routing — login + register QUA gateway :8080 (shape v2)
+        run: |
+          RES=$(curl -s -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"alice@demo.local","password":"demo-password"}')
+          echo "$RES" | grep -q '"user"'                     # shape v2 — decision #8
+          echo "$RES" | grep -q '"refreshToken"'             # cặp token, không còn expiresIn
+          echo "$RES" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/' > /tmp/jwt
+          # register mở qua gateway (auth.yaml v2 — entry công khai, roles ["user"])
+          # P2 security-audit SF-5: nhánh fail không in body (có thể chứa token) — chỉ field names
+          CODE=$(curl -s --max-time 10 -o /tmp/reg.json -w '%{http_code}' -X POST http://localhost:8080/api/auth/register \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"ci-contracts@example.com","password":"ci-password-1","displayName":"CI Contracts"}')
+          [ "$CODE" = "201" ] || { echo "register qua gateway → $CODE (expect 201) — fields: $(grep -o '"[a-zA-Z]\+":' /tmp/reg.json | tr '\n' ' ')"; exit 1; }
+          rm -f /tmp/reg.json
+
+      - name: Verify JWT claims theo token contract (sub/email/roles, TTL 30m, iss pinned)
+        run: |
+          # JWT = base64url KHÔNG padding — `base64 -d` fail (learned run 38212318058);
+          # decode qua python3 urlsafe_b64decode + tự bổ sung padding
+          PAYLOAD=$(TOKEN=$(cat /tmp/jwt) python3 -c 'import base64, os; seg = os.environ["TOKEN"].split(".")[1]; seg += "=" * (-len(seg) % 4); print(base64.urlsafe_b64decode(seg).decode())')
+          # P2 security-audit SF-5: không echo payload (JWT claims) ra CI log —
+          # các assert grep bên dưới tự in đủ context khi fail
+          echo "$PAYLOAD" | grep -q '"sub":"11111111-1111-4111-8111-111111111111"'
+          echo "$PAYLOAD" | grep -q '"email":"alice@demo.local"'
+          echo "$PAYLOAD" | grep -q '"roles":\["admin"\]'
+          # iss PINNED "auth-mock" — giá trị lịch sử CỐ Ý giữ nguyên (token-contract.md;
+          # decision #7) — KHÔNG đổi theo tên service
+          echo "$PAYLOAD" | grep -q '"iss":"auth-mock"'
+          TTL=$(echo "$PAYLOAD" | jq '.exp - .iat')
+          [ "$TTL" = "1800" ] || { echo "TTL sai: $TTL (expected 1800 = 30m — token-contract.md §1)"; exit 1; }
+
+      - name: Gateway chặn thiếu-token 401 trên /api/tasks (presence check)
+        run: |
+          CODE=$(curl -s -o /tmp/401.json -w '%{http_code}' http://localhost:8080/api/tasks)
+          [ "$CODE" = "401" ] || { echo "expected 401, got $CODE"; exit 1; }
+          grep -q '"code":"UNAUTHORIZED"' /tmp/401.json
+          # /api/auth KHÔNG bị chặn (entry login)
+          CODE2=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' -d '{}')
+          [ "$CODE2" != "401" ] || { echo "/api/auth bị presence check — sai routing table"; exit 1; }
+
+      - name: Schemathesis contract test (FULL paths — auth.yaml v2)
+        run: |
+          # venv path deterministic — pipx bin dir trên runner không ổn định (run 38213445973)
+          python3 -m venv /tmp/stenv
+          /tmp/stenv/bin/pip install --quiet "schemathesis==3.*"
+          # base-url kèm path /api/auth — schemathesis 3.x bỏ qua servers.url relative (run 38213876943)
+          # SF-5 (VU-64): NỚI FULL — auth-svc implement đủ mọi path spec v2
+          # (register/login/refresh/logout/logout-all/users) → bỏ exclude SF-1.
+          /tmp/stenv/bin/schemathesis run contracts/openapi/auth.yaml \
+            --base-url http://localhost:8090/api/auth \
+            --checks all --hypothesis-max-examples 25 --hypothesis-deadline 5000

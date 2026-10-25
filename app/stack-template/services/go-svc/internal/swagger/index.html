@@ -1,0 +1,28 @@
+<!-- go-svc swagger UI — spec served tại /api/activity/openapi.yaml (auth-exempt).
+     swagger-ui-dist v5.17.14 vendored — offline hoàn toàn, không CDN. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>go-svc — Activity API</title>
+  <link rel="stylesheet" href="swagger-ui.css">
+  <link rel="icon" type="image/png" href="favicon-32x32.png">
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        // relative → /api/activity/openapi.yaml (cùng mount với /docs)
+        url: "../openapi.yaml",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        tryItOutEnabled: true,
+        // try-it-out gọi trực tiếp origin service — Authorization header tự set tay
+        // (demo qua gateway :8080 thì header Authorization đã có từ FE/login).
+      });
+    };
+  </script>
+</body>
+</html>

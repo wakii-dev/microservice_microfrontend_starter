@@ -1,0 +1,140 @@
+<!doctype html>
+<!--
+  DEMO design-system sống — SF-1 story VU-53 (hướng B "Linear-referenced dark").
+  Mở trực tiếp bằng browser (file:// hoặc serve): tokens + base + primitives CSS
+  là FILE THẬT trong fe-shared (link tương đối) — demo luôn đồng bộ source of truth.
+  Markup dưới đây mirror ĐÚNG DOM các components render (tests
+  frontend/shell/tests/primitives.test.tsx assert classes):
+    Badge      → <span class="bp-badge bp-badge--{variant}" role="status"><span class="bp-badge__dot"/>…</span>
+    EmptyState → <div class="bp-empty"><p class="bp-empty__title">…</p>[<p class="bp-empty__description">…</p>][<div class="bp-empty__action">…</div>]</div>
+    Skeleton   → <div aria-busy="true"><div class="bp-skeleton bp-skeleton--{variant}"/>×count</div>
+    Spinner    → <span class="bp-spinner" role="status" aria-label="…"/>
+  Visual chuẩn so sánh: b-reference.html/.png (cùng thư mục).
+-->
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boilerplate DS — demo primitives (SF-1)</title>
+    <link rel="stylesheet" href="../../../../frontend/shared/src/styles/tokens.css" />
+    <link rel="stylesheet" href="../../../../frontend/shared/src/styles/base.css" />
+    <style>
+      /* Page-scoped demo layout (KHÔNG phải design-system — chỉ bày primitives) */
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: var(--sp-5);
+        display: grid;
+        gap: var(--sp-5);
+      }
+      section {
+        background: var(--c-s2);
+        border: 1px solid var(--line);
+        border-radius: var(--r-3);
+        padding: var(--sp-5);
+        display: grid;
+        gap: var(--sp-3);
+      }
+      h2 {
+        color: var(--ink);
+        font-size: var(--fs-h1);
+        margin: 0;
+      }
+      .row {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-2);
+      }
+      .meta {
+        color: var(--ink3);
+        font-size: var(--fs-meta);
+      }
+      .primary-btn {
+        background: var(--accent);
+        border: none;
+        border-radius: var(--r-2);
+        color: #fff;
+        padding: var(--sp-2) var(--sp-4);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section>
+        <h2>Badge — task status</h2>
+        <div class="row">
+          <span class="bp-badge bp-badge--todo" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>Cần làm</span>
+          <span class="bp-badge bp-badge--doing" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>Đang làm</span>
+          <span class="bp-badge bp-badge--done" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>Xong</span>
+          <span class="bp-badge bp-badge--failed" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>Gán thất bại</span>
+        </div>
+      </section>
+
+      <section>
+        <h2>Badge — activity action</h2>
+        <div class="row">
+          <span class="bp-badge bp-badge--created" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>đã tạo</span>
+          <span class="bp-badge bp-badge--updated" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>đã cập nhật</span>
+          <span class="bp-badge bp-badge--assigned" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>đã gán</span>
+          <span class="bp-badge bp-badge--deleted" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>đã xoá</span>
+          <span class="bp-badge bp-badge--assignmentFailed" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>gán thất bại</span>
+        </div>
+      </section>
+
+      <section>
+        <h2>Task row (hero pattern — hand-off §4)</h2>
+        <div class="row" style="background: var(--c-s3); border: 1px solid var(--line); border-radius: var(--r-2); padding: var(--sp-3)">
+          <span class="bp-badge bp-badge--doing" role="status"><span class="bp-badge__dot" aria-hidden="true"></span>Đang làm</span>
+          <div style="flex: 1; min-width: 0">
+            <div style="color: var(--ink); font-size: var(--fs-body)">Viết walkthrough SF-5</div>
+            <div style="color: var(--ink2); font-size: var(--fs-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
+              Chụp màn hình compose :8080, kiểm 8 acceptance epic
+            </div>
+          </div>
+          <span class="meta">5555…5555 · 14/10/2026 06:30</span>
+          <span class="bp-spinner" role="status" aria-label="Đang cập nhật task"></span>
+        </div>
+      </section>
+
+      <section>
+        <h2>Skeleton</h2>
+        <div style="display: grid; gap: var(--sp-2)" aria-busy="true">
+          <div class="bp-skeleton bp-skeleton--card" aria-hidden="true"></div>
+          <div class="bp-skeleton bp-skeleton--row" aria-hidden="true"></div>
+          <div class="bp-skeleton bp-skeleton--row" aria-hidden="true"></div>
+          <div class="bp-skeleton bp-skeleton--text" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>EmptyState</h2>
+        <div class="bp-empty">
+          <p class="bp-empty__title">Chưa có activity nào</p>
+          <p class="bp-empty__description">Tạo task đầu tiên ở trang Tasks — feed sẽ phản ánh ở đây.</p>
+          <div class="bp-empty__action"><button class="primary-btn" type="button">Sang trang Tasks</button></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Error banner + form controls (base.css)</h2>
+        <p class="error-banner" role="alert">Dịch vụ xác thực người dùng (spring-svc) chưa sẵn sàng — thử lại sau.</p>
+        <div class="row">
+          <input placeholder="Tiêu đề task…" style="padding: var(--sp-2) var(--sp-3)" />
+          <select style="padding: var(--sp-2) var(--sp-3)">
+            <option>Cần làm</option>
+            <option>Đang làm</option>
+            <option>Xong</option>
+          </select>
+          <button class="primary-btn" type="button">Nút chính (accent)</button>
+          <button type="button">Nút phụ (ghost)</button>
+        </div>
+      </section>
+
+      <p class="meta">
+        Tokens: --c-canvas #010102 · --accent #5e6ad2 · radius 4/6/8 · KHÔNG box-shadow — depth =
+        surface ladder + viền 1px. Nguồn: hand-off ui-redesign-direction.md (user duyệt 2026-10-13).
+      </p>
+    </main>
+  </body>
+</html>

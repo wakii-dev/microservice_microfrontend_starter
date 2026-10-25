@@ -33,7 +33,10 @@
   },
   "peerDependencies": {
     "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
     "@tiptap/react": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
     "chart.js": "^4.5.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -50,7 +53,16 @@
     "@fullcalendar/core": {
       "optional": true
     },
+    "@fullcalendar/daygrid": {
+      "optional": true
+    },
+    "@fullcalendar/interaction": {
+      "optional": true
+    },
     "@tiptap/react": {
+      "optional": true
+    },
+    "@tiptap/starter-kit": {
       "optional": true
     }
   },

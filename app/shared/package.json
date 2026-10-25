@@ -4,6 +4,8 @@
   "private": true,
   "description": "fe-shared — logic FE dùng chung: ApiClient + token-storage + error-envelope + mf-bootstrap (4 file READ-LOCKED — cấm sửa ngoài epic duyệt). Design system đã tách sang @wakii/ui-kit 2026-10-17 (ADR-0009). Consumed QUA SOURCE. Standalone-copy: remote/shell copy KÈM package này.",
   "type": "module",
+  "license": "MIT",
+  "author": "wakii-dev",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

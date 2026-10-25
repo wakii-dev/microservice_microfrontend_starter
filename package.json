@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "Boilerplate microservice + micro-frontend — template nội bộ copy-able (epic FI-62)",
+  "license": "MIT",
+  "author": "wakii-dev",
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22",

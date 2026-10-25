@@ -4,6 +4,24 @@
   "private": true,
   "type": "module",
   "description": "CLI scaffold app React + @wakii/ui-kit — pnpm create wakii-app my-app (spec: /tmp/starter-spec.md → docs khi publish)",
+  "keywords": [
+    "wakii",
+    "create-app",
+    "scaffold",
+    "starter",
+    "react",
+    "vite",
+    "typescript",
+    "cli",
+    "ui-kit"
+  ],
+  "license": "MIT",
+  "author": "wakii-dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wakii-dev/architecture-overview.git",
+    "directory": "app/create-wakii-app"
+  },
   "bin": {
     "create-wakii-app": "./dist/index.js"
   },

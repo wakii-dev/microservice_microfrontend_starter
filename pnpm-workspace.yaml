@@ -24,3 +24,5 @@ catalog:
   "@tanstack/react-query": ^5.0.0
   # motion (redesign Boilerplate 2026-10-23) — landing + remotes animation
   "framer-motion": ^14.6.0
+  # Experience3d peer (redesign landing hero)
+  "three": ^0.186.1

@@ -20,6 +20,7 @@
     "react-dom": "catalog:",
     "react-hook-form": "^7",
     "react-router": "catalog:",
+    "three": "catalog:",
     "zod": "^4.0.0"
   },
   "devDependencies": {

@@ -4,6 +4,19 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.6.0] — 2026-10-25 (customize pass — classNames slots + style passthrough toàn thư viện)
+
+### Added
+
+- **Customize pass (SÓNG-3, waves 1-3)**: `classNames` slots (antd v5-style) + `style` passthrough cho ~30 components — Button (root/icon), Input (root/input/prefix/suffix), Textarea, Select, Checkbox (root/box/label), Radio, Switch, Card, Tag (+Checkable), Spinner, Alert, v.v. Default path (không truyền) giữ nguyên DOM/GUI hoàn toàn — consumer append qua slots, `className` user luôn cuối.
+- Barrel export đầy đủ `*ClassNames` types (ButtonClassNames, InputClassNames, TagClassNames, SpinnerClassNames, …).
+- Dep `classnames` cho merge gọn slots.
+
+### Fixed
+
+- Spinner story CustomStyled bỏ annotation StoryObj (TS2322 sót wave 2).
+- ButtonClassNames sót barrel trong PR #93.
+
 ## [0.5.0] — 2026-10-24 (BREAKING — barrel chính sạch彻底 peer imports)
 
 ### Breaking

@@ -8,8 +8,20 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Extra, ScaffoldPlan } from './options.js';
 
-/** Nguồn template mặc định — publish kèm CLI (spec: ../starter-templates/). */
-export const DEFAULT_TEMPLATES_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../starter-templates');
+/** Nguồn template mặc định — 2 layout: repo (src|dist → app/starter-templates)
+ * và npm package (dist → <pkg>/starter-templates, publish script bundle vào).
+ * Chọn thư mục ĐẦU TIÊN tồn tại thực tế. */
+function resolveTemplatesRoot(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  for (const candidate of [
+    resolve(here, '../../starter-templates'), // repo: app/create-wakii-app/{src,dist}
+    resolve(here, '../starter-templates'), // npm: <pkg>/dist + <pkg>/starter-templates
+  ]) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return resolve(here, '../../starter-templates');
+}
+export const DEFAULT_TEMPLATES_ROOT = resolveTemplatesRoot();
 
 /** Danh sách peer deps theo extra (spec package.json template) — version theo
  * monorepo đang pin. schedule cần đủ 3 package fullcalendar, editor cần cả

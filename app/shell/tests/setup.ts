@@ -13,3 +13,25 @@ if (!window.matchMedia) {
     dispatchEvent: () => false,
   })) as unknown as typeof window.matchMedia;
 }
+
+// jsdom thiếu IntersectionObserver — framer-motion (whileInView/useInView, landing
+// redesign 2026-10-25) đọc global này lúc mount. Stub FIRE NGAY isIntersecting=true:
+// nội dung landing luôn "đã vào viewport" trong test — DOM đầy đủ, không kẹt opacity 0.
+if (typeof globalThis.IntersectionObserver === 'undefined') {
+  class IntersectionObserverStub implements IntersectionObserver {
+    readonly root: Element | Document | null = null;
+    readonly rootMargin: string = '';
+    readonly thresholds: ReadonlyArray<number> = [];
+    constructor(private callback: IntersectionObserverCallback) {}
+    observe(target: Element): void {
+      this.callback([{ isIntersecting: true, target } as unknown as IntersectionObserverEntry], this);
+    }
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+  }
+  (globalThis as unknown as { IntersectionObserver: typeof IntersectionObserver }).IntersectionObserver =
+    IntersectionObserverStub;
+}

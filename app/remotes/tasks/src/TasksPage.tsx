@@ -1,6 +1,12 @@
 // TasksPage — expose `./TasksPage` (registry conventions/08), shell mount vào route /tasks.
 // Libs adopt 2026-10-17: data layer = TanStack Query (useInfiniteQuery + useMutation),
-// form = react-hook-form (TaskForm/TaskItem), animation = motion.
+// form = ui-kit useForm + zod, animation = motion (framer-motion, bundle LOCAL —
+// KHÔNG nằm trong shared: rspack).
+// Motion redesign (mission remotes): MotionConfig reducedMotion="user" toàn cây ·
+// filter indicator trượt layoutId (StatusFilter) · list stagger + AnimatePresence
+// enter/exit · skeleton↔data fade mượt · empty state icon float · badge "Đã tạo
+// task" pop spring trong TaskForm · flash row khi update (TaskItem). SEMANTICS
+// GIỮ NGUYÊN (xem các mốc F2/F3 dưới — tests là contract).
 //
 // SEMANTICS GIỮ NGUYÊN từ bản useState (F2/F3 fixes — verify bằng tests):
 // - Mutations cập nhật IN-PLACE qua setQueryData (KHÔNG refetch full — giữ draft edit
@@ -11,9 +17,9 @@
 // - Mutation success → invalidate ['activity'] — react-query singleton MF: cùng cache
 //   với remote activity → feed/stats tự refetch (payoff của share singleton).
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'motion/react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { useState } from 'react';
-import { Alert, EmptyState, message, Reveal, Skeleton, Tag } from '@wakii/ui-kit';
+import { Alert, EmptyState, Icon, message, Skeleton } from '@wakii/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
@@ -24,9 +30,9 @@ import {
   TaskStatus,
   updateTask,
 } from './api';
-import { STATUS_LABELS, WRITABLE_STATUSES } from './components/status';
 import { TaskForm } from './components/TaskForm';
 import { TaskList } from './components/TaskList';
+import { StatusFilter } from './components/StatusFilter';
 // Tokens idempotent (quyết định #5 epic): remote import tokens trong page entry —
 // shell (SF-2) cũng import global; nhiều bản cùng giá trị vô hại. KHÔNG import
 // base.css ở đây — shell làm chủ global base (bp-* primitives css đi kèm base).
@@ -107,7 +113,8 @@ export function TasksPage() {
         }
       });
       invalidateActivity();
-      message.success('Đã tạo task');
+      // Feedback "Đã tạo task" chuyển sang badge spring trong TaskForm (motion
+      // redesign) — toast tĩnh bỏ để tránh double-feedback.
     },
     onError: (err) => setError(describeError(err)),
   });
@@ -212,71 +219,96 @@ export function TasksPage() {
   }
 
   return (
-    <motion.section
-      className="flex flex-col gap-6 text-ink"
-      aria-label="Quản lý tasks"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
-    >
-      <h1 className="m-0 text-h1">Tasks</h1>
+    // Motion redesign: reducedMotion="user" — tôn trọng prefers-reduced-motion
+    // cho TOÀN bộ cây (stagger/indicator/flash rơi về tức thì khi user tắt motion).
+    <MotionConfig reducedMotion="user">
+      <motion.section
+        className="flex flex-col gap-6 text-ink"
+        aria-label="Quản lý tasks"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+      >
+        <h1 className="m-0 text-h1">Tasks</h1>
 
-      {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
-        <Alert
-          className="mb-4"
-          type="error"
-          message={error ?? describeError(listQuery.error)}
-        />
-      )}
-
-      <TaskForm onCreate={handleCreate} />
-
-      {/* Motion pass tiết chế (mission #8): Reveal wrap NGOÀI filter + bảng
-       * (một wrap duy nhất cho khối list — không wrap từng hàng); 0 đổi logic.
-       * jsdom không IO → Reveal fallback hiện luôn, tests không ảnh hưởng. */}
-      <Reveal direction="up" delay={80}>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo trạng thái">
-          <Tag.Checkable checked={statusFilter === null} onChange={() => setStatusFilter(null)}>
-            Tất cả
-          </Tag.Checkable>
-          {WRITABLE_STATUSES.map((status) => (
-            <Tag.Checkable
-              key={status}
-              checked={statusFilter === status}
-              onChange={() => setStatusFilter(status)}
-            >
-              {STATUS_LABELS[status]}
-            </Tag.Checkable>
-          ))}
-        </div>
-      </Reveal>
-
-      <Reveal direction="up" delay={120}>
-        {loading ? (
-          <Skeleton variant="row" count={4} />
-        ) : tasks.length === 0 ? (
-          <EmptyState
-            title="Chưa có task nào"
-            description={
-              statusFilter
-                ? 'Thử bỏ bộ lọc để xem tất cả task.'
-                : 'Tạo task đầu tiên ở form trên.'
-            }
-          />
-        ) : (
-          <TaskList
-            tasks={tasks}
-            total={total}
-            hasMore={Boolean(listQuery.hasNextPage)}
-            loadingMore={loadingMore}
-            onStatusChange={handleStatusChange}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onLoadMore={() => void listQuery.fetchNextPage()}
+        {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
+          <Alert
+            className="mb-4"
+            type="error"
+            message={error ?? describeError(listQuery.error)}
           />
         )}
-      </Reveal>
-    </motion.section>
+
+        <TaskForm onCreate={handleCreate} />
+
+        {/* Motion redesign: indicator nền trượt layoutId giữa các nút filter
+         * (StatusFilter) — logic setStatusFilter không đổi. */}
+        <StatusFilter value={statusFilter} onChange={setStatusFilter} />
+
+        {/* Skeleton ↔ list/empty fade mượt qua AnimatePresence mode="wait" —
+         * data tới → skeleton fade-out rồi list fade-in. Mutation in-place KHÔNG
+         * đi qua đây (isLoading chỉ lần đầu/đổi filter) → draft edit luôn nguyên. */}
+        <AnimatePresence mode="wait" initial={false}>
+          {loading ? (
+            <motion.div
+              key="tasks-skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+            >
+              <Skeleton variant="row" count={4} />
+            </motion.div>
+          ) : tasks.length === 0 ? (
+            <motion.div
+              key="tasks-empty"
+              className="flex flex-col items-center"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              {/* Icon minh hoạ float nhẹ — keyframe bp-float của kit tokens;
+               * prefers-reduced-motion tắt animation duration về 0.01ms (global). */}
+              <span
+                aria-hidden="true"
+                className="mb-1 text-ink3"
+                style={{ animation: 'bp-float 3s ease-in-out infinite' }}
+              >
+                <Icon name="check-circle" size={40} />
+              </span>
+              <EmptyState
+                title="Chưa có task nào"
+                description={
+                  statusFilter
+                    ? 'Thử bỏ bộ lọc để xem tất cả task.'
+                    : 'Tạo task đầu tiên ở form trên.'
+                }
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="tasks-list"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+            >
+              <TaskList
+                tasks={tasks}
+                total={total}
+                hasMore={Boolean(listQuery.hasNextPage)}
+                loadingMore={loadingMore}
+                onStatusChange={handleStatusChange}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onLoadMore={() => void listQuery.fetchNextPage()}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.section>
+    </MotionConfig>
   );
 }
 

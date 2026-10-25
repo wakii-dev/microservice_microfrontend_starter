@@ -1,6 +1,10 @@
 // Timeline feed nhóm theo ngày (SF-4, hand-off §4): heading ngày 12px --ink3 + rail dọc
 // --line, entry = FeedItem (badge action + tên + task + time mono phải).
-import { motion } from 'motion/react';
+// Motion redesign: stagger 2 tầng qua variants propagation — ol animate "show" →
+// day-li (delay theo thứ tự ngày + staggerChildren) → entry-li (FeedItem) xuất hiện
+// lần lượt; entries nằm trong AnimatePresence → entry MỚI (event tới realtime qua
+// invalidate ['activity']) pop-in, entry biến mất fade-out.
+import { AnimatePresence, motion } from 'motion/react';
 import type { ActivityFeedItem } from '../api';
 import { FeedItem } from './FeedItem';
 import { dayKey, formatDayHeading } from './time';
@@ -29,25 +33,36 @@ export function groupByDay(items: ActivityFeedItem[], now: Date): DayGroup[] {
   return groups;
 }
 
+/** Day group: fade+y vào (delay theo ngày) + stagger con entries. */
+const dayVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: (dayIndex: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: dayIndex * 0.06, duration: 0.3, ease: 'easeOut' as const, staggerChildren: 0.045 },
+  }),
+};
+
 export function Timeline({ items, now = new Date() }: { items: ActivityFeedItem[]; now?: Date }) {
   return (
-    <ol aria-label="Danh sách hoạt động" className="m-0 grid list-none gap-6 p-0">
+    <motion.ol
+      aria-label="Danh sách hoạt động"
+      className="m-0 grid list-none gap-6 p-0"
+      initial="hidden"
+      animate="show"
+    >
       {groupByDay(items, now).map((group, dayIndex) => (
-        <motion.li
-          key={group.key}
-          className="act-timeline__day"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: dayIndex * 0.08, ease: 'easeOut' }}
-        >
+        <motion.li key={group.key} className="act-timeline__day" variants={dayVariants} custom={dayIndex}>
           <h3 className="mb-2 text-meta font-semibold uppercase tracking-[0.04em] text-ink3">{group.heading}</h3>
           <ul className="relative m-0 list-none p-0 before:absolute before:bottom-3 before:left-[calc(var(--sp-4)+11px)] before:top-3 before:w-px before:bg-line before:content-[''] max-md:before:left-[calc(var(--sp-3)+11px)]">
-            {group.items.map((item) => (
-              <FeedItem key={item.id} item={item} />
-            ))}
+            <AnimatePresence>
+              {group.items.map((item) => (
+                <FeedItem key={item.id} item={item} />
+              ))}
+            </AnimatePresence>
           </ul>
         </motion.li>
       ))}
-    </ol>
+    </motion.ol>
   );
 }

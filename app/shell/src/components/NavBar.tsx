@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
+import { motion } from 'framer-motion';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
 import { Button, Icon, useLocalStorage } from '@wakii/ui-kit';
 import { auth } from '../api';
@@ -32,30 +33,50 @@ function useHostTheme() {
   return { theme, setTheme };
 }
 
-/**
- * App chrome (hand-off §4): brand + nav + dark toggle + user chip/logout.
- * Active state: NavLink tự set aria-current="page" — visual = gạch accent 2px dưới
- * (after: utilities). Đọc token MỖI render (không useState cache) — login/logout
- * navigate là re-render trigger, nav cập nhật email ngay.
- */
-const NAV_LINK =
-  "relative flex items-center self-stretch rounded-2 px-2.5 text-label no-underline text-ink2 transition-colors hover:text-ink aria-[current=page]:text-ink aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-2 aria-[current=page]:after:right-2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:rounded-[1px] aria-[current=page]:after:bg-accent aria-[current=page]:after:content-['']";
+/** Sticky: header dính đỉnh; qua 8px scroll → nền mờ blur + viền (token). */
+function useScrolled(): boolean {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return scrolled;
+}
 
+const NAV_ITEMS = [
+  { to: '/', label: 'Trang chủ' },
+  { to: '/tasks', label: 'Tasks' },
+  { to: '/activity', label: 'Activity' },
+] as const;
+
+/**
+ * App chrome redesign (landing motion 2026-10-25): sticky + blur khi scroll +
+ * active pill layoutId (framer-motion — pill trượt mượt giữa link). HÀNH VI GIỮ
+ * NGUYÊN: NavLink aria-current (contract test), brand Boilerplate, dark toggle,
+ * user chip + logout qua wrapper refresh-client.
+ */
 export function NavBar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const scrolled = useScrolled();
   const { theme, setTheme } = useHostTheme();
   const token = tokenStorage.getToken();
   const claims = token && !isExpired(token) ? readClaims(token) : null;
 
-  // Logout qua wrapper refresh-client (SF-4): revoke rt server-side + clear CẢ 2 key
-  // (tokenStorage + bp.rt) — logout() không ném khi mạng chết nên await an toàn.
+  // Logout qua wrapper refresh-client (SF-4): revoke rt server-side + clear CẢ 2 key.
   async function logout() {
     await auth.logout();
     navigate('/login');
   }
 
   return (
-    <header className="flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-s1 px-4 py-2 max-md:px-3">
+    <header
+      className={`sticky top-0 z-40 flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2 transition-colors duration-300 max-md:px-3 ${
+        scrolled ? 'border-line bg-s1/80 backdrop-blur-md' : 'border-transparent bg-s1'
+      }`}
+    >
       <span className="flex items-center gap-2 text-body font-semibold tracking-[-0.01em] text-ink">
         <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-accent">
           <Icon name="menu-bars" size={12} className="text-white" />
@@ -64,15 +85,28 @@ export function NavBar() {
       </span>
       <span aria-hidden="true" className="h-[18px] w-px shrink-0 self-center bg-line max-md:hidden" />
       <nav aria-label="Điều hướng chính" className="flex flex-wrap gap-0.5">
-        <NavLink className={NAV_LINK} end to="/">
-          Trang chủ
-        </NavLink>
-        <NavLink className={NAV_LINK} to="/tasks">
-          Tasks
-        </NavLink>
-        <NavLink className={NAV_LINK} to="/activity">
-          Activity
-        </NavLink>
+        {NAV_ITEMS.map((item) => {
+          const active = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to);
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className="relative flex items-center self-stretch rounded-2 px-2.5 py-1.5 text-label no-underline text-ink2 transition-colors hover:text-ink aria-[current=page]:text-ink"
+            >
+              {/* active pill — layoutId trượt mượt giữa các link (framer-motion) */}
+              {active && (
+                <motion.span
+                  layoutId="nav-active-pill"
+                  aria-hidden="true"
+                  className="absolute inset-0 rounded-2 border border-line bg-s3"
+                  transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                />
+              )}
+              <span className="relative">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
       <div className="ml-auto flex flex-wrap items-center gap-2">
         <button
@@ -89,7 +123,6 @@ export function NavBar() {
               className="flex h-7 max-w-[260px] items-center gap-2 rounded-2 border border-line bg-s2 py-0 pl-1 pr-2.5 max-md:max-w-[180px]"
               data-testid="nav-user"
             >
-              {/* token hiếm khi thiếu email (readClaims chỉ validate sub) — guard tránh trắng nav */}
               <span
                 aria-hidden="true"
                 className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent/15 text-meta font-semibold text-accent"

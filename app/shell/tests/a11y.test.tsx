@@ -38,10 +38,11 @@ describe('a11y baseline', () => {
         <AppRoutes />
       </MemoryRouter>,
     );
-    // Login fixture user trước (route /tasks RequireAuth) — set token thẳng localStorage
+    // Login fixture user trước (route /tasks RequireAuth) — set token thẳng localStorage.
+    // Landing có footer + nav cùng tên link → nav là link đầu trong DOM.
     window.localStorage.setItem('bp.jwt', makeFakeToken());
-    const tasksLink = screen.getByRole('link', { name: 'Tasks' });
-    await user.click(tasksLink);
+    const [tasksLink] = screen.getAllByRole('link', { name: 'Tasks' });
+    await user.click(tasksLink!);
     await expect.poll(() => document.activeElement?.id, { timeout: 2000 }).toBe('main-content');
   });
 });

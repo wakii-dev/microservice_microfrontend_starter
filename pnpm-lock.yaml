@@ -27,6 +27,9 @@ catalogs:
     react-router:
       specifier: ^7.9.0
       version: 7.18.4
+    three:
+      specifier: ^0.186.1
+      version: 0.186.1
 
 importers:
 
@@ -317,6 +320,9 @@ importers:
       react-router:
         specifier: 'catalog:'
         version: 7.18.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      three:
+        specifier: 'catalog:'
+        version: 0.186.1
       zod:
         specifier: ^4.0.0
         version: 4.6.7

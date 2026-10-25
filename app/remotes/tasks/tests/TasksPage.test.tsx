@@ -239,8 +239,10 @@ describe('TasksPage', () => {
 
     await waitFor(() => expect(mockedApi.deleteTask).toHaveBeenCalledWith(TASK_A.id));
     expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(1); // F3: chỉ load đầu, không refetch
-    expect(screen.queryByText('Task A')).not.toBeInTheDocument();
-    expect(screen.getByText('Chưa có task nào')).toBeInTheDocument(); // list rỗng → EmptyState
+    // Motion redesign: item xoá đi qua exit animation (~0.22s) — disappearance
+    // và EmptyState hiện sau khi exit xong, wrap waitFor (intent giữ nguyên)
+    await waitFor(() => expect(screen.queryByText('Task A')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Chưa có task nào')).toBeInTheDocument()); // list rỗng → EmptyState
   });
 
   it('xoá — Huỷ ở bước confirm KHÔNG gọi deleteTask', async () => {
@@ -291,9 +293,11 @@ describe('TasksPage', () => {
     expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument();
 
     // response load-more (filter cũ) về SAU — phải bị bỏ, không append
+    // (Motion redesign: nếu Task A còn trong window exit/enter animation, disappearance
+    // hoàn tất sau — waitFor giữ intent "stale response không contaminating list")
     resolveLoadMore({ items: [TASK_A], total: 2 });
     await waitFor(() => expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument());
-    expect(screen.queryByText('Task A')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('Task A')).not.toBeInTheDocument());
   });
 
   it('race load-more ↔ filter — nút Tải thêm KHÔNG kẹt disabled khi load-more bị supersede', async () => {
@@ -394,7 +398,8 @@ describe('TasksPage', () => {
     await user.click(screen.getByRole('button', { name: 'Xác nhận xoá' }));
     await waitFor(() => expect(mockedApi.deleteTask).toHaveBeenCalledWith(TASK_B.id));
 
-    expect(screen.queryByText('Task B')).not.toBeInTheDocument();
+    // Motion redesign: exit animation ~0.22s — đợi item biến mất hẳn (intent giữ nguyên)
+    await waitFor(() => expect(screen.queryByText('Task B')).not.toBeInTheDocument());
     expect(screen.getByText('Danh sách (1/1)')).toBeInTheDocument();
     expect(screen.getByLabelText('Sửa tiêu đề task Task A')).toHaveValue('Draft giữ sau xoá');
   });

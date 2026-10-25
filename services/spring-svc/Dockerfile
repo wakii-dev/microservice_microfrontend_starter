@@ -6,7 +6,7 @@ FROM eclipse-temurin:21-jdk-alpine AS deps
 WORKDIR /app
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
-RUN ./mvnw -B dependency:go-offline
+RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
 
 # build stage — codegen models chạy trong generate-sources (snapshot users.yaml)
 FROM deps AS build

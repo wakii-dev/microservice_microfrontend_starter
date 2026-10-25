@@ -6,7 +6,7 @@
 // envKeys — cuối cùng sinh README.md (services + up + smoke + ports).
 // Toàn bộ thao tác compose/gateway/env là TEXT theo cấu trúc thụt dòng —
 // không YAML parser (0 deps).
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -210,6 +210,18 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   const allServices = Object.keys(manifest.services);
   const pruned = allServices.filter((s) => !selection.services.includes(s));
 
+  // 0. LUÔN xoá tooling meta của hệ sinh thái Wakii — snapshot cả repo nhưng
+  // các package này không thuộc stack được sinh ra (CLI scaffolders + templates
+  // nguồn + spike thử nghiệm).
+  const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike'];
+  for (const relPath of ALWAYS_PRUNE) {
+    const target = join(dest, relPath);
+    if (existsSync(target)) {
+      await rm(target, { recursive: true, force: true });
+      log?.(`Pruned tooling: ${relPath}`);
+    }
+  }
+
   // 1. xoá paths của service bị prune
   for (const name of pruned) {
     for (const rawPath of manifest.services[name]!.paths ?? []) {
@@ -256,5 +268,32 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   // 5. README sinh ở đỉnh dest
   await writeFile(join(dest, 'README.md'), renderReadme(manifest, selection));
 
+  // 6. Phục hồi bit executable — npm tarball (publish bundle) làm MẤT +x mọi
+  // file (postgres 01-init.sh "bad interpreter", spring mvnw exit 126 — bắt
+  // từ docker compose up thật trên stack sinh ra, 2026-10-25).
+  const execFixed = await fixExecutableBits(dest);
+  if (execFixed > 0) log?.(`chmod +x: ${execFixed} script`);
+
   return { files: [...files.map((f) => f.slice(dest.length + 1)), 'README.md'], prunedServices: pruned };
+}
+
+/** chmod 0o755 mọi *.sh, mvnw, gradlew trong dest (đệ quy). Trả số file sửa. */
+async function fixExecutableBits(root: string): Promise<number> {
+  let count = 0;
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === '.git') continue;
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) { await walk(full); continue; }
+      if (/\.(sh)$/.test(entry.name) || entry.name === 'mvnw' || entry.name === 'gradlew') {
+        const st = await stat(full);
+        if (!(st.mode & 0o111)) {
+          await chmod(full, st.mode | 0o755);
+          count += 1;
+        }
+      }
+    }
+  };
+  await walk(root);
+  return count;
 }

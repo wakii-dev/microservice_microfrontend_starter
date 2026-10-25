@@ -2,6 +2,10 @@
 
 # 🎨 @wakii/ui-kit
 
+<p align="center">
+  <img src="docs/assets/hero.svg" width="960" alt="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses, grid background and typing indicator">
+</p>
+
 **A production-grade React design system built AI-first — 90+ components, 31 hooks, tokens-first, motion, dark theme.**
 
 Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
@@ -52,11 +56,19 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 | 🪶 **Smart weight** | Heavy engines (Swiper, Chart.js, Tiptap, FullCalendar) are optional peers behind subpath exports — your bundle stays lean |
 | 🧪 **1290 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
 
+<p align="center">
+  <img src="docs/assets/token-palette.svg" width="960" alt="Design token palette — six swatches for accent, ink, line, done, doing and fail tokens blinking in sequence with their CSS variable names">
+</p>
+
 ## 🚀 Quick start
 
 ```bash
 npm install @wakii/ui-kit
 ```
+
+<p align="center">
+  <img src="docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs version 0.5.0, done in 1.4s, blinking block cursor">
+</p>
 
 ```tsx
 // one CSS file — tokens + utilities + motion, all compiled
@@ -74,6 +86,10 @@ export function App() {
 ```html
 <html data-bp-theme="dark">
 ```
+
+<p align="center">
+  <img src="docs/assets/dark-switch.svg" width="480" alt="Theme switch — two app panels cross-fading between light and dark palettes while sun and moon icons rotate and swap">
+</p>
 
 ### 📝 Forms with zod — schema is the single source of truth
 
@@ -107,6 +123,10 @@ const form = useForm({ schema, mode: 'onBlur' });
 - **Icon set 52** (`filter-fill` / `filter-slash` mới) — glyph characters swept to SVG everywhere. Full detail: [CHANGELOG.md](./CHANGELOG.md).
 
 ## 🧩 Component map
+
+<p align="center">
+  <img src="docs/assets/constellation.svg" width="960" alt="Component constellation — fourteen nodes such as Button, Table, Chart and Carousel linked by animated dashed data-flow lines with travelling packets">
+</p>
 
 | Group | Components |
 |---|---|
@@ -152,6 +172,10 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 > Trạng thái thật (0.4.0): **8 templates live** — Dashboard, Kanban Project, CRUD Table,
 > Auth, Settings, Landing, Parallax Landing, Cinematic Experience (kèm demo Team-OS
 > components trong story riêng). Recipes copy-chạy: [recipes.md](../../docs/ai/recipes.md).
+
+<p align="center">
+  <img src="docs/assets/motion-wave.svg" width="960" alt="Motion curves — enter, exit and toggle easing paths self-drawing in a loop with a dot travelling along each curve">
+</p>
 
 ## 🔬 Quality
 

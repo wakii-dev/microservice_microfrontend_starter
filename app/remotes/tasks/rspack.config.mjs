@@ -130,6 +130,11 @@ export default {
         // JSX fe-shared compile ra import react/jsx-runtime — thiếu = bundle jsx-runtime
         // riêng → react thứ 2 khi mount trong shell ("Invalid hook call", spike R2 SF-1)
         'react/jsx-runtime': { singleton: true, requiredVersion: false, eager: true },
+        // react-query PHẢI share đối xứng với shell (shell share từ libs adopt
+        // 2026-10-17): thiếu = remote bundle copy riêng → context tách khỏi
+        // QueryClientProvider host → "No QueryClient set" khi mount in-shell
+        // (bắt được trên stack Desktop 0.1.4, 2026-10-23)
+        '@tanstack/react-query': { singleton: true, requiredVersion: false, eager: true },
       },
     }),
   ],

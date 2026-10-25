@@ -151,8 +151,7 @@
       ],
       "envKeys": [
         "SPRING_SVC_PORT",
-        "SPRING_SVC_URL",
-        "SPRING_SVC_DB_PASSWORD"
+        "SPRING_SVC_URL"
       ],
       "requires": [
         "postgres"
@@ -173,8 +172,7 @@
       ],
       "envKeys": [
         "GO_SVC_PORT",
-        "GO_SVC_URL",
-        "GO_SVC_DB_PASSWORD"
+        "GO_SVC_URL"
       ],
       "requires": [
         "postgres",

@@ -205,3 +205,44 @@ describe('Button — modernize (vision-audit 2026-10-18)', () => {
     }
   });
 });
+
+describe('Button — classNames slots + style (SÓNG-3)', () => {
+  it('classNames.root lên <button> (sau structural, trước className), classNames.icon bọc icon trong span; không truyền slot → DOM y nguyên', () => {
+    render(
+      <Button
+        icon={<span data-testid="ic3">i</span>}
+        classNames={{ root: 'my-root', icon: 'my-icon' }}
+        className="user-tail"
+      >
+        slotted
+      </Button>,
+    );
+    const btn = screen.getByRole('button', { name: /slotted/ });
+    expect(btn).toHaveClass('my-root', 'user-tail');
+    // merge order: structural (h-9) → classNames.root → className consumer
+    expect(btn.className.indexOf('my-root')).toBeGreaterThan(btn.className.indexOf('h-9'));
+    expect(btn.className.indexOf('my-root')).toBeLessThan(btn.className.indexOf('user-tail'));
+    const ic = screen.getByTestId('ic3');
+    expect(ic.parentElement!.tagName).toBe('SPAN');
+    expect(ic.parentElement).toHaveClass('my-icon');
+    cleanup();
+
+    // default path: không truyền classNames → icon render trần trong <button> (không wrapper)
+    render(<Button icon={<span data-testid="ic4">j</span>}>plain</Button>);
+    const ic4 = screen.getByTestId('ic4');
+    expect(ic4.parentElement!.tagName).toBe('BUTTON');
+  });
+
+  it('style passthrough thẳng lên <button> + click vẫn hoạt động', async () => {
+    const onClick = vi.fn();
+    render(
+      <Button style={{ marginTop: 7 }} onClick={onClick}>
+        inline
+      </Button>,
+    );
+    const btn = screen.getByRole('button', { name: 'inline' });
+    expect(btn).toHaveStyle({ marginTop: '7px' });
+    await userEvent.setup().click(btn);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});

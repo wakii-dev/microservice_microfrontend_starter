@@ -24,19 +24,45 @@ function wordCount(html: string): number {
     .filter(Boolean).length;
 }
 
-/** Pretty-print HTML cho panel output — thẻ block xuống dòng + thụt lề 2 space. */
+/** Pretty-print HTML cho panel output — block element xuống dòng + thụt lề 2
+ * space; element chỉ chứa text/inline (p, li…) gộp MỘT dòng (inline không bẻ). */
+const BLOCK_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'blockquote', 'div', 'pre']);
+
+function serialize(el: Element, depth: number, out: string[]): void {
+  const tag = el.tagName.toLowerCase();
+  const attrs = Array.from(el.attributes)
+    .map((a) => ` ${a.name}="${a.value}"`)
+    .join('');
+  const open = `<${tag}${attrs}>`;
+  const hasBlockChild = Array.from(el.children).some((c) => BLOCK_TAGS.has(c.tagName.toLowerCase()));
+  if (!hasBlockChild) {
+    const inner = el.innerHTML.replace(/\s+/g, ' ').trim();
+    out.push(`${'  '.repeat(depth)}${open}${inner}</${tag}>`);
+    return;
+  }
+  out.push(`${'  '.repeat(depth)}${open}`);
+  for (const child of Array.from(el.childNodes)) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      const t = (child.textContent ?? '').replace(/\s+/g, ' ').trim();
+      if (t) out.push(`${'  '.repeat(depth + 1)}${t}`);
+    } else if (child.nodeType === Node.ELEMENT_NODE) {
+      serialize(child as Element, depth + 1, out);
+    }
+  }
+  out.push(`${'  '.repeat(depth)}</${tag}>`);
+}
+
 function formatHtml(html: string): string {
-  const parts = html.replace(/>\s*</g, '>\n<').split('\n');
-  let depth = 0;
-  return parts
-    .map((part) => {
-      if (part.startsWith('</')) depth = Math.max(0, depth - 1);
-      const line = `${'  '.repeat(depth)}${part}`;
-      const opensBlock = /^<[a-z][^/>]*>$/i.test(part) && !/^<(code|strong|em|b|i)>$/i.test(part);
-      if (opensBlock) depth += 1;
-      return line;
-    })
-    .join('\n');
+  const body = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html').body;
+  const out: string[] = [];
+  for (const child of Array.from(body.childNodes)) {
+    if (child.nodeType === Node.ELEMENT_NODE) serialize(child as Element, 0, out);
+    else {
+      const t = (child.textContent ?? '').replace(/\s+/g, ' ').trim();
+      if (t) out.push(t);
+    }
+  }
+  return out.join('\n');
 }
 
 /** Route gợi ý cho engine: '/editor'. */

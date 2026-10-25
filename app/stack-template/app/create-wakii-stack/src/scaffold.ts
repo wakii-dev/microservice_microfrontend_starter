@@ -6,15 +6,24 @@
 // envKeys — cuối cùng sinh README.md (services + up + smoke + ports).
 // Toàn bộ thao tác compose/gateway/env là TEXT theo cấu trúc thụt dòng —
 // không YAML parser (0 deps).
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseDocument, type YAMLMap } from 'yaml';
 import type { StackManifest } from './manifest.js';
 import type { StackSelection } from './options.js';
 
 /** Template mặc định — publish kèm CLI (worker-compose sở hữu nội dung). */
-export const DEFAULT_TEMPLATE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../stack-template');
+export const DEFAULT_TEMPLATE_ROOT = (() => {
+  // 2 layout (y create-wakii-app): repo app/create-wakii-stack/{src,dist} →
+  // app/stack-template; npm <pkg>/dist → <pkg>/stack-template (publish bundle).
+  const here = dirname(fileURLToPath(import.meta.url));
+  for (const candidate of [resolve(here, '../../stack-template'), resolve(here, '../stack-template')]) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return resolve(here, '../../stack-template');
+})();
 
 export interface StackScaffoldInput {
   selection: StackSelection;
@@ -64,123 +73,58 @@ function kindOf(line: string): LineKind {
 }
 
 /**
- * Prune file compose theo TEXT:
+ * Prune file compose theo TEXT (thuần hàm — state trong closure):
  * - bỏ block 2-space `  <name>:` của service không chọn (kèm comment/blank
  *   thuộc block — comment 2-space gắn block TRƯỚC nó);
  * - dọn `depends_on`: bỏ entry 6-space tham chiếu service đã prune (+ con sâu
- *   hơn); depends_on rỗng → xoá luôn dòng;
+ *   hơn); depends_on rỗng hoàn toàn → xoá luôn dòng;
  * - bỏ volume `  pgdata:` khi postgres prune;
- * - chèn 1 comment cảnh báo đầu section services liệt kê service đã cắt.
+ * - chèn 1 comment cảnh báo ngay sau `services:` liệt kê service đã cắt.
  */
 export function pruneCompose(text: string, selected: ReadonlySet<string>, allServices: string[]): string {
-  const lines = text.split('\n');
-  const pruned = allServices.filter((s) => !selected.has(s));
-  const out: string[] = [];
-  let section = ''; // top-level key hiện tại
-  let keptService: string | null = null; // service block đang ghi (null = ngoài block/bị cắt)
-  let skippingService: string | null = null; // service block đang cắt
-  let inDependsOn = false;
-  const prunedInFile: string[] = [];
+  // YAML-aware (pkg `yaml` giữ comments): text-prune từng dòng từng phá cấu trúc
+  // depends_on mapping-form (gate 2026-10-25: "retries must be a mapping" —
+  // entry cắt mồ côi con condition/retries).
+  const doc = parseDocument(text);
+  const pruned = allServices.filter((name) => !selected.has(name));
+  if (pruned.length === 0) return text;
 
-  for (const line of lines) {
-    const kind = kindOf(line);
-    if (kind === 'top-level') {
-      section = line.replace(/:.*$/, '').trim();
-      keptService = null;
-      skippingService = null;
-      inDependsOn = false;
-      out.push(line);
-      if (section === 'services' && pruned.length > 0 && !textHasPruneNote(out)) {
-        out.push(`  # create-wakii-stack: pruned ${pruned.join(', ')} (không chọn khi scaffold)`);
-      }
-      continue;
-    }
-    if (section !== 'services') {
-      // volumes: pgdata bỏ khi postgres prune
-      if (section === 'volumes' && dropPgdata(selected, allServices) && /^  pgdata:/.test(line)) {
-        continue;
-      }
-      out.push(line);
-      continue;
-    }
-
-    if (kind === 'service-block') {
-      const name = line.trim().replace(/:$/, '');
-      keptService = selected.has(name) ? name : null;
-      if (!keptService) {
-        skippingService = name;
-        prunedInFile.push(name);
-      }
-      inDependsOn = false;
-      if (keptService) out.push(line);
-      continue;
-    }
-    // comment-2space/deeper/blank → thuộc block đang mở (hoặc nền section)
-    if (skippingService !== null) continue; // đang cắt block — bỏ line
-    if (keptService !== null) {
-      if (kind === 'deeper' && /^ {4}depends_on:\s*$/.test(line)) {
-        inDependsOn = true;
-        pendingDepends.push(line);
-        continue;
-      }
-      if (inDependsOn && kind === 'deeper') {
-        const entry = /^ {6}([A-Za-z0-9_-]+):/.exec(line);
-        if (entry) {
-          // entry mới — xả depends_on pending nếu còn entries
-          flushDepends(out, pruned);
-          currentDepends.push({ name: entry[1]!, line, deeper: [] });
-          continue;
+  const services = doc.get('services') as YAMLMap | undefined;
+  if (services) {
+    for (const name of pruned) services.delete(name);
+    // depends_on trong services còn lại: bỏ tham chiếu service đã prune (cả
+    // mapping-form {name: {condition…}} lẫn list-form [name, …]); rỗng → xoá key.
+    for (const item of services.items) {
+      const svcName = String((item.key as { value?: unknown } | null)?.value ?? '');
+      const depends = doc.getIn(['services', svcName, 'depends_on'], true);
+      if (!depends || typeof depends !== 'object') continue;
+      if ((depends as YAMLMap).items) {
+        const asMap = depends as YAMLMap;
+        let removed = false;
+        for (const dep of [...asMap.items]) {
+          const depName = String((dep.key as { value?: unknown } | null)?.value ?? '');
+          if (pruned.includes(depName)) { asMap.delete(depName); removed = true; }
         }
-        // dòng con của entry hiện tại (condition: …)
-        currentDepends[currentDepends.length - 1]?.deeper.push(line);
-        continue;
+        if (asMap.items.length === 0) {
+          const svcMap = doc.getIn(['services', svcName], true) as YAMLMap;
+          svcMap.delete('depends_on');
+        } else if (removed) {
+          doc.setIn(['services', svcName, 'depends_on'], asMap);
+        }
       }
-      if (inDependsOn) {
-        // thoát depends_on (comment 2-space / blank) — xả pending rồi ghi line
-        flushDepends(out, pruned);
-        inDependsOn = false;
-      }
-      out.push(line);
-      continue;
     }
-    out.push(line); // nền section (comment section header…)
   }
-  flushDepends(out, pruned);
-  return out.join('\n').replace(/\n{3,}/g, '\n\n');
-}
 
-// Trạng thái depends_on đang gom (giữ module-level cục bộ qua closure của 1 call
-// bằng biến function-scoped — dùng container để flushDepends đọc được).
-const pendingDepends: string[] = [];
-interface DependsEntry {
-  name: string;
-  line: string;
-  deeper: string[];
-}
-const currentDepends: DependsEntry[] = [];
-
-function flushDepends(out: string[], pruned: readonly string[]): void {
-  if (currentDepends.length === 0) {
-    if (pendingDepends.length > 0) out.push(pendingDepends[0]!); // depends_on rỗng
-    pendingDepends.length = 0;
-    return;
+  // pgdata volume chỉ thuộc postgres — bỏ khi postgres bị prune
+  if (allServices.includes('postgres') && !selected.has('postgres')) {
+    const volumes = doc.get('volumes') as YAMLMap | undefined;
+    volumes?.delete('pgdata');
   }
-  out.push(pendingDepends[0]!);
-  pendingDepends.length = 0;
-  for (const entry of currentDepends) {
-    if (pruned.includes(entry.name)) continue;
-    out.push(entry.line);
-    out.push(...entry.deeper);
-  }
-  currentDepends.length = 0;
-}
 
-function textHasPruneNote(out: string[]): boolean {
-  return out.some((l) => l.includes('create-wakii-stack: pruned'));
-}
-
-function dropPgdata(selected: ReadonlySet<string>, allServices: string[]): boolean {
-  return allServices.includes('postgres') && !selected.has('postgres');
+  let out = doc.toString({ lineWidth: 0 });
+  // chú thích prune đỉnh services
+  out = out.replace(/^services:\n/, `services:\n  # create-wakii-stack: pruned ${pruned.join(', ')} (không chọn khi scaffold)\n`);
+  return out;
 }
 
 /** Lọc gateway conf: xoá khối ngoặc chứa marker (brace-count từ dòng mở). */
@@ -223,11 +167,37 @@ export function pruneEnv(text: string, keys: string[]): string {
     .replace(/\n{3,}/g, '\n\n');
 }
 
-/** README.md sinh ở đỉnh dest — services chọn + up + smoke + ports. */
+/** README.md sinh ở đỉnh dest — services chọn + up + smoke + ports.
+ *
+ * Section "Truy cập" là bắt buộc: gateway là entry DUY NHẤT (FE gọi /api
+ * same-origin). Mở port FE trực tiếp → static server → POST /api/* trả 405 —
+ * lỗi thật gặp trên stack Desktop 2026-10-23 (login "Unexpected error (HTTP 405)").
+ */
 export function renderReadme(manifest: StackManifest, selection: StackSelection): string {
+  const gatewayUrl = manifest.ports?.gateway ?? 'http://localhost:8080';
+  const chosen = new Set(selection.services);
   const ports = Object.entries(manifest.ports ?? {})
-    .map(([name, url]) => `- ${name}: ${url}`)
+    .filter(([name]) => chosen.has(name))
+    .map(([name, url]) => {
+      const note =
+        name === 'gateway'
+          ? ' — entry duy nhất: `/` = FE shell, `/api/*` = services'
+          : name === 'shell'
+            ? ' — static-only (login ở đây báo 405 — dùng gateway)'
+            : '';
+      return `- ${name}: ${url}${note}`;
+    })
     .join('\n');
+  const access = chosen.has('gateway')
+    ? `## Truy cập (sau khi up)
+
+Mở **${gatewayUrl}** (gateway) — entry duy nhất: \`/\` là FE shell, \`/api/*\` là các service.
+
+- Chưa có tài khoản? auth-svc KHÔNG seed user — dùng tab **Đăng ký** trước, rồi Đăng nhập.
+- KHÔNG mở port FE trực tiếp (vd \`:3000\`): đó là static server, mọi \`POST /api/*\` trả **405**.
+
+`
+    : '';
   return `# ${selection.appName}
 
 Stack generated by \`create-wakii-stack\` (Hybrid C — full template pruned to your selection).
@@ -236,7 +206,7 @@ Stack generated by \`create-wakii-stack\` (Hybrid C — full template pruned to 
 
 ${selection.services.map((s) => `- ${s} _(${manifest.services[s]?.layer ?? '?'})_`).join('\n')}
 
-## Run
+${access}## Run
 
 \`\`\`bash
 cd ${selection.appName}
@@ -245,9 +215,94 @@ docker compose --env-file platform/.env up -d
 \`\`\`
 
 ${manifest.smoke ? `## Smoke\n\n\`\`\`bash\n${manifest.smoke}\n\`\`\`\n` : ''}
-${ports ? `## URLs\n\n${ports}\n` : ''}
+${ports ? `## Ports\n\n${ports}\n` : ''}
 Need a FE app (SPA) outside this stack? \`pnpm create wakii-app\`.
 `;
+}
+
+/** Tìm đệ quy mọi file theo tên (Dockerfile) — dest chưa install nên an toàn. */
+async function collectByName(root: string, name: string, out: string[] = []): Promise<string[]> {
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    if (entry.name === '.DS_Store' || entry.name === '.git') continue;
+    const p = join(root, entry.name);
+    if (entry.isDirectory()) await collectByName(p, name, out);
+    else if (entry.name === name) out.push(p);
+  }
+  return out;
+}
+
+/**
+ * Dọn references workspace sau khi prune dir — docker build FROM-SCRATCH gãy nếu
+ * thiếu 1 trong 3 (bắt trên stack Desktop 0.1.4, 2026-10-23):
+ * 1. Dockerfile `COPY app/spike/...` còn trỏ dir đã xoá → COPY fail ("failed to
+ *    compute cache key").
+ * 2. pnpm-lock.yaml còn importer dir đã xoá → `pnpm install --frozen-lockfile`
+ *    mismatch (lock có importer, workspace không có).
+ * 3. pnpm-workspace.yaml còn glob riêng trỏ dir đã xoá (`app/spike/*`).
+ */
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export async function pruneWorkspaceRefs(
+  dest: string,
+  prunedPaths: string[],
+  log?: (message: string) => void,
+): Promise<void> {
+  if (prunedPaths.length === 0) return;
+  const isPrunedCopy = (line: string) =>
+    prunedPaths.some((p) => line.startsWith(`COPY ${p}/`) || line === `COPY ${p}` || line.startsWith(`COPY ${p} `));
+
+  // 1. Dockerfile — bỏ dòng COPY trỏ dir đã prune
+  let dockerLines = 0;
+  for (const dockerfile of await collectByName(dest, 'Dockerfile')) {
+    const lines = (await readFile(dockerfile, 'utf8')).split('\n');
+    const kept = lines.filter((line) => !isPrunedCopy(line));
+    if (kept.length !== lines.length) {
+      await writeFile(dockerfile, kept.join('\n'));
+      dockerLines += lines.length - kept.length;
+    }
+  }
+  if (dockerLines > 0) log?.(`Pruned ${dockerLines} dòng COPY Dockerfile`);
+
+  // 2. pnpm-lock.yaml — strip importer key "  <path>:" (khối con thụt 4-space,
+  // dừng ở key 2-space kế / EOF). Chỉ strip khi key thật sự tồn tại.
+  const lockPath = join(dest, 'pnpm-lock.yaml');
+  if (existsSync(lockPath)) {
+    let lock = await readFile(lockPath, 'utf8');
+    let stripped = 0;
+    for (const p of prunedPaths) {
+      // importer = chính dir đó HOẶC con của nó (app/spike → app/spike/host)
+      const pattern = new RegExp(`^  (?:${escapeRegex(p)}(?:/[^:\\n]+)?):\\n(?:    .*\\n|\\n)*?(?=^  \\S|\\S|$)`, 'gm');
+      const before = lock;
+      lock = lock.replace(pattern, '');
+      if (lock !== before) stripped += 1;
+    }
+    if (stripped > 0) {
+      await writeFile(lockPath, lock);
+      log?.(`Pruned ${stripped} pnpm-lock importer`);
+    }
+  }
+
+  // 3. pnpm-workspace.yaml — bỏ glob riêng trỏ dir đã prune (+ comment liền trên)
+  const wsPath = join(dest, 'pnpm-workspace.yaml');
+  if (existsSync(wsPath)) {
+    const lines = (await readFile(wsPath, 'utf8')).split('\n');
+    const kept: string[] = [];
+    let globs = 0;
+    for (const line of lines) {
+      const isGlob = prunedPaths.some((p) => new RegExp(`^\\s*-\\s*["']${escapeRegex(p)}/\\*["']\\s*$`).test(line));
+      if (isGlob) {
+        globs += 1;
+        const prev = kept[kept.length - 1];
+        if (prev !== undefined && /^\s*#/.test(prev)) kept.pop(); // comment mồ côi của glob
+        continue;
+      }
+      kept.push(line);
+    }
+    if (globs > 0) {
+      await writeFile(wsPath, kept.join('\n'));
+      log?.(`Pruned ${globs} pnpm-workspace glob`);
+    }
+  }
 }
 
 /** Scaffold 1 stack: full-copy → render → prune theo manifest → README. */
@@ -266,12 +321,29 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   const allServices = Object.keys(manifest.services);
   const pruned = allServices.filter((s) => !selection.services.includes(s));
 
+  // 0. LUÔN xoá tooling meta của hệ sinh thái Wakii — snapshot cả repo nhưng
+  // các package này không thuộc stack được sinh ra (CLI scaffolders + templates
+  // nguồn + spike thử nghiệm).
+  const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike'];
+  const prunedPaths: string[] = [];
+  for (const relPath of ALWAYS_PRUNE) {
+    const target = join(dest, relPath);
+    if (existsSync(target)) {
+      await rm(target, { recursive: true, force: true });
+      prunedPaths.push(relPath);
+      log?.(`Pruned tooling: ${relPath}`);
+    }
+  }
+
   // 1. xoá paths của service bị prune
   for (const name of pruned) {
-    for (const relPath of manifest.services[name]!.paths ?? []) {
+    for (const rawPath of manifest.services[name]!.paths ?? []) {
+      // glob "dir/**" (manifest M#8) → xoá cả base dir; đường dẫn thường giữ nguyên
+      const relPath = rawPath.endsWith('/**') ? rawPath.slice(0, -3) : rawPath;
       const target = join(dest, relPath);
       if (existsSync(target)) {
         await rm(target, { recursive: true, force: true });
+        prunedPaths.push(relPath);
         log?.(`Pruned path: ${relPath}`);
       }
     }
@@ -307,9 +379,40 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
     }
   }
 
+  // 4b. dọn references workspace (Dockerfile COPY / pnpm-lock importers /
+  // pnpm-workspace globs) của mọi dir đã prune — docker build from-scratch gãy
+  // nếu thiếu (bắt trên stack Desktop 0.1.4)
+  await pruneWorkspaceRefs(dest, prunedPaths, log);
+
   // 5. README sinh ở đỉnh dest
   await writeFile(join(dest, 'README.md'), renderReadme(manifest, selection));
-  files.push('README.md');
 
-  return { files: files.map((f) => f.slice(dest.length + 1)), prunedServices: pruned };
+  // 6. Phục hồi bit executable — npm tarball (publish bundle) làm MẤT +x mọi
+  // file (postgres 01-init.sh "bad interpreter", spring mvnw exit 126 — bắt
+  // từ docker compose up thật trên stack sinh ra, 2026-10-25).
+  const execFixed = await fixExecutableBits(dest);
+  if (execFixed > 0) log?.(`chmod +x: ${execFixed} script`);
+
+  return { files: [...files.map((f) => f.slice(dest.length + 1)), 'README.md'], prunedServices: pruned };
+}
+
+/** chmod 0o755 mọi *.sh, mvnw, gradlew trong dest (đệ quy). Trả số file sửa. */
+async function fixExecutableBits(root: string): Promise<number> {
+  let count = 0;
+  const walk = async (dir: string): Promise<void> => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === '.git') continue;
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) { await walk(full); continue; }
+      if (/\.(sh)$/.test(entry.name) || entry.name === 'mvnw' || entry.name === 'gradlew') {
+        const st = await stat(full);
+        if (!(st.mode & 0o111)) {
+          await chmod(full, st.mode | 0o755);
+          count += 1;
+        }
+      }
+    }
+  };
+  await walk(root);
+  return count;
 }

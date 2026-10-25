@@ -1,14 +1,47 @@
-// Hero — landing showcase opening (mission boilerplate-redesign): headline
-// reveal từng từ (framer-motion stagger) + sub gradient + CTA + version Tag +
-// 3D tilt card điểm nhấn (framer-motion rotateX/Y theo chuột — method B thay
-// Scene3d: Experience3d cần peer three + @react-three/fiber, shell không có —
-// xem report). Tokens-only; MotionConfig reducedMotion="user" ở HomePage.
-import { useRef } from 'react';
+// Hero — landing showcase opening (mission boilerplate-redesign + bổ túc
+// Scene3D): headline reveal từng từ (framer-motion stagger) + sub gradient +
+// CTA + version Tag + 3D tilt card + NỀN Scene3D (starfield WebGL qua subpath
+// experience3d — lazy chunk tách khỏi main bundle; three là peer shell đã cài;
+// jsdom/thiếu WebGL → fallback blob gradient, reduced-motion → kit tự 1 frame
+// tĩnh). Tokens-only; MotionConfig reducedMotion="user" ở HomePage.
+import { lazy, Suspense, useRef } from 'react';
 import { Link } from 'react-router';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Button, Icon, Tag } from '@wakii/ui-kit';
 
 const HEADLINE = ['Ship', 'full-stack,', 'not', 'tooling'];
+
+// Lazy chunk — import() async tách Scene3D + three khỏi main bundle (pattern
+// chart của kit: specifier chuỗi → rspack build async chunk, runtime load chắc
+// chắn vì three đã nằm trong node_modules của shell).
+const Scene3D = lazy(() => import('@wakii/ui-kit/experience3d').then((m) => ({ default: m.Scene3D })));
+
+/** Blob gradient token — Suspense fallback + fallback khi WebGL thiếu. */
+function BlobGradient() {
+  // testid cho landing.test (jsdom không WebGL — assert fallback thay canvas)
+  return (
+    <div data-testid="hero-scene-fallback" className="absolute inset-0">
+      <div className="absolute -top-24 left-1/4 size-72 rounded-full bg-accent/15 blur-3xl" />
+      <div className="absolute right-1/4 top-16 size-56 rounded-full bg-st-done/10 blur-3xl" />
+    </div>
+  );
+}
+
+/** Nền Scene3D — canvas tuyệt đối sau text, pointer-events-none (không che CTA). */
+function Scene3DBackground() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <BlobGradient />
+      <Suspense fallback={null}>
+        <Scene3D
+          className="pointer-events-none absolute inset-0 rounded-none opacity-90"
+          height="100%"
+          fallback={<BlobGradient />}
+        />
+      </Suspense>
+    </div>
+  );
+}
 
 /** Thẻ nghiêng 3D theo con trỏ — showcase "kit card" mini (stats + code). */
 function TiltCard() {
@@ -50,7 +83,7 @@ function TiltCard() {
             </span>
             @wakii/ui-kit
           </span>
-          <Tag>v0.4</Tag>
+          <Tag>v0.5.0</Tag>
         </div>
         <div className="relative mt-5 grid grid-cols-2 gap-4">
           <div className="rounded-lg border border-line bg-s2 p-3">
@@ -70,15 +103,12 @@ function TiltCard() {
   );
 }
 
-/** Hero — phần trên landing: headline stagger + CTA + tilt card. */
+/** Hero — phần trên landing: nền Scene3D + headline stagger + CTA + tilt card. */
 export function Hero() {
   return (
     <section aria-label="Intro" className="relative flex flex-col items-center gap-8 pt-10 text-center">
-      {/* nền blob gradient token (blur lớn, đằng sau nội dung) */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-24 left-1/4 size-72 rounded-full bg-accent/15 blur-3xl" />
-        <div className="absolute right-1/4 top-16 size-56 rounded-full bg-st-done/10 blur-3xl" />
-      </div>
+      {/* nền 3D (starfield WebGL) — lỗi/thiếu WebGL tự rơi blob gradient */}
+      <Scene3DBackground />
 
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <Tag icon={<Icon name="check-circle" size={12} />}>Boilerplate — MF host + 2 remotes + 3 BE services</Tag>

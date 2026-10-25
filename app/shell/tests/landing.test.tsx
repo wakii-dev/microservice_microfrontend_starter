@@ -1,6 +1,6 @@
 // Landing showcase smoke (redesign 2026-10-25): hero + bento + marquee + demo
 // access render đúng — contract nội dung, không assert animation (jsdom).
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { AppRoutes } from '../src/App';
@@ -52,5 +52,16 @@ describe('Landing showcase (HomePage redesign)', () => {
     for (const tier of ['Experience', 'Edge', 'Services', 'Infra']) {
       expect(screen.getByText(tier)).toBeInTheDocument();
     }
+  });
+
+  it('hero Scene3D: jsdom thiếu WebGL → fallback blob, headline không vỡ', async () => {
+    renderHome();
+    // Scene3D box nằm trong wrapper aria-hidden (nền trang trí) → role query bỏ qua;
+    // waitFor box lazy-chunk mount, rồi assert fallback blob bên trong (jsdom không WebGL)
+    await waitFor(() => {
+      expect(document.querySelector('div[aria-label*="Cảnh không gian 3D"]')).not.toBeNull();
+    });
+    await screen.findByTestId('hero-scene-fallback');
+    expect(screen.getByRole('heading', { name: 'Ship full-stack, not tooling' })).toBeInTheDocument();
   });
 });

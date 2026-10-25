@@ -90,6 +90,7 @@ export function registerTaskRoutes(app: FastifyInstance, deps: Deps): void {
           properties: {
             status: taskStatusSchema,
             assigneeId: uuidSchema,
+            q: { type: 'string', maxLength: 200 },
             limit: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
             offset: { type: 'integer', minimum: 0, default: 0 },
           },
@@ -97,17 +98,21 @@ export function registerTaskRoutes(app: FastifyInstance, deps: Deps): void {
       },
     },
     async (request) => {
-      const q = request.query as {
+      const query = request.query as {
         status?: TaskStatus;
         assigneeId?: string;
+        q?: string;
         limit: number;
         offset: number;
       };
+      // q: trim tại biên API; rỗng sau trim = không filter (repo escape + ILIKE).
+      const search = query.q?.trim() || undefined;
       const { items, total } = await deps.repo.list({
-        status: q.status,
-        assigneeId: q.assigneeId,
-        limit: q.limit,
-        offset: q.offset,
+        status: query.status,
+        assigneeId: query.assigneeId,
+        q: search,
+        limit: query.limit,
+        offset: query.offset,
       });
       return { items, total };
     },

@@ -8,9 +8,13 @@
 //   modal/other cards không mất; server response = nguồn sự thật từng item.
 // - Board fetch KHÔNG status param (cả 3 cột từ 1 query); "Tải thêm" board-level.
 // - Mutation success → invalidate ['activity'] (singleton cache MF).
+//
+// Search SERVER-SIDE (q param — node-svc ILIKE): queryKey gồm q → đổi q = query
+// mới (pagination reset, không nối trang chéo key — chuẩn useInfiniteQuery);
+// mutations patch đúng key đang active qua tasksKey.
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MotionConfig } from 'motion/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Skeleton, useDebounce } from '@wakii/ui-kit';
 import {
   ApiError,
@@ -49,15 +53,21 @@ export function TasksPage() {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 200);
+  const search = debouncedQuery.trim(); // '' = không search — server tự trim nữa
   const [sort, setSort] = useState<BoardSort>('newest');
   const [modal, setModal] = useState<ModalState | null>(null);
   const queryClient = useQueryClient();
 
+  // Key có q: đổi search → query MỚI (không nối trang với kết quả cũ)
+  const tasksKey = useMemo(() => ['tasks', search] as const, [search]);
+
   const listQuery = useInfiniteQuery({
-    queryKey: ['tasks'],
+    queryKey: tasksKey,
     queryFn: ({ pageParam }) => {
       const offset = pageParam as number;
-      return fetchTasks(offset > 0 ? { offset } : {});
+      const params: { offset?: number; q?: string } = offset > 0 ? { offset } : {};
+      if (search) params.q = search;
+      return fetchTasks(params);
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
@@ -72,10 +82,11 @@ export function TasksPage() {
   const loading = listQuery.isLoading;
   const loadingMore = listQuery.isFetchingNextPage;
 
-  /** In-place update trên infinite-query data — KHÔNG refetch (F3). */
+  /** In-place update trên infinite-query data — KHÔNG refetch (F3). Đúng key
+   *  đang active (có q) — mutation khi đang search vẫn cập nhật board hiện tại. */
   function patchList(patch: (pages: Array<{ items: Task[]; total: number }>) => void) {
     queryClient.setQueryData<{ pages: Array<{ items: Task[]; total: number }>; pageParams: unknown[] }>(
-      ['tasks'],
+      tasksKey,
       (old) => {
         if (!old) return old;
         const pages = old.pages.map((p) => ({ items: [...p.items], total: p.total }));
@@ -181,11 +192,9 @@ export function TasksPage() {
     }
   }
 
-  // Search client-side theo tiêu đề (đã debounce) — lọc TRÊN card đã tải.
-  const visible = debouncedQuery
-    ? tasks.filter((t) => t.title.toLowerCase().includes(debouncedQuery.trim().toLowerCase()))
-    : tasks;
+  // Search server-side (q param) — board render thẳng kết quả đã lọc từ node-svc.
   const doneCount = tasks.filter((t) => t.status === 'done').length;
+  const searchActive = search !== '';
 
   return (
     // reducedMotion="user" — tôn trọng prefers-reduced-motion toàn cây
@@ -216,10 +225,26 @@ export function TasksPage() {
               </div>
             ))}
           </div>
+        ) : searchActive && tasks.length === 0 && !listQuery.error ? (
+          /* Empty state search — tách khỏi empty cột ("Kéo card vào đây" là board
+           * trống thật; đây là search không khớp) + nút xoá search nhanh. */
+          <div
+            data-testid="search-empty"
+            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-s2/50 px-4 py-10 text-center"
+          >
+            <p className="m-0 text-body text-ink2">Không có task khớp '{search}'</p>
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="cursor-pointer rounded-lg border border-line bg-s1 px-3 py-1.5 text-label text-ink2 transition-colors hover:bg-s3 hover:text-ink"
+            >
+              Xoá tìm kiếm
+            </button>
+          </div>
         ) : (
           <>
             <KanbanBoard
-              tasks={visible}
+              tasks={tasks}
               sort={sort}
               busyId={busyId}
               onStatusChange={(task, status) => void statusMutation.mutateAsync({ task, status }).catch(() => undefined)}

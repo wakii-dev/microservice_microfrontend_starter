@@ -247,6 +247,12 @@ export interface operations {
             query?: {
                 status?: components["schemas"]["TaskStatus"];
                 assigneeId?: string;
+                /**
+                 * @description Tìm theo tiêu đề — case-insensitive substring (SQL ILIKE `%q%`).
+                 *     Service trim rồi bỏ qua nếu rỗng; ký tự LIKE `%` `_` `\` được escape
+                 *     nên luôn khớp LITERAL (không coi là wildcard).
+                 */
+                q?: string;
                 limit?: number;
                 offset?: number;
             };

@@ -1,6 +1,7 @@
 // Component tests — KANBAN BOARD (redesign 2026-10-25): 3 cột render đúng ·
 // tạo/sửa qua Modal · đổi status qua fallback dropdown (drag jsdom không simulate)
-// · xoá 2 bước · search debounce · sort · progress · load-more · skeleton.
+// · xoá 2 bước · search SERVER-SIDE (q param + empty state riêng) · sort ·
+// progress · load-more · skeleton.
 // Mock api layer (mirror suite cũ) — intent tests giữ: in-place mutation KHÔNG refetch.
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -287,17 +288,85 @@ describe('TasksPage — Kanban board', () => {
     expect(screen.queryByText('Xoá task này?')).not.toBeInTheDocument();
   });
 
-  it('search debounce — type tiêu đề → chỉ card khớp còn trong board', async () => {
+  it('search debounce — type tiêu đề → fetchTasks gởi q lên API (server-side, board = kết quả server)', async () => {
     const user = userEvent.setup();
-    mockList([TASK_A, TASK_B]);
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A, TASK_B], total: 2 }) // board ban đầu — không q
+      .mockResolvedValue({ items: [TASK_B], total: 1 }); // mọi query search
     render(<TasksPage />, { wrapper: createWrapper() });
 
     await screen.findByText('Task A');
     await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm task' }), 'Task B');
 
-    // debounce 200ms — Task A biến mất sau khi debounce settles
+    // debounce 200ms rồi mới fetch — q lên API, KHÔNG lọc client trên card đã tải
+    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({ q: 'Task B' }));
+    expect(await screen.findByText('Task B')).toBeInTheDocument();
+    // server trả gì board hiện nấy — Task A khỏi kết quả mới → biến mất
     await waitFor(() => expect(screen.queryByText('Task A')).not.toBeInTheDocument());
-    expect(screen.getByText('Task B')).toBeInTheDocument();
+  });
+
+  it('đổi q → query MỚI fetch lại trang 0 (không nối trang chéo key)', async () => {
+    const user = userEvent.setup();
+    mockedApi.fetchTasks.mockResolvedValue({ items: [TASK_A], total: 1 });
+    render(<TasksPage />, { wrapper: createWrapper() });
+
+    await screen.findByText('Task A');
+    const searchbox = screen.getByRole('searchbox', { name: 'Tìm kiếm task' });
+
+    await user.type(searchbox, 'X');
+    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({ q: 'X' }));
+
+    await user.type(searchbox, 'Y');
+    // { q: 'XY' } khớp CHÍNH XÁC — không offset (pagination reset theo chuẩn useInfiniteQuery)
+    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({ q: 'XY' }));
+  });
+
+  it('search không khớp → empty state riêng "Không có task khớp" + Xoá tìm kiếm (không nhầm empty cột)', async () => {
+    const user = userEvent.setup();
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A], total: 1 })
+      .mockResolvedValue({ items: [], total: 0 });
+    render(<TasksPage />, { wrapper: createWrapper() });
+
+    await screen.findByText('Task A');
+    await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm task' }), 'zzz');
+
+    const empty = await screen.findByTestId('search-empty');
+    expect(empty).toHaveTextContent("Không có task khớp 'zzz'");
+    // KHÔNG phải empty cột — 3 cột + hint "Kéo card vào đây" không render khi search trật
+    expect(screen.queryByRole('region', { name: 'Cột Cần làm' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Kéo card vào đây')).not.toBeInTheDocument();
+
+    // Xoá tìm kiếm → query không-q chạy lại, board 3 cột trở lại
+    mockedApi.fetchTasks.mockResolvedValue({ items: [TASK_A], total: 1 });
+    await user.click(screen.getByRole('button', { name: 'Xoá tìm kiếm' }));
+    expect(await screen.findByText('Task A')).toBeInTheDocument();
+    expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({});
+    expect(screen.queryByTestId('search-empty')).not.toBeInTheDocument();
+  });
+
+  it('search + Tải thêm — trang sau vẫn mang q (load-more board-level giữ khi đang search)', async () => {
+    const user = userEvent.setup();
+    const TASK_B2: api.Task = {
+      ...TASK_B,
+      id: '55555555-5555-5555-5555-555555555555',
+      title: 'Task B2',
+      updatedAt: '2026-10-09T05:30:00Z',
+    };
+    mockedApi.fetchTasks
+      .mockResolvedValueOnce({ items: [TASK_A], total: 2 }) // {} — board ban đầu
+      .mockResolvedValueOnce({ items: [TASK_B], total: 2 }) // { q } — trang 1 search
+      .mockResolvedValueOnce({ items: [TASK_B2], total: 2 }); // { offset, q }
+    render(<TasksPage />, { wrapper: createWrapper() });
+
+    await screen.findByText('Task A');
+    await user.type(screen.getByRole('searchbox', { name: 'Tìm kiếm task' }), 'Task B');
+    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({ q: 'Task B' }));
+    expect(await screen.findByText('Task B')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Tải thêm' }));
+    await waitFor(() => expect(mockedApi.fetchTasks).toHaveBeenLastCalledWith({ offset: 1, q: 'Task B' }));
+    expect(await screen.findByText('Task B2')).toBeInTheDocument();
   });
 
   it('sort "Cũ nhất" → thứ tự card trong cột đảo (updatedAt)', async () => {

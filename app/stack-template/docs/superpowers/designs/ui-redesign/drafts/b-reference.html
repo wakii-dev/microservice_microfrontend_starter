@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Boilerplate — Bảng thiết kế B (chuyển dịch ngôn ngữ Linear)</title>
+<style>
+  :root{
+    /* Bậc bề mặt & mực — trích từ design tokens công khai của Linear */
+    --c-canvas:#010102; --c-s1:#0f1011; --c-s2:#141516; --c-s3:#18191a;
+    --ink:#f7f8f8; --ink2:#d0d6e0; --ink3:#8a8f98;
+    --line:#23252a; --line2:#2b2d33;
+    --accent:#5e6ad2; --accent-hi:#828fff;
+    --amber:#f2c94c; --green:#3fb950; --red:#f06a6a;
+    --f: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --m: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1440px;height:900px;overflow:hidden}
+  body{
+    font-family:var(--f);font-size:14px;line-height:1.45;color:var(--ink);
+    background:var(--c-canvas);
+    background-image:radial-gradient(circle,#121418 1px,transparent 1.2px);
+    background-size:28px 28px;
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,textarea{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:0}
+  :focus-visible{outline:2px solid rgba(94,105,210,.55);outline-offset:2px}
+  .mono{font-family:var(--m)}
+
+  /* ============ BẢNG THIẾT KẾ ============ */
+  .board{width:1440px;height:900px;padding:32px;display:flex;gap:24px}
+  .col-l{flex:1;display:flex;flex-direction:column;min-width:0}
+  .col-r{width:512px;flex:none;display:flex;flex-direction:column}
+  .plane-label{flex:none;height:26px;display:flex;align-items:center;gap:10px;
+    font-family:var(--m);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+  .plane-label b{color:var(--ink2);font-weight:500}
+  .window{border:1px solid #272930;border-radius:8px;background:var(--c-s1);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.035);  /* khe sáng viền trên — chữ ký của panel Linear */
+    display:flex;flex-direction:column;overflow:hidden}
+
+  /* ============ APP CHROME (topbar) ============ */
+  .topbar{flex:none;height:52px;display:flex;align-items:center;gap:18px;padding:0 16px;
+    border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .mark{flex:none;width:20px;height:20px;border-radius:5px;background:var(--accent);display:grid;place-items:center}
+  .mark svg{width:12px;height:12px}
+  .tb-sep{width:1px;height:18px;background:var(--line)}
+  .nav{display:flex;gap:2px}
+  .nav a{display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;border-radius:6px;
+    font-size:13px;color:var(--ink3);text-decoration:none}
+  .nav a svg{width:14px;height:14px}
+  .nav a.on{background:#1e2025;color:var(--ink)}
+  .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .user{display:flex;align-items:center;gap:8px;height:28px;padding:0 10px 0 4px;
+    border:1px solid var(--line);border-radius:6px;background:var(--c-s2)}
+  .avatar{width:20px;height:20px;border-radius:4px;background:var(--accent);color:#fff;
+    font-size:12px;font-weight:600;display:grid;place-items:center}
+  .user span{font-size:13px;color:var(--ink2)}
+  .logout{height:28px;padding:0 8px;border-radius:6px;font-size:13px;color:var(--ink3)}
+
+  /* topbar nhỏ cho mặt phẳng Activity */
+  .topbar.sm{height:44px;gap:12px;padding:0 12px}
+  .topbar.sm .brand{font-size:13px}
+  .topbar.sm .mark{width:18px;height:18px;border-radius:4px}
+  .topbar.sm .nav a{height:24px;padding:0 8px;font-size:12px}
+  .topbar.sm .user{height:24px}
+  .topbar.sm .avatar{width:18px;height:18px;font-size:11.5px}
+  .topbar.sm .user span{font-size:12px}
+
+  /* ============ MÀN TASKS (HERO) ============ */
+  .main{flex:1;display:flex;flex-direction:column;min-height:0;padding:16px 20px 18px;gap:12px}
+  .page-head{flex:none;display:flex;align-items:center;gap:12px}
+  .page-head h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .filters{margin-left:auto;display:flex;gap:6px}
+  .chip{display:flex;align-items:center;gap:7px;height:26px;padding:0 11px;border-radius:9999px;
+    border:1px solid var(--line2);background:var(--c-s2);font-size:13px;color:var(--ink2)}
+  .chip .d{width:6px;height:6px;border-radius:50%}
+  .chip .n{font-family:var(--m);font-size:12px;color:var(--ink3)}
+
+  /* form tạo task */
+  .create{flex:none;border:1px solid var(--line);border-radius:8px;background:var(--c-s2);padding:14px;display:flex;flex-direction:column;gap:9px}
+  .eyebrow{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .field label{font-size:12px;color:var(--ink3)}
+  .input{height:32px;padding:0 10px;background:#0d0e10;border:1px solid var(--line2);border-radius:6px;
+    font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden}
+  textarea.input{height:52px;padding:7px 10px;line-height:1.4;resize:none;white-space:normal}
+  .frow{display:flex;gap:10px;align-items:flex-end}
+  .f-actions{display:flex;align-items:center;gap:8px;padding-bottom:1px}
+  kbd{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--line2);border-radius:4px;
+    background:var(--c-s1);font-family:var(--m);font-size:12px;color:var(--ink3)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:30px;padding:0 14px;
+    border-radius:6px;font-size:13px;font-weight:500}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+  .btn-ghost{border:1px solid var(--line2);background:var(--c-s2);color:var(--ink2)}
+  .btn-ghost svg{width:13px;height:13px}
+
+  /* danh sách task */
+  .list{flex:1;min-height:0;border:1px solid var(--line);border-radius:8px;background:var(--c-s1);display:flex;flex-direction:column}
+  .list-head{flex:none;height:38px;display:flex;align-items:center;padding:0 14px;
+    background:var(--c-s2);border-bottom:1px solid var(--line)}
+  .list-head h2{font-size:13px;font-weight:600;color:var(--ink2)}
+  .list-head .n{margin-left:8px;font-family:var(--m);font-size:12px;color:var(--ink3)}
+  .rows{flex:1;min-height:0}
+  .row{display:flex;align-items:center;gap:16px;height:65px;padding:0 14px;border-bottom:1px solid #1c1e22}
+  .row:last-child{border-bottom:0}
+  .row-main{flex:1;min-width:0}
+  .row-l1{display:flex;align-items:center;gap:8px;min-width:0}
+  .row-title{font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-desc{margin-top:3px;font-size:13px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-meta{flex:none;text-align:right;font-family:var(--m);font-size:12px;line-height:1.5;color:var(--ink3)}
+  .pill{flex:none;display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 8px;border-radius:9999px;font-size:12px}
+  .pill .d{width:6px;height:6px;border-radius:50%}
+  .p-todo{background:rgba(255,255,255,.05);border:1px solid #2b2d33;color:var(--ink2)}   .p-todo .d{background:#8a8f98}
+  .p-doing{background:rgba(242,201,76,.10);border:1px solid rgba(242,201,76,.28);color:var(--amber)} .p-doing .d{background:var(--amber)}
+  .p-done{background:rgba(63,185,80,.10);border:1px solid rgba(63,185,80,.28);color:var(--green)}  .p-done .d{background:var(--green)}
+  .p-fail{background:rgba(235,87,87,.12);border:1px solid rgba(235,87,87,.30);color:var(--red)}   .p-fail .d{background:var(--red)}
+  .list-foot{flex:none;border-top:1px solid var(--line);padding:8px;display:flex;justify-content:center}
+
+  /* ============ MÀN ACTIVITY ============ */
+  .act{flex:1;min-height:0;padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px}
+  .act-head{flex:none;display:flex;align-items:center}
+  .act-head h1{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .act-head .btn{margin-left:auto;height:26px;padding:0 10px;font-size:12.5px}
+  .stats{flex:none;border:1px solid var(--line);border-radius:8px;background:var(--c-s1)}
+  .stat{height:29px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid #1c1e22}
+  .stat:last-child{border-bottom:0}
+  .stat .d{width:6px;height:6px;border-radius:50%;background:#3c3f46}
+  .stat .lb{font-size:13px;color:var(--ink3)}
+  .stat .v{margin-left:auto;font-family:var(--m);font-size:14px;font-weight:500;color:var(--ink)}
+  .tl-block{flex:1;min-height:0;display:flex;flex-direction:column;gap:4px}
+  .timeline{flex:1;position:relative;padding-left:20px}
+  .timeline::before{content:"";position:absolute;left:3px;top:16px;bottom:16px;width:1px;background:var(--line)}
+  .evt{position:relative;display:flex;align-items:flex-start;gap:10px;padding:13px 0}
+  .evt .dot{position:absolute;left:-20px;top:18px;width:7px;height:7px;border-radius:50%;background:#3c3f46}
+  .evt p{flex:1;font-size:13px;color:var(--ink2);line-height:1.45}
+  .evt p b{font-weight:500;color:var(--ink)}
+  .evt p .sys{font-family:var(--m);font-size:12.5px;color:var(--ink2)}
+  .evt p .bad{color:var(--red)}
+  .evt time{flex:none;font-family:var(--m);font-size:12px;color:var(--ink3);padding-top:1px}
+
+  /* ============ ĐĂNG NHẬP ============ */
+  .login{height:300px;align-items:center;justify-content:center}
+  .login-box{width:300px;display:flex;flex-direction:column}
+  .login-brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .login-brand .mark{width:28px;height:28px;border-radius:6px}
+  .login-brand .mark svg{width:16px;height:16px}
+  .login-brand b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .login-box .field{margin-bottom:10px}
+  .login-box .btn{margin-top:4px;width:100%}
+  .hint{margin-top:12px;text-align:center;font-family:var(--m);font-size:12px;color:var(--ink3)}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- ══════════ 01 · MÀN TASKS (HERO) ══════════ -->
+  <section class="col-l">
+    <div class="plane-label"><b>01</b> Màn Tasks</div>
+    <div class="window" style="flex:1">
+
+      <header class="topbar">
+        <div class="brand">
+          <span class="mark"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M3 4.5h7M3 8h10M3 11.5h5"/></svg></span>
+          Boilerplate
+        </div>
+        <span class="tb-sep"></span>
+        <nav class="nav">
+          <a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 7.5 8 3.25 13 7.5v4.9a.6.6 0 0 1-.6.6H9.8V10H6.2v3H3.6a.6.6 0 0 1-.6-.6Z"/></svg>Trang chủ</a>
+          <a class="on" href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4.4 1.4 1.4 2.4-2.4M2.5 11 3.9 12.4l2.4-2.4M8.6 4.7h5M8.6 11.6h5"/></svg>Tasks</a>
+          <a href="#"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9h2.4l1.8-4.6 2.8 7 1.6-2.4h2.9"/></svg>Activity</a>
+        </nav>
+        <div class="tb-right">
+          <span class="user"><span class="avatar">A</span><span>alice@demo.local</span></span>
+          <button class="logout">Đăng xuất</button>
+        </div>
+      </header>
+
+      <div class="main">
+        <div class="page-head">
+          <h1>Tasks</h1>
+          <div class="filters">
+            <span class="chip"><span class="d" style="background:#8a8f98"></span>Cần làm <span class="n">12</span></span>
+            <span class="chip"><span class="d" style="background:#f2c94c"></span>Đang làm <span class="n">7</span></span>
+            <span class="chip"><span class="d" style="background:#3fb950"></span>Xong <span class="n">5</span></span>
+          </div>
+        </div>
+
+        <section class="create">
+          <div class="eyebrow">Tạo task mới</div>
+          <div class="field">
+            <label for="ft">Tiêu đề</label>
+            <input class="input" id="ft" value="Thêm panel consumer lag vào Grafana">
+          </div>
+          <div class="frow">
+            <div class="field" style="flex:1">
+              <label for="fd">Mô tả</label>
+              <textarea class="input" id="fd" rows="2">Vẽ độ trễ (consumer lag) của nhóm activity-consumer lên dashboard staging, đặt ngưỡng cảnh báo khi lag vượt 1.000 message.</textarea>
+            </div>
+            <div class="f-actions">
+              <kbd>C</kbd>
+              <button class="btn btn-primary">Tạo task</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="list">
+          <div class="list-head"><h2>Danh sách</h2><span class="n">(6/24)</span></div>
+          <div class="rows">
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-todo"><span class="d"></span>Cần làm</span><span class="row-title">Chuẩn bị demo khách hàng</span></div>
+                <div class="row-desc">Soạn kịch bản fresh-clone: đăng nhập, tạo task, xác nhận sự kiện hiện trên activity feed.</div>
+              </div>
+              <div class="row-meta">55555555-…<br>13/10/2026 22:15</div>
+            </div>
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-doing"><span class="d"></span>Đang làm</span><span class="row-title">Viết e2e smoke</span></div>
+                <div class="row-desc">Playwright: đăng nhập, CRUD task, so khớp sự kiện Kafka với activity feed.</div>
+              </div>
+              <div class="row-meta">7f3a91c0-…<br>13/10/2026 22:09</div>
+            </div>
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-todo"><span class="d"></span>Cần làm</span><span class="pill p-fail"><span class="d"></span>Gán thất bại</span><span class="row-title">Deploy gateway</span></div>
+                <div class="row-desc">Rollout gateway v2.4.1 lên cụm staging; consumer Kafka báo lag sau khi gán qua system.</div>
+              </div>
+              <div class="row-meta">2d4be8a6-…<br>13/10/2026 21:58</div>
+            </div>
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-done"><span class="d"></span>Xong</span><span class="row-title">Dọn flag tính năng task_v2_feed</span></div>
+                <div class="row-desc">Xóa flag cũ sau hai tuần activity feed chạy ổn định trên môi trường production.</div>
+              </div>
+              <div class="row-meta">c91f0d33-…<br>13/10/2026 21:33</div>
+            </div>
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-doing"><span class="d"></span>Đang làm</span><span class="row-title">Tăng batch-size consumer Kafka</span></div>
+                <div class="row-desc">Đo lại throughput activity feed sau khi nâng batch-size từ 50 lên 200 message.</div>
+              </div>
+              <div class="row-meta">48a7f2e5-…<br>13/10/2026 20:47</div>
+            </div>
+            <div class="row">
+              <div class="row-main">
+                <div class="row-l1"><span class="pill p-done"><span class="d"></span>Xong</span><span class="row-title">Runbook rollback migration</span></div>
+                <div class="row-desc">Các bước rollback schema bảng tasks khi migration treo giữa chừng.</div>
+              </div>
+              <div class="row-meta">b60d9e12-…<br>13/10/2026 19:12</div>
+            </div>
+          </div>
+          <div class="list-foot"><button class="btn btn-ghost" style="width:132px">Tải thêm</button></div>
+        </section>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ CỘT PHỤ ══════════ -->
+  <aside class="col-r">
+
+    <!-- 02 · MÀN ACTIVITY -->
+    <section style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="plane-label"><b>02</b> Màn Activity</div>
+      <div class="window" style="flex:1">
+        <header class="topbar sm">
+          <div class="brand">
+            <span class="mark"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M3 4.5h7M3 8h10M3 11.5h5"/></svg></span>
+            Boilerplate
+          </div>
+          <span class="tb-sep"></span>
+          <nav class="nav">
+            <a href="#">Trang chủ</a>
+            <a href="#">Tasks</a>
+            <a class="on" href="#">Activity</a>
+          </nav>
+          <div class="tb-right">
+            <span class="user"><span class="avatar">A</span><span>alice@demo.local</span></span>
+          </div>
+        </header>
+        <div class="act">
+          <div class="act-head">
+            <h1>Activity</h1>
+            <button class="btn btn-ghost"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.2 8a5.2 5.2 0 1 1-1.6-3.76"/><path d="M13.4 2.5v2.7h-2.7"/></svg>Làm mới</button>
+          </div>
+          <div class="eyebrow">Thống kê</div>
+          <div class="stats">
+            <div class="stat"><span class="d" style="background:#5e6ad2"></span><span class="lb">Tổng số task</span><span class="v">24</span></div>
+            <div class="stat"><span class="d" style="background:#8a8f98"></span><span class="lb">Cần làm</span><span class="v">12</span></div>
+            <div class="stat"><span class="d" style="background:#f2c94c"></span><span class="lb">Đang làm</span><span class="v">7</span></div>
+            <div class="stat"><span class="d" style="background:#3fb950"></span><span class="lb">Xong</span><span class="v">5</span></div>
+            <div class="stat"><span class="d" style="background:#5e6ad2"></span><span class="lb">Sự kiện 24h qua</span><span class="v">18</span></div>
+          </div>
+          <div class="tl-block">
+            <div class="eyebrow">Dòng thời gian</div>
+            <div class="timeline">
+              <div class="evt">
+                <span class="dot" style="background:#5e6ad2"></span>
+                <p><b>alice</b> đã tạo task «Chuẩn bị demo khách hàng»</p>
+                <time>22:15</time>
+              </div>
+              <div class="evt">
+                <span class="dot"></span>
+                <p><b>bob</b> được gán task «Viết e2e smoke»</p>
+                <time>22:09</time>
+              </div>
+              <div class="evt">
+                <span class="dot" style="background:#f06a6a"></span>
+                <p><span class="sys">system:</span> «Deploy gateway» <span class="bad">gán thất bại</span></p>
+                <time>21:58</time>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 · ĐĂNG NHẬP -->
+    <section style="flex:none;margin-top:14px">
+      <div class="plane-label"><b>03</b> Đăng nhập</div>
+      <div class="window login">
+        <div class="login-box">
+          <div class="login-brand">
+            <span class="mark"><svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M3 4.5h7M3 8h10M3 11.5h5"/></svg></span>
+            <b>Boilerplate</b>
+          </div>
+          <div class="field">
+            <label for="lemail">Email</label>
+            <input class="input" id="lemail" value="alice@demo.local" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="lpass">Mật khẩu</label>
+            <input class="input" id="lpass" type="password" value="demo-password">
+          </div>
+          <button class="btn btn-primary">Đăng nhập</button>
+          <div class="hint">alice@demo.local / demo-password</div>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+</div>
+</body>
+</html>

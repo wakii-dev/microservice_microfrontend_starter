@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Activity API (go-svc)
+  version: 0.2.0
+  description: |
+    Source of truth cho API activity của go-svc (SF-4, Go 1.24 + chi).
+    go-svc OWNS schema `activity` (tự migrate) và ĐỌC-ONLY schema `tasks` qua postgres role `go_readonly`
+    (grants cấp bởi platform/postgres/init qua ALTER DEFAULT PRIVILEGES — hiệu lực cho bảng sinh sau).
+    Event vào feed qua Kafka consumer topic `task-events` (ADR-0008, story FI-76 SF-3) —
+    REST ingest POST /events ĐÃ THANH LÝ (trước đây fire-and-forget, ADR-0006 superseded).
+    Mọi path được gateway route qua `/api/activity` (pass-through — service mount prefix này).
+    Auth: JWT Bearer bắt buộc; go-svc TỰ verify signature + expiry.
+servers:
+  - url: /api/activity
+tags:
+  - name: feed
+  - name: stats
+paths:
+  /healthz:
+    get:
+      tags: [feed]
+      summary: Liveness probe
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Service sống
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [feed]
+      summary: Readiness probe (migrations xong + DB reachable)
+      operationId: getReadyz
+      responses:
+        "200":
+          description: Sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Chưa sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /feed:
+    get:
+      tags: [feed]
+      summary: Activity feed — BẮT BUỘC chứa user-display fields (userName, taskTitle) để FE render trực tiếp, không tự bịa placeholder
+      operationId: getFeed
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Feed (mới nhất trước)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityFeed"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /stats:
+    get:
+      tags: [stats]
+      summary: Thống kê task — query readonly schema `tasks` theo canonical DDL (contracts/db/tasks-schema.sql)
+      operationId: getStats
+      responses:
+        "200":
+          description: Stats theo status của bảng tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityStats"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          description: Không đọc được schema tasks (permission/DB issue)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  responses:
+    Unauthorized:
+      description: Thiếu hoặc sai JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    ActivityFeedItem:
+      type: object
+      required: [id, taskId, userId, action, timestamp, userName, taskTitle]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Envelope id do producer sinh (node-svc outbox) — khóa idempotency consumer
+        taskId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [task.created, task.updated, task.assigned, task.deleted, task.assignment_failed]
+          description: >
+            Nguồn sự thật = envelope type enum (contracts/events/task-events.md) —
+            consumer ghi đủ 5 giá trị (migration 0002 CHECK varchar(40))
+        timestamp:
+          type: string
+          format: date-time
+          description: Thời điểm mutation (envelope occurredAt, ISO 8601 UTC)
+        userName:
+          type: string
+          description: User-display field — resolve tại go-svc (service-token qua spring-svc hoặc cache), FE render trực tiếp
+        taskTitle:
+          type: string
+          description: User-display field — resolve từ schema tasks (đọc readonly), FE render trực tiếp
+    ActivityFeed:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityFeedItem"
+        total:
+          type: integer
+    ActivityStats:
+      type: object
+      required: [totalTasks, tasksByStatus]
+      properties:
+        totalTasks:
+          type: integer
+          description: COUNT(*) từ schema tasks (readonly)
+        tasksByStatus:
+          type: object
+          required: [todo, in_progress, done, assignment_failed]
+          description: GROUP BY status — 4 giá trị khớp CHECK constraint canonical DDL (SF-2 cascade thêm assignment_failed)
+          properties:
+            todo:
+              type: integer
+            in_progress:
+              type: integer
+            done:
+              type: integer
+            assignment_failed:
+              type: integer
+              description: Saga compensation — status hệ thống do node-svc compensation consumer ghi, KHÔNG nhận từ PATCH
+        recentEvents:
+          type: integer
+          description: Số event activity trong 24h qua
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      description: Error envelope chung — shape chuẩn hoá trong platform/conventions/04-error-envelope.md
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+              nullable: true
+            details:
+              nullable: true

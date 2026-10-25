@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================================
+     JSON log shape — platform/conventions/03:
+     {"ts","level"(lowercase),"service","msg","requestId"(MDC),"err"(stack khi có)}
+     stdout-only (12-factor); LOG_LEVEL env điều khiển root level.
+     ============================================================================ -->
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>ts</fieldName>
+                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</pattern>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <provider class="com.example.springsvc.logging.LowercaseLevelJsonProvider"/>
+                <message>
+                    <fieldName>msg</fieldName>
+                </message>
+                <mdc/>
+                <stackTrace>
+                    <fieldName>err</fieldName>
+                </stackTrace>
+                <pattern>
+                    <pattern>{"service":"spring-svc"}</pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="${LOG_LEVEL:-info}">
+        <appender-ref ref="STDOUT"/>
+    </root>
+</configuration>

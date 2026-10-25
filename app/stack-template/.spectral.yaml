@@ -1,0 +1,17 @@
+# Spectral ruleset — lint contracts/openapi/*.yaml trong CI (workflows/contracts.yml)
+extends:
+  - spectral:oas
+
+# Boilerplate điều chỉnh: specs tự-contained (mỗi repo-con copy đi độc lập được —
+# không $ref chéo file), nên tắt các rule khuyến-khích không áp dụng cho template nội bộ.
+# Error envelope chung (conventions/04) là convention-by-review — mirror kiểm tay
+# trong components.schemas.Error của cả 4 specs (đồng bộ khi đổi).
+rules:
+  # Không bắt buộc license trên sample API
+  info-license: off
+  # Contact = epic FI-62 nội bộ — không cần contact object formal
+  info-contact: off
+  # Tag tự do — sample domain nhỏ, không cần gắn liên kết ngoài
+  oas3-api-servers: off
+  # Mọi operation đã có summary + description cấp path/info — không ép description riêng từng op
+  operation-description: off

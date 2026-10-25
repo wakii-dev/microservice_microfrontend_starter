@@ -1,0 +1,171 @@
+/*
+ * Global base — SF-1 story VU-53 (hand-off §2 + §3, hướng B Linear-referenced dark).
+ * Kiến trúc: SHELL là nơi import LÀM CHỦ global base (SF-2 wire vào shell entry);
+ * remote trong shell KHÔNG import base — chỉ tokens + scoped classes của mình.
+ * Standalone remote (:4001/:4002) tự import tokens+base để debug đứng mình.
+ * GIỮ FILE NÀY GIỐNG HỆT mọi bản copy (standalone-copy contract).
+ *
+ * `@layer reset,base`: specificity thấp có chủ đích — CSS surface (SF-2/3/4,
+ * unlayered) luôn thắng base mà không cần !important.
+ */
+@layer reset, base;
+
+@layer reset {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+  }
+}
+
+@layer base {
+  :root {
+    /* Native controls (select dropdown, scrollbar) — light default (decision
+     * antd-look 2026-10-17); dark qua data-bp-theme (color-scheme: dark override
+     * trong themes/dark.css, cùng block token). */
+    color-scheme: light;
+  }
+
+  body {
+    background: var(--c-canvas);
+    color: var(--ink);
+    font-family: var(--f);
+    font-size: var(--fs-body);
+    line-height: 1.5;
+  }
+
+  /* Form controls: nền s3, viền line, radius r-1 — focus ring accent-hi (hand-off §2) */
+  input,
+  select,
+  textarea {
+    background: var(--c-s3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-1);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--fs-body);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent-hi);
+    outline-offset: 1px;
+  }
+
+  button {
+    border-radius: var(--r-2);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  /*
+   * Scrollbar — mảnh 8px, pill, token-driven (user báo thumb default #5b5b5b
+   * clash thiết kế 2026-10-18). Thumb = --line2 (nổi đủ trên canvas light lẫn
+   * dark — dark.css override --line2/#2b2d33, hover --ink3 sáng dần) — KHÔNG hex.
+   * ⚠️ macOS overlay: khi hệ điều hành đang dùng overlay scrollbar (default),
+   * khai báo scrollbar-width/scrollbar-color sẽ ĐỔI sang thin persistent —
+   * đây là hành vi chấp nhận có chủ đích (nhất quán cross-app, không tự ẩn);
+   * rule chỉ vẽ track/thumb khi browser render classic/forced scrollbar.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line2) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line2);
+    border-radius: var(--r-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--ink3);
+  }
+
+  /* Skip link: ẩn khỏi mắt thường, hiện khi focus qua bàn phím (a11y baseline) */
+  .skip-link {
+    left: -9999px;
+    padding: var(--sp-2) var(--sp-4);
+    position: absolute;
+    top: 0;
+    z-index: 100;
+  }
+  .skip-link:focus {
+    background: var(--accent);
+    color: #fff;
+    left: 0;
+  }
+
+  /* Responsive nền móng (hand-off §2): nav wrap hẹp; list 1 cột + stats grid
+   * co giãn theo §4 (auto-fit minmax) — không cần rule riêng ở đây. ≥1024px
+   * layout đầy đủ do từng surface (SF-2/3/4) tự set theo §4. */
+  @media (max-width: 768px) {
+    nav {
+      flex-wrap: wrap;
+      row-gap: var(--sp-2);
+    }
+  }
+
+  /*
+   * ── Primitives còn lại (hand-off §3) — đang migrate dần sang Tailwind v4
+   * Badge đã sang utilities (2026-10-17); các primitive khác migrate theo phase
+   * trong spec tailwind-migration. Consumer import @wakii/ui-kit/styles/tailwind.css.
+   */
+
+  /* EmptyState — KHÔNG icon; title + mô tả + optional action */
+  .bp-empty {
+    color: var(--ink3);
+    padding: var(--sp-6) var(--sp-4);
+    text-align: center;
+  }
+  .bp-empty__title {
+    color: var(--ink);
+    font-size: var(--fs-h2);
+    margin: 0 0 var(--sp-2);
+  }
+  .bp-empty__description {
+    color: var(--ink2);
+    margin: 0 0 var(--sp-4);
+  }
+  .bp-empty__action {
+    margin-top: var(--sp-2);
+  }
+
+  /* Skeleton — khối nền --line pulse (shimmer opacity .5→1); wrapper aria-busy */
+  .bp-skeleton {
+    background: var(--line);
+    border-radius: var(--r-1);
+    animation: bp-shimmer 1.2s ease-in-out infinite;
+  }
+  .bp-skeleton--text {
+    height: 14px;
+    width: 100%;
+  }
+  .bp-skeleton--row {
+    border-radius: var(--r-2);
+    height: 44px;
+    width: 100%;
+  }
+  .bp-skeleton--card {
+    border-radius: var(--r-3);
+    height: 96px;
+    width: 100%;
+  }
+  @keyframes bp-shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}

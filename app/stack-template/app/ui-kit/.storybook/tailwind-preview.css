@@ -1,0 +1,3 @@
+/* Storybook-only tailwind entry — storybook chạy Vite riêng nên tự @import
+ * (không dùng qua app). @theme inline định nghĩa ở ui-kit/styles/tailwind.css. */
+@import '../src/styles/tailwind.css';

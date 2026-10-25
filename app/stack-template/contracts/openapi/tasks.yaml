@@ -1,0 +1,316 @@
+openapi: 3.0.3
+info:
+  title: Tasks API (node-svc)
+  version: 0.1.0
+  description: |
+    Source of truth cho API task của node-svc (SF-2).
+    DB schema: `tasks` — canonical DDL tại `contracts/db/tasks-schema.sql` (khớp 1:1 với Task schema dưới đây).
+    Mọi path được gateway nginx route qua `/api/tasks` (pass-through, KHÔNG rewrite — service tự mount prefix này).
+    Auth: JWT Bearer bắt buộc (gateway chặn thiếu-token 401; node-svc TỰ verify signature + expiry).
+  contact:
+    name: boilerplate epic FI-62
+servers:
+  - url: /api/tasks
+tags:
+  - name: tasks
+paths:
+  /healthz:
+    get:
+      tags: [tasks]
+      summary: Liveness probe
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Service sống
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [tasks]
+      summary: Readiness probe (DB migration xong + user-validation dependency reachable)
+      operationId: getReadyz
+      responses:
+        "200":
+          description: Sẵn sàng nhận traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Chưa sẵn sàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /tasks:
+    get:
+      tags: [tasks]
+      summary: Liệt kê tasks (phân trang + lọc)
+      operationId: listTasks
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+        - name: assigneeId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Danh sách tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [tasks]
+      summary: Tạo task mới (validate user qua spring-svc; push event fire-and-forget sang go-svc)
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+      responses:
+        "201":
+          description: Task đã tạo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: Assignee không tồn tại (spring-svc trả 404 khi validate)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: spring-svc down khi validate user — fail-closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [tasks]
+      summary: Lấy 1 task
+      operationId: getTask
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [tasks]
+      summary: Cập nhật một phần task
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskRequest"
+      responses:
+        "200":
+          description: Task sau cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [tasks]
+      summary: Xoá task
+      operationId: deleteTask
+      responses:
+        "204":
+          description: Đã xoá
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+components:
+  responses:
+    BadRequest:
+      description: Payload không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Thiếu hoặc sai JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Token hợp lệ nhưng không đủ quyền (DELETE chỉ admin — envelope code FORBIDDEN)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Không tìm thấy
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    TaskStatus:
+      type: string
+      enum: [todo, in_progress, done]
+      description: |
+        WRITABLE status — query param + PATCH body CHỈ nhận 3 giá trị này
+        (khớp CHECK constraint writable trong contracts/db/tasks-schema.sql).
+        go-svc stats group theo đúng 3 giá trị này.
+        `assignment_failed` KHÔNG ở đây — system-owned (compensation ghi,
+        không client) — xem TaskStatusExtended.
+    TaskStatusExtended:
+      type: string
+      enum: [todo, in_progress, done, assignment_failed]
+      description: |
+        READ-ONLY — chỉ `Task.status` response. `assignment_failed` là trạng
+        thái hệ thống (saga compensation — ADR-0008): consumer node-svc-compensation
+        ghi qua conditional UPDATE; PATCH KHÔNG nhận giá trị này.
+    Task:
+      type: object
+      required: [id, title, status, createdBy, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        status:
+          $ref: "#/components/schemas/TaskStatusExtended"
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+          description: UUID user của spring-svc — KHÔNG FK chéo schema (xem DDL comment)
+        createdBy:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        assigneeId:
+          type: string
+          format: uuid
+    UpdateTaskRequest:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        assigneeId:
+          type: string
+          format: uuid
+    TaskList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        total:
+          type: integer
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      description: Error envelope chung — shape chuẩn hoá trong platform/conventions/04-error-envelope.md
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Mã máy đọc được, vd TASK_NOT_FOUND / VALIDATION_ERROR / UNAUTHORIZED
+            message:
+              type: string
+            requestId:
+              type: string
+              nullable: true
+            details:
+              description: Tuỳ service — dữ liệu bổ sung có cấu trúc
+              nullable: true

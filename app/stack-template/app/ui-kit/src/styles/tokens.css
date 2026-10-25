@@ -1,0 +1,133 @@
+/*
+ * Design tokens — LIGHT DEFAULT theo visual language **antd** (decision 2026-10-17:
+ * docs/superpowers/specs/2026-10-17-antd-look-tokens.md — supersede direction B làm
+ * theme phụ, xem themes/dark.css). Source of truth duy nhất: Tailwind v4 @theme inline
+ * (styles/tailwind.css) map thẳng các var này; components KHÔNG hardcode màu.
+ * Idempotent theo thiết kế: import nhiều lần cùng giá trị vô hại.
+ * KHÔNG tự chế token mới (thiếu = flag coordinator, không thêm ỳ).
+ */
+/* Dark theme — @import BẮT BUỘC đầu file (spec CSS: @import sau rule bị drop —
+ * bug dark không ăn 2026-10-17). Chỉ override dưới [data-bp-theme="dark"]. */
+@import "./themes/dark.css";
+
+:root {
+  /* Bậc bề mặt (antd: layout gray + container white; depth bằng bậc, không shadow mặc định) */
+  --c-canvas: #f5f5f5; /* colorBgLayout — nền ngoài cùng */
+  --c-s1: #ffffff; /* khối lớn (nav, sidebar) — colorBgContainer */
+  --c-s2: #ffffff; /* card / panel — colorBgContainer */
+  --c-s3: #fafafa; /* row, input, hover surface — colorFillQuaternary-ish */
+  /* Mực (text) — antd colorText 4 mức */
+  --ink: rgba(0, 0, 0, 0.88); /* chính */
+  --ink2: rgba(0, 0, 0, 0.65); /* phụ (desc) */
+  --ink3: rgba(0, 0, 0, 0.45); /* meta (uuid, time) — chỉ meta phụ ≥12px */
+  --ink4: rgba(0, 0, 0, 0.25); /* disabled text + placeholder — antd colorTextQuaternary */
+  --bg-disabled: rgba(0, 0, 0, 0.04); /* antd colorBgContainerDisabled */
+  /* Viền — antd colorBorder / colorBorderSecondary */
+  --line: #e2e5ea; /* 1px mặc định — cool-tint hairline */
+  --line2: #eef0f3; /* split/hover nền */
+  /* Accent duy nhất — antd colorPrimary + hover */
+  --accent: #1677ff;
+  --accent-hi: #4096ff;
+  /* Trạng thái task — map antd palette */
+  --st-todo: #bfbfbf; /* Cần làm (gray quartz) */
+  --st-doing: #faad14; /* Đang làm (gold-6 / warning) */
+  --st-done: #52c41a; /* Xong (green-6 / success) */
+  --st-fail: #ff4d4f; /* Gán thất bại + error (red-5) */
+  /* Motion scale (identity "mượt mà" — CHỈ animate transform/opacity; exit nhanh hơn enter ~30%)
+   Nguồn: strategy motion 2026-10-17. Motion identity — xem docs/motion.md. */
+  --motion-instant: 90ms;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 360ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1); /* decelerate — element vào */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* accelerate — element ra */
+  --ease-toggle: cubic-bezier(0.34, 1.56, 0.64, 1); /* spring nhẹ — toggle/press */
+  /* Shadow layered (floating surfaces: modal/drawer/popover/dropdown) */
+  --shadow-pop: 0 4px 6px -2px rgba(0, 0, 0, 0.03), 0 12px 16px -4px rgba(0, 0, 0, 0.06), 0 24px 48px -12px rgba(0, 0, 0, 0.08);
+  /* Hover lift */
+  --shadow-lift: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+
+  /* Depth contract (PO duyệt 2+3 hợp thể): easing mềm cao cấp cho mọi state-change */
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-smooth: 240ms;
+
+  /* D1 — Elevation system (Design Depth Wave 19-10): shadow 3 tầng cho mọi surface
+     + inset highlight viền trên. Component dùng var(--ele-1|2|3) theo trạng thái
+     rest/hover/active; overlay giữ --shadow-pop. */
+  --ele-1: 0 1px 2px rgba(16, 24, 40, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ele-2: 0 2px 6px -1px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --ele-3: 0 6px 16px -4px rgba(16, 24, 40, 0.12), 0 2px 4px rgba(16, 24, 40, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  /* D2 — Surface wash + tint trạng thái (kết hợp utilities: bg-s1/s2 sẵn) */
+  --wash: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 45%);
+
+  /* Scrim — phủ đen trên media/backdrop (theme-INDEPENDENT: đen trên ảnh đúng cả
+     light/dark, không override dark.css). Thang bậc nhẹ→đậm; component dùng
+     bg-scrim-1..4, CẤM rgba(0,0,0) inline (batch F 2026-10-18). */
+  --scrim-1: rgba(0, 0, 0, 0.2); /* bullet indicator trên media */
+  --scrim-2: rgba(0, 0, 0, 0.3); /* nav button trên ảnh — rest */
+  --scrim-3: rgba(0, 0, 0, 0.5); /* nav button trên ảnh — hover/active bullet */
+  --scrim-4: rgba(0, 0, 0, 0.8); /* backdrop toàn màn (image preview) */
+  /* Tooltip surface (antd colorBgSpotlight): light = spotlight đen; dark override
+     sáng hơn (#424242) để bubble tách khỏi canvas tối — phán quyết lead 2026-10-18. */
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
+  --tooltip-bg: rgba(0, 0, 0, 0.85);
+  /* Cinematic experience (REF-SPEC 2026-10-18 — đo từ ref, PO duyệt): chữ navy
+     trên section nền sáng của hero + footer tối. Không dùng cho text body thường. */
+  --navy-ink: rgb(16, 36, 52);
+  /* Nền TỰ CHỦ của experience (không theo theme — hero LUÔN sáng, chapters LUÔN
+     tối để text light giữ contrast ≥4.5:1 cả light lẫn dark toolbar). */
+  --hero-sky-a: #ffffff;
+  --hero-sky-b: #e8edf4;
+  --hero-ink: rgb(16, 36, 52); /* text hero trên nền sáng tự chủ — CỐ ĐỊNH, KHÔNG flip dark (khác --navy-ink có override #f7f8f8) */
+  --chapter-bg-a: rgb(10, 12, 22);
+  --chapter-bg-b: rgb(16, 36, 52);
+  /* Z-index overlay scale — thang dùng chung cho floating surfaces (antd-like:
+     dropdown < popover < modal < toast < tooltip). Component dùng z-[var(--z-*)],
+     cấm hardcode số (batch ⑩ 2026-10-18). */
+  --z-dropdown: 1000;
+  --z-popover: 1030;
+  --z-modal: 1050;
+  --z-toast: 1070;
+  --z-tooltip: 1090;
+  /* Font stacks (antd — system UI, KHÔNG webfont) */
+  --f: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", sans-serif;
+  --m: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Consolas, monospace;
+  /* Radius — modern 2026 (shadcn/Geist/Linear-like): mềm hơn antd */
+  --r-1: 6px; /* chip nhỏ, input nhỏ */
+  --r-2: 8px; /* button, input, pill — modern base */
+  --r-3: 12px; /* card, panel — modern LG */
+  --r-pill: 9999px;
+  /* Spacing scale 4base */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  /* Alert tints — antd colorBg/Border theo type (light) */
+  --alert-error-bg: #fff2f0;
+  --alert-error-border: #ffccc7;
+  --alert-warning-bg: #fffbe6;
+  --alert-warning-border: #ffe58f;
+  --alert-info-bg: #e6f4ff;
+  --alert-info-border: #91caff;
+  --alert-success-bg: #f6ffed;
+  --alert-success-border: #b7eb8f;
+  /* Alert FILLED — nền đặc theo type (antd green-7/gold-7/red-7 + colorPrimary;
+   * tokenize giá trị look-cũ — batch worker H 2026-10-18, duyệt qua "fix tất cả issue") */
+  --alert-error-filled: #cf1322;
+  --alert-warning-filled: #d48806;
+  --alert-info-filled: #1677ff; /* = --accent */
+  --alert-success-filled: #389e0d;
+  /* Mask scrim phủ (drawer/modal/blockui overlay) — antd colorBgMask */
+  --mask: rgba(0, 0, 0, 0.45);
+  /* Type scale (antd base 14) */
+  --fs-meta: 12px;
+  --fs-label: 13px;
+  --fs-body: 14px;
+  --fs-h3: 15px; /* heading nhỏ (toolbar title — batch schedule-skin 2026-10-18, coordinator chỉ định) */
+  --fs-h2: 16px;
+  --fs-h1: 18px;
+}

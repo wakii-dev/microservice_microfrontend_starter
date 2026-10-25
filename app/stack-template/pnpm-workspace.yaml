@@ -1,0 +1,24 @@
+packages:
+  # FE workspace — từ story VU-53 SF-1: app/shared/src/{styles,ui} do design-system
+  # SF sở hữu (SF-2/3/4 consume); 4 file logic fe-shared + mfToolkit READ-LOCKED
+  - "app/*"
+  # Spike MF/Rspack (SF-1) — xoá được sau khi pin versions chốt
+  - "app/spike/*"
+  # [FLAG coordinator duyệt] SF-6 (FI-74) thêm — remotes phải vào workspace để dùng
+  # workspace:* (fe-shared) + catalog: (singletons); REQUIREMENT-GAP đã comment epic FI-62
+  - "app/remotes/*"
+  # node-svc (SF-2 điền impl) — spring-svc/go-svc không thuộc pnpm workspace
+  - "services/node-svc"
+  # auth-svc (VU-59 SF-2 / VU-61) — standalone lockfile như node-svc
+  - "services/auth-svc"
+
+# Catalog — single source versions cho MF singletons (SF-5/6 import cùng pin).
+# Nguồn: SF-1 spike + SF-5 re-validation (GAP epic FI-62 2026-10-12). Coordinator sở hữu.
+catalog:
+  react: 19.3.0
+  react-dom: 19.3.0
+  react-router: ^7.9.0
+  "@module-federation/enhanced": 0.21.6
+  "@rspack/core": 1.7.12
+  # react-query singleton (libs adopt 2026-10-17) — share cache tasks↔activity qua MF
+  "@tanstack/react-query": ^5.0.0

@@ -1,0 +1,57 @@
+<style>
+  /* Canvas padding chuẩn — mọi story cách mép preview 24px, đồng nhất các nhóm. */
+  #storybook-root {
+    padding: 24px;
+  }
+
+  /* addon-docs tự set nền trắng (.sbdocs/.sbdocs-wrapper/.sb-wrapper) — ở dark
+     mode chúng đè lên body tối làm docs canvas trắng chói. Trả về token canvas
+     (dark.css override sẵn --c-canvas). Story mode không đụng các class này. */
+  body[data-bp-theme='dark'] .sb-wrapper,
+  body[data-bp-theme='dark'] .sbdocs,
+  body[data-bp-theme='dark'] .sbdocs-wrapper,
+  body[data-bp-theme='dark'] .sb-previewBlock {
+    background: var(--c-canvas);
+  }
+
+  /* Prose docs — addon-docs ép màu light #2e3438 lên MỌI tag trần trong
+     .sbdocs-content qua :where(p, li, h1-h5, th, td...):not(.sb-unstyled *)
+     (phep :where giữ specificity 0, trừ vùng render component). Phủ lại theo
+     ĐÚNG pattern đó khi dark — heading → --ink, thân/table → --ink2. Selector
+     có prefix body[...] nên đặc hiệu hơn rule addon, và :not(...) không đụng
+     component trong autodocs (tự màu qua utility kit). */
+  body[data-bp-theme='dark'] .sbdocs-content :where(h1, h2, h3, h4, h5, h6):not(.sb-anchor, .sb-unstyled, .sb-unstyled :is(h1, h2, h3, h4, h5, h6)) {
+    color: var(--ink);
+  }
+  body[data-bp-theme='dark'] .sbdocs-content :where(p, li, dt, dd, figcaption, blockquote):not(.sb-unstyled, .sb-unstyled *) {
+    color: var(--ink2);
+  }
+  body[data-bp-theme='dark'] .sbdocs-content :where(table th, table td):not(.sb-unstyled, .sb-unstyled *) {
+    color: var(--ink2);
+  }
+  /* .sbdocs-title (h1.sb-unstyled) bị emotion css riêng ép màu, :not() ở trên
+     loại nó ra — override trực tiếp. */
+  body[data-bp-theme='dark'] .sbdocs-title {
+    color: var(--ink);
+  }
+  /* ArgsTable header (autodocs) — span cột bị docblock ép đen mờ
+     rgba(46,52,56,.75) trên canvas tối. */
+  body[data-bp-theme='dark'] .sb-argstableBlock-head span {
+    color: var(--ink2);
+  }
+  /* Kicker section trang Introduction — --accent dark #5e6ad2 trên s1 hụt
+     ngưỡng AA 4.5 một chút (4.44, label 12px); dark nâng lên --accent-hi
+     (cùng vai trò manager barSelected). */
+  body[data-bp-theme='dark'] .bp-kicker {
+    color: var(--accent-hi);
+  }
+
+  /* Code inline addon-docs: chip nền trắng-sáng chữ đen — giữa canvas tối
+     thành khối chói lấn chữ. Trả về mono surface: nền s3 + mực ink2 + viền
+     line (khối pre giữ nguyên — addon đã render syntax dark sẵn). */
+  body[data-bp-theme='dark'] .sbdocs :not(pre) > code {
+    background: var(--c-s3);
+    color: var(--ink2);
+    border: 1px solid var(--line);
+  }
+</style>

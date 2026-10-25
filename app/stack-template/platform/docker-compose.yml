@@ -1,0 +1,255 @@
+# ============================================================================
+# Boilerplate Microservice + Micro-frontend — compose
+#
+# ⚠️ Shared file — sửa QUA cơ chế gap-answer soạn trước + coordinator APPROVED
+#    (pattern story auth-real VU-59), KHÔNG tự sửa giữa story.
+#
+# Lịch sử sở hữu (người sửa cuối = auth-real SF-5 VU-64):
+#   FI-64 SF-1: khung 9 services health-gated + postgres init + auth-mock
+#     + 2 entry remotes (FE điền impl vào khung).
+#   FI-75 SF-7: health-gated depends_on (healthcheck /readyz node-svc +
+#     spring-svc; gateway gate auth/node/spring service_healthy + go-svc
+#     service_started — distroless không có shell/wget, conventions/02 rule 3;
+#     gateway KHÔNG có healthcheck).
+#   FI-77 SF-1: + entry kafka (apache/kafka KRaft single-node, KHÔNG zookeeper;
+#     heap 512m cho CI 7GB; healthcheck full-path /opt/kafka/bin/... — image
+#     không có script trên PATH; KHÔNG expose 9092 ra host; KHÔNG service nào
+#     depends_on kafka — lazy-connect, conventions/09).
+#   VU-59 SF-5: decommission auth-mock → entry auth-svc (services/auth-svc,
+#     auth thật — register/refresh/RBAC; healthcheck /readyz kiểm DB thật;
+#     mount users.json; role auth_svc + schema auth; go-svc AUTH_MOCK_URL
+#     đổi VALUE giữ KEY — gap-answer epic VU-59 mục ①②④⑤⑥⑦, coordinator
+#     APPROVED).
+#   2026-10-23: go-svc env roles đã đúng ở entry (đã fix từ trước) — xoá services/go-svc/ci.compose.override.yml (redundant) — coordinator duyệt.
+# ============================================================================
+
+name: __STACK_NAME__
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+      # password cho per-service roles — init script (01-init.sh) dùng
+      NODE_SVC_DB_PASSWORD: ${NODE_SVC_DB_PASSWORD:?set in .env}
+      SPRING_SVC_DB_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
+      GO_SVC_DB_PASSWORD: ${GO_SVC_DB_PASSWORD:?set in .env}
+      GO_READONLY_DB_PASSWORD: ${GO_READONLY_DB_PASSWORD:?set in .env}
+      AUTH_SVC_DB_PASSWORD: ${AUTH_SVC_DB_PASSWORD:?set in .env}
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  kafka:
+    # Apache Kafka KRaft single-node (KHÔNG zookeeper) — ADR-0008.
+    # Compose-internal ONLY: không có `ports` = KHÔNG expose 9092 ra host.
+    # KHÔNG service nào depends_on kafka — connect lazy + retry lúc boot
+    # (conventions/09); healthcheck chỉ để `docker compose ps` quan sát.
+    image: apache/kafka:3.9.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # hostname service trong mạng compose
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # single-node
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # demo — consumer nhận event ngay
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms256m # CI runner 7GB — heap nhỏ có chủ đích
+    healthcheck:
+      # full path BẮT BUỘC — image apache/kafka không đặt script kafka-* trên PATH
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+
+  auth-svc:
+    build: ../services/auth-svc # auth thật (VU-59) thay auth-mock — cùng surface :8090 /api/auth/*
+    environment:
+      PORT: 8090 # container port CỐ ĐỊNH (conventions/05) — ${AUTH_PORT} chỉ đổi side host
+      DATABASE_URL: postgres://auth_svc:${AUTH_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL:-30m} # token-contract.md §1 (30m — cũ 8h của mock)
+      # decision #10: default demo-password KHÔNG đổi — e2e + svc-activity + seed cùng một nguồn
+      AUTH_DEV_PASSWORD: ${AUTH_DEV_PASSWORD:-demo-password}
+      # fixture mount trực tiếp từ contracts/ — sửa fixture không cần rebuild image
+      # (seed idempotent ON CONFLICT (id) DO NOTHING — token-contract.md §5)
+      USERS_FIXTURE_PATH: /app/users.json
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ../contracts/auth/users.json:/app/users.json:ro
+    ports:
+      - "${AUTH_PORT:-8090}:8090" # host-side port — truy cập từ máy dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # probe TRONG container — hardcode 8090 (conventions/05); ${AUTH_PORT} chỉ host-side.
+      # /readyz (KHÔNG /healthz như auth-mock cũ) — kiểm DB thật: healthy = đã
+      # migrate schema auth + seed fixture xong → gateway chỉ nhận traffic khi service thật sự sẵn sàng.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s # chờ migration + seed fixture lúc boot
+
+  gateway:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./gateway/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      auth-svc:
+        condition: service_healthy
+      node-svc:
+        condition: service_healthy
+      spring-svc:
+        condition: service_healthy
+      # go-svc: service_started — distroless không có shell/wget cho healthcheck
+      # (conventions/02 rule 3); readiness chứng minh bằng scripts/smoke/e2e.sh
+      # poll /api/activity/stats (SF-7, FI-75).
+      go-svc:
+        condition: service_started
+    # KHÔNG healthcheck cho gateway — nginx proxy thuần, không route /readyz
+    # (probe sẽ 404); wait do scripts/smoke/e2e.sh poll /api/auth/readyz đảm nhiệm.
+
+  # --- KHUNG services (SF-2/3/4 điền impl — KHÔNG sửa entry) ---
+
+  node-svc:
+    build: ../services/node-svc
+    environment:
+      PORT: 3001 # container port CỐ ĐỊNH (conventions/05)
+      DATABASE_URL: postgres://node_svc:${NODE_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      SPRING_SVC_URL: http://spring-svc:8081
+      GO_SVC_URL: http://go-svc:8082
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # PRE-ADD (SF-1 FI-77) — outbox relay + compensation consumer (SF-2) đọc.
+      # Node KHÔNG phụ thuộc kafka lúc boot — lazy-connect (conventions/09).
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+    ports:
+      - "${NODE_SVC_PORT:-3001}:3001" # host-side
+    depends_on:
+      postgres:
+        condition: service_healthy
+      spring-svc:
+        condition: service_healthy # readyz node kiểm spring reachable lúc boot — gate ở đây (SF-7)
+    healthcheck: # SF-7: health-gated /readyz (conventions/02) — node:22-alpine có busybox wget
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s # chờ migration + spring reachability check lúc boot
+
+  spring-svc:
+    build: ../services/spring-svc
+    environment:
+      SERVER_PORT: 8081 # container port CỐ ĐỊNH (conventions/05)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?set in .env}
+      SPRING_DATASOURCE_USERNAME: spring_svc
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_SVC_DB_PASSWORD:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      USERS_FIXTURE_PATH: /app/contracts/auth/users.json
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ../contracts/auth/users.json:/app/contracts/auth/users.json:ro
+    ports:
+      - "${SPRING_SVC_PORT:-8081}:8081" # host-side
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck: # SF-7: health-gated /readyz (conventions/02) — temurin alpine có busybox wget
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s # chờ Flyway migration + JVM boot
+
+  go-svc:
+    build: ../services/go-svc
+    environment:
+      PORT: 8082 # container port CỐ ĐỊNH (conventions/05)
+      DATABASE_URL: postgres://go_svc:${GO_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      DATABASE_READONLY_URL: postgres://go_readonly:${GO_READONLY_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      SPRING_SVC_URL: http://spring-svc:8081
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # PRE-ADD (SF-1 FI-77) — task consumer + saga (SF-3) đọc:
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      # service-token login fixture user svc-activity (resolver enrich userName;
+      # login backoff + lazy re-login — conventions/09). Giá trị .env phải khớp
+      # AUTH_DEV_PASSWORD (auth-svc so password hash của seeded users).
+      # KEY giữ AUTH_MOCK_URL (go-svc đọc theo tên env này — gap-answer ④);
+      # VALUE trỏ auth-svc sau decommission (đổi KEY = follow-up cụm iss-rename).
+      AUTH_MOCK_URL: http://auth-svc:8090
+      SVC_ACTIVITY_PASSWORD: ${SVC_ACTIVITY_PASSWORD:?set in .env}
+    ports:
+      - "${GO_SVC_PORT:-8082}:8082" # host-side
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- FE entries: shell (SF-5 thêm — GAP-ANSWER coordinator trên epic FI-62 2026-10-12:
+  #     "BẠN tự thêm theo port table, coordinator duyệt ở review"). remote-tasks /
+  #     remote-activity do SF-6 thêm. ---
+  shell:
+    build:
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/shell/Dockerfile
+    ports:
+      - "${SHELL_PORT:-3000}:3000" # container port cố định 3000 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # --- remote-tasks / remote-activity: SF-6 (FI-74) điền impl vào khung pre-seed ---
+  # (gap-answer được BRIEF SF-6 ủy quyền 2026-10-12: "BẠN tự thêm 2 entry remotes — build
+  # ../app/remotes/*, port theo port table, healthcheck static; coordinator duyệt ở review".
+  # SF-6 KHÔNG sửa phần khác của file này.)
+  remote-tasks:
+    build:
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/remotes/tasks/Dockerfile
+    ports:
+      - "${REMOTE_TASKS_PORT:-4001}:4001" # container port cố định 4001 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4001/remoteEntry.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  remote-activity:
+    build:
+      context: .. # repo root — Dockerfile cần app/shared + workspace lockfile
+      dockerfile: app/remotes/activity/Dockerfile
+    ports:
+      - "${REMOTE_ACTIVITY_PORT:-4002}:4002" # container port cố định 4002 (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4002/remoteEntry.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  pgdata:

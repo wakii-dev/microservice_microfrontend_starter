@@ -1,0 +1,146 @@
+# orca.yaml — descriptor MÁY ĐỌC cho AI agent (Claude Code / Orca agents / Codex…).
+# ⚠️ Orca CLI KHÔNG consume file này — nó là bản đồ repo dạng structured cho agent
+# parse khi onboard. Văn bản cho người/xét nghiệm: CLAUDE.md + docs/walkthrough.md.
+# Quy ước: sửa file này CÙNG commit với mọi thay đổi nó mô tả (port, lệnh, path) —
+# drift giữa descriptor và thực tế = lỗi onboarding agent (tương tự quy tắc 4 chỗ
+# của port table — platform/conventions/05-ports.md).
+name: architecture-overview
+description: >
+  Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services
+  (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task management
+  qua nginx gateway, Docker Compose + CI. Scaffold project mới:
+  bash scripts/scaffold/scaffold.sh <tên-mới>
+
+stack:
+  node: ">=22"
+  pnpm: ">=9"            # corepack enable — root packageManager pin 9.15.9
+  jdk: "21"
+  go: "1.24"
+  postgres: "16"
+  workspaces: pnpm workspace (root) NHƯNG node-svc + auth-svc có standalone lockfile (cài riêng, xem services.auth-svc.install)
+
+# ── Contracts — SOURCE OF TRUTH. Sửa contract TRƯỚC, code theo sau. ──────────
+contracts:
+  openapi: [contracts/openapi/tasks.yaml, contracts/openapi/users.yaml, contracts/openapi/activity.yaml, contracts/openapi/auth.yaml]
+  ddl_canonical: contracts/db/tasks-schema.sql
+  events_contract: contracts/events/task-events.md
+  event_fixtures: contracts/events/fixtures/   # golden envelope — node/go test cùng nguồn
+  auth_users_fixture: contracts/auth/users.json  # id UUID CỐ ĐỊNH — không đổi id user cũ
+  lint: pnpm lint:contracts                    # spectral
+
+services:
+  gateway:
+    type: nginx
+    port: 8080
+    path: platform/gateway
+    note: CỔNG DUY NHẤT browser/FE chạm vào — routing /api/<svc>/* + presence-check JWT (401)
+  node-svc:
+    path: services/node-svc
+    port: 3001
+    tech: Fastify + TypeScript + Drizzle
+    install: cd services/node-svc && pnpm install --frozen-lockfile --ignore-workspace
+    dev: pnpm dev            # tsx watch
+    build: pnpm build        # tsc
+    test: pnpm test          # vitest run
+    healthz: [/healthz, /readyz]
+    owns: schema tasks — CRUD + outbox relay + compensation consumer (Kafka)
+  spring-svc:
+    path: services/spring-svc
+    port: 8081
+    tech: Spring Boot 3 + Flyway
+    run: ./mvnw spring-boot:run
+    test: ./mvnw test
+    owns: schema users + teams (@Transactional demo)
+  go-svc:
+    path: services/go-svc
+    port: 8082
+    tech: Go 1.24 + chi
+    run: go run ./cmd/server
+    test: go test ./...
+    healthz: [/healthz, /readyz]
+    owns: schema activity (tự migrate) — feed/stats + Kafka consumer (idempotent, retry ×3 → DLQ + saga)
+    note: đọc-ONLY schema tasks qua role go_readonly; snapshot openapi nhúng phải bit-identical contract (CI drift-guard)
+  auth-svc:
+    path: services/auth-svc
+    port: 8090
+    tech: Fastify + TypeScript + Drizzle (auth thật — epic auth-real VU-59)
+    install: cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace
+    dev: pnpm dev            # tsx watch
+    build: pnpm build        # tsc
+    test: pnpm test          # vitest run
+    healthz: [/healthz, /readyz]
+    owns: schema auth (users + refresh_tokens — seed users.json GIỮ UUID) — register/login/refresh rotation CAS/reuse-detect/logout; claims roles = RBAC source
+    note: iss JWT PINNED "auth-mock" (token-contract.md — giá trị lịch sử, KHÔNG đổi theo tên service)
+
+app:
+  shared:
+    path: app/shared
+    scope: "@wakii/fe-shared"
+    role: LOGIC (api-client/token-storage/error-envelope/mf-bootstrap) — consumed QUA SOURCE, không build
+    read_locked:   # cấm sửa ngoài story/epic được duyệt — versions + contracts đã test thật
+      - src/api-client.ts
+      - src/token-storage.ts
+      - src/error-envelope.ts
+      - src/mf-bootstrap.ts
+      - package.json#mfToolkit
+  ui-kit:
+    path: app/ui-kit
+    scope: "@wakii/ui-kit"
+    role: DESIGN SYSTEM (tokens + base css + primitives + Storybook 9 dev-only) — consumed QUA SOURCE; KHÔNG read-locked (đổi qua story thường, evidence = build-storybook) — ADR-0009
+  shell:
+    path: app/shell
+    port: 3000
+    role: MF host (Rspack) — nav + login + RemoteSlot (error boundary + retry)
+    commands: {dev: pnpm dev, build: pnpm build, test: pnpm test, typecheck: pnpm typecheck}
+  remotes:
+    tasks: {path: app/remotes/tasks, port: 4001, gateway: /remotes/tasks/}
+    activity: {path: app/remotes/activity, port: 4002, gateway: /remotes/activity/}
+    note: standalone dev vẫn tự mang tokens (import tokens trong entry — quyết định epic VU-53 #5)
+  pins:              # catalog: (pnpm-workspace.yaml) + mfToolkit — NÂNG CẤP PHẢI RE-SPIKE (app/spike)
+    react: 19.3.0
+    react-dom: 19.3.0
+    rspack: 1.7.12
+    module-federation-enhanced: 0.21.6
+
+run:
+  compose:            # đường A — khuyến nghị, full saga + DLQ
+    prep: |
+      cd platform && cp -n .env.example .env   # điền JWT_SECRET + passwords
+      docker compose --env-file .env up -d postgres kafka
+      # đợi kafka healthy rồi tạo topic TRƯỚC khi boot services (race empty-assignment):
+      for topic in task-events task-events.dlq; do
+        docker compose --env-file .env exec -T kafka /opt/kafka/bin/kafka-topics.sh \
+          --bootstrap-server localhost:9092 --create --if-not-exists --topic "$topic" \
+          --partitions 1 --replication-factor 1
+      done
+      docker compose --env-file .env up -d --build        # 10 services, health-gated chain
+    verify: bash scripts/smoke/e2e.sh                      # 2 chiều — happy + saga + DLQ assert
+    url: http://localhost:8080
+  native: docs/walkthrough.md                              # đường B — từng service, SMOKE_SAGA=0 cho smoke
+  demo_login: {user: alice@demo.local, password: demo-password}
+  saga_fail_user: fail@demo.local                          # assign cho user này → go fail ×3 → assignment_failed → DLQ
+
+test_all:              # full suite local — PASS hết trước khi claim done
+  - pnpm --filter shell test && pnpm --filter shell typecheck
+  - pnpm --filter node-svc test
+  - pnpm --filter auth-svc test
+  - cd services/go-svc && go test ./...
+  - cd services/spring-svc && ./mvnw test
+
+docs:
+  start_here: docs/walkthrough.md          # fresh-clone → demo chạy được
+  conventions: platform/conventions/       # 01–09 — BẮT BUỘC, không đúng = review fail
+  adr: docs/adr/                           # 0001–0009 — quyết định kiến trúc đã chốt
+  toolchain: docs/toolchain.md
+  ci: .github/workflows/                   # 10 workflows (HIỆN DISABLE — xem gotchas) — bảng mô tả ở CLAUDE.md
+  evidence: docs/superpowers/evidence/     # test-run + screenshots theo story
+
+gotchas:
+  - "CI GitHub Actions ĐANG DISABLE (billing, 2026-10) — gate khi push là .husky/pre-push (branch rule + FE checks theo path); workflows trong .github/ chỉ còn giá trị tham khảo khi bật lại"
+  - "Vitest test ranh giới ngày: TZ pin qua test.env trong vitest.config — môi trường dev +07 che bug, đừng bỏ pin"
+  - "node-svc + auth-svc: standalone lockfile — pnpm install PHẢI --ignore-workspace, chạy TRONG thư mục service, không phải workspace root"
+  - "fe-shared standalone: khai catalog: → cần mini workspace (sed catalog block từ root pnpm-workspace.yaml) — mẫu ở .github/workflows/convergence.yml step copy-dir"
+  - "pgdata volume từ bản cũ thiếu user svc-fail/svc-activity (Flyway V2) + role auth_svc/schema auth (init script chỉ chạy volume mới — auth-real SF-5) → docker compose down -v 1 lần rồi up lại; .env bản cũ thêm AUTH_SVC_DB_PASSWORD từ .env.example"
+  - "assignment_failed là system-owned: re-assign KHÔNG tự reset status — PATCH tường minh {assigneeId, status:'todo'} (status writable: todo/in_progress/done)"
+  - "Inter-service call QUA TÊN COMPOSE (http://node-svc:3001), không localhost; .env không bao giờ commit"
+  - "Sửa port = 4 chỗ cùng commit: conventions/05-ports.md + .env.example + docker-compose.yml + README"

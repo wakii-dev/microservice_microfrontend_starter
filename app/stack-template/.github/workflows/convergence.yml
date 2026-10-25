@@ -1,0 +1,209 @@
+name: convergence
+
+# SF-5 (FI-81, story FI-76) — convergence proof: e2e 2 chiều (happy login→task→feed
+# QUA KAFKA + saga assign svc-fail → assignment_failed → DLQ assert) trên compose
+# 10 services + copy-dir standalone + scaffold output build được.
+# File RIÊNG của convergence — KHÔNG đụng workflow-templates (SF-1 sở hữu).
+# Browser walkthrough KHÔNG nằm ở đây (human gate tại checkpoint — docs/walkthrough.md).
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — các workflow khác: repo-wide follow-up)
+
+jobs:
+  e2e-smoke:
+    name: "e2e 2 chiều — compose login→task→feed (Kafka) + saga → assignment_failed → DLQ"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # 10 services + kafka build/boot — nới từ 20 của SF-7
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot postgres + kafka trước (topic phải tồn tại TRƯỚC consumer subscribe)
+        # Học SF-3 (commit 8de8921 — cùng class bug): kafka-go group reader join
+        # khi topic CHƯA tồn tại → empty assignment → không bao giờ tự refresh
+        # metadata → consumer kẹt im lặng (stable group, 0 fetch, 0 error).
+        # Boot postgres+kafka riêng → tạo topic → MỚI boot consumers.
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build postgres kafka
+
+      - name: Wait kafka healthy + tạo topic tường minh task-events + task-events.dlq
+        # Demo dùng auto-create (task-events.md) nhưng auto-create có race: relay
+        # publish / consumer subscribe lúc topic chưa kịp tồn tại. Tạo
+        # --if-not-exists TRƯỚC khi boot services (conventions/09: không dùng
+        # depends_on kafka — tạo topic là bước CI, không phải ràng buộc compose).
+        run: |
+          for i in $(seq 1 45); do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 && break
+            sleep 2
+          done
+          for topic in task-events task-events.dlq; do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
+              --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
+          done
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+      - name: Boot full stack (10 services, health-gated chain — kafka lazy-connect)
+        run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
+
+      - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf --max-time 3 http://localhost:8080/api/auth/readyz 2>/dev/null | grep -q '"status":"ok"' && exit 0
+            sleep 2
+          done
+          echo "gateway chain chưa ready sau 120s"; exit 1
+
+      - name: e2e 2 chiều — scripts/smoke/e2e.sh (happy + saga; DLQ best-effort, marker SAGA_TASK_ID)
+        run: |
+          set -o pipefail
+          bash scripts/smoke/e2e.sh 2>&1 | tee /tmp/e2e.log
+
+      - name: Assert DLQ chính thức — kafka-console-consumer đọc task-events.dlq
+        # Run 3/4 lesson: docker compose exec từ TRONG e2e.sh fail âm thầm
+        # (stderr nuốt) trong khi CÙNG lệnh từ workflow run: block đọc được
+        # message DLQ ở CẢ 3 run (dump step: originalEvent task.assigned +
+        # retries:3, đúng saga taskId). → Assert chính thức nằm ở đây: parse
+        # marker SAGA_TASK_ID= từ e2e log, arrival gate bằng kafka-get-offsets
+        # (in tức thì, không quirk console-consumer trên topic rỗng), rồi
+        # console-consumer đọc nội dung grep taskId (acceptance saga nửa 2).
+        if: success()
+        run: |
+          SAGA_TASK_ID="$(grep -aoE 'SAGA_TASK_ID=[0-9a-f-]{36}' /tmp/e2e.log | tail -1 | cut -d= -f2 || true)"
+          if [ -z "$SAGA_TASK_ID" ]; then
+            echo "Không có SAGA_TASK_ID (SMOKE_SAGA=0 hoặc saga không chạy) — skip DLQ assert"
+            exit 0
+          fi
+          echo "Assert DLQ cho saga task $SAGA_TASK_ID"
+          ARRIVED=0
+          for i in $(seq 1 12); do
+            END_OFF="$(docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+              --topic task-events.dlq | sed -E 's/.*:([0-9]+)$/\1/')"
+            echo "attempt $i: task-events.dlq end offset = ${END_OFF:-<empty>}"
+            case "$END_OFF" in ''|*[!0-9]*) END_OFF=0;; esac
+            [ "$END_OFF" -ge 1 ] && { ARRIVED=1; break; }
+            sleep 5
+          done
+          [ "$ARRIVED" = "1" ] || { echo "DLQ end offset vẫn 0 sau 60s — go chưa publish DLQ"; exit 1; }
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events.dlq --from-beginning --timeout-ms 10000 > /tmp/dlq.log 2>/dev/null
+          if grep -q "$SAGA_TASK_ID" /tmp/dlq.log; then
+            echo "PASS DLQ: event gốc của task $SAGA_TASK_ID nằm ở task-events.dlq — acceptance saga đủ 2 nửa (status + DLQ)"
+            head -c 600 /tmp/dlq.log
+          else
+            echo "FAIL: DLQ có message nhưng không thấy taskId=$SAGA_TASK_ID"; head -c 600 /tmp/dlq.log; exit 1
+          fi
+
+      - name: Dump compose state + logs + DLQ khi fail (CÙNG --env-file — interpolation ẩn lỗi thật)
+        if: failure()
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example ps -a
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=100
+          echo "=== consumer logs (node-svc relay/compensation + go-svc consumer) ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs --tail=200 node-svc go-svc
+          echo "=== task-events end offset + nội dung (relay đã publish chưa?) ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 \
+            --topic task-events || true
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events --from-beginning --timeout-ms 10000 2>/dev/null | tail -20 || true
+          echo "=== task-events.dlq hiện có ==="
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+            --topic task-events.dlq --from-beginning --timeout-ms 10000 2>/dev/null | tail -20 || true
+
+  copy-dir-smoke:
+    name: "copy-dir standalone — node-svc + fe-shared + ui-kit ra tmp"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Copy node-svc ra tmp + build/test standalone (theo README node-svc)
+        run: |
+          REPO_ROOT="$PWD"
+          mkdir -p "$RUNNER_TEMP/standalone" "$RUNNER_TEMP/contracts/db" "$RUNNER_TEMP/contracts/events/fixtures"
+          cp -r services/node-svc "$RUNNER_TEMP/standalone/node-svc"
+          # Contracts standalone tests resolve repo-relative từ standalone/node-svc:
+          #   schema-diff.test → ../../contracts/db/tasks-schema.sql (canonical DDL —
+          #   outbox KHÔNG vào canonical, chỉ schema tasks là cross-service contract)
+          #   app/relay/compensation tests (SF-2) → ../../contracts/events/fixtures/*.json
+          #   (golden envelope — load chung 2 đầu node/go, task-events.md)
+          cp contracts/db/tasks-schema.sql "$RUNNER_TEMP/contracts/db/"
+          cp contracts/events/fixtures/*.json "$RUNNER_TEMP/contracts/events/fixtures/"
+          cd "$RUNNER_TEMP/standalone/node-svc"
+          corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
+          pnpm install --frozen-lockfile --ignore-workspace
+          pnpm test
+          pnpm build
+
+      - name: Copy app/shared + app/ui-kit ra tmp + typecheck standalone
+        # Cả 2 package FE consumed QUA SOURCE (không build riêng) — typecheck = sanity
+        # standalone với flags CLI (không dùng tsconfig trong package). ui-kit chứa
+        # .tsx primitives (SF-1, VU-53): thiếu --jsx → TS6142; standalone không có
+        # consumer để cung cấp types react (thiết kế: KHÔNG khai runtime dep react —
+        # consumer map @types/react qua tsconfig paths, xem app/shell/tsconfig.json) →
+        # standalone tự đóng vai consumer: cài @types/react pin đúng shell + --jsx
+        # react-jsx (đối xứng jsx automatic runtime rspack/vitest — mfToolkit $comment).
+        # fix 2026-10-17: run 39000358809 fail TS6142 đúng class này.
+        run: |
+          REPO_ROOT="$PWD" # checkout cwd — tmp copy nằm NGOÀI repo, path phải absolute
+          # 2 package khai "catalog:" → cần workspace catalog khi standalone
+          # (P0 code-review SF-7: thiếu = ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_SPEC).
+          # Mini workspace = catalog block trích từ root pnpm-workspace.yaml.
+          # LƯU Ý: KHÔNG dùng --ignore-workspace — catalog là workspace feature,
+          # ignore-workspace tắt luôn catalog → lại ERR_CATALOG.
+          sed -n '/^catalog:/,$p' "$REPO_ROOT/pnpm-workspace.yaml" > "$RUNNER_TEMP/catalog.yaml"
+          # pnpm 9.15.9 bắt buộc packages field — catalog-only workspace chết
+          # "ERROR packages field missing or empty" (run 39014181194; pnpm 12 chịu nên
+          # local repro pass). "." = self-member → mọi `pnpm add` phải kèm -w.
+          { printf 'packages:\n  - "."\n'; cat "$RUNNER_TEMP/catalog.yaml"; } > "$RUNNER_TEMP/standalone-ws.yaml"
+          corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
+          for DIR in shared ui-kit; do
+            echo "=== standalone typecheck: app/$DIR ==="
+            mkdir -p "$RUNNER_TEMP/standalone/$DIR"
+            # $REPO_ROOT tuyệt đối BẮT BUỘC: vòng 1 cd vào tmp — path tương đối app/* mất
+            cp -r "$REPO_ROOT/app/$DIR/." "$RUNNER_TEMP/standalone/$DIR/"
+            cd "$RUNNER_TEMP/standalone/$DIR"
+            cp "$RUNNER_TEMP/standalone-ws.yaml" pnpm-workspace.yaml
+            pnpm install --no-frozen-lockfile
+            pnpm add -Dw @types/react@19.2.2 # -w: standalone là workspace root (self-member)
+            pnpm exec tsc --noEmit --strict --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler --jsx react-jsx src/index.ts
+          done
+
+  scaffold-verify:
+    name: "scaffold output build được — demo-app"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Chạy scaffold → project mới tên demo-app
+        run: bash scripts/scaffold/scaffold.sh demo-app --out "$RUNNER_TEMP/demo-app"
+
+      - name: Output install + build FE shell + compose config
+        # Narrowing đã duyệt (context pack sf-7 ACCEPTANCE: "CI verify scaffold output
+        # build được") — full e2e trên output = human gate cần Docker (SCAFFOLD.md).
+        run: |
+          cd "$RUNNER_TEMP/demo-app"
+          corepack enable
+          corepack prepare pnpm@9.15.9 --activate # pin đúng repo packageManager — corepack default 12.x ERR_PNPM_IGNORED_BUILDS (run 39013476302)
+          pnpm install --no-frozen-lockfile
+          pnpm --filter "@demo-app/shell" build
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q

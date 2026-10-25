@@ -110,3 +110,30 @@ export const KpiRow: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/title/value/prefix/suffix) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex gap-6">
+      <Statistic
+        title="Throughput"
+        value={128}
+        suffix="tasks/day"
+        style={{ padding: 12 }}
+        classNames={{
+          root: 'rounded-xl border border-line bg-s2 shadow-[var(--ele-1)]',
+          title: 'uppercase tracking-wide text-accent',
+          value: 'text-accent',
+        }}
+      />
+      <Statistic
+        title="Failure rate"
+        value={2}
+        prefix="↓"
+        suffix="%"
+        classNames={{ value: 'text-st-fail', suffix: 'text-st-fail' }}
+      />
+    </div>
+  ),
+};

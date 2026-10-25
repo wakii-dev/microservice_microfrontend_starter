@@ -73,3 +73,26 @@ describe('Descriptions', () => {
     expect(container.querySelector('dt')!.textContent).toContain(':');
   });
 });
+
+describe('Descriptions — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root/title/item/label/content', () => {
+    const { container } = render(
+      <Descriptions
+        title="Thông tin"
+        items={[{ label: 'Tên', children: 'Alice' }]}
+        classNames={{ root: 'my-root', title: 'my-title', item: 'my-item', label: 'my-label', content: 'my-content' }}
+      />,
+    );
+    expect(container.firstElementChild?.className).toContain('my-root');
+    expect(screen.getByText('Thông tin').className).toContain('my-title');
+    expect(screen.getByText('Tên').className).toContain('my-label');
+    const dd = screen.getByText('Alice');
+    expect(dd.className).toContain('my-content');
+    expect(dd.parentElement?.className).toContain('my-item');
+  });
+
+  it('style passthrough lên div gốc (root)', () => {
+    const { container } = render(<Descriptions items={[{ label: 'L', children: 'V' }]} style={{ padding: 8 }} />);
+    expect((container.firstElementChild as HTMLElement).style.padding).toBe('8px');
+  });
+});

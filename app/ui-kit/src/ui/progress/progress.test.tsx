@@ -88,3 +88,20 @@ describe('Progress — indeterminate (motion waves)', () => {
     expect(screen.getByText('60%')).toBeInTheDocument();
   });
 });
+
+describe('Progress — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root → div ngoài, track → progressbar, bar → fill, info → % span', () => {
+    const { container } = render(
+      <Progress percent={50} classNames={{ root: 'my-root', track: 'my-track', bar: 'my-bar', info: 'my-info' }} />,
+    );
+    expect(container.firstElementChild?.className).toContain('my-root');
+    expect(screen.getByRole('progressbar').className).toContain('my-track');
+    expect((screen.getByRole('progressbar').firstElementChild as HTMLElement).className).toContain('my-bar');
+    expect(screen.getByText('50%').className).toContain('my-info');
+  });
+
+  it('style passthrough lên div gốc (root)', () => {
+    const { container } = render(<Progress percent={50} style={{ padding: 4 }} />);
+    expect((container.firstElementChild as HTMLElement).style.padding).toBe('4px');
+  });
+});

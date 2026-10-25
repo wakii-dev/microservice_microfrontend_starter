@@ -63,16 +63,24 @@ export const DarkTheme: R = {
   ),
 };
 
-/** CustomStyled — antd v5-style classNames slot (root) + style passthrough.
- * Spinner is a single-element component so `{ root }` is the only slot; it
- * lands on the role="status" span, after the default classes and before the
- * user's className. */
+/** CustomStyled — classNames slots (root/indicator) + style passthrough (slots wave 3).
+ * root lands on the role="status" span; indicator targets the variant node
+ * (the spinning ring / dots row / bars row) inside it. */
 export const CustomStyled = {
   name: 'CustomStyled (classNames + style)',
   render: () => (
     <div className="flex items-center gap-6">
       <Spinner label="styled ring spinner" classNames={{ root: 'scale-125' }} style={{ padding: 8 }} />
-      <Spinner label="styled dots spinner" variant="dots" classNames={{ root: 'rounded-md bg-accent/10 p-2' }} />
+      <Spinner
+        label="styled dots spinner"
+        variant="dots"
+        classNames={{ root: 'rounded-md bg-accent/10 p-2', indicator: 'gap-[0.5em]' }}
+      />
+      <Spinner
+        label="styled bars spinner"
+        variant="bars"
+        classNames={{ indicator: 'opacity-70' }}
+      />
     </div>
   ),
 };

@@ -1,5 +1,7 @@
 // Skeleton — PrimeReact shimmer wave: gradient translate trái→phải 1.6s.
 // Tailwind v4 @theme inline — KHÔNG dùng base.css (tránh syntax conflict).
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ template).
+import classNames from 'classnames';
 
 /** classNames sub-part slots (antd v5 style) — merge SAU default classes. */
 export interface SkeletonClassNames {
@@ -31,7 +33,7 @@ function ShimmerBone({ variant, className }: { variant: string; className?: stri
   return (
     <span
       aria-hidden="true"
-      className={`relative block overflow-hidden bg-s3 ${VARIANT_CLS[variant] ?? VARIANT_CLS.row}${className ? ` ${className}` : ''}`}
+      className={classNames('relative block overflow-hidden bg-s3', VARIANT_CLS[variant] ?? VARIANT_CLS.row, className)}
     >
       <span
         className="absolute inset-0 animate-[bp-shimmer_1.6s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/15 to-transparent"
@@ -40,15 +42,17 @@ function ShimmerBone({ variant, className }: { variant: string; className?: stri
   );
 }
 
-export function Skeleton({ variant = 'text', count = 1, classNames, className }: SkeletonProps) {
+export function Skeleton(props: SkeletonProps) {
+  const { variant = 'text', count = 1, className } = props;
+  const slots = props.classNames;
   return (
     <div
       aria-busy="true"
       role="status"
-      className={`flex flex-col gap-2 ${className ?? ''}${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}
+      className={classNames('flex flex-col gap-2', className, slots?.wrapper)}
     >
       {Array.from({ length: count }, (_, i) => (
-        <ShimmerBone key={i} variant={variant} className={classNames?.bone} />
+        <ShimmerBone key={i} variant={variant} className={slots?.bone} />
       ))}
     </div>
   );

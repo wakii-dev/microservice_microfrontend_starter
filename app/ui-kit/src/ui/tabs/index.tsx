@@ -3,6 +3,8 @@
 // A11y (WAI-ARIA tabs pattern, a11y sweep 2026-10-18): tab/tabpanel nối id ↔
 // aria-controls/aria-labelledby; roving tabindex (tab active=0, còn lại -1);
 // ArrowLeft/Right + Home/End đi tab (bỏ disabled), focus kéo theo selection.
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ template).
+import classNames from 'classnames';
 import { useId, type KeyboardEvent } from 'react';
 import type { ReactNode } from 'react';
 
@@ -41,7 +43,9 @@ export interface TabsProps {
   className?: string;
 }
 
-export function Tabs({ items, activeKey, onChange, classNames, className }: TabsProps) {
+export function Tabs(props: TabsProps) {
+  const { items, activeKey, onChange, className } = props;
+  const slots = props.classNames;
   const current = activeKey ?? items[0]?.key;
   const active = items.find((t) => t.key === current);
   const baseId = useId();
@@ -73,11 +77,11 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
   };
 
   return (
-    <div className={`${className ?? ''}${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}>
+    <div className={classNames(className, slots?.wrapper)}>
       <div
         role="tablist"
         onKeyDown={onTablistKeyDown}
-        className={`m-0 flex list-none gap-8 border-b border-line2 p-0${classNames?.tablist ? ` ${classNames.tablist}` : ''}`}
+        className={classNames('m-0 flex list-none gap-8 border-b border-line2 p-0', slots?.tablist)}
       >
         {items.map((tab) => {
           const isActive = tab.key === current;
@@ -92,11 +96,15 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
               tabIndex={isActive ? 0 : -1}
               disabled={tab.disabled}
               onClick={() => !tab.disabled && onChange?.(tab.key)}
-              className={`relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none${classNames?.tab ? ` ${classNames.tab}` : ''} after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[''] after:transition-transform after:duration-200 after:[transition-timing-function:var(--ease-enter)] after:origin-left ${
+              className={classNames(
+                'relative cursor-pointer border-none bg-transparent px-0 py-3 text-body transition-colors hover:text-accent active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none',
+                slots?.tab,
+                'after:absolute after:bottom-[-1px] after:left-0 after:right-0 after:h-0.5 after:content-[\'\'] after:transition-transform after:duration-200 after:[transition-timing-function:var(--ease-enter)] after:origin-left',
                 isActive
                   ? 'text-accent after:bg-accent after:scale-x-100'
-                  : 'text-ink opacity-65 after:bg-transparent after:scale-x-0 hover:text-accent hover:opacity-100'
-              } ${tab.disabled ? 'cursor-not-allowed text-ink3' : ''}`}
+                  : 'text-ink opacity-65 after:bg-transparent after:scale-x-0 hover:text-accent hover:opacity-100',
+                tab.disabled ? 'cursor-not-allowed text-ink3' : '',
+              )}
             >
               {tab.label}
             </button>
@@ -109,7 +117,7 @@ export function Tabs({ items, activeKey, onChange, classNames, className }: Tabs
         role="tabpanel"
         aria-labelledby={active ? `${baseId}-tab-${active.key}` : undefined}
         tabIndex={0}
-        className={`animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] pt-4${classNames?.panel ? ` ${classNames.panel}` : ''}`}
+        className={classNames('animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)] pt-4', slots?.panel)}
       >
         {active?.children}
       </div>

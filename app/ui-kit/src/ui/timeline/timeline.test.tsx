@@ -114,3 +114,27 @@ describe('Timeline — pending (antd parity)', () => {
     expect(lis[2]).toHaveTextContent('Rolling out…');
   });
 });
+
+describe('Timeline — customize (slots wave 3)', () => {
+  const ITEMS = [
+    { key: 'a', children: 'Nội dung A', label: '10:00' },
+    { key: 'b', children: 'Nội dung B', label: '11:00' },
+  ];
+
+  it('classNames slots đúng element (default): root → ol, item → li, dot → span, label → span time', () => {
+    const { container } = render(
+      <Timeline items={ITEMS} classNames={{ root: 'my-root', item: 'my-item', dot: 'my-dot', label: 'my-label' }} />,
+    );
+    const ol = container.querySelector('ol') as HTMLElement;
+    expect(ol.className).toContain('my-root');
+    const li = ol.querySelectorAll('li');
+    expect(li[0].className).toContain('my-item');
+    expect(li[0].querySelector('span[aria-hidden]')?.className).toContain('my-dot');
+    expect(li[0].querySelector('span.block')?.className).toContain('my-label');
+  });
+
+  it('style passthrough lên <ol> gốc', () => {
+    const { container } = render(<Timeline items={ITEMS} style={{ padding: 10 }} />);
+    expect((container.querySelector('ol') as HTMLElement).style.padding).toBe('10px');
+  });
+});

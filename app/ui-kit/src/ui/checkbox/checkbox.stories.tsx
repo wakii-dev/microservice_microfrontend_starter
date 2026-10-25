@@ -65,3 +65,28 @@ function CheckboxControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / box / label) + style
+ * passthrough (SÓNG-3 pattern). `root` lands on the <label>, `box` on the
+ * <input type=checkbox>, `label` wraps the text children in a span; `style`
+ * lands on the <label>; the user's className always comes last. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[320px] gap-3">
+      <Checkbox
+        defaultChecked
+        classNames={{
+          root: 'rounded-lg bg-accent/5 px-2 py-1.5',
+          box: 'rounded-pill',
+          label: 'font-medium tracking-wide',
+        }}
+        style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}
+      >
+        Custom styled checkbox
+      </Checkbox>
+    </div>
+  ),
+};

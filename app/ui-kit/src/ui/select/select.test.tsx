@@ -224,3 +224,48 @@ describe('Select — showClear + loading (coverage audit)', () => {
     expect(screen.getByLabelText('Đang tải options')).toBeInTheDocument();
   });
 });
+
+describe('Select — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root→wrapper, trigger→button, panel/listbox/option khi mở', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select
+        ariaLabel="Slot"
+        options={OPTIONS}
+        value="todo"
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel', listbox: 'slot-listbox', option: 'slot-option' }}
+      />,
+    );
+    const trigger = screen.getByRole('combobox', { name: 'Slot' });
+    expect(trigger).toHaveClass('slot-trigger');
+    expect(trigger.closest('span')).toHaveClass('slot-root');
+    await user.click(trigger);
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toHaveClass('slot-listbox');
+    expect(listbox.closest('span')).toHaveClass('slot-panel');
+    expect(screen.getByRole('option', { name: 'Cần làm' })).toHaveClass('slot-option');
+  });
+
+  it('style passthrough + chọn option vẫn onChange; className người dùng sau root slot', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Select
+        ariaLabel="Style"
+        options={OPTIONS}
+        value="todo"
+        onChange={onChange}
+        style={{ padding: '4px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      />,
+    );
+    const trigger = screen.getByRole('combobox', { name: 'Style' });
+    const root = trigger.closest('span') as HTMLSpanElement;
+    expect(root).toHaveStyle({ padding: '4px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    await user.click(trigger);
+    await user.click(screen.getByRole('option', { name: 'Xong' }));
+    expect(onChange).toHaveBeenCalledWith('done');
+  });
+});

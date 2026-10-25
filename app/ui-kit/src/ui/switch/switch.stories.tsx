@@ -121,3 +121,34 @@ export const SettingsPanel: S = {
   name: 'SettingsPanel — settings page: toggles + volume slider',
   render: () => <SettingsPanelInner />,
 };
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / handle) + style
+ * passthrough (SÓNG-3 pattern). `root` lands on the <button> track, `handle`
+ * on the white knob span; `style` lands on the <button>; the user's className
+ * always comes last. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => <CustomStyledSwitch />,
+};
+
+function CustomStyledSwitch() {
+  const [on, setOn] = useState(true);
+  return (
+    <div className="flex max-w-[320px] flex-col gap-3">
+      <Switch
+        checked={on}
+        onChange={setOn}
+        checkedChildren="ON"
+        unCheckedChildren="OFF"
+        classNames={{
+          root: 'border border-line',
+          handle: 'font-mono font-bold',
+        }}
+        style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
+        aria-label="Custom styled switch"
+      />
+    </div>
+  );
+}

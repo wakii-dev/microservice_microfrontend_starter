@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@wakii/ui-kit": "^0.4.0",
+    "@wakii/ui-kit": "^0.5.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

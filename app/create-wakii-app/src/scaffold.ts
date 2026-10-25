@@ -11,12 +11,22 @@ import type { Extra, ScaffoldPlan } from './options.js';
 /** Nguồn template mặc định — publish kèm CLI (spec: ../starter-templates/). */
 export const DEFAULT_TEMPLATES_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../starter-templates');
 
-/** Dep peer theo extra (spec package.json template) — version theo monorepo đang pin. */
-const EXTRA_DEPS: Record<Extra, { name: string; range: string }> = {
-  chart: { name: 'chart.js', range: '^4.5.1' },
-  carousel: { name: 'swiper', range: '^14.3.0' },
-  schedule: { name: '@fullcalendar/core', range: '^6.1.22' },
-  editor: { name: '@tiptap/react', range: '^3.32.0' },
+/** Danh sách peer deps theo extra (spec package.json template) — version theo
+ * monorepo đang pin. schedule cần đủ 3 package fullcalendar, editor cần cả
+ * @tiptap/react + @tiptap/starter-kit (demo đã nghiệm chứng: thiếu → runtime
+ * lazy-import fallback). */
+const EXTRA_DEPS: Record<Extra, { name: string; range: string }[]> = {
+  chart: [{ name: 'chart.js', range: '^4.5.1' }],
+  carousel: [{ name: 'swiper', range: '^14.3.0' }],
+  schedule: [
+    { name: '@fullcalendar/core', range: '^6.1.22' },
+    { name: '@fullcalendar/daygrid', range: '^6.1.22' },
+    { name: '@fullcalendar/interaction', range: '^6.1.22' },
+  ],
+  editor: [
+    { name: '@tiptap/react', range: '^3.32.0' },
+    { name: '@tiptap/starter-kit', range: '^3.32.0' },
+  ],
 };
 
 export interface ScaffoldInput {
@@ -76,9 +86,10 @@ async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: strin
     additions.push('react-router@^7.9.0');
   }
   for (const extra of plan.extras) {
-    const dep = EXTRA_DEPS[extra];
-    pkg.dependencies[dep.name] ??= dep.range;
-    additions.push(`${dep.name}@${dep.range}`);
+    for (const dep of EXTRA_DEPS[extra]) {
+      pkg.dependencies[dep.name] ??= dep.range;
+      additions.push(`${dep.name}@${dep.range}`);
+    }
   }
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   if (additions.length) log?.(`Merge deps: +${additions.join(' +')}`);

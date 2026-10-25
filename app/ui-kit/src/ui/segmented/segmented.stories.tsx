@@ -91,3 +91,36 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+// ── Real-world usage (2026-10-25): inbox filters ──
+
+const INBOX_COUNTS: Record<string, number> = { all: 24, unread: 6, flagged: 3 };
+
+/** InboxFilters — filter bar with live count: the segmented value drives what the
+ * list below renders. */
+export const InboxFilters: StoryObj = {
+  name: 'Inbox filters — All / Unread / Flagged with live count',
+  render: () => <InboxFiltersDemo />,
+};
+
+function InboxFiltersDemo() {
+  const [filter, setFilter] = useState('all');
+  return (
+    <div className="flex w-full max-w-md flex-col gap-3 rounded-xl border border-line bg-s1 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Segmented
+          ariaLabel="Lọc hộp thư"
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { label: 'Tất cả', value: 'all' },
+            { label: 'Chưa đọc', value: 'unread' },
+            { label: 'Đánh dấu', value: 'flagged' },
+          ]}
+        />
+        <span className="text-meta text-ink3">{`${INBOX_COUNTS[filter]} mục`}</span>
+      </div>
+      <p className="m-0 text-meta text-ink3">Filter value drives the list query — swap the panel for your inbox.</p>
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
 // Switch stories — Basic / Small / WithLabels (ON-OFF cross-fade) / Disabled / DarkTheme.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Slider } from '../slider/index';
 import { Switch } from './index';
 
 /** Instant on/off toggle — `role=switch` + `aria-checked` built in. */
@@ -81,3 +82,42 @@ export const DarkTheme: S = {
   ),
 };
 
+
+/* ── Real-world cases (mission #13 — real-world stories sweep) ── */
+
+// Local wrapper — settings page: notification switches + volume slider.
+function SettingsPanelInner() {
+  const [emailNotif, setEmailNotif] = useState(true);
+  const [autoUpdate, setAutoUpdate] = useState(false);
+  const [volume, setVolume] = useState(40);
+  return (
+    <div className="flex w-96 max-w-full flex-col gap-5 rounded-xl border border-line bg-s1 p-4">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="text-body text-ink">Email notifications</span>
+          <span className="text-meta text-ink3">Weekly digest and security alerts</span>
+        </div>
+        <Switch checked={emailNotif} onChange={setEmailNotif} aria-label="Email notifications" />
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="text-body text-ink">Auto-update apps</span>
+          <span className="text-meta text-ink3">Install updates without asking</span>
+        </div>
+        <Switch checked={autoUpdate} onChange={setAutoUpdate} aria-label="Auto-update apps" />
+      </div>
+      <div className="flex flex-col gap-2 border-t border-line pt-4">
+        <div className="flex items-center justify-between">
+          <span className="text-body text-ink">Volume</span>
+          <span className="text-meta tabular-nums text-ink2">{volume}%</span>
+        </div>
+        <Slider value={volume} onChange={setVolume} min={0} max={100} ariaLabel="Volume" />
+      </div>
+    </div>
+  );
+}
+
+export const SettingsPanel: S = {
+  name: 'SettingsPanel — settings page: toggles + volume slider',
+  render: () => <SettingsPanelInner />,
+};

@@ -2,9 +2,14 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Avatar } from '../avatar/index';
 import { Badge } from '../badge/index';
 import { Button } from '../button/index';
 import { Table } from './index';
+
+function photo(seed: string, w: number, h: number) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+}
 
 interface Row { id: string; title: string; status: 'todo' | 'doing' | 'done'; priority: number }
 
@@ -248,6 +253,90 @@ export const CustomStyled: Story = {
         row: 'hover:bg-accent/5',
         cell: 'italic',
       }}
+    />
+  ),
+};
+
+// ── Real-world 2026-10-25 — orders table như app thương mại: mã đơn mono,
+// khách có Avatar ảnh, trạng thái pill màu theo token (Badge variant — bản
+// status-tag có màu của kit; Tag trung tính để dành cho category), ngày, tiền
+// tabular-nums right-align + toolbar search + phân trang + 1 hàng expandable
+// chi tiết mở sẵn.
+
+interface OrderRow {
+  id: string;
+  code: string;
+  customer: string;
+  avatarSeed: string;
+  status: 'todo' | 'doing' | 'done';
+  placed: string;
+  total: number;
+}
+
+const ORDERS: OrderRow[] = [
+  { id: 'o1', code: '#ORD-2041', customer: 'Alice Nguyen', avatarSeed: 'alice-avatar', status: 'done', placed: 'Oct 21, 2026', total: 1249 },
+  { id: 'o2', code: '#ORD-2042', customer: 'Bob Pham', avatarSeed: 'bob-avatar', status: 'doing', placed: 'Oct 21, 2026', total: 89.5 },
+  { id: 'o3', code: '#ORD-2043', customer: 'Carol Le', avatarSeed: 'carol-avatar', status: 'todo', placed: 'Oct 20, 2026', total: 320 },
+  { id: 'o4', code: '#ORD-2044', customer: 'Dave Vo', avatarSeed: 'dave-avatar', status: 'done', placed: 'Oct 20, 2026', total: 54.9 },
+  { id: 'o5', code: '#ORD-2045', customer: 'Mai Tran', avatarSeed: 'mai-avatar', status: 'doing', placed: 'Oct 19, 2026', total: 780.25 },
+  { id: 'o6', code: '#ORD-2046', customer: 'Erik Hoang', avatarSeed: 'erik-avatar', status: 'done', placed: 'Oct 18, 2026', total: 129 },
+  { id: 'o7', code: '#ORD-2047', customer: 'Fiona Duong', avatarSeed: 'fiona-avatar', status: 'todo', placed: 'Oct 18, 2026', total: 2450 },
+  { id: 'o8', code: '#ORD-2048', customer: 'George Bui', avatarSeed: 'george-avatar', status: 'doing', placed: 'Oct 17, 2026', total: 62.4 },
+];
+
+const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+const STATUS_LABEL = { todo: 'pending', doing: 'processing', done: 'paid' } as const;
+
+export const OrdersTable: Story = {
+  name: 'Orders table — avatars, status pills, money right-aligned, search + pagination + expandable',
+  render: () => (
+    <Table
+      columns={[
+        { key: 'code', title: 'Order', sortable: true, width: '110px', render: (o: OrderRow) => <span className="font-mono text-label text-ink2">{o.code}</span> },
+        {
+          key: 'customer',
+          title: 'Customer',
+          sortable: true,
+          render: (o: OrderRow) => (
+            <span className="flex items-center gap-2">
+              <Avatar alt={o.customer} size={24} src={photo(o.avatarSeed, 40, 40)} />
+              <span className="text-body text-ink">{o.customer}</span>
+            </span>
+          ),
+        },
+        {
+          key: 'status',
+          title: 'Status',
+          sortable: true,
+          render: (o: OrderRow) => <Badge variant={o.status}>{STATUS_LABEL[o.status]}</Badge>,
+        },
+        { key: 'placed', title: 'Placed', sortable: true },
+        {
+          key: 'total',
+          title: 'Total',
+          sortable: true,
+          align: 'right',
+          render: (o: OrderRow) => <span className="font-medium tabular-nums">{usd(o.total)}</span>,
+        },
+      ]}
+      dataSource={ORDERS}
+      expandable={{
+        defaultExpandedRowKeys: ['o1'],
+        expandedRowRender: (o) => (
+          <div className="flex flex-wrap gap-x-10 gap-y-1 px-1 py-1 text-label text-ink3">
+            <span>Payment · Visa •••• 4242</span>
+            <span>Ship to · 2712 Broadway Ave, New York</span>
+            <span>Items · 3 (2.4 kg)</span>
+            <span>Placed · {o.placed}</span>
+          </div>
+        ),
+      }}
+      globalFilter
+      globalFilterPlaceholder="Search orders or customers…"
+      paginator
+      pageSize={5}
+      rowKey="id"
     />
   ),
 };

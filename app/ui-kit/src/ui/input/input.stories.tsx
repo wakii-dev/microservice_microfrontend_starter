@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input, Textarea } from './index';
+import { Button } from '../button/index';
+import { Field } from '../field/index';
 import { Icon } from '../icons/index';
 
 const meta = {
@@ -14,6 +16,7 @@ const meta = {
   },
 } satisfies Meta<typeof Input>;
 export default meta;
+type S = StoryObj<typeof meta>;
 
 type Story = StoryObj<typeof meta>;
 
@@ -99,3 +102,75 @@ function TextareaCountDemo() {
     />
   );
 }
+
+/* ── Real-world cases (mission #13 — real-world stories sweep) ── */
+
+// Local wrapper — sign-up form state (email validation + password toggle).
+function SignUpFormInner() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const emailInvalid = submitted && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const passwordShort = submitted && password.length < 8;
+
+  return (
+    <form
+      className="flex w-80 max-w-full flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setSubmitted(true);
+      }}
+    >
+      <Field label="Email" htmlFor="signup-email" required error={emailInvalid ? 'Enter a valid email address' : undefined}>
+        <Input
+          id="signup-email"
+          type="email"
+          invalid={emailInvalid}
+          placeholder="you@company.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+        />
+      </Field>
+      <Field
+        label="Password"
+        htmlFor="signup-password"
+        required
+        hint="At least 8 characters"
+        error={passwordShort ? 'Password is too short' : undefined}
+      >
+        <Input
+          id="signup-password"
+          type={showPassword ? 'text' : 'password'}
+          invalid={passwordShort}
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+          suffix={
+            <button
+              type="button"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="cursor-pointer border-none bg-transparent text-ink3 hover:text-ink"
+              onClick={() => setShowPassword((s) => !s)}
+            >
+              <Icon name={showPassword ? 'eye-slash' : 'eye'} size={14} />
+            </button>
+          }
+        />
+      </Field>
+      <Button htmlType="submit" type="primary" block>
+        Create account
+      </Button>
+      {submitted && !emailInvalid && !passwordShort && (
+        <p className="m-0 text-meta text-st-done">Looks good — account would be created (demo).</p>
+      )}
+    </form>
+  );
+}
+
+export const SignUpForm: S = {
+  name: 'SignUpForm — real sign-up: validation + password toggle',
+  render: () => <SignUpFormInner />,
+};

@@ -1,6 +1,9 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Button } from '../button/index';
 import { Alert } from './index';
+import { message } from '../message/index.js';
 
 /** Inline status banner that stays in the page flow — filled by default. */
 const meta = {
@@ -91,3 +94,56 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Real-world usage (2026-10-25): save flow — inline Alert + toast Message ──
+
+/** SaveFlow — form save: idle → saving (Button loading) → saved (Alert success) or
+ * failed (Alert error + Retry). Toast `message` fires alongside each outcome — copy
+ * this pattern for every form submit. */
+export const SaveFlow: StoryObj = {
+  name: 'Save flow — idle → loading → success / failure with retry',
+  render: () => <SaveFlowDemo />,
+};
+
+function SaveFlowDemo() {
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+
+  function save() {
+    setState('saving');
+    window.setTimeout(() => {
+      // demo: 75% thành công — nhấn lại để thấy nhánh còn lại
+      if (Math.random() > 0.25) {
+        setState('saved');
+        message.success('Workspace settings saved');
+      } else {
+        setState('failed');
+        message.error('Save failed — network error');
+      }
+    }, 1200);
+  }
+
+  return (
+    <div className="flex w-full max-w-md flex-col gap-3 rounded-xl border border-line bg-s1 p-5">
+      <span className="text-body font-medium text-ink">Workspace settings</span>
+      <span className="text-meta text-ink3">Site name, timezone and notification defaults.</span>
+      {state === 'failed' && (
+        <Alert
+          type="error"
+          message="Couldn't save your changes"
+          description="The network request failed — check the connection and try again."
+        />
+      )}
+      {state === 'saved' && <Alert type="success" message="All changes saved" />}
+      <div className="flex items-center gap-2">
+        <Button type="primary" loading={state === 'saving'} onClick={save}>
+          {state === 'failed' ? 'Retry save' : 'Save changes'}
+        </Button>
+        {state === 'saved' && (
+          <Button type="text" onClick={() => setState('idle')}>
+            Reset demo
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}

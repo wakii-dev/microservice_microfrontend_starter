@@ -1,4 +1,5 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
 import { message } from './index';
@@ -64,3 +65,40 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+// ── Real-world usage (2026-10-25): save flow toasts ──
+
+/** SaveFlowToasts — toast layer of a form save: info while saving, then success or
+ * error. Pair with the inline Alert story "Save flow" in Feedback/Alert. */
+export const SaveFlowToasts: Story = {
+  name: 'Save flow toasts — info while saving, success/error on finish',
+  render: () => <SaveFlowToastsDemo />,
+};
+
+function SaveFlowToastsDemo() {
+  const [state, setState] = useState<'idle' | 'saving' | 'done'>('idle');
+
+  function save() {
+    setState('saving');
+    message.info('Saving workspace settings…');
+    window.setTimeout(() => {
+      setState('done');
+      if (Math.random() > 0.25) message.success('Workspace settings saved');
+      else message.error('Save failed — network error');
+    }, 1200);
+  }
+
+  return (
+    <div className="flex w-full max-w-md flex-col gap-3 rounded-xl border border-line bg-s1 p-5">
+      <span className="text-body font-medium text-ink">Workspace settings</span>
+      <span className="text-meta text-ink3">
+        Toasts appear top-center and auto-dismiss after 3s — hit save a few times to catch both endings.
+      </span>
+      <div>
+        <Button type="primary" loading={state === 'saving'} onClick={save}>
+          {state === 'done' ? 'Save again' : 'Save changes'}
+        </Button>
+      </div>
+    </div>
+  );
+}

@@ -1,5 +1,7 @@
-// Tree stories — Default / ThreeLevels / ManyBranches / DarkTheme.
+// Tree stories — Default / ThreeLevels / ManyBranches / DarkTheme / ShowLine
+// + FileExplorer (project tree, selected-node status bar).
 // Tree manages expanded state internally (uncontrolled — no controlled prop).
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Tree } from './index';
 /** Expand/collapse hierarchy — chevron rotate, pre-expanded keys. */
@@ -82,4 +84,56 @@ export const ShowLine: S = {
       />
     </div>
   ),
+};
+
+// ── Real-world 2026-10-25 — file explorer: cây thư mục dự án 2 cấp thư mục,
+// đếm file trên label thư mục, selected node theo dõi qua onNodeClick + thanh
+// trạng thái dưới (pattern VS Code). API Tree hiện tại nhận label string +
+// callback click (chưa có slot icon/slot selected trong node) — icon file và
+// highlight node được thể hiện bằng chevron + showLine + status bar.
+
+const PROJECT_FILES = [
+  { key: 'src', label: 'src · 24 files', children: [
+    { key: 'src-components', label: 'components · 14 files', children: [
+      { key: 'src-components-button', label: 'Button.tsx' },
+      { key: 'src-components-table', label: 'Table.tsx' },
+      { key: 'src-components-modal', label: 'Modal.tsx' },
+    ] },
+    { key: 'src-hooks', label: 'hooks · 6 files', children: [
+      { key: 'src-hooks-auth', label: 'useAuth.ts' },
+      { key: 'src-hooks-theme', label: 'useTheme.ts' },
+    ] },
+    { key: 'src-index', label: 'index.tsx' },
+  ] },
+  { key: 'public', label: 'public · 2 files', children: [
+    { key: 'public-favicon', label: 'favicon.svg' },
+    { key: 'public-robots', label: 'robots.txt' },
+  ] },
+  { key: 'package', label: 'package.json' },
+  { key: 'vite-config', label: 'vite.config.ts' },
+];
+
+function ExplorerDemo() {
+  const [selected, setSelected] = useState('src/components/Button.tsx');
+  return (
+    <div className="w-72 rounded-xl border border-line bg-s2 p-3">
+      <Tree
+        showLine
+        data={PROJECT_FILES}
+        defaultExpandedKeys={['src', 'src-components']}
+        onNodeClick={setSelected}
+      />
+      {/* Status bar — selected path như VS Code (Tree không có slot selected
+       * trong node; selection hiển thị qua bar theo callback onNodeClick) */}
+      <div className="mt-2 border-t border-line2 pt-2 text-meta text-ink3">
+        Selected · <span className="font-mono text-ink2">{selected}</span>
+      </div>
+    </div>
+  );
+}
+
+export const FileExplorer: S = {
+  name: 'File explorer — project tree with file counts and selected-node bar',
+  args: { data: [] },
+  render: () => <ExplorerDemo />,
 };

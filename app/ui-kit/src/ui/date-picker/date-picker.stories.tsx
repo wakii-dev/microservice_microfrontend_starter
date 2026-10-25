@@ -121,3 +121,34 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/* ── Real-world cases (mission #13 — real-world stories sweep) ── */
+
+// Local wrapper — appointment booking: date + time → live summary line.
+function BookingDatetimeInner() {
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [time, setTime] = useState<Date | undefined>(undefined);
+  const booked = date && time;
+  const summary = booked
+    ? `Appointment: ${date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+    : 'Pick a date and a time to book your appointment.';
+
+  return (
+    <div className="flex w-96 max-w-full flex-col gap-4 rounded-xl border border-line bg-s1 p-4">
+      <div className="flex flex-col gap-1">
+        <span className="text-label text-ink2">Date</span>
+        <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="text-label text-ink2">Time</span>
+        <TimePicker value={time} onChange={setTime} placeholder="Pick a time" />
+      </div>
+      <p className={`m-0 border-t border-line pt-3 text-body ${booked ? 'text-ink' : 'text-ink3'}`}>{summary}</p>
+    </div>
+  );
+}
+
+export const BookingDatetime: S = {
+  name: 'BookingDatetime — appointment: date + time → live summary',
+  render: () => <BookingDatetimeInner />,
+};

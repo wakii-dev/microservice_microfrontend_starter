@@ -2,6 +2,8 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Checkbox } from '../checkbox/index';
+import { RadioGroup } from '../radio/index';
 import { Select } from './index';
 
 const meta = {
@@ -10,6 +12,7 @@ const meta = {
   tags: ['autodocs'],
 } satisfies Meta<typeof Select>;
 export default meta;
+type S = StoryObj<typeof meta>;
 
 type Story = StoryObj<typeof meta>;
 
@@ -168,3 +171,98 @@ function SelectShowClearDemo() {
     </div>
   );
 }
+
+/* ── Real-world cases (mission #13 — real-world stories sweep) ── */
+
+const CATALOG = [
+  { name: 'Trail Runner Pro', category: 'Shoes', brand: 'Nimbus', price: 129 },
+  { name: 'Field Watch 38', category: 'Accessories', brand: 'Krono', price: 249 },
+  { name: 'Studio Headphones', category: 'Audio', brand: 'Nimbus', price: 199 },
+  { name: 'City Backpack 22L', category: 'Bags', brand: 'Carryon', price: 89 },
+  { name: 'Desk Lamp Arc', category: 'Home', brand: 'Lumo', price: 59 },
+  { name: 'Running Tee Dry', category: 'Shoes', brand: 'Carryon', price: 35 },
+];
+const CATEGORIES = ['Shoes', 'Accessories', 'Audio', 'Bags', 'Home'];
+const BRANDS = ['Nimbus', 'Krono', 'Carryon', 'Lumo'];
+
+// Local wrapper — product filter: category + sort + brand checkboxes → live result count.
+function FilterBarInner() {
+  const [category, setCategory] = useState<string | undefined>(undefined);
+  const [sort, setSort] = useState('price-asc');
+  const [brands, setBrands] = useState<string[]>([]);
+
+  const filtered = CATALOG.filter(
+    (p) => (!category || p.category === category) && (brands.length === 0 || brands.includes(p.brand)),
+  );
+  const sorted = [...filtered].sort((a, b) =>
+    sort === 'price-asc' ? a.price - b.price : sort === 'price-desc' ? b.price - a.price : a.name.localeCompare(b.name),
+  );
+
+  return (
+    <div className="flex w-full max-w-2xl flex-col gap-4">
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="text-label text-ink2">Category</span>
+          <Select
+            ariaLabel="Category"
+            placeholder="All categories"
+            value={category}
+            onChange={(v) => setCategory(typeof v === 'string' ? v : undefined)}
+            options={CATEGORIES.map((c) => ({ label: c, value: c }))}
+            className="w-44"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-label text-ink2">Sort by</span>
+          <RadioGroup
+            aria-label="Sort by"
+            value={sort}
+            onChange={setSort}
+            options={[
+              { label: 'Price ↑', value: 'price-asc' },
+              { label: 'Price ↓', value: 'price-desc' },
+              { label: 'Name', value: 'name' },
+            ]}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-label text-ink2">Brand</span>
+          <div className="flex flex-wrap gap-3">
+            {BRANDS.map((brand) => (
+              <Checkbox
+                key={brand}
+                checked={brands.includes(brand)}
+                onChange={(checked) => setBrands((prev) => (checked ? [...prev, brand] : prev.filter((b) => b !== brand)))}
+              >
+                {brand}
+              </Checkbox>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-line bg-s1 p-3">
+        <span className="text-label text-ink2">
+          {sorted.length} of {CATALOG.length} products
+        </span>
+        <ul className="m-0 mt-2 flex list-none flex-col gap-1 p-0">
+          {sorted.map((p) => (
+            <li key={p.name} className="flex items-center justify-between text-body text-ink">
+              <span>
+                {p.name} <span className="text-ink3">· {p.brand}</span>
+              </span>
+              <span className="text-ink2">${p.price}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+export const FilterBar: S = {
+  name: 'FilterBar — product filters: category + sort + brands, live results',
+  // args = props bắt buộc của Select (meta component) — renderdemo tự render wrapper
+  args: { ariaLabel: 'Category', options: [] },
+  render: () => <FilterBarInner />,
+};

@@ -2,18 +2,18 @@
 
 [![npm](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app)](https://www.npmjs.com/package/create-wakii-app)
 
-CLI scaffold app React + [@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit) — CRA-style: interactive prompts, non-interactive flags. **Published [`create-wakii-app@0.1.0`](https://www.npmjs.com/package/create-wakii-app) trên npmjs.org.**
+Scaffold a React app wired with [@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit) — CRA-style: interactive prompts, non-interactive flags. **Published as [`create-wakii-app@0.1.0`](https://www.npmjs.com/package/create-wakii-app) on npmjs.org.**
 
-## Dùng
+## Usage
 
 ```bash
-npm create wakii-app@latest my-app     # chính thức
+npm create wakii-app@latest my-app     # official
 npx create-wakii-app my-app            # npx
 pnpm create wakii-app my-app           # pnpm
 yarn create wakii-app my-app           # yarn
 ```
 
-Interactive flow — thiếu gì prompt nấy (tên project → react-router? → extras multiselect → confirm → scaffold), xong in next-steps:
+Interactive flow — you are only prompted for what's missing (project name → react-router? → extras multiselect → confirm → scaffold), then it prints the next steps:
 
 ```
 cd my-app
@@ -24,48 +24,48 @@ pnpm dev
 Non-interactive:
 
 ```bash
-pnpm create wakii-app my-app --yes                                  # toàn default (ts + router, 0 extra)
-pnpm create wakii-app my-app --yes --extras chart                   # default + demo chart route
-pnpm create wakii-app ~/code/my-app --lang js --skip-install        # path + JavaScript, bỏ gợi ý install
+pnpm create wakii-app my-app --yes                                  # all defaults (ts + router, no extras)
+pnpm create wakii-app my-app --yes --extras chart                   # defaults + a chart demo route
+pnpm create wakii-app ~/code/my-app --lang js --skip-install        # path + JavaScript, skip the install hint
 ```
 
 ## Flags
 
-| Flag | Ý nghĩa | Default |
+| Flag | Meaning | Default |
 |---|---|---|
-| `[appName]` (positional) | Tên **hoặc đường dẫn**: `my-app` → `./my-app`; `/a/b/my-app` → đích `/a/b/my-app`. Package name luôn lấy **basename** (path không lọt vào package.json) | prompt (`my-wakii-app`) |
-| `--lang ts\|js` | TypeScript / JavaScript (nhận cả `--lang=js`) | `ts` |
-| `--router` / `--no-router` | react-router v7 (prompt khi thiếu — trừ khi `--yes`) | có |
-| `--extras <list>` | demo subpath: `chart · carousel · schedule · editor` (nhận cả `--extras=a`). Extras **kéo theo router** (demo subpath là route riêng) | none |
-| `--yes` | bỏ prompt, lấy default | — |
-| `--skip-install` | bỏ `pnpm install` ở next-steps | — |
-| `-h`, `--help` | in hướng dẫn | — |
+| `[appName]` (positional) | A name **or a path**: `my-app` → `./my-app`; `/a/b/my-app` → target `/a/b/my-app`. The package name is always the **basename** (a path never leaks into package.json) | prompt (`my-wakii-app`) |
+| `--lang ts\|js` | TypeScript / JavaScript (also accepts `--lang=js`) | `ts` |
+| `--router` / `--no-router` | react-router v7 (prompted when missing — unless `--yes`) | on |
+| `--extras <list>` | demo subpaths: `chart · carousel · schedule · editor` (also accepts `--extras=a`). Extras **imply the router** (each demo subpath is its own route) | none |
+| `--yes` | skip prompts, take all defaults | — |
+| `--skip-install` | omit `pnpm install` from the next steps | — |
+| `-h`, `--help` | print usage | — |
 
-Lỗi có chủ đích: `--no-router` + `--extras` mâu thuẫn → CLI báo rõ và thoát (bỏ một trong hai). CLI **không tự install** — chỉ in next-steps (`cd` theo đúng đích đã tạo, kể cả khi dùng path).
+Intentional error: `--no-router` together with `--extras` is a conflict → the CLI reports it clearly and exits (drop one of the two). The CLI **never installs** anything — it only prints next steps (`cd` to the exact target it created, even when you passed a path).
 
-## Template chứa gì
+## What's in the template
 
-Base (ts/js) — app demo dogfooding **`@wakii/ui-kit` ^0.5.0** (pin 0.5.0: bản exports dist đầu tiên):
+Base (ts/js) — a demo app dogfooding **`@wakii/ui-kit` ^0.5.0** (pinned: the first version with dist exports):
 
-- **Dark toggle hoạt động thật** — `useAppTheme` (src/theme) persist `localStorage` + đặt `data-bp-theme` trên `<html>`; mọi component kit cascade theo, không re-render.
-- **Demo components**: hero wash + Tag/Title/Text + 3 Button · Table 3 cột (Badge status) · Alert ×4 · CountUp Statistic · Card "What's inside" (links Storybook + npm).
-- **Tokens-first**: một file styles.css (tokens + base từ kit + Tailwind v4 + `@source` kit) — 0 hex trong app.
+- **A working dark toggle** — `useAppTheme` (src/theme) persists to `localStorage` and sets `data-bp-theme` on `<html>`; every kit component cascades, no re-render.
+- **Demo components**: wash hero + Tag/Title/Text + 3 Buttons · a 3-column Table (Badge statuses) · Alert ×4 · CountUp Statistic · a "What's inside" Card (Storybook + npm links).
+- **Tokens-first**: a single styles.css (kit tokens + base + Tailwind v4 + the kit `@source`) — zero hex in the app.
 
-Router (default CÓ, react-router v7): route `/` demo + `/about` giới thiệu kit (NavLink). Extras: mỗi extra thêm 1 route demo dùng đúng subpath (`@wakii/ui-kit/chart`, `./carousel`, `./schedule`, `./editor`) + peer dep tương ứng ghi vào package.json.
+Router (on by default, react-router v7): a `/` demo route plus `/about` introducing the kit (NavLink). Extras: each extra adds one demo route using the matching subpath (`@wakii/ui-kit/chart`, `./carousel`, `./schedule`, `./editor`) and writes its peer dependency into package.json.
 
-## Kiến trúc (repo)
+## Architecture (repo)
 
-- `src/options.ts` — parse flags tự viết (0 dep parser) + defaults + validate (`--no-router` × `--extras` throw)
-- `src/scaffold.ts` — copy đệ quy template → render placeholder `{{appName}}` (binary bỏ qua) → áp overlays `router`/`extras/<name>` → merge deps vào package.json
-- `src/index.ts` — flow prompt `@clack/prompts` + log + next-steps (wire UI thôi)
+- `src/options.ts` — hand-rolled flag parser (zero parser dependencies) + defaults + validation (`--no-router` × `--extras` throws)
+- `src/scaffold.ts` — recursive template copy → renders the `{{appName}}` placeholder (binaries skipped) → applies the `router` / `extras/<name>` overlays → merges dependencies into package.json
+- `src/index.ts` — the `@clack/prompts` flow + logging + next steps (UI wiring only)
 
-Nguồn template: `app/starter-templates/vite-ts|vite-js` + `template-feats/` (worker riêng sở hữu). Overlay dùng cho variant JS phải type-free (engine chỉ đổi đuôi `.tsx→.jsx`); nếu overlay có thư mục `vite-js/` riêng thì dùng nguyên thư mục đó.
+Template sources: `app/starter-templates/vite-ts|vite-js` + `template-feats/` (owned by a separate worker). JS-variant overlays must be type-free (the engine only renames `.tsx→.jsx`); if an overlay ships its own `vite-js/` directory, that directory is used as-is.
 
-## Phát triển
+## Development
 
 ```bash
 pnpm --filter create-wakii-app typecheck
-pnpm --filter create-wakii-app test      # fixture templates giả trong tmp — không network
+pnpm --filter create-wakii-app test      # fixture templates in tmp — no network
 ```
 
-Publish lên npmjs: `./scripts/publish-npm.sh` — build (tsup) rồi bundle `dist` + **`starter-templates/`** (vite-ts + vite-js) vào package (`files` field — npm không nhận path `../`), set `publishConfig` public, publish bằng `NPM_TOKEN` (env) hoặc `_authToken` sẵn trong `~/.npmrc`.
+Publishing to npmjs: `./scripts/publish-npm.sh` — builds (tsup), then bundles `dist` + **`starter-templates/`** (vite-ts + vite-js) into the package (`files` field — npm rejects parent paths like `../`), sets `publishConfig` to public, and publishes using `NPM_TOKEN` (env) or an existing `_authToken` in `~/.npmrc`.

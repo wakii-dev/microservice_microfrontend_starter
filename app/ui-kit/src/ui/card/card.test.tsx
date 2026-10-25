@@ -133,3 +133,42 @@ describe('Card — loading + size (antd parity)', () => {
     expect(root.innerHTML).toContain('p-6');
   });
 });
+
+describe('Card — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root/header/title/extra/body/actions', () => {
+    render(
+      <Card
+        title="Tiêu đề"
+        extra={<span>Extra</span>}
+        actions={[<span key="a">Act</span>]}
+        classNames={{ root: 'slot-root', header: 'slot-header', title: 'slot-title', extra: 'slot-extra', body: 'slot-body', actions: 'slot-actions' }}
+      >
+        <span data-testid="slot-body-el">Nội dung</span>
+      </Card>,
+    );
+    const root = screen.getByTestId('slot-body-el').closest('.rounded-xl')!;
+    expect(root).toHaveClass('slot-root');
+    const body = screen.getByTestId('slot-body-el').parentElement!;
+    expect(body).toHaveClass('slot-body');
+    expect(body.previousElementSibling).toHaveClass('slot-header'); // head ngay trước body
+    expect(screen.getByText('Tiêu đề')).toHaveClass('slot-title');
+    expect(screen.getByText('Extra').parentElement).toHaveClass('slot-extra');
+    expect(screen.getByText('Act').closest('ul')).toHaveClass('slot-actions');
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    render(
+      <Card
+        title="Style"
+        style={{ margin: '8px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      >
+        <span data-testid="style-body">x</span>
+      </Card>,
+    );
+    const root = screen.getByTestId('style-body').closest('.rounded-xl') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

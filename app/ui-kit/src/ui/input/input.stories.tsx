@@ -174,3 +174,64 @@ export const SignUpForm: S = {
   name: 'SignUpForm — real sign-up: validation + password toggle',
   render: () => <SignUpFormInner />,
 };
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / input / prefix / suffix)
+ * + style passthrough (SÓNG-3 pattern). `root` lands on the bordered element
+ * (the input when plain, the affix wrapper when prefix/suffix is set); `style`
+ * lands straight on that same element; the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[420px] gap-4">
+      <Input
+        aria-label="Custom styled plain"
+        placeholder="root + input slots on the input itself…"
+        classNames={{
+          root: 'border-accent border-dashed',
+          input: 'italic tracking-wide',
+        }}
+        style={{ boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+      <Input
+        aria-label="Custom styled affix"
+        prefix={<Icon name="search" size={14} />}
+        suffix={<span className="font-mono">.vn</span>}
+        placeholder="Slots across the affix wrapper…"
+        classNames={{
+          root: 'rounded-pill border-st-done',
+          prefix: 'text-st-done',
+          input: 'uppercase placeholder:normal-case',
+          suffix: 'text-st-done',
+        }}
+        style={{ letterSpacing: '0.04em' }}
+      />
+    </div>
+  ),
+};
+
+/** TextareaCustomStyled — classNames slots (root / textarea / count) + style
+ * passthrough (SÓNG-3 pattern). `root` lands on the outer wrapper div, `textarea`
+ * on the <textarea> itself, `count` on the character counter; `style` lands on
+ * the <textarea>; the user's className always comes last. */
+export const TextareaCustomStyled: Story = {
+  name: 'Textarea CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[420px] gap-4">
+      <Textarea
+        aria-label="Custom styled textarea"
+        placeholder="Slots on wrapper / textarea / count…"
+        rows={3}
+        maxLength={80}
+        showCount
+        classNames={{
+          root: 'rounded-xl',
+          textarea: 'border-accent border-dashed italic',
+          count: 'text-st-done',
+        }}
+        style={{ boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

@@ -96,3 +96,36 @@ describe('Switch — batch ⑳ redesign (iOS/MUI-grade)', () => {
     expect(sw.className).not.toContain('focus-visible:outline');
   });
 });
+
+describe('Switch — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root→button track, handle→span knob', () => {
+    render(
+      <Switch
+        checked
+        aria-label="slot"
+        classNames={{ root: 'slot-root', handle: 'slot-handle' }}
+      />,
+    );
+    const sw = screen.getByRole('switch', { name: 'slot' });
+    expect(sw).toHaveClass('slot-root');
+    expect(sw.querySelector('span.z-10')).toHaveClass('slot-handle');
+  });
+
+  it('style passthrough + click vẫn onChange; className người dùng sau root slot', async () => {
+    const onChange = vi.fn();
+    render(
+      <Switch
+        aria-label="st"
+        style={{ margin: '4px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+        onChange={onChange}
+      />,
+    );
+    const sw = screen.getByRole('switch', { name: 'st' });
+    expect(sw).toHaveStyle({ margin: '4px' });
+    expect(sw.className.indexOf('slot-root')).toBeLessThan(sw.className.indexOf('user-last'));
+    await userEvent.setup().click(sw);
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+});

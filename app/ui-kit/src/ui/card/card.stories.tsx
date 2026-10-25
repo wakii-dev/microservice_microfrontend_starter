@@ -201,3 +201,32 @@ export const ArticleCard: Story = {
     </Card>
   ),
 };
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / header / title / extra
+ * / body / actions) + style passthrough (SÓNG-3 pattern). `root` lands on the
+ * outer card div, `header`/`title`/`extra` on the head strip, `body` on the
+ * content div, `actions` on the bottom <ul>; `style` lands on the outer div;
+ * the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Card
+      title="Deploy status"
+      extra={<span className="font-mono text-meta">v2.4.1</span>}
+      actions={[<span key="log">Logs</span>, <span key="rollback">Rollback</span>]}
+      classNames={{
+        root: 'border-accent border-dashed',
+        header: 'bg-accent/5',
+        title: 'tracking-wide uppercase text-label',
+        extra: 'text-accent',
+        body: 'italic',
+        actions: 'bg-s3',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      Slots reshape every part of the card without touching structural classes.
+    </Card>
+  ),
+};

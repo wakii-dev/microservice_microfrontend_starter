@@ -1,6 +1,11 @@
 // TaskList — heading "x/total" (format là test contract) + ul "Danh sách tasks" + nút
 // "Tải thêm" (chỉ khi đã tải < total). Load-more dùng nút busy, KHÔNG skeleton — tránh
 // list nhảy layout.
+// Motion redesign: ul variants staggerChildren — item xuất hiện lần lượt; items nằm
+// trong AnimatePresence → item MỚI/XOÁ có enter/exit (exit = collapse + fade, xem
+// TaskItem). Load-more nối thêm vẫn được stagger (delay theo index trong trang mới —
+// TaskItem tự nhân delay index trang cục bộ).
+import { AnimatePresence, motion } from 'motion/react';
 import { Button, Icon } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
 import { TaskItem } from './TaskItem';
@@ -34,15 +39,18 @@ export function TaskList({
         Danh sách ({tasks.length}/{total})
       </h2>
       <ul className="tsk-list" aria-label="Danh sách tasks">
-        {tasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onStatusChange={onStatusChange}
-            onSave={onSave}
-            onDelete={onDelete}
-          />
-        ))}
+        <AnimatePresence>
+          {tasks.map((task, index) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              index={index}
+              onStatusChange={onStatusChange}
+              onSave={onSave}
+              onDelete={onDelete}
+            />
+          ))}
+        </AnimatePresence>
       </ul>
       {hasMore && (
         <Button

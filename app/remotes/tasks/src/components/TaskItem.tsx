@@ -5,7 +5,12 @@
 // ui-kit useForm + zod (app-fit migration 2026-10-18, thay react-hook-form): reset(task)
 // mỗi lần mở edit (đúng giá trị hiện tại); chỉ gửi field THAY ĐỔI; lỗi (onSave false)
 // → giữ nguyên form + draft.
-import { useState } from 'react';
+// Motion redesign: li = motion.li — entry fade+y (delay theo index → stagger với
+// AnimatePresence của TaskList) + exit collapse/fade khi xoá/filter; đổi status thành
+// công (updatedAt đổi) → flash nền accent nhạt fade-out (overlay riêng, không đụng
+// layout/focus của nội dung).
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import { z } from 'zod';
 import { Button, Icon, Input, Popconfirm, Spinner, useForm } from '@wakii/ui-kit';
 import type { Task, TaskStatus } from '../api';
@@ -14,6 +19,8 @@ import { StatusSelect } from './StatusSelect';
 
 interface TaskItemProps {
   task: Task;
+  /** Vị trí trong trang hiện tại — delay entry tạo hiệu ứng stagger. */
+  index?: number;
   onStatusChange: (task: Task, status: TaskStatus) => Promise<void>;
   /** true = lưu OK — chỉ khi đó thoát edit (lỗi → banner ở page + giữ form + draft). */
   onSave: (task: Task, patch: { title?: string; description?: string }) => Promise<boolean>;
@@ -44,7 +51,7 @@ function formatDate(iso: string): string {
   return Number.isNaN(date.getTime()) ? iso : dateFormat.format(date);
 }
 
-export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemProps) {
+export function TaskItem({ task, index = 0, onStatusChange, onSave, onDelete }: TaskItemProps) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -54,6 +61,17 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
     schema: editSchema,
     initialValues: { title: task.title, description: task.description ?? '' },
   });
+
+  // Flash khi task vừa update (updatedAt đổi — in-place setQueryData) — overlay
+  // accent nhạt fade-out 0.6s. key tăng mỗi lần update để overlay remount chạy lại.
+  const [flashKey, setFlashKey] = useState(0);
+  const prevUpdatedAt = useRef(task.updatedAt);
+  useEffect(() => {
+    if (prevUpdatedAt.current !== task.updatedAt) {
+      prevUpdatedAt.current = task.updatedAt;
+      setFlashKey((k) => k + 1);
+    }
+  }, [task.updatedAt]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -89,7 +107,25 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
   });
 
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-3 border border-line bg-s2 p-3 px-4 transition-colors hover:bg-s3 max-md:grid-cols-1">
+    <motion.li
+      className="relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-3 border border-line bg-s2 p-3 px-4 transition-colors hover:bg-s3 max-md:grid-cols-1"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98, transition: { duration: 0.22, ease: 'easeInOut' } }}
+      transition={{ duration: 0.25, delay: Math.min(index, 12) * 0.04, ease: 'easeOut' }}
+    >
+      {/* Flash "vừa update" — overlay accent nhạt, pointer-events-none, không đụng
+       * layout nội dung (re-mount theo flashKey để chạy lại mỗi lần update) */}
+      {flashKey > 0 && (
+        <motion.span
+          key={flashKey}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-3"
+          initial={{ opacity: 1, backgroundColor: 'color-mix(in srgb, var(--accent) 10%, transparent)' }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        />
+      )}
       <div className="flex min-h-[22px] items-center pt-0.5">
         {busy ? (
           <Spinner label={`Đang xử lý task ${task.title}`} />
@@ -194,6 +230,6 @@ export function TaskItem({ task, onStatusChange, onSave, onDelete }: TaskItemPro
           </div>
         )}
       </div>
-    </li>
+    </motion.li>
   );
 }

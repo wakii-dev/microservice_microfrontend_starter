@@ -1,6 +1,7 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
 // Modernize pass 2026-10-18 (vision-audit): adds Sizes / Loading / Matrix —
 // default h-9, rounded-lg, default variant bg-s2 (visible on white bg).
+// Customize pass (SÓNG-3): adds CustomStyled — classNames slots (root / icon) + style.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './index';
 
@@ -16,6 +17,8 @@ const meta = {
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
     block: { control: 'boolean' },
+    classNames: { control: 'object' },
+    style: { control: 'object' },
   },
 } satisfies Meta<typeof Button>;
 export default meta;
@@ -116,6 +119,35 @@ export const Matrix: Story = {
           </Button>
         </div>
       ))}
+    </div>
+  ),
+};
+
+/** CustomStyled — antd v5-style classNames slots + style passthrough (SÓNG-3 pattern).
+ * `classNames.root` merges after structural classes (before the user's className);
+ * `classNames.icon` wraps the icon prop in a span; `style` lands straight on the <button>. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: { children: 'Button' },
+  render: () => (
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button
+        type="primary"
+        icon={<span aria-hidden="true">+</span>}
+        classNames={{
+          root: 'rounded-pill shadow-[0_4px_16px_rgba(0,0,0,0.2)]',
+          icon: 'text-lg leading-none',
+        }}
+        style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}
+      >
+        Custom styled
+      </Button>
+      <Button
+        classNames={{ root: 'rounded-pill' }}
+        style={{ borderStyle: 'dashed', color: 'var(--accent)' }}
+      >
+        Dashed outline
+      </Button>
     </div>
   ),
 };

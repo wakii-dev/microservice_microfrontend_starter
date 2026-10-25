@@ -2,7 +2,13 @@
 // ring (mặc định, viền quay) · dots (3 chấm pulse) · bars (4 vạch scaleY).
 // Mỗi variant đủ size sm/md/lg + màu accent/muted/inverse qua text-*
 // (border-current/bg-current kế màu). Label = aria-label BẮT BUỘC.
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+
+/** Slot classes kiểu antd v5 (SÓNG-3) — Spinner 1 phần tử nên chỉ có root. */
+export interface SpinnerClassNames {
+  /** Phần tử <span role="status"> gốc — merge sau class mặc định, trước className. */
+  root?: string;
+}
 
 export interface SpinnerProps {
   /** aria-label BẮT BUỘC — màn đọc cần biết busy của cái gì. */
@@ -14,6 +20,10 @@ export interface SpinnerProps {
   /** Màu: accent (mặc định) / muted (ink3) / inverse (trắng — trên nền tối). */
   color?: 'accent' | 'muted' | 'inverse';
   className?: string;
+  /** Inline style — passthrough thẳng lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes (SÓNG-3) — default path (không truyền) giữ nguyên. */
+  classNames?: SpinnerClassNames;
 }
 
 const SIZE: Record<string, string> = {
@@ -28,7 +38,7 @@ const COLOR: Record<string, string> = {
   inverse: 'text-white',
 };
 
-export function Spinner({ label, variant = 'ring', size = 'default', color = 'accent', className }: SpinnerProps) {
+export function Spinner({ label, variant = 'ring', size = 'default', color = 'accent', className, style, classNames }: SpinnerProps) {
   const colorCls = COLOR[color];
   const box = SIZE[size];
   let node: ReactNode;
@@ -67,7 +77,12 @@ export function Spinner({ label, variant = 'ring', size = 'default', color = 'ac
   }
 
   return (
-    <span role="status" aria-label={label} className={`inline-flex items-center ${colorCls}${className ? ` ${className}` : ''}`}>
+    <span
+      role="status"
+      aria-label={label}
+      style={style}
+      className={`inline-flex items-center ${colorCls}${classNames?.root ? ` ${classNames.root}` : ''}${className ? ` ${className}` : ''}`}
+    >
       {node}
     </span>
   );

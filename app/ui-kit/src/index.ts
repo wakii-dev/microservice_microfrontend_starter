@@ -9,7 +9,7 @@ export {
 } from './ui/badge/index.js';
 export { EmptyState, type EmptyStateProps } from './ui/empty-state/index.js';
 export { Skeleton, type SkeletonProps } from './ui/skeleton/index.js';
-export { Spinner, type SpinnerProps } from './ui/spinner/index.js';
+export { Spinner, type SpinnerProps, type SpinnerClassNames } from './ui/spinner/index.js';
 export { Button, type ButtonProps, type ButtonType, type ButtonClassNames } from './ui/button/index.js';
 export { Input, Textarea, type InputProps, type InputClassNames, type TextareaProps, type TextareaClassNames } from './ui/input/index.js';
 export { Tag, type TagProps, type TagClassNames, type CheckableTagProps, type CheckableTagClassNames } from './ui/tag/index.js';

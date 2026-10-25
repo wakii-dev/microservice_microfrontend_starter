@@ -97,3 +97,38 @@ describe('Checkbox — tri-state (PrimeReact parity, 2026-10-18)', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
+
+describe('Checkbox — classNames slots + style (SÓNG-3)', () => {
+  it('slots lên đúng element: root→label, box→input, label→span bọc children', () => {
+    render(
+      <Checkbox classNames={{ root: 'slot-root', box: 'slot-box', label: 'slot-label' }}>
+        Text nhãn
+      </Checkbox>,
+    );
+    const box = screen.getByRole('checkbox');
+    expect(box).toHaveClass('slot-box');
+    expect(box.closest('label')).toHaveClass('slot-root');
+    expect(screen.getByText('Text nhãn')).toHaveClass('slot-label');
+    // label slot bọc children trong span mới — span là element chứa text
+    expect(screen.getByText('Text nhãn').tagName).toBe('SPAN');
+  });
+
+  it('style passthrough + click vẫn onChange; className người dùng sau root slot', async () => {
+    const onChange = vi.fn();
+    render(
+      <Checkbox
+        style={{ padding: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+        onChange={onChange}
+      >
+        Đổi
+      </Checkbox>,
+    );
+    const label = screen.getByText('Đổi').closest('label') as HTMLLabelElement;
+    expect(label).toHaveStyle({ padding: '2px' });
+    expect(label.className.indexOf('slot-root')).toBeLessThan(label.className.indexOf('user-last'));
+    await userEvent.setup().click(screen.getByRole('checkbox'));
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+});

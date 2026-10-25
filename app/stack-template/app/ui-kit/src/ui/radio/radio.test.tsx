@@ -81,3 +81,41 @@ describe('RadioGroup — group-level disabled (coverage audit)', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe('Radio — classNames slots + style (SÓNG-3)', () => {
+  it('Radio slots lên đúng element: root→label, box→input, label→span bọc children', () => {
+    render(
+      <Radio classNames={{ root: 'slot-root', box: 'slot-box', label: 'slot-label' }}>
+        Hình thức
+      </Radio>,
+    );
+    const box = screen.getByRole('radio');
+    expect(box).toHaveClass('slot-box');
+    expect(box.closest('label')).toHaveClass('slot-root');
+    expect(screen.getByText('Hình thức')).toHaveClass('slot-label');
+  });
+
+  it('Group root slot + style passthrough; chọn option vẫn onChange; className sau root slot', async () => {
+    const onChange = vi.fn();
+    render(
+      <RadioGroup
+        value="a"
+        onChange={onChange}
+        aria-label="G"
+        style={{ padding: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+        options={[
+          { label: 'A', value: 'a' },
+          { label: 'B', value: 'b' },
+        ]}
+      />,
+    );
+    const group = screen.getByRole('radiogroup');
+    expect(group).toHaveStyle({ padding: '2px' });
+    expect(group).toHaveClass('slot-root');
+    expect(group.className.indexOf('slot-root')).toBeLessThan(group.className.indexOf('user-last'));
+    await userEvent.setup().click(screen.getByText('B'));
+    expect(onChange).toHaveBeenCalledWith('b');
+  });
+});

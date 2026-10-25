@@ -79,3 +79,24 @@ export const RichContent: Story = {
     </Tooltip>
   ),
 };
+
+/** CustomStyled — classNames slots (trigger/bubble) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex gap-6">
+      <Tooltip
+        title="Bubble gets an accent ring + pill radius"
+        classNames={{
+          trigger: 'rounded-lg bg-s3 px-1',
+          bubble: 'rounded-pill ring-2 ring-accent/40',
+        }}
+      >
+        <Button>classNames slots</Button>
+      </Tooltip>
+      <Tooltip title="Wrapper carries inline style (padding + dashed outline)" style={{ padding: 4, outline: '2px dashed var(--accent)' }}>
+        <Button>style passthrough</Button>
+      </Tooltip>
+    </div>
+  ),
+};

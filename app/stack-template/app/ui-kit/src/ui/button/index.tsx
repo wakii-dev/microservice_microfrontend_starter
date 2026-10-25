@@ -4,12 +4,16 @@
 // primary hover accent-hi, focus ring accent/40 + offset canvas, active scale 0.98,
 // loading → Spinner 3.5 inline + cursor-wait. Disabled dùng token --bg-disabled (dark-safe).
 // API GIỮ NGUYÊN (type/danger/icon/htmlType/block/disabled) — chỉ thêm/nâng visual,
-// không break consumers (không ai trong repo truyền size=).
+// không break consumers (không ai trong repo truyền size=). Customize pass (SÓNG-3):
+// thêm classNames slots (root/icon) + style passthrough — default path (không truyền)
+// giữ nguyên DOM/GUI.
 // Map từ style cũ của repo: .tsk-btn--primary → type=primary · .tsk-btn/.sh-btn →
 // type=default · .tsk-btn--ghost/.sh-btn--ghost → type=text · .tsk-btn--danger →
 // type=primary+danger · .tsk-btn--danger-ghost → type=text+danger.
 // API theo antd: `type` = variant, `htmlType` = HTML button type.
-import { useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
+import { useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
 
 /** Ripple click — span overlay scale từ điểm chạm (bp-ripple, motion identity). */
@@ -22,6 +26,14 @@ interface Ripple {
 
 export type ButtonType = 'primary' | 'default' | 'text';
 export type ButtonSize = 'small' | 'middle' | 'large';
+
+/** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định (consumer append). */
+export interface ButtonClassNames {
+  /** Phần tử <button> gốc — chèn sau structural classes, trước className prop. */
+  root?: string;
+  /** Span bọc icon — chỉ render khi truyền (không truyền → icon render trần như cũ). */
+  icon?: string;
+}
 
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   /** Variant visual — antd Button type. */
@@ -41,6 +53,10 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   children?: ReactNode;
   /** Append sau structural classes (pattern antd). */
   className?: string;
+  /** Inline style — passthrough thẳng lên <button>. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
+  classNames?: ButtonClassNames;
 }
 
 const BASE =
@@ -63,21 +79,26 @@ const DANGER: Partial<Record<ButtonType, string>> = {
   'text': 'border-transparent bg-transparent text-st-fail hover:bg-st-fail/12',
 };
 
-export function Button({
-  type = 'default',
-  htmlType = 'button',
-  danger = false,
-  size = 'middle',
-  loading = false,
-  block = false,
-  icon,
-  className,
-  children,
-  disabled,
-  onPointerDown,
-  ...rest
-}: ButtonProps) {
+export function Button(props: ButtonProps) {
+  const {
+    type = 'default',
+    htmlType = 'button',
+    danger = false,
+    size = 'middle',
+    loading = false,
+    block = false,
+    icon,
+    className,
+    style,
+    children,
+    disabled,
+    onPointerDown,
+    ...rest
+  } = props;
+  const slots = props.classNames;
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
+  // icon chỉ bọc span khi consumer truyền classNames.icon — default path giữ DOM y hệt
+  const iconSlot = slots?.icon;
 
   // Ripple click (motion waves): spawn span tại điểm chạm, animationend tự prune.
   // Reduced-motion: animation rơi 0.01ms → span invisible ngay + end-event vẫn fire.
@@ -106,8 +127,18 @@ export function Button({
       type={htmlType}
       disabled={disabled || loading}
       onPointerDown={handlePointerDown}
-      className={`${BASE} relative overflow-hidden ${loading ? 'cursor-wait' : 'cursor-pointer'} ${SIZE[size]} ${variant}${block ? ' w-full' : ''}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        BASE,
+        'relative overflow-hidden',
+        loading ? 'cursor-wait' : 'cursor-pointer',
+        SIZE[size],
+        variant,
+        block ? 'w-full' : '',
+        slots?.root,
+        className,
+      )}
       {...rest}
+      style={style}
     >
       {ripples.map((r) => (
         <span
@@ -121,7 +152,7 @@ export function Button({
         />
       ))}
       {loading && <Spinner size="default" label="" className="-ml-1" aria-hidden="true" />}
-      {!loading && icon}
+      {!loading && (iconSlot ? <span className={iconSlot}>{icon}</span> : icon)}
       {children}
     </button>
   );

@@ -266,3 +266,31 @@ export const FilterBar: S = {
   args: { ariaLabel: 'Category', options: [] },
   render: () => <FilterBarInner />,
 };
+
+/* ── Customize pass (SÓNG-3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / trigger / panel / listbox
+ * / option) + style passthrough (SÓNG-3 pattern). `root` lands on the outer
+ * relative span (same element as `className`), `trigger` on the combobox button,
+ * `panel`/`listbox`/`option` inside the dropdown; `style` lands on the outer span. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { ariaLabel: 'Custom', options: [] },
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <Select
+        ariaLabel="Custom styled select"
+        options={TASK_OPTIONS}
+        value="ts"
+        classNames={{
+          root: 'rounded-xl',
+          trigger: 'border-st-done border-dashed',
+          panel: 'rounded-lg border-st-done',
+          listbox: 'bg-accent/5',
+          option: 'tracking-wide',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

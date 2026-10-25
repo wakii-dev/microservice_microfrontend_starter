@@ -16,6 +16,8 @@
 // "Thứ 2 20/10 · Task A"; focus-visible ring chuẩn rule 4 ở nút điều hướng.
 // Sticky: cột label sticky-left + thead sticky-top khi overflow (z-10/z-20
 // theo idiom Table — sticky in-flow, không thuộc overlay scale --z-*).
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ template).
+import classNames from 'classnames';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
 import { InputNumber } from '../input-number/index.js';
@@ -83,17 +85,18 @@ const FULL_DAYS_EN = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 const NAV_CLS =
   'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors hover:bg-s3 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none';
 
-export function Timesheet({
-  rows,
-  week,
-  onWeekChange,
-  onCellChange,
-  editable = false,
-  locale,
-  loading = false,
-  classNames,
-  className,
-}: TimesheetProps) {
+export function Timesheet(props: TimesheetProps) {
+  const {
+    rows,
+    week,
+    onWeekChange,
+    onCellChange,
+    editable = false,
+    locale,
+    loading = false,
+    className,
+  } = props;
+  const slots = props.classNames;
   const loc = useDateLocale(locale);
   const isVi = loc === VI_LOCALE;
   // Tuần hiển thị: state nội bộ (nav chủ động) + sync khi prop week đổi.
@@ -148,7 +151,7 @@ export function Timesheet({
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border border-line bg-s2${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}${className ? ` ${className}` : ''}`}
+      className={classNames('overflow-hidden rounded-xl border border-line bg-s2', slots?.wrapper, className)}
     >
       {/* Thanh tuần: nhãn khoảng tuần + nav prev/next */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2">
@@ -173,7 +176,7 @@ export function Timesheet({
           key={weekKey}
           className="w-full border-collapse text-left animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]"
         >
-          <thead className={classNames?.header}>
+          <thead className={slots?.header}>
             <tr>
               <th
                 scope="col"
@@ -214,7 +217,7 @@ export function Timesheet({
                   </tr>
                 ))
               : rows.map((row) => (
-                  <tr key={row.key} className={classNames?.row}>
+                  <tr key={row.key} className={slots?.row}>
                     <th
                       scope="row"
                       className={`sticky left-0 z-10 bg-s2 px-3 py-2 text-left align-middle font-medium ${borderCls}`}
@@ -229,7 +232,12 @@ export function Timesheet({
                         <td
                           key={i}
                           aria-label={cellLabel(row, i, d)}
-                          className={`border-b border-line2 ${editable ? 'p-1' : 'px-3 py-1.5 text-right'}${weekend ? ' bg-s3/60' : ''}${classNames?.cell ? ` ${classNames.cell}` : ''}`}
+                          className={classNames(
+                            'border-b border-line2',
+                            editable ? 'p-1' : 'px-3 py-1.5 text-right',
+                            weekend ? ' bg-s3/60' : '',
+                            slots?.cell,
+                          )}
                         >
                           {editable ? (
                             <InputNumber
@@ -254,7 +262,7 @@ export function Timesheet({
                 ))}
           </tbody>
           {!loading && (
-            <tfoot className={classNames?.footer}>
+            <tfoot className={slots?.footer}>
               <tr className="border-t border-line">
                 <th scope="row" className="sticky left-0 z-10 bg-s3 px-3 py-2 text-left text-label font-semibold text-ink2">
                   {str.total}

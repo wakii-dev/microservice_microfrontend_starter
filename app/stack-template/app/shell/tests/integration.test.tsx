@@ -62,14 +62,15 @@ describe('integration: login → nav → remote-down fallback', () => {
     await user.type(screen.getByLabelText('Mật khẩu'), 'demo-password');
     await user.click(screen.getByRole('button', { name: 'Đăng nhập' }));
 
-    // 2) về trang chủ, nav hiện email từ JWT claims
+    // 2) về trang chủ (landing redesign — hero heading mới), nav hiện email từ JWT claims
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Trang chủ' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Ship full-stack, not tooling' })).toBeInTheDocument();
     });
     expect(screen.getByTestId('nav-user')).toHaveTextContent('alice@demo.local');
 
-    // 3) nav sang /tasks — remote down → error boundary fallback (không trắng trang)
-    await user.click(screen.getByRole('link', { name: 'Tasks' }));
+    // 3) nav sang /tasks — remote down → error boundary fallback (không trắng trang).
+    // Landing thêm footer link cùng tên → nav là link đầu trong DOM.
+    await user.click(screen.getAllByRole('link', { name: 'Tasks' })[0]!);
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Không tải được phần tasks');
     expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument();

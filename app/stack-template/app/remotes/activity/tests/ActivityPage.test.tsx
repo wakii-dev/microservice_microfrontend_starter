@@ -226,7 +226,9 @@ describe('ActivityPage', () => {
     expect(within(btn).getByRole('status')).toBeInTheDocument(); // Spinner
     resolveRefresh({ items: [ITEM], total: 1 });
     await screen.findByText('Alice Nguyễn');
-    expect(btn).toBeEnabled();
+    // Motion redesign: feed (SWR) render text ngay khi resolve — nút bật lại sau khi
+    // CẢ stats refetch xong (1 microtask sau) → waitFor giữ intent "xong thì bật lại"
+    await waitFor(() => expect(btn).toBeEnabled());
   });
 });
 

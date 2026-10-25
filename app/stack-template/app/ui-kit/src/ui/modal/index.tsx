@@ -3,6 +3,8 @@
 // state machine: open=false → animation XONG mới unmount. ESC + overlay = cancel.
 // A11y (batch ⑫ worker C): focus trap (Tab/Shift+Tab vòng trong dialog), mở →
 // focus phần tử đầu, đóng → trả focus về trigger (capture document.activeElement).
+// Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
+import classNames from 'classnames';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../button/index';
@@ -48,19 +50,20 @@ export interface ModalProps {
   classNames?: ModalClassNames;
 }
 
-export function Modal({
-  open,
-  title,
-  children,
-  okText = 'OK',
-  cancelText = 'Huỷ',
-  danger = false,
-  confirmLoading = false,
-  onOk,
-  onCancel,
-  className,
-  classNames,
-}: ModalProps) {
+export function Modal(props: ModalProps) {
+  const {
+    open,
+    title,
+    children,
+    okText = 'OK',
+    cancelText = 'Huỷ',
+    danger = false,
+    confirmLoading = false,
+    onOk,
+    onCancel,
+    className,
+  } = props;
+  const slots = props.classNames;
   // A11y: dialog name qua labelledby — ăn cả title ReactNode (icon/badge), không
   // chỉ title string như aria-label cũ.
   const titleId = useId();
@@ -94,12 +97,14 @@ export function Modal({
 
   if (!mounted) return null;
 
-  // slot helper — ghép class consumer vào sau mặc định (undefined → rỗng)
-  const slot = (c?: string) => (c ? ` ${c}` : '');
-
   return createPortal(
     <div
-      className={`fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--mask)] p-4 ${closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]'}${className ? ` ${className}` : ''}${slot(classNames?.mask)}`}
+      className={classNames(
+        'fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--mask)] p-4',
+        closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]',
+        className,
+        slots?.mask,
+      )}
       onClick={() => onCancel?.()}
       data-testid="modal-overlay"
     >
@@ -110,15 +115,19 @@ export function Modal({
         tabIndex={-1}
         aria-labelledby={titleId}
         style={{ willChange: "transform, opacity" }}
-        className={`relative w-full max-w-[416px] rounded-xl bg-s2 p-6 shadow-[var(--shadow-pop)] ${closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]'}${slot(classNames?.wrapper)}`}
+        className={classNames(
+          'relative w-full max-w-[416px] rounded-xl bg-s2 p-6 shadow-[var(--shadow-pop)]',
+          closing ? 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)]',
+          slots?.wrapper,
+        )}
         onAnimationEnd={(e) => {
           if (closing && e.target === e.currentTarget) setMounted(false);
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div id={titleId} className={`mb-2 text-h2 font-semibold text-ink${slot(classNames?.header)}`}>{title}</div>
-        {children && <div className={`text-body text-ink2${slot(classNames?.body)}`}>{children}</div>}
-        <div className={`mt-4 flex justify-end gap-2${slot(classNames?.footer)}`}>
+        <div id={titleId} className={classNames('mb-2 text-h2 font-semibold text-ink', slots?.header)}>{title}</div>
+        {children && <div className={classNames('text-body text-ink2', slots?.body)}>{children}</div>}
+        <div className={classNames('mt-4 flex justify-end gap-2', slots?.footer)}>
           <Button type="default" onClick={() => onCancel?.()} disabled={confirmLoading}>
             {cancelText}
           </Button>
@@ -130,7 +139,10 @@ export function Modal({
         <button
           type="button"
           aria-label="Đóng"
-          className={`absolute right-4 top-4 cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70${slot(classNames?.closeButton)}`}
+          className={classNames(
+            'absolute right-4 top-4 cursor-pointer rounded-1 border-none bg-transparent text-base leading-4 text-ink3 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 active:opacity-70',
+            slots?.closeButton,
+          )}
           onClick={() => onCancel?.()}
         >
           <Icon name="times" size={14} />

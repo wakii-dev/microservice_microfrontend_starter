@@ -5,3 +5,13 @@
 
 @source './';
 @source '../node_modules/@wakii/ui-kit/src';
+
+/* Motion redesign (remotes wave): badge status đổi màu mượt khi PATCH status —
+ * Badge swap variant (todo/doing/done) là đổi class utility → transition trên
+ * chính các property màu; prefers-reduced-motion đã được kit xử lý global. */
+.tsk-item__badge .bp-badge {
+  transition:
+    background-color 0.3s var(--ease-smooth, ease-out),
+    border-color 0.3s var(--ease-smooth, ease-out),
+    color 0.3s var(--ease-smooth, ease-out);
+}

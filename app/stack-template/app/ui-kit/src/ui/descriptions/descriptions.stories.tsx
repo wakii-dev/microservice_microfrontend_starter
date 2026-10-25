@@ -112,3 +112,28 @@ export const SizeAndColon: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/title/item/label/content) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="w-[520px]">
+      <Descriptions
+        title="Task details"
+        items={[
+          { label: 'Assignee', children: 'Alice' },
+          { label: 'Status', children: 'Doing' },
+          { label: 'Priority', children: 'High' },
+        ]}
+        bordered
+        style={{ padding: 8 }}
+        classNames={{
+          root: 'rounded-xl border border-line bg-s2 p-4',
+          title: 'uppercase tracking-wide text-accent',
+          label: 'bg-s2 font-medium',
+          content: 'font-semibold',
+        }}
+      />
+    </div>
+  ),
+};

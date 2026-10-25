@@ -55,3 +55,23 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — classNames slots (root/track/bar/info) + style passthrough (slots wave 3). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex w-96 flex-col gap-4">
+      <Progress
+        percent={64}
+        style={{ padding: 4 }}
+        classNames={{
+          root: 'rounded-lg bg-s3 p-1',
+          track: 'h-3',
+          bar: 'rounded-pill',
+          info: 'font-semibold text-accent',
+        }}
+      />
+      <Progress percent={90} status="success" classNames={{ track: 'h-1.5', info: 'text-label' }} />
+    </div>
+  ),
+};

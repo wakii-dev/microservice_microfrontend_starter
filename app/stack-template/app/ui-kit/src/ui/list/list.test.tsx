@@ -162,3 +162,28 @@ describe('List — virtual (VirtualScroll integration)', () => {
     expect(screen.getByText('Trống')).toBeInTheDocument();
   });
 });
+
+describe('List — customize (slots wave 3)', () => {
+  it('classNames slots đúng element: root/header/item/footer', () => {
+    const { container } = render(
+      <List
+        items={['A', 'B']}
+        renderItem={(item) => <span>{item}</span>}
+        header="Head"
+        footer="Foot"
+        classNames={{ root: 'my-root', header: 'my-header', item: 'my-item', footer: 'my-footer' }}
+      />,
+    );
+    expect(container.firstElementChild?.className).toContain('my-root');
+    expect(screen.getByText('Head').className).toContain('my-header');
+    for (const li of screen.getAllByRole('listitem')) {
+      expect(li.className).toContain('my-item');
+    }
+    expect(screen.getByText('Foot').className).toContain('my-footer');
+  });
+
+  it('style passthrough lên div gốc (root)', () => {
+    const { container } = render(<List items={['A']} renderItem={(i) => <span>{i}</span>} style={{ padding: 6 }} />);
+    expect((container.firstElementChild as HTMLElement).style.padding).toBe('6px');
+  });
+});

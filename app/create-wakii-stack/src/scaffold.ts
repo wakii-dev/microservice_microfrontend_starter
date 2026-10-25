@@ -15,7 +15,15 @@ import type { StackManifest } from './manifest.js';
 import type { StackSelection } from './options.js';
 
 /** Template mặc định — publish kèm CLI (worker-compose sở hữu nội dung). */
-export const DEFAULT_TEMPLATE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../stack-template');
+export const DEFAULT_TEMPLATE_ROOT = (() => {
+  // 2 layout (y create-wakii-app): repo app/create-wakii-stack/{src,dist} →
+  // app/stack-template; npm <pkg>/dist → <pkg>/stack-template (publish bundle).
+  const here = dirname(fileURLToPath(import.meta.url));
+  for (const candidate of [resolve(here, '../../stack-template'), resolve(here, '../stack-template')]) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return resolve(here, '../../stack-template');
+})();
 
 export interface StackScaffoldInput {
   selection: StackSelection;

@@ -19,7 +19,7 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
 ## [0.6.1] – [0.6.2] — 2026-10-25 (bản intermediate do release song song — xem git log)
 
-## [0.6.3] — 2026-10-25 (BREAKING — lazy-load npm chạy thật: Chart/Schedule/Editor rời barrel)
+## [0.6.3] / [0.6.4] — 2026-10-25 (BREAKING — lazy-load npm chạy thật: Chart/Schedule/Editor rời barrel)
 
 ### Breaking
 

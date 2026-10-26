@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
+import { Modal } from '../modal/index';
 import { Drawer } from './index';
 
 /** Side panel for detail/forms — portal, focus trap, scroll lock. */
@@ -105,4 +106,48 @@ export const CustomStyled: R = {
 export const DarkTheme: R = {
   name: 'DarkTheme — panel bg-s2 + mask dark',
   render: () => <DarkDemo />,
+};
+
+/** Mission overlay-api — Modal trong Drawer: ESC chỉ đóng overlay TRÊN CÙNG (không cần
+ * consumer guard onClose như trước), scroll-lock giữ khi modal con unmount. */
+function NestedModalDemo() {
+  const [open, setOpen] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <>
+      <Button type="primary" onClick={() => setOpen(true)}>Open drawer</Button>
+      <Drawer
+        open={open}
+        title="Chi tiết hồ sơ"
+        onClose={() => setOpen(false)}
+        footer={
+          <div className="flex gap-2">
+            <Button onClick={() => setOpen(false)}>Đóng</Button>
+            <Button type="primary" danger onClick={() => setConfirm(true)}>Xoá hồ sơ</Button>
+          </div>
+        }
+      >
+        <p>Bấm "Xoá hồ sơ" để mở confirm modal đè lên drawer.</p>
+        <p className="mt-2 text-meta text-ink3">
+          ESC khi modal mở chỉ đóng modal (overlay trên cùng); ESC kế tiếp mới đóng drawer. Scroll cũng khoá
+          tham chiếu — modal con unmount không nhả lock của drawer.
+        </p>
+        <Modal
+          open={confirm}
+          title="Xoá hồ sơ?"
+          danger
+          okText="Xoá"
+          onCancel={() => setConfirm(false)}
+          onOk={() => setConfirm(false)}
+        >
+          Hành động không thể hoàn tác.
+        </Modal>
+      </Drawer>
+    </>
+  );
+}
+
+export const NestedModal: R = {
+  name: 'NestedModal — ESC chỉ đóng overlay trên cùng, scroll-lock refcount',
+  render: () => <NestedModalDemo />,
 };

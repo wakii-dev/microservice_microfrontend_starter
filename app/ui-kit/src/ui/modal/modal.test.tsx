@@ -1,9 +1,11 @@
 // Modal tests — portal body, open/close, ESC, overlay click, ok/cancel, confirmLoading
 // (+ focus management batch ⑫: trap Tab, focus-first, trả focus trigger).
+// Mission overlay-api: footer tuỳ ý + overlay stack chung Drawer (ESC top-only, scroll-lock refcount).
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Drawer } from '../drawer/index.js';
 import { Modal } from './index.js';
 
 afterEach(cleanup);
@@ -162,5 +164,84 @@ describe('Modal — focus management (a11y batch ⑫ worker C)', () => {
     const { user } = await openModal();
     await user.click(screen.getByRole('button', { name: 'Huỷ' }));
     expect(screen.getByRole('button', { name: 'Mở modal' })).toHaveFocus();
+  });
+});
+
+describe('Modal — footer tuỳ ý (mission overlay-api)', () => {
+  it('truyền footer → thay HOÀN TOÀN hàng nút mặc định (không OK/Huỷ)', () => {
+    render(<Modal open title="Xuất báo cáo" footer={<button>Xuất file</button>} />);
+    expect(screen.getByRole('button', { name: 'Xuất file' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'OK' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Huỷ' })).toBeNull();
+  });
+
+  it('không truyền footer → path mặc định bất biến (okText/cancelText + confirmLoading)', () => {
+    render(<Modal open title="Mặc định" okText="Đồng ý" cancelText="Thôi" confirmLoading />);
+    expect(screen.getByRole('button', { name: 'Đang xử lý…' })).toBeDisabled(); // confirmLoading đổi nhãn OK
+    expect(screen.getByRole('button', { name: 'Thôi' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toBeInTheDocument(); // nút × vẫn còn
+  });
+});
+
+describe('Modal — overlay stack chung Drawer (mission overlay-api)', () => {
+  // Sequence thực tế: drawer mở trước → user click footer mở modal (commit riêng —
+  // portal modal append sau → trên cùng). Mount cả 2 cùng 1 commit là trường hợp hiếm
+  // ngoài thực tế (React insert portal con trước container cha).
+  function NestedHost({
+    onDrawerClose,
+    onModalCancel,
+  }: {
+    onDrawerClose: () => void;
+    onModalCancel: () => void;
+  }) {
+    const [drawer, setDrawer] = useState(true);
+    const [modal, setModal] = useState(false);
+    return (
+      <Drawer
+        open={drawer}
+        title="Drawer"
+        onClose={() => { onDrawerClose(); setDrawer(false); }}
+        footer={<button onClick={() => setModal(true)}>Mở xác nhận</button>}
+      >
+        <Modal
+          open={modal}
+          title="Xoá hồ sơ?"
+          danger
+          okText="Xoá"
+          onCancel={() => { onModalCancel(); setModal(false); }}
+          onOk={() => setModal(false)}
+        />
+      </Drawer>
+    );
+  }
+
+  it('ESC chỉ đóng modal TRÊN CÙNG; ESC kế tiếp mới đóng drawer', () => {
+    const onDrawerClose = vi.fn();
+    const onModalCancel = vi.fn();
+    render(<NestedHost onDrawerClose={onDrawerClose} onModalCancel={onModalCancel} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mở xác nhận' })); // modal mở sau → top
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onModalCancel).toHaveBeenCalledTimes(1);
+    expect(onDrawerClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onDrawerClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('scroll-lock refcount: modal con unmount (exit animation xong) vẫn KHÔNG nhả lock của drawer', () => {
+    render(<NestedHost onDrawerClose={() => {}} onModalCancel={() => {}} />);
+    expect(document.body.style.overflow).toBe('hidden'); // drawer giữ lock
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mở xác nhận' })); // modal con mở
+    fireEvent.click(screen.getByRole('button', { name: 'Huỷ' })); // modal con đóng (đang animate-out)
+    expect(document.body.style.overflow).toBe('hidden'); // đang exit — lock giữ
+
+    fireEvent.animationEnd(screen.getByRole('dialog', { name: 'Xoá hồ sơ?' })); // unmount hẳn
+    expect(document.body.style.overflow).toBe('hidden'); // drawer ngoài vẫn giữ lock
+
+    fireEvent.click(screen.getByTestId('drawer-overlay')); // đóng drawer
+    fireEvent.animationEnd(screen.getByRole('dialog', { name: 'Drawer' })); // exit xong
+    expect(document.body.style.overflow).toBe(''); // lớp cuối nhả lock
   });
 });

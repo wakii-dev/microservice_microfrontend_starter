@@ -1,11 +1,24 @@
 // Popover tests — hover/click/focus trigger, ESC, click-outside (useClickAway),
 // controlled open, placement class, a11y (aria-haspopup/expanded + role=dialog),
 // rich content (title divider + ReactNode tương tác được).
+// Mission overlay-api: placement left/right + auto-flip sát mép viewport.
 import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Popover } from './index.js';
+
+/** Mock getBoundingClientRect cho panel (role=dialog) — jsdom trả rect 0 nên phải mô phỏng. */
+function mockPanelRect(rect: Partial<DOMRect>): () => void {
+  const original = HTMLElement.prototype.getBoundingClientRect;
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    if (this.getAttribute('role') === 'dialog') return { ...rect } as DOMRect;
+    return original.call(this);
+  };
+  return () => {
+    HTMLElement.prototype.getBoundingClientRect = original;
+  };
+}
 
 afterEach(cleanup);
 
@@ -200,5 +213,71 @@ describe('Popover — customize (slots wave 3)', () => {
     );
     const root = (screen.getByRole('button', { name: 'T' }).parentElement as HTMLElement).parentElement as HTMLElement;
     expect(root.style.zIndex).toBe('7');
+  });
+});
+
+describe('Popover — placement left/right + auto-flip (mission overlay-api)', () => {
+  it('placement="left" → panel bên trái; "right" → bên phải', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <Popover trigger="click" placement="left" title="T" content="C">
+        <button>Trigger</button>
+      </Popover>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('dialog').className).toContain('right-[calc(100%+10px)]');
+    await user.keyboard('{Escape}');
+    rerender(
+      <Popover trigger="click" placement="right" title="T" content="C">
+        <button>Trigger</button>
+      </Popover>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('dialog').className).toContain('left-[calc(100%+10px)]');
+  });
+
+  it('auto-flip: placement top nhưng panel tràn mép trên → tự lật xuống bottom', async () => {
+    const restore = mockPanelRect({ top: -30, bottom: 40, left: 0, right: 80, width: 80, height: 70 });
+    try {
+      const user = userEvent.setup();
+      render(
+        <Popover trigger="click" placement="top" title="T" content="C">
+          <button>Trigger</button>
+        </Popover>,
+      );
+      await user.click(screen.getByRole('button', { name: 'Trigger' }));
+      const panel = screen.getByRole('dialog');
+      expect(panel.className).toContain('top-[calc(100%+10px)]'); // đã lật xuống
+      expect(panel.className).not.toContain('bottom-[calc(100%+10px)]');
+    } finally {
+      restore();
+    }
+  });
+
+  it('auto-flip: placement right nhưng tràn mép phải → tự lật sang left', async () => {
+    const restore = mockPanelRect({ top: 10, bottom: 80, left: 1000, right: 1400, width: 400, height: 70 });
+    try {
+      const user = userEvent.setup();
+      render(
+        <Popover trigger="click" placement="right" title="T" content="C">
+          <button>Trigger</button>
+        </Popover>,
+      );
+      await user.click(screen.getByRole('button', { name: 'Trigger' }));
+      expect(screen.getByRole('dialog').className).toContain('right-[calc(100%+10px)]'); // đã lật sang trái
+    } finally {
+      restore();
+    }
+  });
+
+  it('panel vừa viewport (jsdom rect 0) → KHÔNG lật, giữ placement yêu cầu', async () => {
+    const user = userEvent.setup();
+    render(
+      <Popover trigger="click" placement="top" title="T" content="C">
+        <button>Trigger</button>
+      </Popover>,
+    );
+    await user.click(screen.getByRole('button', { name: 'Trigger' }));
+    expect(screen.getByRole('dialog').className).toContain('bottom-[calc(100%+10px)]');
   });
 });

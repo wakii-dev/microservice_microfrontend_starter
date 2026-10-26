@@ -1,6 +1,8 @@
 // Popover — panel overlay nội dung tự do neo trigger (antd-like: title + content,
 // khác Tooltip chỉ text / Popconfirm chỉ confirm). Panel rounded-xl + shadow-pop,
 // animate zoom-in; trigger hover|click|focus; đóng: ESC + click ngoài (useClickAway).
+// Placement top/bottom/left/right + auto-flip: panel sát mép viewport → tự lật
+// (useAutoFlipPlacement — đo trước paint, dùng chung Tooltip).
 // A11y: trigger aria-haspopup=dialog + aria-expanded (cloneElement); panel
 // role=dialog — KHÔNG focus trap (popover phi-modal, focus đi ra ngoài tự do).
 // Customize pass (slots wave 3): classNames slots (root/trigger/panel) + style
@@ -12,6 +14,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useRef,
   useState,
   type CSSProperties,
   type FocusEvent as ReactFocusEvent,
@@ -19,9 +22,26 @@ import {
   type ReactNode,
 } from 'react';
 import { useClickAway } from '../../hooks/useClickAway.js';
+import { useAutoFlipPlacement, type FlipPlacement } from './auto-flip.js';
 
-export type PopoverPlacement = 'top' | 'bottom';
+export type PopoverPlacement = FlipPlacement;
 export type PopoverTriggerAction = 'hover' | 'click' | 'focus';
+
+/** Vị trí panel theo placement (center dọc/ngang đi kèm). */
+const PANEL_POSITION: Record<FlipPlacement, string> = {
+  top: 'left-1/2 -translate-x-1/2 bottom-[calc(100%+10px)]',
+  bottom: 'left-1/2 -translate-x-1/2 top-[calc(100%+10px)]',
+  left: 'top-1/2 -translate-y-1/2 right-[calc(100%+10px)]',
+  right: 'top-1/2 -translate-y-1/2 left-[calc(100%+10px)]',
+};
+
+/** Mũi tên: nửa chìa ra ngoài mép panel quay về trigger, 2 cạnh xoay 45° tạo đỉnh. */
+const ARROW_POSITION: Record<FlipPlacement, string> = {
+  top: 'left-1/2 -translate-x-1/2 top-[calc(100%-4px)] border-b border-r',
+  bottom: 'left-1/2 -translate-x-1/2 bottom-[calc(100%-4px)] border-t border-l',
+  left: 'top-1/2 -translate-y-1/2 left-[calc(100%-4px)] border-t border-r',
+  right: 'top-1/2 -translate-y-1/2 right-[calc(100%-4px)] border-b border-l',
+};
 
 /** Slot classes kiểu antd v5 — merge sau class mặc định (consumer append). */
 export interface PopoverClassNames {
@@ -40,7 +60,7 @@ export interface PopoverProps {
   title?: ReactNode;
   /** Trigger element — Popover bọc quanh element này. */
   children: ReactNode;
-  /** Vị trí panel so với trigger (mặc định 'top' — nhất quán Tooltip). */
+  /** Vị trí panel so với trigger (mặc định 'top' — nhất quán Tooltip). Sát mép viewport → tự lật. */
   placement?: PopoverPlacement;
   /** Hành vi mở panel (mặc định 'hover'). */
   trigger?: PopoverTriggerAction;
@@ -73,6 +93,9 @@ export function Popover(props: PopoverProps) {
   const panelTitleId = useId();
   const [innerOpen, setInnerOpen] = useState(false);
   const openState = isControlled ? open : innerOpen;
+  // Auto-flip: đo panel sau khi mở, lật placement nếu sát mép viewport
+  const panelRef = useRef<HTMLDivElement>(null);
+  const shownPlacement = useAutoFlipPlacement(openState, placement, panelRef);
 
   // Bridge controlled/uncontrolled — controlled thì chỉ báo về consumer tự đóng.
   const setOpen = useCallback(
@@ -139,11 +162,12 @@ export function Popover(props: PopoverProps) {
       </span>
       {openState && (
         <div
+          ref={panelRef}
           role="dialog"
           aria-labelledby={title ? panelTitleId : undefined}
           className={classNames(
-            'absolute left-1/2 z-[var(--z-popover)] w-max max-w-xs -translate-x-1/2 rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]',
-            placement === 'top' ? 'bottom-[calc(100%+10px)]' : 'top-[calc(100%+10px)]',
+            'absolute z-[var(--z-popover)] w-max max-w-xs rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]',
+            PANEL_POSITION[shownPlacement],
             props.classNames?.panel,
             className,
           )}
@@ -154,11 +178,7 @@ export function Popover(props: PopoverProps) {
           <div className="text-body text-ink2">{content}</div>
           <span
             aria-hidden="true"
-            className={`absolute left-1/2 size-2 -translate-x-1/2 rotate-45 border-line bg-s2 ${
-              placement === 'top'
-                ? 'top-[calc(100%-4px)] border-b border-r'
-                : 'bottom-[calc(100%-4px)] border-t border-l'
-            }`}
+            className={`absolute size-2 rotate-45 border-line bg-s2 ${ARROW_POSITION[shownPlacement]}`}
           />
         </div>
       )}

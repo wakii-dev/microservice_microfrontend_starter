@@ -1,7 +1,20 @@
 // Tooltip tests — hover/focus hiện bubble, leave ẩn, placement class.
+// Mission overlay-api: placement left/right + auto-flip sát mép viewport.
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Tooltip } from './index.js';
+
+/** Mock getBoundingClientRect cho bubble (role=tooltip) — jsdom trả rect 0 nên phải mô phỏng. */
+function mockBubbleRect(rect: Partial<DOMRect>): () => void {
+  const original = HTMLElement.prototype.getBoundingClientRect;
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    if (this.getAttribute('role') === 'tooltip') return { ...rect } as DOMRect;
+    return original.call(this);
+  };
+  return () => {
+    HTMLElement.prototype.getBoundingClientRect = original;
+  };
+}
 
 afterEach(cleanup);
 
@@ -140,5 +153,51 @@ describe('Tooltip — token surface (dark-safety, lead decision 2026-10-18)', ()
     expect(bubble.className).toContain('bg-[var(--tooltip-bg)]');
     expect(bubble.className).not.toContain('bg-black/85');
     expect((bubble.querySelector('span[aria-hidden]') as HTMLElement).className).toContain('bg-[var(--tooltip-bg)]');
+  });
+});
+
+describe('Tooltip — placement left/right + auto-flip (mission overlay-api)', () => {
+  it('placement="left" → bubble bên trái; "right" → bên phải', () => {
+    const { rerender } = render(
+      <Tooltip title="x" placement="left">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    expect(screen.getByRole('tooltip').className).toContain('right-[calc(100%+8px)]');
+    fireEvent.mouseLeave(screen.getByRole('button', { name: 'T' }));
+    rerender(
+      <Tooltip title="x" placement="right">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    expect(screen.getByRole('tooltip').className).toContain('left-[calc(100%+8px)]');
+  });
+
+  it('auto-flip: placement right tràn mép phải → tự lật sang left', () => {
+    const restore = mockBubbleRect({ top: 10, bottom: 40, left: 1000, right: 1300, width: 300, height: 30 });
+    try {
+      render(
+        <Tooltip title="x" placement="right">
+          <button>T</button>
+        </Tooltip>,
+      );
+      fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+      expect(screen.getByRole('tooltip').className).toContain('right-[calc(100%+8px)]'); // đã lật
+    } finally {
+      restore();
+    }
+  });
+
+  it('bubble vừa viewport (jsdom rect 0) → KHÔNG lật, giữ placement yêu cầu', () => {
+    render(
+      <Tooltip title="x" placement="top">
+        <button>T</button>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'T' }));
+    expect(screen.getByRole('tooltip').className).toContain('bottom-[calc(100%+8px)]');
+    expect(screen.getByRole('tooltip').className).not.toContain('top-[calc(100%+8px)]');
   });
 });

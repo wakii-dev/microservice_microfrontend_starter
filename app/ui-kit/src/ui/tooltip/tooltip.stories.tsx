@@ -1,5 +1,5 @@
 // Parity matrix antd→tokens: docs/parity-matrix.md
-// Tooltip stories — placement top/bottom (component supports 2 directions, not 4),
+// Tooltip stories — placement top/bottom/left/right + auto-flip sát mép viewport,
 // trigger hover + focus.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from '../button/index';
@@ -96,6 +96,24 @@ export const CustomStyled: Story = {
       </Tooltip>
       <Tooltip title="Wrapper carries inline style (padding + dashed outline)" style={{ padding: 4, outline: '2px dashed var(--accent)' }}>
         <Button>style passthrough</Button>
+      </Tooltip>
+    </div>
+  ),
+};
+
+/** Mission overlay-api — placement left/right + auto-flip sát mép viewport (đo trước paint). */
+export const LeftRightAutoFlip: Story = {
+  name: 'Left/right + auto-flip — bubble sát mép viewport tự lật',
+  render: () => (
+    <div className="flex items-center justify-between gap-4">
+      <Tooltip title="Bubble bên phải — tràn mép phải viewport thì tự lật sang trái" placement="right">
+        <Button>Mép trái → right</Button>
+      </Tooltip>
+      <Tooltip title="Bubble phía trên — đè mép trên viewport thì tự lật xuống dưới">
+        <Button>Giữa trang → top</Button>
+      </Tooltip>
+      <Tooltip title="Bubble bên trái — tràn mép trái viewport thì tự lật sang phải" placement="left">
+        <Button>Mép phải → left</Button>
       </Tooltip>
     </div>
   ),

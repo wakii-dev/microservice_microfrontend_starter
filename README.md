@@ -61,19 +61,7 @@ pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 
 ## Bên dưới là gì
 
-```mermaid
-graph LR
-    B["🌐 Browser"] --> GW{"gateway :8080<br/>cổng duy nhất"}
-    GW --> SH["shell · landing + MF host"]
-    GW --> RM["remotes · tasks kanban · activity feed"]
-    GW --> AU["auth-svc<br/>JWT + refresh rotation"]
-    GW --> ND["node-svc<br/>Fastify · outbox"]
-    GW --> SP["spring-svc<br/>Spring Boot 3"]
-    GW --> GO["go-svc<br/>saga consumer"]
-    ND -- "outbox → events" --> K[("kafka<br/>kafka-init tạo topics")]
-    K -- "consume" --> GO
-    ND & SP & GO --> PG[("postgres<br/>schema-per-service")]
-```
+> 🌐 Browser → **gateway :8080** (cổng duy nhất) → shell · remotes · auth · node · spring · go → postgres + kafka — tạo 1 task, xem nó chạy qua Kafka tới activity feed trong ~1 giây.
 
 | Tầng | Thành phần |
 |---|---|

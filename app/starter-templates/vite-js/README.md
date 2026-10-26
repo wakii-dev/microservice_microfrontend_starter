@@ -21,6 +21,8 @@ pnpm preview  # xem build prod
   0 re-render, 0 flash.
 - **Demo dogfooding**: Tag · Title/Text · 3 Button · Alert ×4 · Table (3 cột + Badge status) ·
   CountUp Statistic · Card — mọi thứ qua component của kit, tokens-only (0 hex).
+- **Customize pass** (ui-kit 0.6+): mọi component nhận `classNames` slots + `style` passthrough —
+  xem card "Customize pass" trong `src/App.jsx` (Input root pill, Button pill, Tag accent, Card hover).
 - **CSS một file** (src/styles.css): tokens + base từ kit + Tailwind v4 utilities.
 
 ## Cấu trúc

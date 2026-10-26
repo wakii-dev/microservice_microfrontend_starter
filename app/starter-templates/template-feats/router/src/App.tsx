@@ -121,15 +121,7 @@ function HomePage() {
           </Text>
         </div>
         <div className="flex flex-wrap items-center gap-4 pt-1">
-          {/* SÓNG-3 slots — classNames.root: nhấn mạnh CTA (lift khi hover) */}
-          <Button
-            type="primary"
-            size="large"
-            classNames={{
-              root: 'transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]',
-            }}
-            onClick={() => navigate('/about')}
-          >
+          <Button type="primary" size="large" onClick={() => navigate('/about')}>
             <span className="flex items-center gap-1.5">
               Explore the kit <Icon name="arrow-right" size={14} />
             </span>
@@ -263,17 +255,7 @@ function AboutPage() {
             </Link>
           </div>
         </Card>
-        {/* SÓNG-3 slots — Card classNames.root (hover emphasis) + style passthrough;
-         * Tag accent variant bằng slot classes. */}
-        <Card
-          title="npm package"
-          extra={<Tag classNames={{ root: 'border-accent/40 bg-accent/10 text-accent' }}>latest</Tag>}
-          classNames={{
-            root:
-              'transition-[transform,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]',
-          }}
-          style={{ borderColor: 'var(--line2)' }}
-        >
+        <Card title="npm package" extra={<Tag>latest</Tag>}>
           <div className="flex flex-col gap-2">
             <Text type="secondary">Install the kit in any Vite/React app and consume it via source.</Text>
             <Link href="https://www.npmjs.com/package/@wakii/ui-kit" target="_blank" rel="noreferrer">

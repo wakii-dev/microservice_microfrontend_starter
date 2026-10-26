@@ -1,0 +1,17 @@
+/* Tailwind v4 entry — pattern đã spike-verify trên Astro 7 + @tailwindcss/vite:
+ * theme + utilities đến từ @wakii/ui-kit/styles/tailwind.css — KHÔNG tự @import
+ * "tailwindcss" lần 2 (double preflight/theme làm shift visual hàng loạt).
+ * Thứ tự import mirror starter Vite: tokens → dark theme → base reset → tailwind.
+ *
+ * ⚠️ QUAN TRỌNG — @source PHẢI trỏ qua node_modules ĐÚNG THẾ: path tương đối
+ * viết khác đi bị tailwind resolve qua symlink → BỊ IGNORE (chỉ explicit
+ * node_modules path được scan). Thiếu dòng @source dist dưới đây, utilities mà
+ * kit dùng trong .tsx nguồn không được generate → UI vỡ layout.
+ */
+@import '@wakii/ui-kit/styles/tokens.css';
+@import '@wakii/ui-kit/styles/themes/dark.css';
+@import '@wakii/ui-kit/styles/base.css';
+@import '@wakii/ui-kit/styles/tailwind.css';
+
+@source '../';
+@source '../../node_modules/@wakii/ui-kit/dist';

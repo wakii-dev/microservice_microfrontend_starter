@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Alert, Badge, Button, Card, CountUp, Icon, Input, Statistic, Table, Tag, Text, Title } from '@wakii/ui-kit';
+import { Alert, Badge, Button, Card, CountUp, Icon, Statistic, Table, Tag, Text, Title } from '@wakii/ui-kit';
 import { useAppTheme } from './theme.js';
 
 // Moon/Sun — SVG inline tự vẽ là NGOẠI LỆ có chú thích (rule 9): bộ Icon kit
@@ -45,7 +44,6 @@ const STATS = [
 
 export function App() {
   const { theme, setTheme } = useAppTheme();
-  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -100,30 +98,6 @@ export function App() {
           ))}
         </div>
 
-        {/* Customize pass — SÓNG-3 slots: `classNames` (slot classes kiểu antd v5)
-         * + `style` passthrough trên mọi component — restyle không cần wrapper. */}
-        <Card title="Customize pass" extra={<Tag style={{ fontStyle: 'italic' }}>style passthrough</Tag>}>
-          <div className="flex flex-col gap-3">
-            <div className="flex max-w-md flex-wrap items-center gap-2">
-              <Input
-                placeholder="you@example.com"
-                aria-label="Email"
-                classNames={{ root: 'min-w-0 flex-[1_1_180px]' }}
-                style={{ borderRadius: 'var(--r-pill)' }}
-              />
-              <Button type="primary" classNames={{ root: 'rounded-pill' }} onClick={() => setSubscribed(true)}>
-                Subscribe
-              </Button>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Tag classNames={{ root: 'border-accent/40 bg-accent/10 text-accent' }} style={{ fontWeight: 600 }}>
-                slot classes
-              </Tag>
-            </div>
-            {subscribed && <Text type="secondary">Subscribed — check your inbox (demo only, nothing was sent).</Text>}
-          </div>
-        </Card>
-
         {/* Table demo — 3 cột, dữ liệu giả; status render bằng Badge token */}
         <Card title="Tasks (demo data)">
           <Table
@@ -151,15 +125,8 @@ export function App() {
           </div>
         </Card>
 
-        {/* What's inside — links kit. SÓNG-3 slots: classNames.root hover emphasis + style viền nổi */}
-        <Card
-          title="What's inside"
-          classNames={{
-            root:
-              'transition-[transform,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]',
-          }}
-          style={{ borderColor: 'var(--line2)' }}
-        >
+        {/* What's inside — links kit */}
+        <Card title="What's inside">
           <ul className="m-0 flex list-none flex-col gap-2 p-0 text-body">
             <li>
               <a

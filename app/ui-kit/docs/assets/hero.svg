@@ -4,8 +4,8 @@
   <desc>Blossom-hexagon logo mark pulsing at the center while ten token dots orbit on two counter-rotating rings, their colors cycling through accent and status tokens; ripple pulses radiate over a faint grid; typing dots bounce under the tagline.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f5f5f5"/>
-      <stop offset="1" stop-color="#e9edf6"/>
+      <stop offset="0" stop-color="#101319"/>
+      <stop offset="1" stop-color="#171b25"/>
     </linearGradient>
     <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#4096ff"/>
@@ -27,7 +27,7 @@
   </defs>
 
   <!-- canvas card -->
-  <rect x="1.5" y="1.5" width="957" height="337" rx="18" fill="url(#bg)" stroke="#dfe3ec" stroke-width="1.5"/>
+  <rect x="1.5" y="1.5" width="957" height="337" rx="18" fill="url(#bg)" stroke="#2a3040" stroke-width="1.5"/>
   <g clip-path="url(#cardClip)">
     <rect x="1.5" y="1.5" width="957" height="337" fill="url(#grid)" opacity="0.5"/>
     <ellipse cx="480" cy="122" rx="175" ry="122" fill="url(#glow)">
@@ -115,16 +115,16 @@
 
   <!-- corner chips -->
   <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">
-    <rect x="28" y="26" width="126" height="24" rx="12" fill="#ffffff" stroke="#dfe3ec"/>
-    <text x="91" y="42" text-anchor="middle" fill="#3f4551">115 components</text>
-    <rect x="862" y="26" width="70" height="24" rx="12" fill="#ffffff" stroke="#dfe3ec"/>
-    <text x="897" y="42" text-anchor="middle" fill="#3f4551">v0.6</text>
+    <rect x="28" y="26" width="126" height="24" rx="12" fill="#ffffff" stroke="#2a3040"/>
+    <text x="91" y="42" text-anchor="middle" fill="#e8eaf0">115 components</text>
+    <rect x="862" y="26" width="70" height="24" rx="12" fill="#ffffff" stroke="#2a3040"/>
+    <text x="897" y="42" text-anchor="middle" fill="#e8eaf0">v0.6</text>
   </g>
 
   <!-- title + tagline -->
   <g font-family="ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">
     <text x="480" y="262" font-size="40" font-weight="700" letter-spacing="0.5" fill="url(#titleGrad)">wakii</text>
-    <text x="480" y="288" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" letter-spacing="2" fill="#5a6270">tokens-first · dark · motion</text>
+    <text x="480" y="288" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" letter-spacing="2" fill="#9aa4b8">tokens-first · dark · motion</text>
   </g>
 
   <!-- typing dots -->

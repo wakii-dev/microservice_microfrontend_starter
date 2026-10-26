@@ -57,6 +57,8 @@ pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 | ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, extras demo, dark toggle chạy thật |
 | 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, prune compose/lock/workspace đúng selection, `kafka-init` chống race topic |
 
+> Cả ba cũng có **mirror trên [GitHub Packages](https://github.com/orgs/wakii-dev/packages)** (`@wakii-dev/ui-kit` · `@wakii-dev/create-wakii-app` · `@wakii-dev/create-wakii-stack`) — registry `npm.pkg.github.com`, tiện cho org cài nội bộ. npmjs vẫn là bản canonical.
+
 ## Bên dưới là gì
 
 ```mermaid

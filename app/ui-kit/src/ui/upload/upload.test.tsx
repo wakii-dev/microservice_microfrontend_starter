@@ -1,6 +1,8 @@
 // Tests Upload + UploadDropzone — behavior theo spec batch ③ worker B:
 // input change → onChange + list; dragEnter highlight; drop DataTransfer mock; beforeUpload false;
 // multiple/maxCount chặn thừa; remove gọi onRemove; disabled không mở dialog; keyboard Enter/Space.
+// Mission overlay-api: per-file callbacks (onItemDone/onItemError + reason), retry per file,
+// progressVariant ring (bar fallback).
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Upload, UploadDropzone } from './index.js';
@@ -135,6 +137,90 @@ describe('Upload', () => {
     fireEvent.change(getFileInput(container), { target: { files: [makeFile('hidden.txt')] } });
 
     expect(screen.queryByText('hidden.txt')).toBeNull();
+  });
+
+  it('onItemDone bắn khi MỖI file xong — Promise resolve (status done, progress 100)', async () => {
+    const onItemDone = vi.fn();
+    const { container } = render(
+      <Upload multiple beforeUpload={() => Promise.resolve(true)} onItemDone={onItemDone} />,
+    );
+
+    fireEvent.change(getFileInput(container), { target: { files: [makeFile('a.pdf'), makeFile('b.pdf')] } });
+    await act(async () => {});
+
+    expect(onItemDone).toHaveBeenCalledTimes(2);
+    expect(onItemDone.mock.calls[0][0]).toMatchObject({ status: 'done', progress: 100 });
+    expect(onItemDone.mock.calls[0][0].file.name).toBe('a.pdf');
+    expect(onItemDone.mock.calls[1][0].file.name).toBe('b.pdf');
+  });
+
+  it('onItemDone bắn cả khi add đồng bộ (không beforeUpload) — status done ngay', () => {
+    const onItemDone = vi.fn();
+    const { container } = render(<Upload onItemDone={onItemDone} />);
+
+    fireEvent.change(getFileInput(container), { target: { files: [makeFile('sync.txt')] } });
+
+    expect(onItemDone).toHaveBeenCalledTimes(1);
+    expect(onItemDone.mock.calls[0][0]).toMatchObject({ status: 'done' });
+    expect(onItemDone.mock.calls[0][0].file.name).toBe('sync.txt');
+  });
+
+  it('onItemError bắn khi MỖI file lỗi — reason là message của reject + list hiện reason', async () => {
+    const onItemError = vi.fn();
+    const { container } = render(
+      <Upload
+        beforeUpload={(file) =>
+          file.name.endsWith('.exe') ? Promise.reject(new Error('Đuôi .exe bị chặn')) : Promise.resolve(true)
+        }
+        onItemError={onItemError}
+      />,
+    );
+
+    fireEvent.change(getFileInput(container), { target: { files: [makeFile('virus.exe')] } });
+    await act(async () => {});
+
+    expect(onItemError).toHaveBeenCalledTimes(1);
+    const [item, reason] = onItemError.mock.calls[0];
+    expect(item).toMatchObject({ status: 'error', error: 'Đuôi .exe bị chặn' });
+    expect(item.file.name).toBe('virus.exe');
+    expect(reason).toBe('Đuôi .exe bị chặn');
+    expect(screen.getByText('Lỗi')).toBeInTheDocument(); // nhãn giữ nguyên
+    expect(screen.getByText('Đuôi .exe bị chặn')).toBeInTheDocument(); // + reason
+  });
+
+  it('nút Thử lại chạy lại beforeUpload cho đúng dòng lỗi — lần 2 thành công → done', async () => {
+    let attempt = 0;
+    const { container } = render(
+      <Upload beforeUpload={() => (++attempt === 1 ? Promise.reject(new Error('Mạng chậm')) : Promise.resolve(true))} />,
+    );
+
+    fireEvent.change(getFileInput(container), { target: { files: [makeFile('cv.pdf')] } });
+    await act(async () => {});
+    expect(screen.getByText('Lỗi')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Thử lại cv.pdf' }));
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0'); // reset progress
+    await act(async () => {});
+
+    expect(screen.queryByText('Lỗi')).toBeNull(); // done
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(screen.getByText('cv.pdf')).toBeInTheDocument();
+  });
+
+  it('progressVariant="ring" → SVG progressbar thay bar khi uploading; mặc định vẫn bar', () => {
+    const pending = () => new Promise<boolean>(() => {}); // treo vĩnh viễn — giữ trạng thái uploading
+    const { container: ringRoot } = render(<Upload progressVariant="ring" beforeUpload={pending} />);
+    fireEvent.change(getFileInput(ringRoot), { target: { files: [makeFile('a.pdf')] } });
+
+    const ring = screen.getByRole('progressbar');
+    expect(ring.tagName).toBe('svg');
+    expect(ring).toHaveAttribute('aria-valuemax', '100');
+
+    cleanup();
+    const { container: barRoot } = render(<Upload beforeUpload={pending} />);
+    fireEvent.change(getFileInput(barRoot), { target: { files: [makeFile('b.pdf')] } });
+
+    expect(screen.getByRole('progressbar').tagName).toBe('DIV'); // bar fallback
   });
 });
 

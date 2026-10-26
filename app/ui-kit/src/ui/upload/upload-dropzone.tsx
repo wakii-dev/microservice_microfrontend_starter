@@ -14,8 +14,8 @@ const HIGHLIGHT = 'border-accent bg-accent/8 text-accent';
 const DISABLED = 'cursor-not-allowed opacity-60';
 
 export function UploadDropzone(props: UploadProps) {
-  const { accept, multiple, disabled, showList = true, className, children } = props;
-  const { inputRef, openDialog, items, removeItem, handleFiles, onInputChange } = useUploadController(props);
+  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, children } = props;
+  const { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange } = useUploadController(props);
   const [dragging, setDragging] = useState(false);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -73,7 +73,9 @@ export function UploadDropzone(props: UploadProps) {
           </>
         )}
       </div>
-      {showList && <UploadFileList items={items} onRemove={removeItem} />}
+      {showList && (
+        <UploadFileList items={items} onRemove={removeItem} onRetry={retryItem} progressVariant={progressVariant} />
+      )}
     </div>
   );
 }

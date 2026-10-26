@@ -2,7 +2,8 @@
 // useUploadController (hidden input, openDialog, hàng đợi file nội bộ có status per file),
 // UploadFileList (tên + size KB/MB + × remove). Tách riêng để index ↔ dropzone không import chéo.
 // Status per file: beforeUpload false → chặn; Promise → 'uploading' (Progress ticker display-only)
-// → resolve true 'done' / resolve false gỡ dòng / reject 'error'.
+// → resolve true 'done' / resolve false gỡ dòng / reject 'error' (+ reason hiển thị, retry).
+// Per-file callbacks (mission overlay-api): onItemDone/onItemError bắn khi MỖI file xong/lỗi.
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
 import { Progress } from '../progress/index';
@@ -13,8 +14,10 @@ export interface UploadItem {
   id: string;
   file: File;
   status: UploadStatus;
-  /** 0–100 — đang upload async, UploadFileList render Progress. */
+  /** 0–100 — đang upload async, UploadFileList render Progress (bar hoặc ring). */
   progress?: number;
+  /** Lý do lỗi (message của reject) — status='error', UploadFileList hiển thị cạnh "Lỗi". */
+  error?: string;
 }
 
 export interface UploadProps {
@@ -29,6 +32,12 @@ export interface UploadProps {
   /** Danh sách file hiện có vừa đổi (add/remove). */
   onChange?: (files: File[]) => void;
   onRemove?: (file: File) => void;
+  /** Bắn khi MỖI file xong (status → 'done': add đồng bộ lẫn Promise resolve true). */
+  onItemDone?: (item: UploadItem) => void;
+  /** Bắn khi MỖI file lỗi (Promise reject) — reason là message của lỗi. */
+  onItemError?: (item: UploadItem, reason: string) => void;
+  /** Kiểu progress khi đang upload (mặc định 'bar'; 'ring' = SVG vòng tròn). */
+  progressVariant?: 'bar' | 'ring';
   /** Ẩn/hiện danh sách file — mặc định true. */
   showList?: boolean;
   className?: string;
@@ -63,10 +72,14 @@ export function useUploadController(props: UploadProps) {
   const beforeUploadRef = useRef(beforeUpload);
   const onChangeRef = useRef(onChange);
   const onRemoveRef = useRef(onRemove);
+  const onItemDoneRef = useRef(props.onItemDone);
+  const onItemErrorRef = useRef(props.onItemError);
   useEffect(() => {
     beforeUploadRef.current = beforeUpload;
     onChangeRef.current = onChange;
     onRemoveRef.current = onRemove;
+    onItemDoneRef.current = props.onItemDone;
+    onItemErrorRef.current = props.onItemError;
   });
 
   // unmount → dọn ticker progress
@@ -95,11 +108,19 @@ export function useUploadController(props: UploadProps) {
     }
   };
 
-  // Nhánh async của handleFiles — đã có sẵn Promise từ beforeUpload
-  const trackPromise = async (file: File, pending: Promise<boolean>) => {
-    const id = nextId();
-    patch([...itemsRef.current, { id, file, status: 'uploading', progress: 0 }]);
-    emitChange(itemsRef.current);
+  // Nhánh async của handleFiles (hoặc retryItem khi truyền `existing` — giữ nguyên dòng)
+  const trackPromise = async (file: File, pending: Promise<boolean>, existing?: UploadItem) => {
+    const id = existing?.id ?? nextId();
+    if (existing) {
+      patch(
+        itemsRef.current.map((item) =>
+          item.id === id ? { ...item, status: 'uploading' as const, progress: 0, error: undefined } : item,
+        ),
+      );
+    } else {
+      patch([...itemsRef.current, { id, file, status: 'uploading', progress: 0 }]);
+      emitChange(itemsRef.current);
+    }
     // Ticker giả progress (display-only) — kết quả thật do Promise quyết định
     const timer = setInterval(() => {
       patch(
@@ -118,11 +139,25 @@ export function useUploadController(props: UploadProps) {
         emitChange(itemsRef.current);
         return;
       }
-      patch(itemsRef.current.map((item) => (item.id === id ? { ...item, status: 'done', progress: 100 } : item)));
-    } catch {
+      const doneItem: UploadItem = { id, file, status: 'done', progress: 100 };
+      patch(itemsRef.current.map((item) => (item.id === id ? doneItem : item)));
+      onItemDoneRef.current?.(doneItem);
+    } catch (reason) {
       clearTimer(id);
-      patch(itemsRef.current.map((item) => (item.id === id ? { ...item, status: 'error' } : item)));
+      const text = reason instanceof Error ? reason.message : typeof reason === 'string' ? reason : 'Không rõ nguyên nhân';
+      const errorItem: UploadItem = { id, file, status: 'error', error: text };
+      patch(itemsRef.current.map((item) => (item.id === id ? errorItem : item)));
+      onItemErrorRef.current?.(errorItem, text);
     }
+  };
+
+  // Chạy lại beforeUpload cho 1 dòng lỗi — giữ nguyên vị trí/id trong list
+  const retryItem = (item: UploadItem) => {
+    if (disabled) return;
+    const beforeUploadFn = beforeUploadRef.current;
+    if (!beforeUploadFn) return; // không có đường upload (beforeUpload) → không retry được
+    const others = itemsRef.current.filter((it) => it.id !== item.id).map((it) => it.file);
+    void trackPromise(item.file, Promise.resolve(beforeUploadFn(item.file, others)), item);
   };
 
   const handleFiles = (incoming: File[]) => {
@@ -138,7 +173,9 @@ export function useUploadController(props: UploadProps) {
         void trackPromise(file, result);
         continue;
       }
-      patch([...itemsRef.current, { id: nextId(), file, status: 'done' }]);
+      const doneItem: UploadItem = { id: nextId(), file, status: 'done' };
+      patch([...itemsRef.current, doneItem]);
+      onItemDoneRef.current?.(doneItem); // add đồng bộ → file xong ngay
       added++;
     }
     if (added > 0) emitChange(itemsRef.current); // 1 batch chọn file → 1 onChange
@@ -160,16 +197,54 @@ export function useUploadController(props: UploadProps) {
     event.target.value = ''; // cho phép chọn lại cùng 1 file
   };
 
-  return { inputRef, openDialog, items, removeItem, handleFiles, onInputChange };
+  return { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange };
 }
 
-/** Danh sách file: tên + size + Progress (đang upload) / ✓ (done) / Lỗi (error) + × remove. */
+/** Ring SVG cho 1 file đang upload (progressVariant='ring') — a11y trùng contract Progress bar. */
+function UploadProgressRing({ item }: { item: UploadItem }) {
+  const clamped = Math.min(100, Math.max(0, item.progress ?? 0));
+  const radius = 8; // viewBox 20 — stroke 2, tâm (10,10)
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <svg
+      role="progressbar"
+      aria-valuenow={clamped}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`Đang tải ${item.file.name}`}
+      viewBox="0 0 20 20"
+      className="size-5 shrink-0 -rotate-90"
+    >
+      <circle cx="10" cy="10" r={radius} fill="none" strokeWidth="2" style={{ stroke: 'var(--line2)' }} />
+      <circle
+        cx="10"
+        cy="10"
+        r={radius}
+        fill="none"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - clamped / 100)}
+        style={{ stroke: 'var(--accent)', transition: 'stroke-dashoffset 200ms' }}
+      />
+    </svg>
+  );
+}
+
+/** Danh sách file: tên + size + Progress bar/ring (đang upload) / ✓ (done) / Lỗi (+reason,
+ * nút retry khi truyền onRetry) + × remove. */
 export function UploadFileList({
   items,
   onRemove,
+  onRetry,
+  progressVariant = 'bar',
 }: {
   items: UploadItem[];
   onRemove: (item: UploadItem) => void;
+  /** Truyền thì dòng lỗi có nút "Thử lại" — chạy lại beforeUpload cho file đó. */
+  onRetry?: (item: UploadItem) => void;
+  /** 'bar' (mặc định, fallback) hoặc 'ring' — SVG vòng tròn gọn cho dòng file. */
+  progressVariant?: 'bar' | 'ring';
 }) {
   if (items.length === 0) return null;
   return (
@@ -185,10 +260,33 @@ export function UploadFileList({
           <span className="min-w-0 flex-1 truncate">{item.file.name}</span>
           <span className="shrink-0 text-meta text-ink3">{formatSize(item.file.size)}</span>
           {item.status === 'uploading' && item.progress != null && (
-            <Progress percent={item.progress} showInfo={false} className="w-24 shrink-0" />
+            progressVariant === 'ring' ? (
+              <UploadProgressRing item={item} />
+            ) : (
+              <Progress percent={item.progress} showInfo={false} className="w-24 shrink-0" />
+            )
           )}
           {item.status === 'done' && <span className="shrink-0 text-meta text-st-done"><Icon name="check" size={12} /></span>}
-          {item.status === 'error' && <span className="shrink-0 text-meta text-st-fail">Lỗi</span>}
+          {item.status === 'error' && (
+            <>
+              <span className="shrink-0 text-meta text-st-fail">Lỗi</span>
+              {item.error && (
+                <span className="min-w-0 shrink truncate text-meta text-st-fail/80" title={item.error}>
+                  {item.error}
+                </span>
+              )}
+              {onRetry && (
+                <button
+                  type="button"
+                  aria-label={`Thử lại ${item.file.name}`}
+                  className="shrink-0 cursor-pointer rounded-1 border border-line bg-transparent px-2 py-0.5 text-meta text-ink2 hover:border-accent hover:text-accent"
+                  onClick={() => onRetry(item)}
+                >
+                  Thử lại
+                </button>
+              )}
+            </>
+          )}
           <button
             type="button"
             aria-label={`Xoá ${item.file.name}`}

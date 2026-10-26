@@ -113,6 +113,39 @@ export const DarkTheme: Story = {
   ),
 };
 
+/** Mission overlay-api — placement left/right + auto-flip sát mép viewport (đo trước paint). */
+export const AutoFlip: Story = {
+  name: 'Auto-flip + left/right — panel sát mép viewport tự lật',
+  render: () => (
+    <div className="flex min-h-40 items-center justify-between gap-4">
+      <Popover
+        trigger="click"
+        placement="right"
+        title="Bên phải trigger"
+        content="Panel bên phải — nếu tràn mép phải viewport thì tự lật sang trái."
+      >
+        <Button>Mép trái → right</Button>
+      </Popover>
+      <Popover
+        trigger="click"
+        placement="top"
+        title="Trên trigger"
+        content="Panel phía trên — nếu đè mép trên viewport thì tự lật xuống dưới."
+      >
+        <Button>Giữa trang → top</Button>
+      </Popover>
+      <Popover
+        trigger="click"
+        placement="left"
+        title="Bên trái trigger"
+        content="Panel bên trái — nếu tràn mép trái viewport thì tự lật sang phải."
+      >
+        <Button>Mép phải → left</Button>
+      </Popover>
+    </div>
+  ),
+};
+
 /** CustomStyled — classNames slots (root/trigger/panel) + style passthrough (slots wave 3). */
 export const CustomStyled: Story = {
   name: 'CustomStyled (classNames + style)',

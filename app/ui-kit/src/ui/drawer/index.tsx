@@ -9,6 +9,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
 import { Icon } from '../icons/index.js';
+import { acquireOverlay, detachOverlay, isTopOverlay, reattachOverlay, releaseOverlay } from '../modal/overlay-stack.js';
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
 export interface DrawerClassNames {
@@ -48,6 +49,11 @@ export function Drawer(props: DrawerProps) {
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
   const panelRef = useRef<HTMLElement>(null);
+  // Token trên overlay-stack chung với Modal: ESC chỉ đóng lớp TRÊN CÙNG (modal con
+  // mở → ESC đóng modal, drawer đứng yên), scroll-lock đếm tham chiếu giữa các lớp.
+  // Đăng ký theo portal root (mask) — xếp top theo DOM order, khớp z-order thật.
+  const overlayTokenRef = useRef<symbol | null>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
 
   // active = open && mounted: mở → focus đầu; bắt đầu closing → trả focus trigger
   useFocusTrap(panelRef, open && mounted);
@@ -56,27 +62,42 @@ export function Drawer(props: DrawerProps) {
     if (open) setMounted(true);
   }, [open]);
 
-  // ESC chỉ khi open
+  // ESC chỉ khi open — và CHỈ khi drawer này là overlay TRÊN CÙNG (modal con mở → ESC không đóng drawer)
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape' && overlayTokenRef.current && isTopOverlay(overlayTokenRef.current)) onClose?.();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // Scroll lock giữ tới mounted=false (exit animation XONG)
+  // Đăng ký overlay-stack + scroll-lock refcount, giữ tới mounted=false (exit animation
+  // XONG) — unmount modal con không ghi đè lock của drawer (refcount chung)
   useEffect(() => {
-    if (!mounted) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    if (!mounted || !maskRef.current) return;
+    const token = acquireOverlay(maskRef.current);
+    overlayTokenRef.current = token;
+    return () => {
+      releaseOverlay(token);
+      if (overlayTokenRef.current === token) overlayTokenRef.current = null;
+    };
   }, [mounted]);
+
+  // open=false (bắt đầu animate-out) → rút khỏi stack ngay: ESC rơi xuống lớp dưới.
+  // Mở lại giữa exit animation → đẩy lại lên đỉnh.
+  useEffect(() => {
+    const token = overlayTokenRef.current;
+    if (!token) return;
+    if (open) reattachOverlay(token);
+    else detachOverlay(token);
+  }, [open, mounted]);
 
   if (!mounted) return null;
 
   return createPortal(
     <div
+      ref={maskRef}
       className={classNames(
         'fixed inset-0 z-[var(--z-modal)] bg-[var(--mask)]',
         closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-base)_var(--ease-enter)]',

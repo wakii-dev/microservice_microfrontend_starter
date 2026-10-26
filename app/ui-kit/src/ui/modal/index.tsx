@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { Button } from '../button/index';
 import { Icon } from '../icons/index.js';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
+import { acquireOverlay, detachOverlay, isTopOverlay, reattachOverlay, releaseOverlay } from './overlay-stack.js';
 
 /** antd v5-style sub-part slot classes — merge AFTER defaults (consumer appends). */
 export interface ModalClassNames {
@@ -45,6 +46,8 @@ export interface ModalProps {
   onOk?: () => void;
   /** Huỷ = ESC / click overlay / nút Huỷ / nút ×. */
   onCancel?: () => void;
+  /** Footer tuỳ ý — truyền thì thay HOÀN TOÀN hàng nút mặc định (okText/cancelText/confirmLoading bỏ qua). */
+  footer?: ReactNode;
   className?: string;
   /** Slot classes kiểu antd v5 (SÓNG-3) — merge sau class mặc định. */
   classNames?: ModalClassNames;
@@ -61,6 +64,7 @@ export function Modal(props: ModalProps) {
     confirmLoading = false,
     onOk,
     onCancel,
+    footer,
     className,
   } = props;
   const slots = props.classNames;
@@ -70,6 +74,11 @@ export function Modal(props: ModalProps) {
   const [mounted, setMounted] = useState(open);
   const closing = mounted && !open;
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Token trên overlay-stack chung với Drawer: ESC chỉ đóng lớp TRÊN CÙNG, scroll-lock
+  // đếm tham chiếu (modal con unmount không nhả lock của drawer ngoài). Đăng ký theo
+  // portal root (mask) — xếp top theo DOM order, khớp z-order thật.
+  const overlayTokenRef = useRef<symbol | null>(null);
+  const maskRef = useRef<HTMLDivElement>(null);
 
   // active = open && mounted: mở → focus đầu; bắt đầu closing → trả focus trigger
   useFocusTrap(dialogRef, open && mounted);
@@ -78,27 +87,43 @@ export function Modal(props: ModalProps) {
     if (open) setMounted(true);
   }, [open]);
 
-  // ESC chỉ khi open (không khi closing)
+  // ESC chỉ khi open (không khi closing) — và CHỈ khi modal này là overlay TRÊN CÙNG
+  // (modal trong drawer: ESC đóng modal, drawer đứng yên)
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel?.();
+      if (e.key === 'Escape' && overlayTokenRef.current && isTopOverlay(overlayTokenRef.current)) onCancel?.();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onCancel]);
 
-  // Scroll lock giữ tới mounted=false (exit animation XONG) — không release sớm
+  // Đăng ký overlay-stack + scroll-lock refcount, giữ tới mounted=false (exit animation
+  // XONG) — unmount 1 lớp không nhả lock của lớp ngoài (refcount chung)
   useEffect(() => {
-    if (!mounted) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    if (!mounted || !maskRef.current) return;
+    const token = acquireOverlay(maskRef.current);
+    overlayTokenRef.current = token;
+    return () => {
+      releaseOverlay(token);
+      if (overlayTokenRef.current === token) overlayTokenRef.current = null;
+    };
   }, [mounted]);
+
+  // open=false (bắt đầu animate-out) → rút khỏi stack ngay: ESC coi lớp này như đã gone,
+  // hàng đợi ESC rơi xuống lớp dưới. Mở lại giữa exit animation → đẩy lại lên đỉnh.
+  useEffect(() => {
+    const token = overlayTokenRef.current;
+    if (!token) return;
+    if (open) reattachOverlay(token);
+    else detachOverlay(token);
+  }, [open, mounted]);
 
   if (!mounted) return null;
 
   return createPortal(
     <div
+      ref={maskRef}
       className={classNames(
         'fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--mask)] p-4',
         closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-exit)]' : 'animate-[bp-fade-in_var(--motion-instant)_var(--ease-enter)]',
@@ -127,14 +152,19 @@ export function Modal(props: ModalProps) {
       >
         <div id={titleId} className={classNames('mb-2 text-h2 font-semibold text-ink', slots?.header)}>{title}</div>
         {children && <div className={classNames('text-body text-ink2', slots?.body)}>{children}</div>}
-        <div className={classNames('mt-4 flex justify-end gap-2', slots?.footer)}>
-          <Button type="default" onClick={() => onCancel?.()} disabled={confirmLoading}>
-            {cancelText}
-          </Button>
-          <Button type="primary" danger={danger} onClick={() => onOk?.()} disabled={confirmLoading}>
-            {confirmLoading ? 'Đang xử lý…' : okText}
-          </Button>
-        </div>
+        {footer !== undefined ? (
+          // footer tuỳ ý: thay hoàn toàn hàng nút mặc định (không bọc wrapper — consumer tự lo layout)
+          footer
+        ) : (
+          <div className={classNames('mt-4 flex justify-end gap-2', slots?.footer)}>
+            <Button type="default" onClick={() => onCancel?.()} disabled={confirmLoading}>
+              {cancelText}
+            </Button>
+            <Button type="primary" danger={danger} onClick={() => onOk?.()} disabled={confirmLoading}>
+              {confirmLoading ? 'Đang xử lý…' : okText}
+            </Button>
+          </div>
+        )}
         {/* Nút × đóng (antd closable) — cuối DOM để focus-trap giữ Huỷ làm phần tử đầu */}
         <button
           type="button"

@@ -12,8 +12,8 @@ export type { UploadItem, UploadProps, UploadStatus } from './upload-core.js';
 const TRIGGER_ICON = <Icon name="upload" size={14} />;
 
 export function Upload(props: UploadProps) {
-  const { accept, multiple, disabled, showList = true, className, children } = props;
-  const { inputRef, openDialog, items, removeItem, onInputChange } = useUploadController(props);
+  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, children } = props;
+  const { inputRef, openDialog, items, removeItem, retryItem, onInputChange } = useUploadController(props);
 
   return (
     <div className={className}>
@@ -33,7 +33,9 @@ export function Upload(props: UploadProps) {
           Chọn tệp
         </Button>
       )}
-      {showList && <UploadFileList items={items} onRemove={removeItem} />}
+      {showList && (
+        <UploadFileList items={items} onRemove={removeItem} onRetry={retryItem} progressVariant={progressVariant} />
+      )}
     </div>
   );
 }

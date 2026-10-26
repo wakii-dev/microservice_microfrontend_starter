@@ -126,3 +126,36 @@ export const DarkTheme: R = {
   name: 'DarkTheme — panel bg-s2 + mask dark',
   render: () => <DarkDemo />,
 };
+
+/** Mission overlay-api — footer tuỳ ý: thay hoàn toàn hàng nút mặc định (okText/cancelText bỏ qua). */
+function CustomFooterDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button type="primary" onClick={() => setOpen(true)}>Open custom footer</Button>
+      <Modal
+        open={open}
+        title="Xuất báo cáo"
+        onCancel={() => setOpen(false)}
+        footer={
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <label className="flex cursor-pointer items-center gap-2 text-meta text-ink2">
+              <input type="checkbox" /> Gửi email khi xong
+            </label>
+            <div className="flex gap-2">
+              <Button onClick={() => setOpen(false)}>Để sau</Button>
+              <Button type="primary" onClick={() => setOpen(false)}>Xuất file</Button>
+            </div>
+          </div>
+        }
+      >
+        footer nhận ReactNode bất kỳ — thay toàn bộ hàng nút mặc định (không còn OK/Huỷ).
+      </Modal>
+    </>
+  );
+}
+
+export const CustomFooter: R = {
+  name: 'CustomFooter — footer ReactNode thay toàn bộ nút mặc định',
+  render: () => <CustomFooterDemo />,
+};

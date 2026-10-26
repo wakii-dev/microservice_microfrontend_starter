@@ -186,7 +186,7 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 
 ## 📚 Documentation
 
-- [USAGE.md](./USAGE.md) — deep dives per group (forms, icons, subpaths, z-index)
+- [USAGE.md](./USAGE.md) — deep dives per group (forms, icons, subpaths, z-index, customize pass slots)
 - [CHANGELOG.md](https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/CHANGELOG.md) / [MIGRATION.md](./MIGRATION.md) — releases & breaking changes (Alert filled, antd Pagination, subpath heavy engines)
 - [parity-matrix.md](../docs/parity-matrix.md) — component-by-component benchmark vs antd/PrimeReact
 

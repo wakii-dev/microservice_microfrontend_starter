@@ -120,6 +120,89 @@ Thứ tự tầng cố định — component trong kit đã dùng token, consume
 <div className="fixed inset-0 z-[var(--z-modal)]">…</div>
 ```
 
+### Customize pass (SÓNG-3) — `classNames` slots
+
+Từ customize pass, các component chính đều nhận prop `classNames` kiểu antd v5:
+một object các **slot**, mỗi slot dán class vào đúng một phần tử trong DOM của
+component. Ba nguyên tắc:
+
+1. **Default path bất biến** — không truyền `classNames` → DOM và class y hệt như
+   trước đó, không sinh thêm node (slot chỉ render khi cần).
+2. **Slot merge sau class mặc định** — class bạn truyền qua slot chèn sau phần
+   structural; `className` prop vẫn luôn merge sau cùng (pattern antd).
+3. **`style` passthrough** — các comp đơn-phần-tử (Tag, Input, Popover, Tooltip,
+   Progress…) nhận thêm `style` thẳng lên element gốc.
+
+Bảng slots theo đúng type `*ClassNames` export từ source (29 interface):
+
+| Component | Slots | Ghi chú |
+|---|---|---|
+| Alert | wrapper · icon · message · description · closeButton | |
+| Button | root · icon | slot `icon` chỉ render khi truyền |
+| Card | root · header · title · extra · body · actions | |
+| Checkbox | root · box · label | |
+| Descriptions | root · title · item · label · content | |
+| Drawer | wrapper · mask · header · body · footer | panel = `wrapper`, overlay = `mask` |
+| EmptyState | root · image · title · description · action | |
+| Input | root · input · prefix · suffix | có affix: viền/ring ở `root`, `<input>` trần ở `input` |
+| Textarea | root · textarea · count | |
+| List | root · header · item · footer | |
+| Modal | wrapper · mask · header · body · footer · closeButton | panel = `wrapper`, overlay = `mask` |
+| Popover | root · trigger · panel | `panel` = phần tử `role="dialog"` |
+| Progress | root · track · bar · info | |
+| Radio | root · box · label | |
+| RadioGroup | root | |
+| Select | root · trigger · panel · listbox · option | |
+| Skeleton | wrapper · bone | |
+| Spinner | root · indicator | |
+| Statistic | root · title · value · prefix · suffix | |
+| Steps | root · step · indicator · label · description | |
+| Switch | root · handle | |
+| Tabs | wrapper · tablist · tab · panel | |
+| Tag | root | comp 1 phần tử chính |
+| Tag.Checkable | root | chip `<button aria-pressed>` |
+| Timeline | root · item · dot · label | |
+| Timesheet | wrapper · header · row · cell · footer | |
+| Tooltip | trigger · bubble | |
+
+Ba ví dụ copy-paste chạy được:
+
+```tsx
+// ① Button — pill + nhãn nhỏ hơn, không đụng variant
+<Button type="primary" classNames={{ root: 'rounded-pill px-5', icon: 'opacity-80' }}>
+  Deploy
+</Button>
+
+// ② Input — viền đậm, góc vuông hơn (affix mode: viền/ring nằm ở slot `root`)
+<Input
+  prefix={<Icon name="search" size={16} />}
+  classNames={{ root: 'border-2 rounded-xl shadow-none', prefix: 'text-ink2' }}
+  placeholder="Tìm task…"
+/>
+
+// ③ Tag — 1 phần tử chính nên chỉ có slot `root`
+<Tag classNames={{ root: 'rounded-pill tracking-wider uppercase' }}>beta</Tag>
+```
+
+Lưu ý kỹ thuật khi override:
+
+- Merge dùng package `classnames` — **không phải tailwind-merge**: hai utility
+  CÙNG NHÓM (vd `text-ink` mặc định và `text-accent` của bạn) không phân thắng
+  bại theo thứ tự truyền mà theo **thứ tự rule trong CSS sinh ra**. Không nên
+  giả định class truyền sau sẽ đè class trước.
+- Muốn đè chắc một nhóm trùng, thêm modifier important của Tailwind v4 — hậu tố
+  `!` (vd `text-accent!`, `rounded-xl!`), hoặc né xung đột bằng cách đổi nhóm
+  khác (spacing/radius thường an toàn hơn màu).
+- Ưu tiên override qua **slot đúng phần tử** thay vì nhét hết vào `className` —
+  slot tới đúng đích (vd viền Input ở `root`, chữ placeholder phải qua `input`),
+  className thì chỉ dính một element.
+
+Hạn chế đã biết (ghi nhận, chưa xử lý): 8 type chưa re-export qua barrel
+(`AlertClassNames`, `DrawerClassNames`, `MessageClassNames`, `ModalClassNames`,
+`NotificationClassNames`, `RadioClassNames`, `SkeletonClassNames`,
+`TabsClassNames` — hiện chỉ có ở module component); `MessageClassNames` /
+`NotificationClassNames` có interface nhưng props chưa nhận `classNames`.
+
 ---
 
 ## Tham chiếu theo component

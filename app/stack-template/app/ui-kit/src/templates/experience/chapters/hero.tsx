@@ -12,9 +12,11 @@
 // chỉ đảo MÀU HẠT sao (--navy-ink → #f7f8f8 "bông tuyết", Starfield tự lo).
 // reduced-motion: Parallax/Reveal tự tắt, Starfield frame tĩnh, scrollIntoView 'auto'.
 import { useState, type ChangeEvent } from 'react';
+// 0.6.0: Chart rời barrel chính — component nặng (peer chart.js) import tương trực.
+// type ChartConfig vẫn ở barrel (export type — không kéo runtime).
+import { Chart } from '../../../ui/chart/index.js';
 import {
   Button,
-  Chart,
   Icon,
   Input,
   Modal,

@@ -90,6 +90,30 @@ describe('Checkbox — tri-state (PrimeReact parity, 2026-10-18)', () => {
     expect(dash).toHaveClass('hidden');
   });
 
+  it('REGRESSION (2026-10-25 tick ẩn): checked → tick grid KHÔNG hidden (grid/hidden loại nhau — không phụ thuộc cascade); unchecked → tick hidden', () => {
+    const { container, rerender } = render(<Checkbox checked onChange={vi.fn()} />);
+    const tickOf = () => {
+      const marks = Array.from(container.querySelectorAll('span[aria-hidden="true"]'));
+      return marks.find((el) => el.querySelector('svg'))!;
+    };
+    // checked: grid hiện tick — và KHÔNG còn hidden cạnh nhau (cascade không quyết định được)
+    expect(tickOf()).toHaveClass('grid');
+    expect(tickOf().className).not.toContain('hidden');
+    rerender(<Checkbox checked={false} onChange={vi.fn()} />);
+    expect(tickOf()).toHaveClass('hidden');
+    expect(tickOf().className).not.toContain('grid');
+  });
+
+  it('tick overlay đúng tâm box: -ml-6 = -(size-4 + gap-2) — không lệch +4px; relative đè được input scaled', () => {
+    const { container } = render(<Checkbox checked onChange={vi.fn()} />);
+    const marks = Array.from(container.querySelectorAll('span[aria-hidden="true"]'));
+    const tick = marks.find((el) => el.querySelector('svg'))!;
+    expect(tick.className).toContain('-ml-6');
+    expect(tick.className).not.toContain('-ml-5');
+    // input checked mang scale (stacking context) — span phải positioned để paint trên
+    expect(tick).toHaveClass('relative');
+  });
+
   it('click khi tri-state → onChange(true) (native uncheck→check)', async () => {
     const onChange = vi.fn();
     render(<Checkbox checked={null} onChange={onChange}>Tri</Checkbox>);

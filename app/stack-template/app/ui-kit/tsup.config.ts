@@ -12,7 +12,7 @@ export default defineConfig({
     chart: 'src/entries/chart.ts',
     schedule: 'src/entries/schedule.ts',
     editor: 'src/entries/editor.ts',
-    // Entry riêng cho thân Editor — wrapper lazy qua BIẾN specifier (esbuild
+    // Entry riêng cho thân Editor — wrapper lazy qua specifier literal (rollup/vite resolve được — fix lazy-load consumer 0.6.0) (esbuild
     // inline dynamic import khi splitting:false); dist/editorInner.js.
     editorInner: 'src/ui/editor/EditorInner.tsx',
     experience3d: 'src/entries/experience3d.ts',

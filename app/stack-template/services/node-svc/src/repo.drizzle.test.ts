@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { outbox, tasks } from './db/schema.js';
-import { DrizzleTaskRepo } from './repo.drizzle.js';
+import { DrizzleTaskRepo, escapeLike } from './repo.drizzle.js';
 
 interface RowRec {
   table: unknown;
@@ -178,5 +178,21 @@ describe('DrizzleTaskRepo — mutation + outbox cùng 1 tx (conventions/09 rule 
     ]);
     expect(hit).toBe(true);
     expect(db.committed.filter((r) => r.table === outbox)).toHaveLength(1);
+  });
+});
+
+// escapeLike — `q` khớp LITERAL trong ILIKE %q% (list search, tasks.yaml query param).
+// `\` là escape char mặc định của Postgres LIKE/ILIKE — thoát cả chính nó.
+describe('escapeLike — q literal, không wildcard', () => {
+  it('escape đủ 3 ký tự `%` `_` `\\` — mỗi ký tự 1 backslash phía trước', () => {
+    expect(escapeLike('50%')).toBe('50\\%');
+    expect(escapeLike('a_b')).toBe('a\\_b');
+    expect(escapeLike('a\\b')).toBe('a\\\\b');
+    expect(escapeLike('%_\\')).toBe('\\%\\_\\\\');
+  });
+
+  it('ký tự thường không đụng vào — giữ nguyên (kể cả unicode)', () => {
+    expect(escapeLike('báo cáo Q4')).toBe('báo cáo Q4');
+    expect(escapeLike('')).toBe('');
   });
 });

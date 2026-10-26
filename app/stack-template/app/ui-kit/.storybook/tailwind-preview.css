@@ -1,3 +1,9 @@
 /* Storybook-only tailwind entry — storybook chạy Vite riêng nên tự @import
  * (không dùng qua app). @theme inline định nghĩa ở ui-kit/styles/tailwind.css. */
+/* Pin layer order — NHƯỢNG utilities thắng rule base input/textarea/select
+ * (base.css import sau trong preview.ts): nếu không pin, layer thành
+ * theme,utilities,reset,base → base thắng utilities BẤK CHẾ specificity
+ * (checked:bg-accent thua input{background} → checkbox checked mất nền accent,
+ * tick trắng trên nền trắng — bug 2026-10-25). Cùng pin với styles/ui-kit.css. */
+@layer theme, reset, base, utilities;
 @import '../src/styles/tailwind.css';

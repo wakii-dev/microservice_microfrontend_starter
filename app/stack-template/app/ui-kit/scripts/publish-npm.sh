@@ -27,6 +27,9 @@ cp -r dist README.md LICENSE package.json "$TMP/"
 mkdir -p "$TMP/src"
 cp -r src/styles "$TMP/src/"
 [ -d "$TMP/src/styles" ] || { echo "✗ thiếu src/styles sau copy"; exit 1; }
+mkdir -p "$TMP/docs"
+cp -r docs/assets "$TMP/docs/"
+[ -d "$TMP/docs/assets" ] || { echo "✗ thiếu docs/assets sau copy"; exit 1; }
 
 # Giữ NGUYÊN name @wakii/ui-kit (canonical npmjs); registry đích npmjs; bỏ phần
 # không cần khi publish (devDeps/scripts/overrides — mirror publish-github.sh).

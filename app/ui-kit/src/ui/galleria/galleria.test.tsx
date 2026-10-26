@@ -65,3 +65,29 @@ describe('Galleria', () => {
     expect(dots[0]).toHaveAttribute('aria-current', 'true');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+const SLOT_IMAGES = [
+  { src: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=', alt: 'One', caption: 'First' },
+  { src: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=', alt: 'Two' },
+];
+
+describe('Galleria — classNames slots + style', () => {
+  it('slots lên đúng element: root/track/item/caption/indicators/indicator', () => {
+    render(<Galleria images={SLOT_IMAGES} classNames={{ root: 'slot-root', track: 'slot-track', item: 'slot-item', caption: 'slot-caption', indicators: 'slot-inds', indicator: 'slot-ind' }} />);
+    expect(document.querySelector('div.slot-root')).not.toBeNull();
+    expect(document.querySelector('.slot-track')).toHaveClass('snap-x');
+    expect(document.querySelectorAll('.slot-item').length).toBe(2);
+    expect(screen.getByText('First')).toHaveClass('slot-caption');
+    expect(document.querySelector('.slot-inds')).not.toBeNull();
+    expect(screen.getAllByRole('button', { name: /Ảnh/ })[0]).toHaveClass('slot-ind');
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    const { container } = render(<Galleria images={SLOT_IMAGES} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

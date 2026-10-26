@@ -152,3 +152,26 @@ export const BookingDatetime: S = {
   name: 'BookingDatetime — appointment: date + time → live summary',
   render: () => <BookingDatetimeInner />,
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / trigger / panel) + style
+ * passthrough. `root` lands on the outer relative span (same element as
+ * `className`), `trigger` on the field span carrying the border/ring, `panel`
+ * on the portal frame around the calendar + footer; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <DatePicker
+        placeholder="Pick a date…"
+        classNames={{
+          root: 'rounded-xl',
+          trigger: 'border-st-done border-dashed',
+          panel: 'rounded-lg border-st-done',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

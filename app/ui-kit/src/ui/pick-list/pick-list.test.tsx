@@ -92,3 +92,35 @@ describe('PickList — keyboard nav (audit fix)', () => {
     expect(list.querySelector('[aria-selected="true"]')).toHaveTextContent('Vue');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('PickList — classNames slots + style', () => {
+  const SOURCE = [{ label: 'One', value: 'one' }];
+  const TARGET = [{ label: 'Two', value: 'two' }];
+
+  it('slots lên đúng element: root/panel/panelTitle/list/option/controls', () => {
+    render(
+      <PickList
+        source={SOURCE}
+        target={TARGET}
+        classNames={{ root: 'slot-root', panel: 'slot-panel', panelTitle: 'slot-title', list: 'slot-list', option: 'slot-opt', controls: 'slot-controls' }}
+      />,
+    );
+    expect(document.querySelector('div.slot-root')).not.toBeNull();
+    expect(document.querySelectorAll('.slot-panel').length).toBe(2);
+    expect(screen.getByText('Nguồn')).toHaveClass('slot-title');
+    expect(document.querySelectorAll('ul.slot-list').length).toBe(2);
+    expect(screen.getByText('One')).toHaveClass('slot-opt');
+    expect(document.querySelector('.slot-controls')).not.toBeNull();
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    const { container } = render(
+      <PickList source={SOURCE} target={TARGET} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

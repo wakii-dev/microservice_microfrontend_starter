@@ -229,3 +229,18 @@ export const ArticleCover: Story = {
     </figure>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the thumbnail,
+ * `preview`/`previewImage` on the portal overlay; `style` lands on the img. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <UiImage
+      src="data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22%3E%3Crect width=%22320%22 height=%22180%22 fill=%22%23ccc%22/%3E%3C/svg%3E"
+      alt="Slotted preview"
+      classNames={{ root: 'border-2 border-dashed border-accent' }}
+      style={{ padding: 4, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      width={320}
+    />
+  ),
+};

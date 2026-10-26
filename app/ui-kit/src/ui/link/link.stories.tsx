@@ -66,3 +66,15 @@ export const External: Story = {
     </Link>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the <a>;
+ * inline `style` passes through anchor attributes. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    href: '#custom-styled',
+    children: 'Slotted link',
+    classNames: { root: 'font-semibold uppercase tracking-wide' },
+    style: { padding: 4, border: '1px dashed currentColor' },
+  },
+};

@@ -51,3 +51,27 @@ function ChipsControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / tag / tagRemove / input)
+ * + style passthrough. `root` lands on the field span (same element as
+ * `className`), `tag`/`tagRemove` on each selected tag and its × button,
+ * `input` on the inline text field; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <Chips
+        value={['design', 'frontend']}
+        classNames={{
+          root: 'rounded-xl',
+          tag: 'border border-st-done text-st-done bg-transparent',
+          tagRemove: 'hover:text-st-fail',
+          input: 'italic',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

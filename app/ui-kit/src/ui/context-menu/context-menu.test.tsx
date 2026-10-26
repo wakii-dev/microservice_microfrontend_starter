@@ -91,3 +91,38 @@ describe('ContextMenu', () => {
     expect(() => fireEvent.keyDown(menu, { key: 'ArrowDown' })).not.toThrow();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('ContextMenu — classNames + style', () => {
+  it('slots lên đúng element: root/menu; className sau root slot', () => {
+    render(
+      <ContextMenu
+        items={ITEMS}
+        classNames={{ root: 'slot-root', menu: 'slot-menu' }}
+        className="user-last"
+      >
+        <div>T</div>
+      </ContextMenu>,
+    );
+    const region = screen.getByText('T').parentElement!;
+    expect(region).toHaveClass('slot-root');
+    expect(region.className.indexOf('slot-root')).toBeLessThan(region.className.indexOf('user-last'));
+    fireEvent.contextMenu(screen.getByText('T'));
+    expect(screen.getByRole('menu')).toHaveClass('slot-menu');
+  });
+
+  it('style passthrough lên vùng root (menu giữ left/top vị trí chuột)', () => {
+    render(
+      <ContextMenu items={ITEMS} style={{ margin: '8px' }}>
+        <div>T</div>
+      </ContextMenu>,
+    );
+    const region = screen.getByText('T').parentElement as HTMLElement;
+    expect(region).toHaveStyle({ margin: '8px' });
+    fireEvent.contextMenu(screen.getByText('T'));
+    const menu = screen.getByRole('menu') as HTMLElement;
+    expect(menu.style.left).not.toBe('');
+    expect(menu.style.top).not.toBe('');
+  });
+});

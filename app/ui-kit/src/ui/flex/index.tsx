@@ -1,11 +1,19 @@
 // Flex — wrapper bố cục nhẹ kiểu antd v5: <Flex vertical gap justify align wrap>.
 // Gap dùng thang Space của thư viện (small 8 / middle 16 / large 24 | number px)
 // để nhất quán nội bộ; justify/align nhận giá trị CSS thô.
-import type { ReactNode } from 'react';
+// slots-wave: classNames {root} + style passthrough — default path giữ nguyên DOM.
+import classNames from 'classnames';
+import type { CSSProperties, ReactNode } from 'react';
 
 export type FlexGap = 'small' | 'middle' | 'large' | number;
 export type FlexJustify = 'start' | 'center' | 'end' | 'space-between' | 'space-around' | 'space-evenly';
 export type FlexAlign = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface FlexClassNames {
+  /** Div flex gốc. */
+  root?: string;
+}
 
 export interface FlexProps {
   /** Xếp dọc (flex-col) thay vì ngang (mặc định ngang). */
@@ -20,24 +28,37 @@ export interface FlexProps {
   wrap?: boolean;
   children: ReactNode;
   className?: string;
+  /** Inline style — merge SAU gap/justify/align (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: FlexClassNames;
 }
 
 const GAP: Record<Exclude<FlexGap, number>, number> = { small: 8, middle: 16, large: 24 };
 
-export function Flex({
-  vertical = false,
-  gap = 'small',
-  justify,
-  align,
-  wrap = false,
-  children,
-  className,
-}: FlexProps) {
+export function Flex(props: FlexProps) {
+  const {
+    vertical = false,
+    gap = 'small',
+    justify,
+    align,
+    wrap = false,
+    children,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const gapPx = typeof gap === 'number' ? gap : GAP[gap];
   return (
     <div
-      className={`flex${vertical ? ' flex-col' : ' flex-row'}${wrap ? ' flex-wrap' : ''}${className ? ` ${className}` : ''}`}
-      style={{ gap: gapPx, justifyContent: justify, alignItems: align }}
+      className={classNames(
+        'flex',
+        vertical ? 'flex-col' : 'flex-row',
+        wrap && 'flex-wrap',
+        slots?.root,
+        className,
+      )}
+      style={{ gap: gapPx, justifyContent: justify, alignItems: align, ...style }}
     >
       {children}
     </div>

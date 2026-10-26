@@ -59,3 +59,21 @@ export const DarkTheme: R = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the relative
+ * wrapper around trigger + menu, `menu` on the floating <ul>; `style` lands
+ * on the wrapper; the user's className always comes last. */
+export const CustomStyled: R = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Dropdown
+      trigger={<Button>Slotted menu ▾</Button>}
+      items={items}
+      classNames={{
+        root: 'rounded-xl',
+        menu: 'border-accent/40 ring-2 ring-accent/20',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    />
+  ),
+};

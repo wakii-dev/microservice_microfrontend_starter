@@ -2,13 +2,20 @@
 // @ts-nocheck — peer-dep lazy import (engine optional, consumer tự cài — runtime try/catch)
 // Schedule — PEER-DEP pattern: FullCalendar lazy import.
 // Cài: pnpm add @fullcalendar/core @fullcalendar/daygrid @fullcalendar/interaction
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 export interface ScheduleEvent {
   id: string;
   title: string;
   start: string;
   end?: string;
+}
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ScheduleClassNames {
+  /** Div gốc gắn FullCalendar (class bp-schedule). */
+  root?: string;
 }
 
 export interface ScheduleProps {
@@ -19,6 +26,10 @@ export interface ScheduleProps {
   /** Chiều cao cố định px — ổn định giữa tháng 5/6 hàng (default 650; 'auto' = theo nội dung). */
   height?: number | 'auto';
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ScheduleClassNames;
 }
 
 /* Override CSS mặc định FullCalendar cho ngày tháng LÂN CẬN (adjacent month):
@@ -73,7 +84,9 @@ export function __setLoadFcForTest(loader: typeof loadFc | null): void {
   __loadFcForTest = loader;
 }
 
-export function Schedule({ events = [], onEventClick, fallback, height = 650, className }: ScheduleProps) {
+export function Schedule(props: ScheduleProps) {
+  const { events = [], onEventClick, fallback, height = 650, className, style } = props;
+  const slots = props.classNames;
   const ref = useRef<HTMLDivElement>(null);
   const [failed, setFailed] = useState(false);
 
@@ -103,5 +116,5 @@ export function Schedule({ events = [], onEventClick, fallback, height = 650, cl
   }, [events, onEventClick, height]);
 
   if (failed) return <>{fallback ?? <p className="p-4 text-body text-ink3">Cài @fullcalendar/core @fullcalendar/daygrid @fullcalendar/interaction để dùng Schedule.</p>}</>;
-  return <div ref={ref} className={`bp-schedule${className ? ` ${className}` : ''}`} />;
+  return <div ref={ref} className={classNames('bp-schedule', slots?.root, className)} style={style} />;
 }

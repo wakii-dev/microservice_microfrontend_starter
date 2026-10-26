@@ -88,3 +88,23 @@ export const OtpLogin: S = {
   name: 'OtpLogin — 2FA step: resend countdown + verify gated on 6 digits',
   render: () => <OtpLoginInner />,
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / cell) + style
+ * passthrough. `root` lands on the row span (same element as `className`),
+ * `cell` on every single-character input; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { length: 4 },
+  render: (args) => (
+    <InputOTP
+      {...args}
+      classNames={{
+        root: 'gap-2',
+        cell: 'border-st-done text-st-done',
+      }}
+      style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    />
+  ),
+};

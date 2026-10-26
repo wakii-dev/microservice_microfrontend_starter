@@ -122,3 +122,25 @@ export const AdminSidebarCompact: S = {
     </MenuCompactContext.Provider>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `list` on
+ * every level's <ul role="menu">, `item` on each <li>, `itemButton` on every
+ * menu item button; `style` lands on the nav. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Menu
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        list: 'gap-2',
+        itemButton: 'rounded-full',
+      }}
+      items={[
+        { key: 'inbox', label: 'Inbox', icon: <Icon name="file" size={14} /> },
+        { key: 'team', label: 'Team', icon: <Icon name="users" size={14} /> },
+        { key: 'reports', label: 'Reports', icon: <Icon name="folder" size={14} /> },
+      ]}
+    />
+  ),
+};

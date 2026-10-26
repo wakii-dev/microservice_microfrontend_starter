@@ -35,3 +35,22 @@ export const Cao: Story = {
     </ScrollPanel>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the scroll
+ * container; `style` merges after the height inline style. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ScrollPanel
+      height="160px"
+      classNames={{ root: 'border-dashed border-accent bg-accent/5' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      <ul className="m-0 flex list-none flex-col gap-2 p-0">
+        {Array.from({ length: 12 }, (_, i) => (
+          <li key={i} className="text-body text-ink2">Scrollable line {i + 1}</li>
+        ))}
+      </ul>
+    </ScrollPanel>
+  ),
+};

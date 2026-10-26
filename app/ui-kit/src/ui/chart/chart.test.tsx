@@ -101,3 +101,22 @@ describe('Chart', () => {
     expect(wrapper.querySelector('canvas')).not.toBeNull();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Chart — classNames slots + style', () => {
+  it('slot root lên container + canvas slot lên canvas; className sau root slot', () => {
+    const { container } = render(
+      <Chart config={CONFIG} classNames={{ root: 'slot-root', canvas: 'slot-canvas' }} className="user-last" />,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(container.querySelector('canvas')).toHaveClass('slot-canvas');
+  });
+
+  it('style passthrough merge sau height/position (override được)', () => {
+    const { container } = render(<Chart config={CONFIG} style={{ height: 99, background: 'rgb(1, 2, 3)' }} />);
+    expect(container.firstElementChild).toHaveStyle({ height: '99px', background: 'rgb(1, 2, 3)' });
+  });
+});

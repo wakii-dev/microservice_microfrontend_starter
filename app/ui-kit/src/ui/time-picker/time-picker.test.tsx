@@ -62,3 +62,38 @@ describe('TimePicker (batch ⑧ worker C)', () => {
     expect(screen.getByLabelText('Increase hour')).toBeInTheDocument();
   });
 });
+
+describe('TimePicker — classNames slots + style (slots wave 3)', () => {
+  const NOW = new Date(2026, 9, 15, 14, 25);
+
+  it('slots lên đúng element: root (span wrapper) / trigger (button) / panel (portal)', async () => {
+    const user = userEvent.setup();
+    render(
+      <TimePicker
+        value="08:30"
+        now={NOW}
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel' }}
+      />,
+    );
+    const root = screen.getByLabelText('Giờ: 08:30').closest('.relative')!;
+    expect(root).toHaveClass('slot-root');
+    expect(screen.getByLabelText('Giờ: 08:30')).toHaveClass('slot-trigger');
+    await user.click(screen.getByLabelText('Giờ: 08:30'));
+    const panel = document.body.querySelector('[class*="w-[180px]"]')!;
+    expect(panel).toHaveClass('slot-panel');
+  });
+
+  it('style passthrough lên root + không truyền slots → stepper vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TimePicker value={new Date(2026, 9, 15, 8, 30)} now={NOW} onChange={onChange} style={{ margin: '8px' }} className="user-last" />,
+    );
+    const root = screen.getByLabelText('Giờ: 08:30').closest('.relative') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.click(screen.getByLabelText('Giờ: 08:30'));
+    fireEvent.click(screen.getByLabelText('Tăng giờ'));
+    expect(onChange).toHaveBeenCalledWith(new Date(2026, 9, 15, 9, 30));
+  });
+});

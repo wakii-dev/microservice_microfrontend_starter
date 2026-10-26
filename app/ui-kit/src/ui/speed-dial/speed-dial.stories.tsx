@@ -32,3 +32,27 @@ export const FixedPosition: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the fixed
+ * stack, `action` on each radiating button, `trigger` on the FAB; `style`
+ * lands on the stack. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="relative h-64 rounded-xl border border-line bg-s2">
+      <SpeedDial
+        icon="+"
+        actions={[
+          { key: 'new', icon: '📝', label: 'New task' },
+          { key: 'folder', icon: '📁', label: 'New folder' },
+        ]}
+        classNames={{
+          root: 'bottom-6 right-16',
+          action: 'border-dashed border-accent bg-accent/5',
+          trigger: 'ring-2 ring-accent/40',
+        }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.28)' }}
+      />
+    </div>
+  ),
+};

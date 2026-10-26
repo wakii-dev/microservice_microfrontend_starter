@@ -6,7 +6,14 @@
 // ĐỔI — không fire lúc mount (antd chỉ báo khi có chuyển trạng thái).
 // Top mode: bám khi rect.top <= offsetTop (sticky top giữ element tại offsetTop).
 // Bottom mode: bám khi rect.bottom >= mép đáy container − offsetBottom.
+import classNames from 'classnames';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface AffixClassNames {
+  /** Div gốc sticky (nơi className prop cũng dính). */
+  root?: string;
+}
 
 export interface AffixProps {
   children: ReactNode;
@@ -19,6 +26,10 @@ export interface AffixProps {
   /** Container scroll cụ thể (antd target) — mặc định tự dò ancestor scrollable, fallback window. */
   target?: () => HTMLElement | Window;
   className?: string;
+  /** Inline style — merge SAU sticky top/bottom (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: AffixClassNames;
 }
 
 function findScrollParent(el: HTMLElement | null): HTMLElement | Window {
@@ -32,14 +43,17 @@ function findScrollParent(el: HTMLElement | null): HTMLElement | Window {
   return window;
 }
 
-export function Affix({
-  children,
-  offsetTop = 0,
-  offsetBottom,
-  onChange,
-  target,
-  className,
-}: AffixProps) {
+export function Affix(props: AffixProps) {
+  const {
+    children,
+    offsetTop = 0,
+    offsetBottom,
+    onChange,
+    target,
+    className,
+    style: userStyle,
+  } = props;
+  const slots = props.classNames;
   const ref = useRef<HTMLDivElement>(null);
   const [affixed, setAffixed] = useState(false);
   const affixedRef = useRef(false);
@@ -82,7 +96,12 @@ export function Affix({
     : { position: 'sticky', top: offsetTop };
 
   return (
-    <div ref={ref} style={style} data-affixed={affixed || undefined} className={className}>
+    <div
+      ref={ref}
+      style={{ ...style, ...userStyle }}
+      data-affixed={affixed || undefined}
+      className={classNames(slots?.root, className)}
+    >
       {children}
     </div>
   );

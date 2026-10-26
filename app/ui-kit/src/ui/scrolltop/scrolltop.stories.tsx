@@ -39,3 +39,16 @@ export const CustomThreshold: S = {
   name: 'Custom threshold — appears after 1200px',
   render: () => <TallPage threshold={1200} />,
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the fixed
+ * button; `style` passes through. Scroll down to reveal it. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ScrollTop
+      threshold={50}
+      classNames={{ root: 'border-2 border-dashed border-white/60' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.28)' }}
+    />
+  ),
+};

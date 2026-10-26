@@ -22,11 +22,18 @@
 //   Blur: hero/ảnh focus-in        · Bounce: điểm thưởng/success pop
 //   ScaleSoft: hover-inRegion nhẹ  · Stagger: list/grid mount nối tiếp
 //   Crossfade: swap 2 trạng thái cùng chỗ (tab ảnh, 2 mode xem)
+import classNames from 'classnames';
 import { useEffect, useState,
   type AnimationEvent,
   type CSSProperties,
   type ReactNode,
   type TransitionEvent } from 'react';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface TransitionClassNames {
+  /** Div wrapper của transition (tầng animate). */
+  root?: string;
+}
 
 export interface TransitionProps {
   /** Hiện (enter) / ẩn (exit) — bỏ qua mặc định là hiện. */
@@ -40,6 +47,10 @@ export interface TransitionProps {
   /** Timing function — mặc định token `var(--ease-smooth)` (depth contract). */
   easing?: string;
   className?: string;
+  /** Inline style — merge lên wrapper (key animation của kit thắng). */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: TransitionClassNames;
   children: ReactNode;
 }
 
@@ -57,10 +68,10 @@ function useExitMachine(show: boolean) {
   return { mounted, closing, handleEnd };
 }
 
-function baseCls(show: boolean, unmountOnExit: boolean, extra: string, className?: string) {
+function baseCls(show: boolean, unmountOnExit: boolean, extra: string, className?: string, rootSlot?: string) {
   // giữ ẩn sau exit khi giữ DOM (animation không fill — cần class hold)
   const hold = !show && !unmountOnExit ? ' opacity-0' : '';
-  return `${extra}${hold}${className ? ` ${className}` : ''}`;
+  return `${extra}${hold}${rootSlot ? ` ${rootSlot}` : ''}${className ? ` ${className}` : ''}`;
 }
 
 /** Style animation dùng chung — duration/delay/easing/reverse (exit = reverse enter). */
@@ -81,12 +92,15 @@ function animStyle(opts: {
 }
 
 /** Fade — mờ dần/vào mờ dần (bp-fade-in / bp-fade-out). */
-export function Fade({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Fade(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
       className={baseCls(
         show,
         unmountOnExit,
@@ -94,6 +108,7 @@ export function Fade({ in: show = true, unmountOnExit = true, duration, delay, e
           ? 'animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]'
           : 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-smooth)]',
         className,
+        slots?.root,
       )}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
@@ -105,12 +120,15 @@ export function Fade({ in: show = true, unmountOnExit = true, duration, delay, e
 }
 
 /** Zoom — phóng từ 96% (bp-zoom-in / bp-zoom-out). */
-export function Zoom({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Zoom(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
       className={baseCls(
         show,
         unmountOnExit,
@@ -118,6 +136,7 @@ export function Zoom({ in: show = true, unmountOnExit = true, duration, delay, e
           ? 'animate-[bp-zoom-in_var(--motion-base)_var(--ease-smooth)]'
           : 'animate-[bp-zoom-out_var(--motion-fast)_var(--ease-smooth)]',
         className,
+        slots?.root,
       )}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
@@ -140,7 +159,10 @@ export interface CollapseProps extends TransitionProps {
   orientation?: 'vertical' | 'horizontal';
 }
 
-export function Collapse({ in: show = true, unmountOnExit = true, duration, delay, easing, orientation = 'vertical', className, children }: CollapseProps) {
+export function Collapse(props: CollapseProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, orientation = 'vertical', className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   const horizontal = orientation === 'horizontal';
@@ -150,12 +172,20 @@ export function Collapse({ in: show = true, unmountOnExit = true, duration, dela
   return (
     <div
       style={{
+        ...style,
         ...dim,
         transitionTimingFunction: easing ?? 'var(--ease-smooth)',
         ...(duration ? { transitionDuration: `${duration}ms` } : null),
         ...(delay ? { transitionDelay: `${delay}ms` } : null),
       }}
-      className={`grid ${horizontal ? 'transition-[grid-template-columns]' : 'transition-[grid-template-rows]'} duration-[var(--motion-base)]${!show && !unmountOnExit ? ' invisible' : ''}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'grid',
+        horizontal ? 'transition-[grid-template-columns]' : 'transition-[grid-template-rows]',
+        'duration-[var(--motion-base)]',
+        !show && !unmountOnExit ? 'invisible' : '',
+        slots?.root,
+        className,
+      )}
       onTransitionEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -179,13 +209,16 @@ const SLIDE_CLS: Record<NonNullable<SlideProps['direction']>, string> = {
   right: 'animate-[bp-slide-in-right_var(--motion-base)_var(--ease-smooth)]',
 };
 
-export function Slide({ direction = 'up', in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: SlideProps) {
+export function Slide(props: SlideProps) {
+  const { direction = 'up', in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, SLIDE_CLS[direction], className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, SLIDE_CLS[direction], className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -202,13 +235,16 @@ export interface GrowProps extends TransitionProps {
   origin?: string;
 }
 
-export function Grow({ origin = 'bottom left', in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: GrowProps) {
+export function Grow(props: GrowProps) {
+  const { origin = 'bottom left', in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={{ transformOrigin: origin, ...animStyle({ duration, delay, easing, closing }) }}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-grow-in_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, transformOrigin: origin, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-grow-in_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -219,13 +255,16 @@ export function Grow({ origin = 'bottom left', in: show = true, unmountOnExit = 
 }
 
 /** Flip — xoay 3D quanh trục Y (perspective 800px, rotateY 70°→0). Exit = reverse. */
-export function Flip({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Flip(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-flip_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-flip_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -236,13 +275,16 @@ export function Flip({ in: show = true, unmountOnExit = true, duration, delay, e
 }
 
 /** Rotate — quay đơn trục -90°→0 kèm scale nhẹ (flip-clock/settle). Exit = reverse. */
-export function Rotate({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Rotate(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-rotate-in_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-rotate-in_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -254,13 +296,16 @@ export function Rotate({ in: show = true, unmountOnExit = true, duration, delay,
 
 /** Blur — focus-in từ mờ 8px (ảnh hero, khung ảnh lớn). Ngoại lệ duy nhất animate
  * `filter` (bản chất của loại — vẫn GPU-composited). Exit = reverse. */
-export function Blur({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Blur(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-blur-in_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-blur-in_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -272,13 +317,16 @@ export function Blur({ in: show = true, unmountOnExit = true, duration, delay, e
 
 /** Bounce — pop overshoot (scale .6→1.05→.97→1) — điểm thưởng/success pop.
  * Exit = reverse (co về). */
-export function Bounce({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function Bounce(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-bounce-in_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-bounce-in_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -289,13 +337,16 @@ export function Bounce({ in: show = true, unmountOnExit = true, duration, delay,
 }
 
 /** ScaleSoft — scale 0.98→1 cực nhẹ (khởi hiện vùng nội dung, không gây chú ý). */
-export function ScaleSoft({ in: show = true, unmountOnExit = true, duration, delay, easing, className, children }: TransitionProps) {
+export function ScaleSoft(props: TransitionProps) {
+  const { in: show = true, unmountOnExit = true, duration, delay, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   return (
     <div
-      style={animStyle({ duration, delay, easing, closing })}
-      className={baseCls(show, unmountOnExit, 'animate-[bp-soft-in_var(--motion-base)_var(--ease-smooth)]', className)}
+      style={{ ...style, ...animStyle({ duration, delay, easing, closing }) }}
+      className={baseCls(show, unmountOnExit, 'animate-[bp-soft-in_var(--motion-base)_var(--ease-smooth)]', className, slots?.root)}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
       }}
@@ -313,19 +364,23 @@ export interface StaggerProps extends TransitionProps {
   staggerMs?: number;
 }
 
-export function Stagger({ staggerMs = 30, in: show = true, unmountOnExit = true, duration, delay = 0, easing, className, children }: StaggerProps) {
+export function Stagger(props: StaggerProps) {
+  const { staggerMs = 30, in: show = true, unmountOnExit = true, duration, delay = 0, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const { mounted, closing, handleEnd } = useExitMachine(show);
   if (!mounted) return null;
   const items = Array.isArray(children) ? children : [children];
   const ease = easing ?? 'var(--ease-smooth)';
   return (
     <div
-      style={animStyle({ duration, easing })}
+      style={{ ...style, ...animStyle({ duration, easing }) }}
       className={baseCls(
         show,
         unmountOnExit,
         closing ? 'animate-[bp-fade-out_var(--motion-fast)_var(--ease-smooth)]' : '',
         className,
+        slots?.root,
       )}
       onAnimationEnd={(e) => {
         if (closing) handleEnd(e);
@@ -351,14 +406,21 @@ export interface CrossfadeProps {
   /** Timing function — mặc định token `var(--ease-smooth)`. */
   easing?: string;
   className?: string;
+  /** Inline style — passthrough lên container. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: TransitionClassNames;
   /** Đúng 2 node — [mục 0, mục 1]. */
   children: ReactNode;
 }
 
-export function Crossfade({ active = 0, duration, easing, className, children }: CrossfadeProps) {
+export function Crossfade(props: CrossfadeProps) {
+  const { active = 0, duration, easing, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const items = (Array.isArray(children) ? children : [children]).slice(0, 2);
   return (
-    <div className={`relative grid${className ? ` ${className}` : ''}`}>
+    <div className={classNames('relative grid', slots?.root, className)} style={style}>
       {items.map((child, i) => (
         <div
           key={i}

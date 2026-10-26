@@ -151,3 +151,31 @@ function DarkTourDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the fixed
+ * overlay (mask + spotlight), `panel` on the step dialog; `style` lands on the
+ * overlay; the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => <CustomStyledTourDemo />,
+};
+
+function CustomStyledTourDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl bg-canvas p-4">
+      <TourFrame open={open} onStart={() => setOpen(true)}>
+        <Tour
+          steps={SETTINGS_STEPS}
+          open={open}
+          onClose={() => setOpen(false)}
+          classNames={{
+            root: 'backdrop-blur-[2px]',
+            panel: 'border-dashed border-accent bg-accent/5',
+          }}
+          style={{ boxShadow: 'inset 0 0 80px rgba(0, 0, 0, 0.25)' }}
+        />
+      </TourFrame>
+    </div>
+  );
+}

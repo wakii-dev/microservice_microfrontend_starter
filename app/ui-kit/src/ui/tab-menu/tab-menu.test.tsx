@@ -48,3 +48,33 @@ describe('TabMenu — controlled + links', () => {
     expect(link).toHaveAttribute('aria-current', 'page');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('TabMenu — classNames + style', () => {
+  const MODEL = [
+    { key: 'a', label: 'Alpha' },
+    { key: 'b', label: 'Beta', href: '#beta' },
+  ];
+
+  it('slot item lên cả <button> và <a>; root lên nav; className sau root slot', () => {
+    render(
+      <TabMenu
+        model={MODEL}
+        activeKey="a"
+        classNames={{ root: 'slot-root', item: 'slot-item' }}
+        className="user-last"
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(screen.getByText('Alpha')).toHaveClass('slot-item');
+    expect(screen.getByText('Beta')).toHaveClass('slot-item');
+    const nav = document.querySelector('nav.slot-root')!;
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên nav', () => {
+    render(<TabMenu model={MODEL} style={{ padding: '2px' }} />);
+    expect(document.querySelector('nav')).toHaveStyle({ padding: '2px' });
+  });
+});

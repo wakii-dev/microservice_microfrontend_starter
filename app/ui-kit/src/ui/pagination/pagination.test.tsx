@@ -110,3 +110,26 @@ describe('Pagination — branch phụ 2', () => {
     expect(screen.queryByText('···')).toBeNull();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Pagination — classNames + style', () => {
+  it('slot root lên nav + item lên mọi button (active/disabled/ellipsis)', () => {
+    render(
+      <Pagination current={5} pageSize={1} total={12} classNames={{ root: 'slot-root', item: 'slot-item' }} />,
+    );
+    const nav = document.querySelector('nav.slot-root')!;
+    expect(nav).not.toBeNull();
+    expect(nav.querySelectorAll('button.slot-item').length).toBeGreaterThanOrEqual(5);
+    expect(screen.getByRole('button', { name: 'Trang 5' })).toHaveClass('slot-item');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(
+      <Pagination current={1} pageSize={10} total={20} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

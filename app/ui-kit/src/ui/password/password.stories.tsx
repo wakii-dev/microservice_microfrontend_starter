@@ -41,3 +41,30 @@ function PasswordControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / field / input / toggle
+ * / strengthMeter) + style passthrough. `root` lands on the outer div (same
+ * element as `className`), `field` on the relative wrapper, `input` on the
+ * password field, `toggle` on the eye button, `strengthMeter` on the bars row;
+ * `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { ariaLabel: 'Custom styled password', showStrength: true },
+  render: (args) => (
+    <div className="grid max-w-[280px] gap-4">
+      <Password
+        {...args}
+        value="Str0ngPass!"
+        classNames={{
+          root: 'rounded-xl',
+          input: 'border-st-done',
+          toggle: 'text-accent',
+          strengthMeter: 'gap-1.5',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

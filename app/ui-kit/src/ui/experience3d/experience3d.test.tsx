@@ -48,3 +48,27 @@ describe('experience3d — graceful trong môi trường không WebGL', () => {
     expect(screen.getByText('fb')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('experience3d — classNames + style', () => {
+  it('slot root lên host div cả 3 component; className sau slot', () => {
+    const { container } = render(
+      <>
+        <ShipModel height={120} classNames={{ root: 'slot-root' }} className="user-last" />
+        <Scene3D height={120} classNames={{ root: 'slot-root' }} />
+        <ScrollFlythrough height={120} reducedMotion classNames={{ root: 'slot-root' }} />
+      </>,
+    );
+    const hosts = container.querySelectorAll('.slot-root');
+    expect(hosts).toHaveLength(3);
+    expect(hosts[0]!.className.indexOf('slot-root')).toBeLessThan(hosts[0]!.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau height lên host (override được)', () => {
+    const { container } = render(<ShipModel height={240} style={{ height: '99px', margin: '8px' }} />);
+    const host = container.firstElementChild as HTMLElement;
+    expect(host.style.height).toBe('99px'); // consumer override thắng
+    expect(host.style.margin).toBe('8px');
+  });
+});

@@ -1,7 +1,8 @@
 // ContextMenu — right-click menu (position theo mouse).
 // A11y: role=menu/menuitem, ArrowUp/Down/Home/End đi giữa item (pattern dropdown),
 // ESC/click ngoài đóng.
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 
 export interface ContextMenuItem {
   /** Khóa định danh — '---' render divider. */
@@ -12,6 +13,14 @@ export interface ContextMenuItem {
   disabled?: boolean;
 }
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ContextMenuClassNames {
+  /** Div vùng bắt right-click (bọc children). */
+  root?: string;
+  /** <ul> menu fixed khi mở. */
+  menu?: string;
+}
+
 export interface ContextMenuProps {
   /** Item menu — key '---' render divider. */
   items: ContextMenuItem[];
@@ -20,9 +29,15 @@ export interface ContextMenuProps {
   /** Callback khi chọn item. */
   onItemClick?: (key: string) => void;
   className?: string;
+  /** Inline style — passthrough lên div vùng bắt right-click. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ContextMenuClassNames;
 }
 
-export function ContextMenu({ items, children, onItemClick, className }: ContextMenuProps) {
+export function ContextMenu(props: ContextMenuProps) {
+  const { items, children, onItemClick, className, style } = props;
+  const slots = props.classNames;
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
@@ -58,10 +73,24 @@ export function ContextMenu({ items, children, onItemClick, className }: Context
     return () => { document.removeEventListener('click', close); document.removeEventListener('contextmenu', close); document.removeEventListener('keydown', onKey); };
   }, [pos]);
   return (
-    <div ref={ref} className={className} onContextMenu={(e) => { e.preventDefault(); setPos({ x: e.clientX, y: e.clientY }); }}>
+    <div
+      ref={ref}
+      className={classNames(slots?.root, className)}
+      style={style}
+      onContextMenu={(e) => { e.preventDefault(); setPos({ x: e.clientX, y: e.clientY }); }}
+    >
       {children}
       {pos && (
-        <ul ref={menuRef} role="menu" onKeyDown={onMenuKey} className="fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] origin-top-left list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]" style={{ left: pos.x, top: pos.y }}>
+        <ul
+          ref={menuRef}
+          role="menu"
+          onKeyDown={onMenuKey}
+          className={classNames(
+            'fixed z-[var(--z-dropdown)] m-0 w-max min-w-[180px] max-w-[calc(100vw-16px)] origin-top-left list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]',
+            slots?.menu,
+          )}
+          style={{ left: pos.x, top: pos.y }}
+        >
           {items.map((item) => item.key === '---' ? (
             <li key={item.key} className="my-1 border-t border-line2" />
           ) : (

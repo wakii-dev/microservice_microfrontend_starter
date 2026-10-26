@@ -2,8 +2,15 @@
 // hoặc nhiều (multiple). Group quản checked qua props `value` của từng nút:
 // cloneElement tiêm checked/onChange, nút đứng lẻ (không `value`) giữ nguyên.
 // A11y: role=group + aria-label; từng nút vẫn dùng aria-pressed của ToggleButton.
-import { Children, Fragment, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { Children, Fragment, cloneElement, isValidElement, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { type ToggleButtonProps } from './index.js';
+
+/** Slot classes cho Group — merge sau class mặc định (consumer append). */
+export interface ToggleButtonGroupClassNames {
+  /** Div role=group bọc các nút. */
+  root?: string;
+}
 
 interface BaseGroupProps {
   /** Khoá toàn group (nút lẻ vẫn có thể tự disabled). */
@@ -11,6 +18,10 @@ interface BaseGroupProps {
   /** Nhãn a11y của group (role=group). */
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên div group. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ToggleButtonGroupClassNames;
   /** Các `ToggleButton` con — mỗi nút cần `value` để group quản trạng thái. */
   children: ReactNode;
 }
@@ -33,6 +44,8 @@ export type ToggleButtonGroupProps = SingleGroupProps | MultiGroupProps;
 
 export function ToggleButtonGroup(props: ToggleButtonGroupProps) {
   const { disabled, ariaLabel, className, children } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const multiple = props.multiple === true;
   const value: string | string[] | undefined = props.value;
   const onChange = props.onChange as ((v: string | string[]) => void) | undefined;
@@ -73,7 +86,8 @@ export function ToggleButtonGroup(props: ToggleButtonGroupProps) {
     <div
       role="group"
       aria-label={ariaLabel}
-      className={`inline-flex items-center gap-2${className ? ` ${className}` : ''}`}
+      className={classNames('inline-flex items-center gap-2', slots?.root, className)}
+      style={style}
     >
       {items}
     </div>

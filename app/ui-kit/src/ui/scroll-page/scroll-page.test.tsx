@@ -49,3 +49,34 @@ describe('ScrollPage', () => {
     expect(document.querySelector('.my-section')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('ScrollPage — classNames + style', () => {
+  it('slots lên đúng element: container + section; className sau slot', () => {
+    render(
+      <ScrollPage aria-label="Slotted deck" classNames={{ root: 'slot-deck' }} className="user-deck">
+        <ScrollPage.Section classNames={{ root: 'slot-section' }} className="user-section">
+          content
+        </ScrollPage.Section>
+      </ScrollPage>,
+    );
+    const deck = screen.getByLabelText('Slotted deck');
+    expect(deck).toHaveClass('slot-deck');
+    expect(deck.className.indexOf('slot-deck')).toBeLessThan(deck.className.indexOf('user-deck'));
+    const section = deck.querySelector('section')!;
+    expect(section).toHaveClass('slot-section');
+    expect(section.className.indexOf('slot-section')).toBeLessThan(section.className.indexOf('user-section'));
+  });
+
+  it('style passthrough qua HTMLAttributes lên cả container + section', () => {
+    render(
+      <ScrollPage aria-label="Styled deck" style={{ margin: '8px' }}>
+        <ScrollPage.Section style={{ padding: '4px' }}>x</ScrollPage.Section>
+      </ScrollPage>,
+    );
+    const deck = screen.getByLabelText('Styled deck');
+    expect(deck).toHaveStyle({ margin: '8px' });
+    expect(deck.querySelector('section')).toHaveStyle({ padding: '4px' });
+  });
+});

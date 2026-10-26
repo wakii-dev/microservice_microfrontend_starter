@@ -2,6 +2,7 @@
 // ở index.tsx sau khi consumer có @tiptap/*). Toolbar: B/I/S + H2/H3 + list +
 // undo/redo; active state theo editor.isActive; placeholder DIY qua editor.isEmpty
 // (StarterKit v3 KHÔNG kèm Placeholder — không thêm dep mới).
+import classNames from 'classnames';
 import { useState } from 'react';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -30,7 +31,10 @@ const TOOLS: TBtn[] = [
   { key: 'redo', label: '', title: 'Làm lại', icon: 'arrow-right', run: (ed) => void ed.chain().focus().redo().run() },
 ];
 
-export function EditorInner({ content = '', onChange, placeholder, className, editorRef }: EditorProps) {
+export function EditorInner(props: EditorProps) {
+  const { content = '', onChange, placeholder, className, editorRef } = props;
+  const slots = props.classNames;
+  const { style } = props;
   const [empty, setEmpty] = useState(!content);
 
   const editor = useEditor({
@@ -51,12 +55,20 @@ export function EditorInner({ content = '', onChange, placeholder, className, ed
 
   return (
     <div
-      className={`overflow-hidden rounded-lg border border-line bg-s2 transition-colors focus-within:border-accent-hi${
-        className ? ` ${className}` : ''
-      }`}
+      className={classNames(
+        'overflow-hidden rounded-lg border border-line bg-s2 transition-colors focus-within:border-accent-hi',
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       {/* Toolbar sticky trên content */}
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-s1 px-1 py-1">
+      <div
+        className={classNames(
+          'sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-s1 px-1 py-1',
+          slots?.toolbar,
+        )}
+      >
         {TOOLS.map((t) => {
           const active = editor ? Boolean(t.active?.(editor)) : false;
           return (
@@ -77,7 +89,7 @@ export function EditorInner({ content = '', onChange, placeholder, className, ed
           );
         })}
       </div>
-      <div className="relative">
+      <div className={classNames('relative', slots?.content)}>
         {placeholder && empty && (
           <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 select-none text-body text-ink4">
             {placeholder}

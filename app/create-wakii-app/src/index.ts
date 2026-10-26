@@ -5,7 +5,7 @@
 import * as p from '@clack/prompts';
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { EXTRAS, parseArgs, resolveOptions, type ScaffoldPlan } from './options.js';
+import { EXTRAS, PRESETS, parseArgs, resolveOptions, type Preset, type ScaffoldPlan } from './options.js';
 import { scaffold } from './scaffold.js';
 
 const USAGE = `create-wakii-app — scaffold app React + @wakii/ui-kit
@@ -13,15 +13,34 @@ const USAGE = `create-wakii-app — scaffold app React + @wakii/ui-kit
 Usage: pnpm create wakii-app [appName] [flags]
 
 Flags:
-  --lang ts|js        Ngôn ngữ (default: ts)
-  --router/--no-router  react-router v7 (default: có)
-  --extras <list>     Extras phẩy ngăn cách: chart,carousel,schedule,editor (default: none)
+  --preset <tên>      demo | minimal | product | admin (default: demo)
+  --lang ts|js        Ngôn ngữ (default: ts — preset khác demo chỉ hỗ trợ ts)
+  --router/--no-router  react-router v7, preset demo (default: có)
+  --extras <list>     Extras phẩy ngăn cách: chart,carousel,schedule,editor —
+                      chỉ dành cho preset demo
   --yes               Lấy toàn bộ default, không prompt
   --skip-install      Bỏ gợi ý 'pnpm install' ở next-steps
   -h, --help          In hướng dẫn
 
-Ví dụ: pnpm create wakii-app my-app --lang ts --router --extras chart,carousel
+Presets:
+  demo      Trang demo dogfooding @wakii/ui-kit + router + extras (mặc định)
+  minimal   Cấu trúc chuẩn, trang trắng — không data layer
+  product   Chuẩn cấu trúc + TanStack Query + zod + MSW + feature tasks mẫu
+  admin     product + layout admin (Sidebar + Menu + dashboard + login)
+
+Ví dụ:
+  pnpm create wakii-app my-app
+  pnpm create wakii-app my-app --preset product
+  pnpm create wakii-app admin-app --preset admin --yes
+  pnpm create wakii-app my-app --lang ts --router --extras chart,carousel
 `;
+
+const PRESET_PROMPTS: Record<Preset, string> = {
+  demo: 'demo — trang demo kit + router + extras (mặc định)',
+  minimal: 'minimal — cấu trúc chuẩn, trang trắng, không data layer',
+  product: 'product — chuẩn cấu trúc + TanStack Query + zod + MSW + feature mẫu',
+  admin: 'admin — product + layout admin (Sidebar + dashboard + login)',
+};
 
 function printNextSteps(plan: ScaffoldPlan): void {
   const steps = [`cd ${plan.appName}`];
@@ -55,7 +74,22 @@ async function main(): Promise<void> {
     }
     options = { ...options, appName: name.trim() };
   }
-  if (options.router === undefined && options.extras.length === 0 && !options.yes) {
+  // Preset hỏi TRƯỚC (định hình các prompt sau: non-demo luôn có router, bỏ extras)
+  if (options.preset === undefined && !options.yes) {
+    const preset = await p.select<Preset>({
+      message: 'Chọn preset?',
+      initialValue: 'demo',
+      options: PRESETS.map((value) => ({ value, label: PRESET_PROMPTS[value] })),
+    });
+    if (p.isCancel(preset)) {
+      p.cancel('Huỷ — không scaffold gì.');
+      return;
+    }
+    options = { ...options, preset };
+  }
+  // Router/extras chỉ là lựa chọn của preset demo — non-demo template đóng gói sẵn.
+  const presetIsDemo = (options.preset ?? 'demo') === 'demo';
+  if (presetIsDemo && options.router === undefined && options.extras.length === 0 && !options.yes) {
     const withRouter = await p.confirm({ message: 'Thêm react-router v7?', initialValue: true });
     if (p.isCancel(withRouter)) {
       p.cancel('Huỷ — không scaffold gì.');
@@ -63,7 +97,7 @@ async function main(): Promise<void> {
     }
     options = { ...options, router: withRouter };
   }
-  if (!options.yes && !options.extrasProvided) {
+  if (presetIsDemo && !options.yes && !options.extrasProvided) {
     const chosen = await p.multiselect({
       message: 'Extras (tuỳ chọn — demo subpath component nặng)',
       options: EXTRAS.map((value) => ({ value, label: value })),

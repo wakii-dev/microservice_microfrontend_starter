@@ -35,3 +35,19 @@ describe('Backdrop', () => {
     expect(screen.getByTestId('backdrop')).toHaveClass('marker-scrim');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Backdrop — classNames + style', () => {
+  it('slot root lên div scrim; className sau slot', () => {
+    render(<Backdrop open classNames={{ root: 'slot-root' }} className="user-last" />);
+    const scrim = screen.getByTestId('backdrop');
+    expect(scrim).toHaveClass('slot-root');
+    expect(scrim.className.indexOf('slot-root')).toBeLessThan(scrim.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên scrim (merge sau class mặc định)', () => {
+    render(<Backdrop open style={{ background: 'rgb(1, 2, 3)' }} />);
+    expect(screen.getByTestId('backdrop')).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+  });
+});

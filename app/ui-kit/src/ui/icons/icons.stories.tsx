@@ -50,3 +50,15 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the svg;
+ * `style` passes through (color inherits via fill=currentColor). */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <span className="flex items-center gap-3">
+      <Icon name="settings" size={20} classNames={{ root: 'text-accent' }} style={{ padding: 2, border: '1px dashed currentColor' }} />
+      <Icon name="bell" size={20} classNames={{ root: 'text-st-fail animate-[bp-pulse-soft_2s_ease-in-out_infinite]' }} />
+    </span>
+  ),
+};

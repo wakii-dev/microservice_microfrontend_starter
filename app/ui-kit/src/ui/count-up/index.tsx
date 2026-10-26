@@ -5,7 +5,14 @@
 // Depth contract 2026-10-19: đổi giá trị → pulse nhẹ (re-zoom 280ms ease-smooth,
 // tái dùng keyframe bp-zoom-in — không đúc keyframe mới; reduced-motion tắt nhờ
 // block global). Chỉ pulse từ lần ĐỔI thứ 2 trở đi — mount đầu không nhấp nháy.
-import { useEffect, useRef, useState } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface CountUpClassNames {
+  /** Span gốc hiển thị số. */
+  root?: string;
+}
 
 export interface CountUpProps {
   /** Giá trị đích. */
@@ -19,9 +26,15 @@ export interface CountUpProps {
   /** Gọi 1 lần khi animation chạm giá trị đích. */
   onDone?: () => void;
   className?: string;
+  /** Inline style — merge SAU animation pulse (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: CountUpClassNames;
 }
 
-export function CountUp({ value, duration = 1.2, decimals = 0, format, onDone, className }: CountUpProps) {
+export function CountUp(props: CountUpProps) {
+  const { value, duration = 1.2, decimals = 0, format, onDone, className, style } = props;
+  const slots = props.classNames;
   const [display, setDisplay] = useState(0);
   const fromRef = useRef(0);
   const onDoneRef = useRef(onDone);
@@ -61,8 +74,8 @@ export function CountUp({ value, duration = 1.2, decimals = 0, format, onDone, c
   return (
     <span
       key={changeCount}
-      style={changeCount > 0 ? { animation: 'bp-zoom-in 280ms var(--ease-smooth)' } : undefined}
-      className={`tabular-nums inline-block${className ? ` ${className}` : ''}`}
+      style={{ ...(changeCount > 0 ? { animation: 'bp-zoom-in 280ms var(--ease-smooth)' } : undefined), ...style }}
+      className={classNames('tabular-nums inline-block', slots?.root, className)}
     >
       {format ? format(rounded) : rounded.toFixed(decimals)}
     </span>

@@ -4,12 +4,14 @@
 // A11y (batch ⑫ worker C): role=menu/menuitem, ArrowUp/Down/Home/End đi giữa
 // item, mở bằng keyboard (Enter/Space/ArrowDown) → focus item đầu, ESC → đóng
 // + trả focus về trigger.
+import classNames from 'classnames';
 import {
   cloneElement,
   isValidElement,
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactElement,
   type ReactNode,
@@ -22,6 +24,14 @@ export interface DropdownItem {
   disabled?: boolean;
 }
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface DropdownClassNames {
+  /** Span gốc bọc trigger + menu (relative inline-flex). */
+  root?: string;
+  /** <ul> menu absolute khi mở. */
+  menu?: string;
+}
+
 export interface DropdownProps {
   /** Trigger element (click để mở). */
   trigger: ReactNode;
@@ -30,9 +40,15 @@ export interface DropdownProps {
   /** Callback khi click item (không gọi với item disabled). */
   onItemClick?: (key: string) => void;
   className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: DropdownClassNames;
 }
 
-export function Dropdown({ trigger, items, onItemClick, className }: DropdownProps) {
+export function Dropdown(props: DropdownProps) {
+  const { trigger, items, onItemClick, className, style } = props;
+  const slots = props.classNames;
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
@@ -120,7 +136,7 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
     : trigger;
 
   return (
-    <span ref={rootRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
+    <span ref={rootRef} className={classNames('relative inline-flex', slots?.root, className)} style={style}>
       <span onClick={onTriggerClick} onKeyDown={onTriggerKey} className="inline-flex">
         {triggerEl}
       </span>
@@ -129,7 +145,10 @@ export function Dropdown({ trigger, items, onItemClick, className }: DropdownPro
           ref={menuRef}
           role="menu"
           onKeyDown={onMenuKey}
-          className="absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] origin-top-right list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
+          className={classNames(
+            'absolute right-0 z-[var(--z-dropdown)] mt-1 min-w-[120px] origin-top-right list-none rounded-xl border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]',
+            slots?.menu,
+          )}
         >
           {items.map((item) =>
             item.key === '---' ? (

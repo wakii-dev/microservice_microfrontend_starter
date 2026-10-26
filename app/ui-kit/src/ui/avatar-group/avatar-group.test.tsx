@@ -69,3 +69,21 @@ describe('AvatarGroup', () => {
     expect(avatar).toHaveStyle({ width: '48px' });
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('AvatarGroup — classNames + style', () => {
+  const ITEMS = [{ name: 'Alice' }, { name: 'Bob' }];
+
+  it('slot root lên div; className sau slot', () => {
+    const { container } = render(<AvatarGroup items={ITEMS} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên div gốc', () => {
+    const { container } = render(<AvatarGroup items={ITEMS} style={{ gap: 4 }} />);
+    expect(container.firstElementChild).toHaveStyle({ gap: '4px' });
+  });
+});

@@ -6,6 +6,7 @@
 // light cho môi trường không cascade token, vd jsdom). Đổi theme (data-bp-theme) →
 // re-bake tile qua MutationObserver. Font-family mặc định 'sans-serif' — SVG data-URI
 // không đọc được CSS var, consumer override qua prop font khi cần đúng stack.
+import classNames from 'classnames';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 export interface WatermarkFont {
@@ -17,6 +18,14 @@ export interface WatermarkFont {
   fontFamily?: string;
   /** Kiểu chữ. Mặc định 'normal'. */
   fontStyle?: 'normal' | 'italic' | 'oblique';
+}
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface WatermarkClassNames {
+  /** Span gốc bọc children (relative block). */
+  root?: string;
+  /** Span overlay tile watermark (aria-hidden). */
+  overlay?: string;
 }
 
 export interface WatermarkProps {
@@ -49,6 +58,8 @@ export interface WatermarkProps {
   className?: string;
   /** Style dán lên container bao children. */
   style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: WatermarkClassNames;
 }
 
 /** Escape nội dung text đưa vào SVG (data-URI không được vỡ markup). */
@@ -99,23 +110,25 @@ function buildTileUrl(opts: {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-export function Watermark({
-  children,
-  content,
-  gap = [100, 100],
-  offset,
-  left,
-  top,
-  width,
-  height,
-  zIndex = 9,
-  rotate = -22,
-  opacity = 1,
-  font,
-  fontColor,
-  className,
-  style,
-}: WatermarkProps) {
+export function Watermark(props: WatermarkProps) {
+  const {
+    children,
+    content,
+    gap = [100, 100],
+    offset,
+    left,
+    top,
+    width,
+    height,
+    zIndex = 9,
+    rotate = -22,
+    opacity = 1,
+    font,
+    fontColor,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const rootRef = useRef<HTMLSpanElement>(null);
   // Màu tile bake sẵn vào SVG — resolve token --ink3 trong scope consumer; fallback
   // là giá trị --ink3 light (môi trường không cascade token, vd jsdom).
@@ -170,11 +183,11 @@ export function Watermark({
   }
 
   return (
-    <span ref={rootRef} className={`relative block${className ? ` ${className}` : ''}`} style={style}>
+    <span ref={rootRef} className={classNames('relative block', slots?.root, className)} style={style}>
       {children}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute overflow-hidden${positioned ? '' : ' inset-0'}`}
+        className={classNames('pointer-events-none absolute overflow-hidden', positioned ? '' : 'inset-0', slots?.overlay)}
         style={overlayStyle}
       />
     </span>

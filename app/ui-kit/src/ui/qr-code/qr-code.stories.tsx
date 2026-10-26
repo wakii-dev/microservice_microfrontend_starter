@@ -107,3 +107,16 @@ export const CustomColors: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper span,
+ * `code` on the svg, `icon` on the center punch-out; `style` lands on root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    value: 'https://wakii.dev/pay/42',
+    size: 180,
+    classNames: { root: 'rounded-xl border border-dashed border-accent p-2', icon: 'rounded-full' },
+    style: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+    icon: <span className="text-h3 font-bold">W</span>,
+  },
+};

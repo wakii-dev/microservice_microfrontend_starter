@@ -99,3 +99,35 @@ describe('Sidebar + Menu icon-only', () => {
     expect(label).toHaveClass('opacity-100');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Sidebar — classNames slots + style', () => {
+  it('slots lên đúng element: root/brand/body/footer/trigger', () => {
+    render(
+      <Sidebar
+        brand={<span>Brand</span>}
+        footer={<span>User</span>}
+        classNames={{ root: 'slot-root', brand: 'slot-brand', body: 'slot-body', footer: 'slot-footer', trigger: 'slot-trigger' }}
+      >
+        <span>nav content</span>
+      </Sidebar>,
+    );
+    expect(document.querySelector('aside.slot-root')).not.toBeNull();
+    expect(screen.getByText('Brand').parentElement).toHaveClass('slot-brand');
+    expect(screen.getByText('nav content').closest('div')).toHaveClass('slot-body');
+    expect(screen.getByText('User').parentElement).toHaveClass('slot-footer');
+    expect(screen.getByRole('button', { name: 'Thu gọn' })).toHaveClass('slot-trigger');
+  });
+
+  it('style passthrough lên aside; className người dùng sau root slot', () => {
+    render(
+      <Sidebar style={{ background: 'rgb(1, 2, 3)' }} classNames={{ root: 'slot-root' }} className="user-last">
+        <span>x</span>
+      </Sidebar>,
+    );
+    const aside = document.querySelector('aside.slot-root') as HTMLElement;
+    expect(aside).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+    expect(aside.className.indexOf('slot-root')).toBeLessThan(aside.className.indexOf('user-last'));
+  });
+});

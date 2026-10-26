@@ -3,7 +3,8 @@
 // (trước đây cứ truyền prop fallback là không bao giờ render canvas); (2) config so
 // theo JSON (useMemo) — hết destroy/re-create loop mỗi re-render của docs; (3) canvas
 // nằm trong container có height chuẩn (default 260px) — chart.js responsive khỏi init 0×0.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
+import classNames from 'classnames';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 
 export interface ChartDataset {
   label: string;
@@ -36,6 +37,14 @@ export interface ChartConfig {
   options?: Record<string, unknown>;
 }
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ChartClassNames {
+  /** Div container canvas (height đặt ở đây). */
+  root?: string;
+  /** <canvas> chart.js. */
+  canvas?: string;
+}
+
 export interface ChartProps {
   config: ChartConfig;
   /** Chiều cao container (px) — mặc định 260. */
@@ -43,6 +52,10 @@ export interface ChartProps {
   className?: string;
   /** Hiện khi chart.js chưa cài/import lỗi (chỉ lúc đó mới dùng). */
   fallback?: ReactNode;
+  /** Inline style — merge SAU height/position (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: ChartClassNames;
 }
 
 /**
@@ -103,7 +116,9 @@ export function useChartTheme<T extends Record<string, string>>(
   return { ref, colors };
 }
 
-export function Chart({ config, height = 260, className, fallback }: ChartProps) {
+export function Chart(props: ChartProps) {
+  const { config, height = 260, className, fallback, style } = props;
+  const slots = props.classNames;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<unknown>(null);
   const [failed, setFailed] = useState(false);
@@ -164,11 +179,11 @@ export function Chart({ config, height = 260, className, fallback }: ChartProps)
   }, [stableConfig, failed]);
 
   if (failed && fallback !== undefined) return <>{fallback}</>;
-  if (failed) return <div style={{ height }} className={`grid place-items-center rounded-lg border border-dashed border-line text-label text-ink3${className ? ` ${className}` : ''}`}>chart.js chưa cài — pnpm add chart.js</div>;
+  if (failed) return <div style={{ height }} className={classNames('grid place-items-center rounded-lg border border-dashed border-line text-label text-ink3', slots?.root, className)}>chart.js chưa cài — pnpm add chart.js</div>;
 
   return (
-    <div style={{ height, position: 'relative' }} className={className}>
-      <canvas ref={canvasRef} style={{ maxWidth: '100%' }} />
+    <div style={{ height, position: 'relative', ...style }} className={classNames(slots?.root, className)}>
+      <canvas ref={canvasRef} className={slots?.canvas} style={{ maxWidth: '100%' }} />
     </div>
   );
 }

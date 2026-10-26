@@ -40,3 +40,23 @@ function RatingControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / star) + style
+ * passthrough. `root` lands on the radiogroup div (same element as
+ * `className`), `star` on every star button; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { value: 3 },
+  render: (args) => (
+    <Rating
+      {...args}
+      classNames={{
+        root: 'gap-1',
+        star: 'text-xl',
+      }}
+      style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    />
+  ),
+};

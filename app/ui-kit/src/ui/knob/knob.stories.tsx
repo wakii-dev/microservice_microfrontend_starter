@@ -47,3 +47,19 @@ function KnobControlledDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the slider
+ * <svg>; `style` merges on the same element. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Knob
+      value={65}
+      size={120}
+      ariaLabel="Slotted knob"
+      classNames={{ root: 'drop-shadow-lg' }}
+      style={{ filter: 'saturate(1.2)' }}
+      className="rounded-pill"
+    />
+  ),
+};

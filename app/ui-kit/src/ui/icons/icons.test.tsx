@@ -58,3 +58,20 @@ describe('Icon', () => {
     }
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Icon — classNames + style', () => {
+  it('slot root lên svg; className sau slot', () => {
+    const { container } = render(<Icon name="home" classNames={{ root: 'slot-root' }} className="user-last" />);
+    const svg = container.firstElementChild as SVGElement;
+    expect(svg).toHaveClass('slot-root');
+    const cls = svg.getAttribute('class') ?? '';
+    expect(cls.indexOf('slot-root')).toBeLessThan(cls.indexOf('user-last'));
+  });
+
+  it('style passthrough lên svg', () => {
+    const { container } = render(<Icon name="home" style={{ color: 'rgb(1, 2, 3)' }} />);
+    expect(container.firstElementChild).toHaveStyle({ color: 'rgb(1, 2, 3)' });
+  });
+});

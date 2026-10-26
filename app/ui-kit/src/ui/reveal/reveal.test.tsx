@@ -146,3 +146,37 @@ describe('Reveal', () => {
     expect(box).not.toHaveClass('opacity-0');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Reveal — classNames + style', () => {
+  it('slot root lên div reveal cả 2 pha (ẩn + hiện); className sau slot', () => {
+    const { rerender } = render(
+      <Reveal classNames={{ root: 'slot-root' }} className="user-last">
+        <div>card</div>
+      </Reveal>,
+    );
+    const box = screen.getByText('card').parentElement!;
+    expect(box).toHaveClass('slot-root');
+    expect(box.className.indexOf('slot-root')).toBeLessThan(box.className.indexOf('user-last'));
+    last().trigger(true);
+    rerender(
+      <Reveal classNames={{ root: 'slot-root' }} className="user-last">
+        <div>card</div>
+      </Reveal>,
+    );
+    expect(screen.getByText('card').parentElement).toHaveClass('slot-root');
+  });
+
+  it('style passthrough merge lên root; key motion của kit thắng khi shown', () => {
+    render(
+      <Reveal style={{ margin: '8px', transform: 'rotate(45deg)' }}>
+        <div>card</div>
+      </Reveal>,
+    );
+    const box = screen.getByText('card').parentElement as HTMLElement;
+    expect(box).toHaveStyle({ margin: '8px' });
+    last().trigger(true);
+    expect((box as HTMLElement).style.transform).toBe('none'); // kit ghi đè transform khi reveal
+  });
+});

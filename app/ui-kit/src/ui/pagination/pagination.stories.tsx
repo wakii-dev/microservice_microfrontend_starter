@@ -101,3 +101,16 @@ function TableFooterDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `item` on
+ * every button (pages, prev/next, ellipsis); `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    current: 3,
+    pageSize: 10,
+    total: 80,
+    classNames: { root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-2', item: 'rounded-pill' },
+    style: { padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+  },
+};

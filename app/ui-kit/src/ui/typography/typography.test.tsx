@@ -115,3 +115,32 @@ describe('Typography — branch phụ (Tier 5 sweep)', () => {
     expect(screen.queryByText('⧉')).toBeNull();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Typography — classNames slots + style', () => {
+  it('slot root lên heading/p/inner span; Text wrapper slot lên outer span', () => {
+    render(
+      <>
+        <Title level={2} classNames={{ root: 'slot-title' }}>H2</Title>
+        <Text classNames={{ root: 'slot-text', wrapper: 'slot-wrap' }}>Body</Text>
+        <Paragraph classNames={{ root: 'slot-p' }}>Para</Paragraph>
+      </>,
+    );
+    expect(screen.getByText('H2')).toHaveClass('slot-title');
+    expect(screen.getByText('Body').parentElement).toHaveClass('slot-wrap');
+    expect(screen.getByText('Body')).toHaveClass('slot-text');
+    expect(screen.getByText('Para')).toHaveClass('slot-p');
+  });
+
+  it('style passthrough vẫn đè metric mặc định (Title fontSize, Paragraph lineHeight)', () => {
+    render(
+      <>
+        <Title style={{ fontSize: 50 }}>Big</Title>
+        <Paragraph style={{ lineHeight: 2 }}>Loose</Paragraph>
+      </>,
+    );
+    expect(screen.getByText('Big')).toHaveStyle({ fontSize: '50px' });
+    expect(screen.getByText('Loose')).toHaveStyle({ lineHeight: '2' });
+  });
+});

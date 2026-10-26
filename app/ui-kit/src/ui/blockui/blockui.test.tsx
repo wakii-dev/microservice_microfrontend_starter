@@ -27,3 +27,30 @@ describe('BlockUI', () => {
     expect(overlay.className).toContain('z-[var(--z-popover)]');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('BlockUI — classNames + style', () => {
+  it('slots lên đúng element: root/mask/message; className sau root slot', () => {
+    render(
+      <BlockUI blocked message="m" classNames={{ root: 'slot-root', mask: 'slot-mask', message: 'slot-message' }} className="user-last">
+        <span data-testid="blocked-child">c</span>
+      </BlockUI>,
+    );
+    const root = screen.getByTestId('blocked-child').parentElement!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    const overlay = root.querySelector('.absolute.inset-0')!;
+    expect(overlay).toHaveClass('slot-mask');
+    expect(screen.getByText('m')).toHaveClass('slot-message');
+  });
+
+  it('style passthrough lên root (merge sau class mặc định)', () => {
+    render(
+      <BlockUI blocked style={{ margin: '8px' }}>
+        <span data-testid="style-child">x</span>
+      </BlockUI>,
+    );
+    expect(screen.getByTestId('style-child').parentElement).toHaveStyle({ margin: '8px' });
+  });
+});

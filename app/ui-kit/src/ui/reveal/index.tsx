@@ -4,9 +4,16 @@
 // (KHÔNG tạo keyframe mới). once (mặc định) chỉ reveal lần đầu; once=false →
 // ẩn lại khi rời viewport. Delay dùng animation-delay + fill backwards nên
 // element vẫn ẩn trong lúc trễ. prefers-reduced-motion tự tắt nhờ block global.
+import classNames from 'classnames';
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 export type RevealDirection = 'up' | 'down' | 'left' | 'right';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface RevealClassNames {
+  /** Div gốc bị reveal (bọc children). */
+  root?: string;
+}
 
 export interface RevealProps {
   /** Cạnh element trôi vào từ: up = từ dưới (slide-up-in) · down/left/right = fade + transition. */
@@ -18,6 +25,10 @@ export interface RevealProps {
   /** RootMargin IntersectionObserver (vd '0px 0px -80px 0px' — trigger muộn hơn). */
   rootMargin?: string;
   className?: string;
+  /** Inline style — merge lên div gốc (key motion của kit thắng để không vỡ hiệu ứng). */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: RevealClassNames;
   children: ReactNode;
 }
 
@@ -29,7 +40,10 @@ const HIDDEN_OFFSET: Record<RevealDirection, string> = {
   right: 'translateX(12px)',
 };
 
-export function Reveal({ direction = 'up', delay = 0, once = true, rootMargin, className, children }: RevealProps) {
+export function Reveal(props: RevealProps) {
+  const { direction = 'up', delay = 0, once = true, rootMargin, className, children } = props;
+  const slots = props.classNames;
+  const userStyle = props.style;
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
 
@@ -74,9 +88,9 @@ export function Reveal({ direction = 'up', delay = 0, once = true, rootMargin, c
     : { transform: HIDDEN_OFFSET[direction] };
 
   // ẩn = opacity-0; hiện = gỡ opacity-0 (sau animation computed opacity = 1)
-  const cls = `${shown ? anim : 'opacity-0'}${className ? ` ${className}` : ''}`;
+  const cls = classNames(shown ? anim : 'opacity-0', slots?.root, className);
   return (
-    <div ref={ref} style={style} className={cls}>
+    <div ref={ref} style={{ ...userStyle, ...style }} className={cls}>
       {children}
     </div>
   );

@@ -141,6 +141,49 @@ describe('DropZone', () => {
   });
 });
 
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('DragDrop — classNames + style', () => {
+  it('Draggable slots root/handle lên đúng element; DropZone slot root; className sau slot', () => {
+    const { container, getByRole } = render(
+      <>
+        <Draggable
+          data="s"
+          handle={<span>grip</span>}
+          classNames={{ root: 'slot-drag', handle: 'slot-handle' }}
+          className="user-last"
+        >
+          card
+        </Draggable>
+        <DropZone ariaLabel="z" classNames={{ root: 'slot-zone' }} className="user-zone">
+          x
+        </DropZone>
+      </>,
+    );
+    const drag = container.querySelector('[role="button"]')!;
+    expect(drag).toHaveClass('slot-drag');
+    expect(drag.className.indexOf('slot-drag')).toBeLessThan(drag.className.indexOf('user-last'));
+    expect(container.querySelector('[data-drag-handle]')).toHaveClass('slot-handle');
+    const zone = getByRole('group', { name: 'z' });
+    expect(zone).toHaveClass('slot-zone');
+    expect(zone.className.indexOf('slot-zone')).toBeLessThan(zone.className.indexOf('user-zone'));
+  });
+
+  it('style passthrough lên cả Draggable wrapper + DropZone zone (không phá dnd state)', () => {
+    const { container, getByRole } = render(
+      <>
+        <Draggable data="s" style={{ margin: '8px' }}>card</Draggable>
+        <DropZone ariaLabel="z" style={{ padding: '4px' }}>x</DropZone>
+      </>,
+    );
+    expect(container.querySelector('[role="button"]')).toHaveStyle({ margin: '8px' });
+    const zone = getByRole('group', { name: 'z' });
+    expect(zone).toHaveStyle({ padding: '4px' });
+    fireEvent.dragOver(zone, { dataTransfer: makeDt({ a: 1 }) });
+    expect(zone).toHaveAttribute('data-dnd-over', 'true');
+  });
+});
+
 describe('Keyboard (DragDropProvider)', () => {
   it('Space nhặt (aria-pressed) → ArrowDown đổi zone active → Enter thả payload vào zone', async () => {
     const user = userEvent.setup();

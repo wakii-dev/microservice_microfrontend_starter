@@ -74,3 +74,29 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the scroll wrapper,
+ * `tree` on every level <ul>, `item` on treeitems, `node` on cards, `toggle`
+ * on chevron buttons; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <OrgChart
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        node: 'uppercase tracking-wide',
+        toggle: 'text-accent',
+      }}
+      data={{
+        key: 'root',
+        label: 'Platform',
+        type: 'dept',
+        children: [
+          { key: 'be', label: 'Backend', type: 'dept' },
+          { key: 'fe', label: 'Frontend', type: 'dept' },
+        ],
+      }}
+    />
+  ),
+};

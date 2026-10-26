@@ -103,3 +103,19 @@ export const StandaloneStatus: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root`/`dot` on the status
+ * pill, `count` on the corner <sup>; `style` lands on the root span. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex items-center gap-4">
+      <Badge variant="doing" classNames={{ root: 'border border-dashed border-accent', dot: 'size-3' }} style={{ padding: 4 }}>
+        Slotted pill
+      </Badge>
+      <Badge count={7} classNames={{ count: 'border border-white' }}>
+        <button className="rounded-lg border border-line px-3 py-1">Inbox</button>
+      </Badge>
+    </div>
+  ),
+};

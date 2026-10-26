@@ -63,3 +63,23 @@ export const ParagraphMacDinh: Story = {
     </Paragraph>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on each element
+ * (Title heading / Text span / Paragraph <p>), `wrapper` on the Text outer
+ * span; `style` merges after the antd metric styles. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div>
+      <Title level={3} classNames={{ root: 'uppercase tracking-wide text-accent' }} style={{ fontSize: 28 }}>
+        Slotted heading
+      </Title>
+      <Text type="secondary" classNames={{ root: 'italic', wrapper: 'inline-block' }}>
+        Secondary copy with a wrapper slot
+      </Text>
+      <Paragraph classNames={{ root: 'text-accent' }} style={{ marginTop: 8 }}>
+        Paragraph slot recolors the whole block without touching structural styles.
+      </Paragraph>
+    </div>
+  ),
+};

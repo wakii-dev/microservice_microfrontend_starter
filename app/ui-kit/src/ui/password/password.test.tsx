@@ -43,3 +43,31 @@ describe('Password — matrix (uncontrolled/strength/disabled/a11y)', () => {
     expect(screen.getByLabelText('pw')).toHaveAttribute('placeholder', 'Nhập mật khẩu');
   });
 });
+
+describe('Password — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root / field / input / toggle / strengthMeter', () => {
+    render(
+      <Password
+        ariaLabel="pw"
+        showStrength
+        value="Str0ngPass!"
+        classNames={{ root: 'slot-root', field: 'slot-field', input: 'slot-input', toggle: 'slot-toggle', strengthMeter: 'slot-meter' }}
+      />,
+    );
+    const input = screen.getByLabelText('pw');
+    expect(input.closest('.relative')).toHaveClass('slot-field');
+    expect(input).toHaveClass('slot-input');
+    expect(input.parentElement!.parentElement).toHaveClass('slot-root');
+    expect(screen.getByLabelText('Hiện mật khẩu')).toHaveClass('slot-toggle');
+    expect(screen.getByText('Mạnh').parentElement).toHaveClass('slot-meter');
+  });
+
+  it('style passthrough lên root + không truyền slots → toggle vẫn đổi type (behavior giữ nguyên)', () => {
+    render(<Password ariaLabel="pw" style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByLabelText('pw').parentElement!.parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThanOrEqual(0);
+    fireEvent.click(screen.getByLabelText('Hiện mật khẩu'));
+    expect(screen.getByLabelText('pw')).toHaveAttribute('type', 'text');
+  });
+});

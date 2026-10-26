@@ -137,3 +137,26 @@ export const FileExplorer: S = {
   args: { data: [] },
   render: () => <ExplorerDemo />,
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the tree <ul>,
+ * `item` on every treeitem button (all depths), `group` on nested <ul>s;
+ * `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    defaultExpandedKeys: ['services'],
+    classNames: { root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-2', item: 'rounded-full' },
+    style: { padding: 8 },
+    data: [
+      {
+        key: 'services',
+        label: 'services',
+        children: [
+          { key: 'node', label: 'node-svc' },
+          { key: 'gateway', label: 'gateway' },
+        ],
+      },
+      { key: 'contracts', label: 'contracts' },
+    ],
+  },
+};

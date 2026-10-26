@@ -188,3 +188,29 @@ export const CheckoutQuantity: S = {
   name: 'CheckoutQuantity — cart line with live total',
   render: () => <CheckoutQuantityInner />,
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / input / stepper /
+ * stepUp / stepDown) + style passthrough. `root` lands on the control span
+ * (same element as `className`), `input` on the number field, `stepper` on the
+ * right column, `stepUp`/`stepDown` on its two buttons; `style` lands on root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { ariaLabel: 'Custom styled number', min: 0, max: 100 },
+  render: (args) => (
+    <div className="grid max-w-[240px] gap-4">
+      <InputNumber
+        {...args}
+        classNames={{
+          root: 'rounded-xl',
+          input: 'italic',
+          stepper: 'bg-accent/5',
+          stepUp: 'text-accent',
+          stepDown: 'text-accent',
+        }}
+        style={{ boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

@@ -113,3 +113,39 @@ describe('Badge — count mode (antd parity)', () => {
     expect(screen.getByText('Label')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Badge — classNames slots + style', () => {
+  it('slots root/dot/count lên đúng element theo từng mode', () => {
+    const { rerender } = render(
+      <Badge variant="doing" classNames={{ root: 'slot-root', dot: 'slot-dot' }}>
+        Doing
+      </Badge>,
+    );
+    expect(screen.getByText('Doing')).toHaveClass('slot-root'); // text node nằm trực tiếp trong root
+    expect(document.querySelector('span.slot-root > .slot-dot')).not.toBeNull();
+
+    rerender(
+      <Badge count={5} classNames={{ root: 'slot-root', count: 'slot-count' }}>
+        <button>Inbox</button>
+      </Badge>,
+    );
+    expect(document.querySelector('sup.slot-count')).not.toBeNull();
+    expect(screen.getByText('Inbox').parentElement).toHaveClass('slot-root');
+
+    rerender(<Badge status="success" text="OK" classNames={{ root: 'slot-root', dot: 'slot-dot' }} />);
+    expect(screen.getByText('OK').previousElementSibling ?? document.querySelector('.slot-dot')).toHaveClass('slot-dot');
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    render(
+      <Badge variant="todo" style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last">
+        x
+      </Badge>,
+    );
+    const root = screen.getByText('x').closest('span') as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

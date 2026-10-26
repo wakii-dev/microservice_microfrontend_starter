@@ -101,3 +101,22 @@ function PageHeaderDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `list` on
+ * the <ol>, `item` on each <li>, `link`/`label` on entries, `separator` on the
+ * '/' spans; `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Breadcrumb
+      items={[{ title: 'Home', href: '#' }, { title: 'Projects', href: '#' }, { title: 'Gateway' }]}
+      classNames={{
+        root: 'rounded-lg border border-dashed border-accent bg-accent/5 px-2 py-1',
+        link: 'underline',
+        label: 'uppercase tracking-wide',
+        separator: 'text-accent',
+      }}
+      style={{ padding: 8 }}
+    />
+  ),
+};

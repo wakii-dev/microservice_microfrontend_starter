@@ -69,6 +69,7 @@ export const DarkTheme: Story = {
   ),
 };
 
+<<<<<<< Updated upstream
 /** Per-file callbacks + progress ring + retry — file >1.5MB fail "mạng" lần đầu, Retry lần 2 xong. */
 function PerFileDemo() {
   const [done, setDone] = useState(0);
@@ -105,4 +106,37 @@ function PerFileDemo() {
 export const PerFileCallbacks: Story = {
   name: 'Per-file callbacks — onItemDone/onItemError + ring + retry',
   render: () => <PerFileDemo />,
+=======
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / dropzone / list /
+ * listItem / listRemove) + style passthrough, shared by Upload & UploadDropzone.
+ * `root` lands on the outer div (same element as `className`), `dropzone` on
+ * the role=button drag area (dropzone variant only), `list`/`listItem`/
+ * `listRemove` on the file list; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[360px] gap-6">
+      <Upload
+        classNames={{
+          root: 'rounded-xl',
+          list: 'gap-1.5',
+          listItem: 'border-st-done',
+          listRemove: 'hover:text-st-fail',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+      <UploadDropzone
+        classNames={{
+          root: 'rounded-xl',
+          dropzone: 'border-st-done bg-st-done/5',
+          list: 'gap-1.5',
+          listItem: 'border-st-done',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+>>>>>>> Stashed changes
 };

@@ -153,3 +153,21 @@ describe('QRCode — icon giữa (antd excavate mode, R10)', () => {
     expect(screen.getByRole('img').parentElement!.querySelector('span[aria-hidden="true"]')).toBeNull();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('QRCode — classNames slots + style', () => {
+  it('slots root/code/icon lên đúng element', () => {
+    const { container } = render(
+      <QRCode value="https://wakii.dev" icon={<span data-testid="qr-icon">W</span>} classNames={{ root: 'slot-root', code: 'slot-code', icon: 'slot-icon' }} />,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-root');
+    expect(container.querySelector('svg.slot-code')).not.toBeNull();
+    expect(container.querySelector('.slot-icon')).not.toBeNull();
+  });
+
+  it('style passthrough lên span gốc (override được size)', () => {
+    const { container } = render(<QRCode value="x" style={{ width: 99 }} />);
+    expect(container.firstElementChild).toHaveStyle({ width: '99px' });
+  });
+});

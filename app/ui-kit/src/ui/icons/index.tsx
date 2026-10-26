@@ -1,6 +1,9 @@
 // Icon — SVG inline từ path data GỐC primeicons (npm primeicons 7.0.0, thư mục
 // raw-svg). Bảng PATHS SINH BẰNG SCRIPT từ raw-svg — đừng sửa path tay (hỏng glyph).
 // viewBox 24×24, fill currentColor → kế thừa màu text cha (text-ink/accent/…).
+// slots-wave: classNames {root} + style passthrough — default giữ nguyên DOM.
+import classNames from 'classnames';
+import type { CSSProperties } from 'react';
 // Icon lạ (name ngoài IconName, cast runtime) → fallback 'help-circle'.
 // Tree-shake: consumer import thẳng { Icon } from 'ui-kit/src/ui/icons' — không barrel.
 
@@ -265,6 +268,12 @@ export const ICON_NAMES = Object.keys(PATHS) as IconName[];
 
 const FALLBACK: IconName = 'help-circle';
 
+/** Slot classes (slots-wave) — comp 1 phần tử nên { root } đủ. */
+export interface IconClassNames {
+  /** <svg> gốc. */
+  root?: string;
+}
+
 export interface IconProps {
   name: IconName;
   /** Kích thước px (width + height) — default 14. */
@@ -272,19 +281,26 @@ export interface IconProps {
   className?: string;
   /** Ẩn với screen reader — default true (icon decorative). */
   'aria-hidden'?: boolean;
+  /** Inline style — passthrough lên svg gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: IconClassNames;
 }
 
-export function Icon({ name, size = 14, className, 'aria-hidden': ariaHidden = true }: IconProps) {
+export function Icon(props: IconProps) {
+  const { name, size = 14, className, style, 'aria-hidden': ariaHidden = true } = props;
+  const slots = props.classNames;
   const paths = PATHS[name] ?? PATHS[FALLBACK];
   return (
     <svg
       viewBox="0 0 24 24"
       width={size}
       height={size}
+      style={style}
       fill="currentColor"
       aria-hidden={ariaHidden}
       focusable="false"
-      className={className}
+      className={classNames(slots?.root, className)}
     >
       {paths.map((d, i) => (
         <path key={i} d={d} />

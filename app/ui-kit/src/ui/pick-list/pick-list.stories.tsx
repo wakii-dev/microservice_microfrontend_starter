@@ -57,3 +57,25 @@ export const DarkTheme: Story = {
 export const Empty: Story = {
   args: { source: [], target: STACKS },
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper,
+ * `panel`/`panelTitle`/`list`/`option` on both sides, `controls` on the middle
+ * button column; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <PickList
+      style={{ padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        panelTitle: 'uppercase tracking-wide text-accent',
+        list: 'rounded-2xl border-dashed border-accent',
+        option: 'rounded-full',
+      }}
+      source={[
+        { label: 'Read', value: 'read' },
+        { label: 'Write', value: 'write' },
+      ]}
+      target={[{ label: 'Admin', value: 'admin' }]}
+    />
+  ),
+};

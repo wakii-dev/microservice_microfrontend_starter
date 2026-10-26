@@ -82,3 +82,39 @@ describe('Editor — onChange + commands', () => {
     expect(editor!.getHTML()).not.toContain('<h2>');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Editor — classNames + style', () => {
+  it('slots lên đúng element: root/toolbar/content; className sau root slot', async () => {
+    render(
+      <Editor
+        content="<p>slots</p>"
+        classNames={{ root: 'slot-root', toolbar: 'slot-toolbar', content: 'slot-content' }}
+        className="user-last"
+      />,
+    );
+    await waitForMounted();
+    const root = pm().closest('.slot-root')!;
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(root.querySelector('.slot-toolbar')).toBeInTheDocument();
+    expect(pm().closest('.slot-content')).toBeInTheDocument();
+  });
+
+  it('style passthrough lên root (editor vẫn gõ được)', async () => {
+    let editor: TiptapEditor | null = null;
+    render(
+      <Editor
+        content="<p>x</p>"
+        style={{ margin: '8px' }}
+        className="marker-root"
+        editorRef={(ed) => (editor = ed as TiptapEditor)}
+      />,
+    );
+    await waitForMounted();
+    const root = pm().closest('.marker-root') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    editor!.commands.insertContent('more');
+    expect(editor!.getHTML()).toContain('more');
+  });
+});

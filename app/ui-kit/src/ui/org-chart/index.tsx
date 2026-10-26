@@ -4,8 +4,9 @@
 // không JS đo đạc. Node card bo góc; type 'dept' | 'person' đổi nền + icon.
 // Collapse subtree: chevron góc card, Set keys uncontrolled (mặc định mở hết).
 // A11y: role=tree/treeitem/group, aria-expanded trên treeitem, aria-selected.
+import classNames from 'classnames';
 import { useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface OrgChartNodeData {
@@ -14,6 +15,20 @@ export interface OrgChartNodeData {
   /** 'dept' = nền s3 + semibold + icon menu-bars; 'person' (mặc định) = bg-s2 + icon user. */
   type?: 'person' | 'dept';
   children?: OrgChartNodeData[];
+}
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface OrgChartClassNames {
+  /** Div cuộn ngang gốc. */
+  root?: string;
+  /** <ul role="tree"> / <ul role="group"> (áp mọi cấp). */
+  tree?: string;
+  /** <li role="treeitem"> (áp mọi cấp). */
+  item?: string;
+  /** Button card node (áp cả selected). */
+  node?: string;
+  /** Button chevron gập/mở nhánh. */
+  toggle?: string;
 }
 
 export interface OrgChartProps {
@@ -25,6 +40,10 @@ export interface OrgChartProps {
   /** Keys gập sẵn lúc mount (subtree ẩn — collapse qua chevron góc card). */
   defaultCollapsedKeys?: string[];
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: OrgChartClassNames;
 }
 
 /* Connector ngang: mỗi cột con vẽ nửa đường của mình trên mép trên (top-0) —
@@ -40,6 +59,7 @@ function OrgNode({
   onSelect,
   collapsed,
   toggle,
+  slots,
 }: {
   node: OrgChartNodeData;
   /** con (không phải root) → connector dọc + nửa đường ngang. */
@@ -48,6 +68,7 @@ function OrgNode({
   onSelect?: (key: string) => void;
   collapsed: Set<string>;
   toggle: (key: string) => void;
+  slots?: OrgChartClassNames;
 }) {
   const hasChildren = !!node.children?.length;
   const isCollapsed = collapsed.has(node.key);
@@ -64,16 +85,19 @@ function OrgNode({
       role="treeitem"
       aria-expanded={hasChildren ? !isCollapsed : undefined}
       aria-selected={selected}
-      className={`relative flex list-none flex-col items-center ${isChild ? `px-6 ${H_LINE} ${H_LINE_EDGE}` : ''}`}
+      className={classNames('relative flex list-none flex-col items-center', isChild && `px-6 ${H_LINE} ${H_LINE_EDGE}`, slots?.item)}
     >
       {isChild && <span aria-hidden="true" className="h-4 w-px bg-line" />}
       <div className="flex items-start gap-1">
         <button
           type="button"
           onClick={() => onSelect?.(node.key)}
-          className={`flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-4 py-2 text-body shadow-[var(--shadow-pop)] transition-[background-color,box-shadow,border-color] duration-150 hover:shadow-[var(--shadow-lift)] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
-            selected ? 'border-accent ring-1 ring-accent/40' : 'border-line'
-          } ${typeCls}`}
+          className={classNames(
+            'flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-4 py-2 text-body shadow-[var(--shadow-pop)] transition-[background-color,box-shadow,border-color] duration-150 hover:shadow-[var(--shadow-lift)] focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none',
+            selected ? 'border-accent ring-1 ring-accent/40' : 'border-line',
+            typeCls,
+            slots?.node,
+          )}
         >
           <Icon name={node.type === 'dept' ? 'menu-bars' : 'user'} size={12} className="shrink-0 text-ink3" />
           {node.label}
@@ -83,7 +107,7 @@ function OrgNode({
             type="button"
             aria-label={toggleLabel}
             onClick={() => toggle(node.key)}
-            className="cursor-pointer rounded-pill border-none bg-transparent p-0.5 text-ink3 transition-colors hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+            className={classNames('cursor-pointer rounded-pill border-none bg-transparent p-0.5 text-ink3 transition-colors hover:text-ink focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none', slots?.toggle)}
           >
             <span
               aria-hidden="true"
@@ -97,7 +121,7 @@ function OrgNode({
       {hasChildren && !isCollapsed && (
         <>
           <span aria-hidden="true" className="h-4 w-px bg-line" />
-          <ul role="group" className="m-0 flex list-none items-start p-0">
+          <ul role="group" className={classNames('m-0 flex list-none items-start p-0', slots?.tree)}>
             {node.children!.map((child) => (
               <OrgNode
                 key={child.key}
@@ -107,6 +131,7 @@ function OrgNode({
                 onSelect={onSelect}
                 collapsed={collapsed}
                 toggle={toggle}
+                slots={slots}
               />
             ))}
           </ul>
@@ -116,7 +141,9 @@ function OrgNode({
   );
 }
 
-export function OrgChart({ data, selectedKey, onSelect, defaultCollapsedKeys = [], className }: OrgChartProps) {
+export function OrgChart(props: OrgChartProps) {
+  const { data, selectedKey, onSelect, defaultCollapsedKeys = [], className, style } = props;
+  const slots = props.classNames;
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set(defaultCollapsedKeys));
 
   function toggle(key: string) {
@@ -129,9 +156,13 @@ export function OrgChart({ data, selectedKey, onSelect, defaultCollapsedKeys = [
   }
 
   return (
-    <div className={`overflow-x-auto${className ? ` ${className}` : ''}`}>
-      <ul role="tree" aria-label={typeof data.label === 'string' ? data.label : 'Organization chart'} className="m-0 inline-flex list-none justify-center p-0">
-        <OrgNode node={data} isChild={false} selectedKey={selectedKey} onSelect={onSelect} collapsed={collapsed} toggle={toggle} />
+    <div className={classNames('overflow-x-auto', slots?.root, className)} style={style}>
+      <ul
+        role="tree"
+        aria-label={typeof data.label === 'string' ? data.label : 'Organization chart'}
+        className={classNames('m-0 inline-flex list-none justify-center p-0', slots?.tree)}
+      >
+        <OrgNode node={data} isChild={false} selectedKey={selectedKey} onSelect={onSelect} collapsed={collapsed} toggle={toggle} slots={slots} />
       </ul>
     </div>
   );

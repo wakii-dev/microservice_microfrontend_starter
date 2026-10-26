@@ -32,3 +32,34 @@ describe('SpeedDial — FAB state', () => {
     expect(fab.className).toContain('rotate-45');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('SpeedDial — classNames + style', () => {
+  it('slots lên đúng element: root/action/trigger; className sau root slot', async () => {
+    const user = userEvent.setup();
+    render(
+      <SpeedDial
+        icon="+"
+        actions={[{ key: 'a', icon: 'A', label: 'Action A' }]}
+        classNames={{ root: 'slot-root', action: 'slot-action', trigger: 'slot-trigger' }}
+        className="user-last"
+      />,
+    );
+    const fab = screen.getByRole('button', { name: 'Thao tác' });
+    expect(fab).toHaveClass('slot-trigger');
+    expect(fab.parentElement).toHaveClass('slot-root');
+    expect(fab.parentElement!.className.indexOf('slot-root')).toBeLessThan(fab.parentElement!.className.indexOf('user-last'));
+    await user.click(fab);
+    expect(screen.getByLabelText('Action A')).toHaveClass('slot-action');
+  });
+
+  it('style passthrough lên div gốc (FAB vẫn mở/đóng)', async () => {
+    const user = userEvent.setup();
+    render(<SpeedDial icon="+" actions={[]} style={{ margin: '8px' }} />);
+    const fab = screen.getByRole('button', { name: 'Thao tác' });
+    expect(fab.parentElement).toHaveStyle({ margin: '8px' });
+    await user.click(fab);
+    expect(fab).toHaveAttribute('aria-expanded', 'true');
+  });
+});

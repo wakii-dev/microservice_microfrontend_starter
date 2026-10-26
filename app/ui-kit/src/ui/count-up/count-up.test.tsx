@@ -119,3 +119,19 @@ describe('CountUp', () => {
     expect(screen.getByText('42')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('CountUp — classNames + style', () => {
+  it('slot root lên span; className sau slot', () => {
+    const { container } = render(<CountUp value={10} duration={0} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau animation pulse', () => {
+    const { container } = render(<CountUp value={10} duration={0} style={{ color: 'rgb(1, 2, 3)' }} />);
+    expect(container.firstElementChild).toHaveStyle({ color: 'rgb(1, 2, 3)' });
+  });
+});

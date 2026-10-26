@@ -135,3 +135,39 @@ describe('TreeTable', () => {
     unmount();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('TreeTable — classNames slots + style', () => {
+  it('slots lên đúng element: root/headerRow/row/cell/expander/panel', () => {
+    render(
+      <TreeTable
+        data={TREE}
+        columns={COLS}
+        defaultExpandedKeys={['root']}
+        classNames={{ root: 'slot-root', headerRow: 'slot-hrow', row: 'slot-row', cell: 'slot-cell', expander: 'slot-exp', panel: 'slot-panel' }}
+      />,
+    );
+    expect(document.querySelector('[role="treegrid"].slot-root')).not.toBeNull();
+    expect(screen.getByText('Name').closest('[role="row"]')).toHaveClass('slot-hrow');
+    expect(row('readme')).toHaveClass('slot-row');
+    expect(screen.getByText('README.md')).toHaveClass('slot-cell');
+    expect(screen.getByRole('button', { name: /Mở root|Đóng root/ })).toHaveClass('slot-exp');
+    expect(document.querySelector('.slot-panel')).not.toBeNull();
+  });
+
+  it('style passthrough lên treegrid; className người dùng sau root slot', () => {
+    render(
+      <TreeTable
+        data={TREE}
+        columns={COLS}
+        style={{ padding: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      />,
+    );
+    const root = document.querySelector('[role="treegrid"].slot-root') as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

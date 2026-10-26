@@ -67,3 +67,30 @@ describe('Link', () => {
     expect(a).toHaveAttribute('rel', 'noreferrer');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Link — classNames + style', () => {
+  it('slot root lên <a> cả thường lẫn disabled; className sau slot', () => {
+    const { rerender } = render(
+      <Link href="/docs" classNames={{ root: 'slot-root' }} className="user-last">
+        Docs
+      </Link>,
+    );
+    let a = screen.getByText('Docs');
+    expect(a).toHaveClass('slot-root');
+    expect(a.className.indexOf('slot-root')).toBeLessThan(a.className.indexOf('user-last'));
+    rerender(
+      <Link disabled classNames={{ root: 'slot-root' }}>
+        Off
+      </Link>,
+    );
+    a = screen.getByText('Off');
+    expect(a).toHaveClass('slot-root');
+  });
+
+  it('style passthrough lên <a> (qua anchor attrs)', () => {
+    render(<Link href="/x" style={{ padding: '2px' }}>Padded</Link>);
+    expect(screen.getByText('Padded')).toHaveStyle({ padding: '2px' });
+  });
+});

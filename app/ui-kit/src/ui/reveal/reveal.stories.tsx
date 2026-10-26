@@ -89,3 +89,24 @@ export const Repeat: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the observed
+ * wrapper div; `style` merges before the motion styles (kit keys win so the
+ * reveal animation stays intact). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="max-w-lg">
+      <Reveal
+        classNames={{ root: 'rounded-xl' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+        className="border border-dashed border-accent"
+      >
+        <Panel
+          title="CustomStyled"
+          body="The wrapper carries slotted classes and box-shadow; the slide-up reveal is untouched."
+        />
+      </Reveal>
+    </div>
+  ),
+};

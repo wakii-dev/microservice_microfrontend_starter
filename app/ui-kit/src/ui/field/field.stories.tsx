@@ -156,3 +156,35 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / label / error / hint)
+ * + style passthrough. `root` lands on the wrapper div (same element as
+ * `className`), `label` on the <label>, `error`/`hint` on the message <p>
+ * (error wins when both set); `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[280px] gap-6">
+      <Field
+        label="Email"
+        htmlFor="cs-email"
+        error="Email is required"
+        required
+        classNames={{ root: 'rounded-xl', label: 'uppercase tracking-wide', error: 'font-semibold' }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      >
+        <Input id="cs-email" />
+      </Field>
+      <Field
+        label="Nickname"
+        htmlFor="cs-nick"
+        hint="Shown on your profile"
+        classNames={{ label: 'uppercase tracking-wide', hint: 'italic' }}
+      >
+        <Input id="cs-nick" />
+      </Field>
+    </div>
+  ),
+};

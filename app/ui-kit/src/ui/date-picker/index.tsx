@@ -3,12 +3,25 @@
 // preview highlight khoảng như antd RangePicker) + showTime (cột TimeSpinner
 // bên phải panel, xác nhận bằng OK — antd style) + locale (vi/en) + now inject.
 // Single mode GIỮ NGUYÊN behavior cũ: click ngày → onChange + đóng panel.
+// Customize pass (slots wave 3): classNames slots (root/trigger/panel) + style
+// passthrough — default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar } from '../calendar/index.js';
 import { TimeSpinner, type TimeParts } from '../time-picker/index.js';
 import { useDateLocale, type DateLocaleInput } from './locale.js';
 import { Icon } from '../icons/index.js';
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface DatePickerClassNames {
+  /** Span wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** Span field trigger (viền/ring, chứa 1 hoặc 2 nửa input + icon). */
+  trigger?: string;
+  /** Panel nổi qua portal — khung calendar + footer (chỉ render khi mở). */
+  panel?: string;
+}
 
 export interface DatePickerBaseProps {
   placeholder?: string;
@@ -22,6 +35,10 @@ export interface DatePickerBaseProps {
   /** Mốc "hôm nay" — inject được để test deterministic. */
   now?: Date;
   className?: string;
+  /** Inline style — passthrough lên span wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: DatePickerClassNames;
 }
 
 export interface DatePickerSingleProps extends DatePickerBaseProps {
@@ -55,9 +72,11 @@ export function DatePicker(props: DatePickerProps) {
     disabled = false,
     prefix,
     className,
+    style,
     locale,
     now = new Date(),
   } = props;
+  const slots = props.classNames;
   const value = props.value;
   const onChange = props.onChange as ((v: Date | [Date, Date]) => void) | undefined;
   const loc = useDateLocale(locale);
@@ -164,7 +183,7 @@ export function DatePicker(props: DatePickerProps) {
   if (range) {
     const [from, to] = Array.isArray(value) ? value : [undefined, undefined];
     trigger = (
-      <span className={triggerCls}>
+      <span className={classNames(triggerCls, slots?.trigger)}>
         {prefix}
         <button
           type="button"
@@ -191,7 +210,7 @@ export function DatePicker(props: DatePickerProps) {
   } else {
     const single = !Array.isArray(value) ? value : undefined;
     trigger = (
-      <span className={triggerCls}>
+      <span className={classNames(triggerCls, slots?.trigger)}>
         {prefix}
         <button
           type="button"
@@ -225,7 +244,7 @@ export function DatePicker(props: DatePickerProps) {
   };
 
   return (
-    <span ref={ref} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
+    <span ref={ref} className={classNames('relative inline-flex', slots?.root, className)} style={style}>
       {trigger}
       {open && createPortal(
         <div className="fixed inset-0 z-[var(--z-popover)]" onClick={() => setOpen(false)}>
@@ -236,7 +255,10 @@ export function DatePicker(props: DatePickerProps) {
           >
             <div
               ref={panelRef}
-              className="min-w-[300px] max-w-[calc(100vw-16px)] rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)]"
+              className={classNames(
+                'min-w-[300px] max-w-[calc(100vw-16px)] rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)]',
+                slots?.panel,
+              )}
             >
               <div className={showTime ? 'flex flex-wrap items-start gap-3' : ''}>
                 <Calendar

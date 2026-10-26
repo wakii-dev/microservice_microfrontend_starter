@@ -35,3 +35,28 @@ describe('ScrollTop — visibility + action', () => {
     expect(screen.queryByRole('button', { name: 'Về đầu trang' })).toBeNull();
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('ScrollTop — classNames + style', () => {
+  function setScrollY(v: number) {
+    Object.defineProperty(window, 'scrollY', { value: v, configurable: true });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+  }
+
+  it('slot root lên button; className sau slot', () => {
+    const { container } = render(<ScrollTop classNames={{ root: 'slot-root' }} className="user-last" />);
+    setScrollY(500);
+    const btn = container.querySelector('button');
+    expect(btn).toHaveClass('slot-root');
+    expect(btn!.className.indexOf('slot-root')).toBeLessThan(btn!.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên button', () => {
+    const { container } = render(<ScrollTop style={{ background: 'rgb(1, 2, 3)' }} />);
+    setScrollY(500);
+    expect(container.querySelector('button')).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+  });
+});

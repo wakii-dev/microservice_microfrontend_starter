@@ -130,3 +130,17 @@ export const TeamPage: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the avatar
+ * span; `style` merges after the size/shape inline styles (can override size). */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Avatar
+      classNames={{ root: 'border-2 border-dashed border-accent bg-accent/10 text-accent' }}
+      style={{ width: 48, height: 48, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      W
+    </Avatar>
+  ),
+};

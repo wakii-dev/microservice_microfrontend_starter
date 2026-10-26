@@ -3,10 +3,25 @@
 // tại mép phải. Motion CSS thuần: transition width + label fade (opacity/width).
 // Menu trong children tự icon-only qua MenuCompactContext (sidebar → menu,
 // đúng chiều layering). a11y: role=complementary + aria-label + aria-expanded.
+import classNames from 'classnames';
 import { useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { MenuCompactContext } from '../menu/index.js';
 import { Icon } from '../icons/index.js';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface SidebarClassNames {
+  /** <aside> gốc (width điều khiển collapse). */
+  root?: string;
+  /** Div brand trên đỉnh — chỉ render khi có brand. */
+  brand?: string;
+  /** Div body cuộn dọc (chứa children). */
+  body?: string;
+  /** Div footer dưới đáy — chỉ render khi có footer. */
+  footer?: string;
+  /** Nút pill trigger collapse mép phải. */
+  trigger?: string;
+}
 
 export interface SidebarProps {
   /** Slot đầu — logo/brand (giữ nguyên khi collapse, consumer tự icon-only). */
@@ -19,6 +34,10 @@ export interface SidebarProps {
   onToggle?: (collapsed: boolean) => void;
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên aside gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: SidebarClassNames;
 }
 
 function ChevronLeftIcon() {
@@ -28,15 +47,18 @@ function ChevronRightIcon() {
   return <Icon name="chevron-right" size={12} />;
 }
 
-export function Sidebar({
-  brand,
-  children,
-  footer,
-  defaultCollapsed = false,
-  onToggle,
-  ariaLabel = 'Sidebar',
-  className,
-}: SidebarProps) {
+export function Sidebar(props: SidebarProps) {
+  const {
+    brand,
+    children,
+    footer,
+    defaultCollapsed = false,
+    onToggle,
+    ariaLabel = 'Sidebar',
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const toggle = () =>
@@ -51,25 +73,29 @@ export function Sidebar({
       role="complementary"
       aria-label={ariaLabel}
       data-collapsed={collapsed}
-      className={`relative flex h-full flex-col border-r border-line bg-s2 transition-[width] duration-200 ease-out ${
-        collapsed ? 'w-20' : 'w-[200px]'
-      }${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'relative flex h-full flex-col border-r border-line bg-s2 transition-[width] duration-200 ease-out',
+        collapsed ? 'w-20' : 'w-[200px]',
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       {brand && (
-        <div className="flex h-14 shrink-0 items-center overflow-hidden border-b border-line px-4">
+        <div className={classNames('flex h-14 shrink-0 items-center overflow-hidden border-b border-line px-4', slots?.brand)}>
           {brand}
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className={classNames('min-h-0 flex-1 overflow-y-auto p-2', slots?.body)}>
         <MenuCompactContext.Provider value={collapsed}>{children}</MenuCompactContext.Provider>
       </div>
-      {footer && <div className="shrink-0 border-t border-line p-2">{footer}</div>}
+      {footer && <div className={classNames('shrink-0 border-t border-line p-2', slots?.footer)}>{footer}</div>}
       <button
         type="button"
         aria-label={collapsed ? 'Mở rộng' : 'Thu gọn'}
         aria-expanded={!collapsed}
         onClick={toggle}
-        className={`absolute -right-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40`}
+        className={classNames('absolute -right-3 z-10 flex size-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-pill border border-line bg-s1 text-ink2 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40', slots?.trigger)}
         style={{ top: collapsed ? 28 : '50%' }}
       >
         {/* Lưồi nửa ngoài mép phải CẢ HAI trạng thái (fix user 2026-10-18):

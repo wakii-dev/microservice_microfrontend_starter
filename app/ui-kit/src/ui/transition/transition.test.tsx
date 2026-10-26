@@ -283,3 +283,33 @@ describe('Crossfade', () => {
     expect(a.style.transitionTimingFunction).toBe('var(--ease-enter)');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Transition — classNames + style (slots-wave)', () => {
+  it('slot root lên wrapper mọi loại; className sau slot (Fade đại diện + kèm loại khác)', () => {
+    render(
+      <>
+        <Fade in classNames={{ root: 'slot-fade' }} className="user-fade"><div>panel-fade</div></Fade>
+        <Slide in classNames={{ root: 'slot-slide' }}><div>panel-slide</div></Slide>
+        <Collapse in classNames={{ root: 'slot-collapse' }}><div>panel-collapse</div></Collapse>
+        <Stagger in classNames={{ root: 'slot-stagger' }}><div>panel-stagger</div></Stagger>
+        <Crossfade active={0} classNames={{ root: 'slot-cross' }}><div>panel-cross-a</div><div>panel-cross-b</div></Crossfade>
+      </>,
+    );
+    const fade = screen.getByText('panel-fade').parentElement!;
+    expect(fade).toHaveClass('slot-fade');
+    expect(fade.className.indexOf('slot-fade')).toBeLessThan(fade.className.indexOf('user-fade'));
+    expect(screen.getByText('panel-slide').parentElement).toHaveClass('slot-slide');
+    expect(screen.getByText('panel-collapse').parentElement!.parentElement).toHaveClass('slot-collapse');
+    expect(screen.getByText('panel-stagger').parentElement!.parentElement).toHaveClass('slot-stagger');
+    expect(screen.getByText('panel-cross-a').parentElement!.parentElement).toHaveClass('slot-cross');
+  });
+
+  it('style passthrough merge lên wrapper (key animation của kit thắng)', () => {
+    render(<Fade in style={{ margin: '8px', animationDuration: '999ms' }} duration={300}><div>panel</div></Fade>);
+    const box = screen.getByText('panel').parentElement! as HTMLElement;
+    expect(box.style.margin).toBe('8px');
+    expect(box.style.animationDuration).toBe('300ms'); // kit thắng — machine exit đúng
+  });
+});

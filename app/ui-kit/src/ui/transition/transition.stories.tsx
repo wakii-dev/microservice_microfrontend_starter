@@ -252,3 +252,25 @@ function RevealComboDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the animated
+ * wrapper of every transition kind; `style` merges before the kit's animation
+ * keys (motion contract wins). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-md gap-4">
+      <Fade
+        in
+        classNames={{ root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-4 text-body text-ink' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      >
+        Slotted Fade — dashed accent card, kit easing untouched.
+      </Fade>
+      <Stagger in classNames={{ root: 'rounded-xl border border-line p-3' }} style={{ boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.08)' }}>
+        <div className="text-body text-ink">Stagger item one</div>
+        <div className="text-body text-ink2">Stagger item two</div>
+      </Stagger>
+    </div>
+  ),
+};

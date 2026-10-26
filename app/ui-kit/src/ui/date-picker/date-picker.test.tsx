@@ -219,3 +219,37 @@ describe('DatePicker — responsive 375 (bugfix PO: popover tràn viewport / che
     spy.mockRestore();
   });
 });
+
+describe('DatePicker — classNames slots + style (slots wave 3)', () => {
+  const NOW = new Date(2026, 9, 15);
+
+  it('slots lên đúng element: root (span wrapper) / trigger (span field) / panel (portal)', async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePicker
+        now={NOW}
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel' }}
+      />,
+    );
+    const root = screen.getByRole('button', { name: 'Chọn ngày' }).closest('.relative')!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.firstElementChild).toHaveClass('slot-trigger');
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    const panel = document.body.querySelector('[class*="min-w-[300px]"]')!;
+    expect(panel).toHaveClass('slot-panel');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn ngày vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <DatePicker now={NOW} onChange={onChange} style={{ margin: '8px' }} className="user-last" />,
+    );
+    const root = screen.getByRole('button', { name: 'Chọn ngày' }).closest('.relative') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.click(screen.getByLabelText('Chọn ngày'));
+    fireEvent.click(screen.getByText('12'));
+    expect(onChange).toHaveBeenCalledWith(new Date(2026, 9, 12));
+  });
+});

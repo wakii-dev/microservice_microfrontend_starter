@@ -62,3 +62,36 @@ describe('PanelMenu — multiple open (Set state)', () => {
     expect(screen.getByText('B1')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('PanelMenu — classNames slots + style', () => {
+  const ITEMS = [
+    { key: 'g', label: 'Group', children: [{ key: 's1', label: 'Sub 1' }] },
+    { key: 'leaf', label: 'Leaf' },
+  ];
+
+  it('slots lên đúng element: root/item/header/submenu/subList/subItem', async () => {
+    const user = userEvent.setup();
+    render(
+      <PanelMenu
+        items={ITEMS}
+        classNames={{ root: 'slot-root', item: 'slot-item', header: 'slot-header', submenu: 'slot-sub', subList: 'slot-list', subItem: 'slot-sub-btn' }}
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(screen.getByText('Group')).toHaveClass('slot-header');
+    expect(screen.getByText('Group').closest('div')).toHaveClass('slot-item');
+    expect(screen.getByText('Leaf')).toHaveClass('slot-header');
+    await user.click(screen.getByRole('button', { name: /Group/ }));
+    expect(document.querySelector('div.slot-sub ul.slot-list')).not.toBeNull();
+    expect(screen.getByText('Sub 1')).toHaveClass('slot-sub-btn');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(<PanelMenu items={ITEMS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

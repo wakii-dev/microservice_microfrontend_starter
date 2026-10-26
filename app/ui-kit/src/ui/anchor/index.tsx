@@ -5,7 +5,8 @@
 // active accent; a11y: <nav> landmark + aria-current trên link đang active.
 // Depth contract 2026-10-19: selected tint accent/8 + hover tint ink/4
 // (color-mix trên token), dot slide 2px hover, mọi transition ease-smooth 240ms.
-import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
 
 export interface AnchorLinkItem {
   key?: string;
@@ -18,6 +19,18 @@ export interface AnchorLinkItem {
 
 export type AnchorGetContainer = () => HTMLElement | Window;
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface AnchorClassNames {
+  /** Phần tử ngoài cùng (nav — hoặc div sticky khi affix). */
+  root?: string;
+  /** <ul> mỗi cấp (áp cả nested). */
+  list?: string;
+  /** <a> link item (áp cả active). */
+  item?: string;
+  /** Span chấm rail cạnh link. */
+  dot?: string;
+}
+
 export interface AnchorProps {
   items: AnchorLinkItem[];
   /** Khoảng cách px từ đỉnh viewport để coi section là active (mặc định 0); với affix là khoảng sticky. */
@@ -29,6 +42,10 @@ export interface AnchorProps {
   /** Scroll container chứa các section (mặc định window). */
   getContainer?: AnchorGetContainer;
   className?: string;
+  /** Inline style — passthrough lên phần tử ngoài cùng. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: AnchorClassNames;
 }
 
 /** Dẹt hoá cây item (cha trước con) — thứ tự document cho scroll-spy. */
@@ -55,14 +72,17 @@ function findActiveHref(hrefs: string[], offsetTop: number): string | undefined 
   return current;
 }
 
-export function Anchor({
-  items,
-  offsetTop = 0,
-  onClick,
-  affix = false,
-  getContainer,
-  className,
-}: AnchorProps) {
+export function Anchor(props: AnchorProps) {
+  const {
+    items,
+    offsetTop = 0,
+    onClick,
+    affix = false,
+    getContainer,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const hrefs = useMemo(() => flattenItems(items), [items]);
   const [active, setActive] = useState<string | undefined>(undefined);
 
@@ -93,7 +113,7 @@ export function Anchor({
   };
 
   const renderList = (list: AnchorLinkItem[]) => (
-    <ul className="m-0 list-none border-l border-line p-0">
+    <ul className={classNames('m-0 list-none border-l border-line p-0', slots?.list)}>
       {list.map((item) => {
         const isActive = active === item.href;
         return (
@@ -102,17 +122,21 @@ export function Anchor({
               href={item.href}
               onClick={(e) => handleClick(e, item)}
               aria-current={isActive || undefined}
-              className={`group relative block rounded-lg py-1 pl-4 text-body no-underline outline-none transition-[color,background-color] duration-[240ms] [transition-timing-function:var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40 ${
+              className={classNames(
+                'group relative block rounded-lg py-1 pl-4 text-body no-underline outline-none transition-[color,background-color] duration-[240ms] [transition-timing-function:var(--ease-smooth)] focus-visible:ring-2 focus-visible:ring-accent/40',
                 isActive
                   ? 'bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] text-accent'
-                  : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] hover:text-ink'
-              }`}
+                  : 'text-ink2 hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] hover:text-ink',
+                slots?.item,
+              )}
             >
               <span
                 aria-hidden="true"
-                className={`absolute -left-[3px] top-1/2 size-1.5 -translate-y-1/2 rounded-pill transition-[background-color,transform] duration-[240ms] [transition-timing-function:var(--ease-smooth)] group-hover:translate-x-0.5 ${
-                  isActive ? 'bg-accent' : 'bg-ink4'
-                }`}
+                className={classNames(
+                  'absolute -left-[3px] top-1/2 size-1.5 -translate-y-1/2 rounded-pill transition-[background-color,transform] duration-[240ms] [transition-timing-function:var(--ease-smooth)] group-hover:translate-x-0.5',
+                  isActive ? 'bg-accent' : 'bg-ink4',
+                  slots?.dot,
+                )}
               />
               {item.title}
             </a>
@@ -129,7 +153,7 @@ export function Anchor({
 
   if (affix) {
     return (
-      <div style={{ position: 'sticky', top: offsetTop }} className={className}>
+      <div style={{ position: 'sticky', top: offsetTop, ...style }} className={classNames(slots?.root, className)}>
         <nav aria-label="Table of contents" className="w-40 text-body">
           {list}
         </nav>
@@ -137,7 +161,7 @@ export function Anchor({
     );
   }
   return (
-    <nav aria-label="Table of contents" className={`w-40 text-body ${className ?? ''}`}>
+    <nav aria-label="Table of contents" className={classNames('w-40 text-body', slots?.root, className)} style={style}>
       {list}
     </nav>
   );

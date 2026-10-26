@@ -66,3 +66,32 @@ describe('ColorPicker — matrix (props thật: value/onChange/presets/className
     expect(document.querySelector('input[type="color"]')).toBeNull();
   });
 });
+
+describe('ColorPicker — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root / trigger (swatch) / panel / swatch (preset)', async () => {
+    const user = userEvent.setup();
+    render(
+      <ColorPicker
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel', swatch: 'slot-swatch' }}
+      />,
+    );
+    const root = screen.getByLabelText('Chọn màu').parentElement!;
+    expect(root).toHaveClass('slot-root');
+    expect(screen.getByLabelText('Chọn màu')).toHaveClass('slot-trigger');
+    await user.click(screen.getByLabelText('Chọn màu'));
+    expect(screen.getByLabelText('#f5222d').closest('.relative')).toHaveClass('slot-panel');
+    expect(screen.getByLabelText('#f5222d')).toHaveClass('slot-swatch');
+  });
+
+  it('style passthrough lên root + không truyền slots → preset click vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<ColorPicker onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByLabelText('Chọn màu').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.click(screen.getByLabelText('Chọn màu'));
+    await user.click(screen.getByLabelText('#f5222d'));
+    expect(onChange).toHaveBeenCalledWith('#f5222d');
+  });
+});

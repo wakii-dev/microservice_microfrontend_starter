@@ -6,6 +6,7 @@
 // trong, đóng → trả focus về trigger. Motion: bp-fade-in mask + bp-zoom-in panel.
 // Depth contract 2026-10-19: panel nổi bậc L3 — hairline border + ele-3 (inset
 // highlight) chồng shadow-pop + wash sheen + easing --ease-smooth.
+import classNames from 'classnames';
 import {
   useEffect,
   useLayoutEffect,
@@ -28,6 +29,14 @@ export interface TourStep {
   description?: ReactNode;
 }
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface TourClassNames {
+  /** Div overlay full màn (mask + panel). */
+  root?: string;
+  /** Panel step (role=dialog). */
+  panel?: string;
+}
+
 export interface TourProps {
   /** Danh sách bước (thứ tự hiển thị). */
   steps: TourStep[];
@@ -40,6 +49,10 @@ export interface TourProps {
   /** Gọi khi prev/next đổi bước (dùng cùng `current` controlled). */
   onCurrentChange?: (index: number) => void;
   className?: string;
+  /** Inline style — passthrough lên overlay. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: TourClassNames;
 }
 
 /** Đệm quanh element được spotlight. */
@@ -87,7 +100,9 @@ function maskPath(view: { w: number; h: number }, hole: Rect | null): string {
   return d;
 }
 
-export function Tour({ steps, open, onClose, current, onCurrentChange, className }: TourProps) {
+export function Tour(props: TourProps) {
+  const { steps, open, onClose, current, onCurrentChange, className, style } = props;
+  const slots = props.classNames;
   const [inner, setInner] = useState(0);
   const [view, setView] = useState({ w: 0, h: 0 });
   const [rect, setRect] = useState<Rect | null>(null);
@@ -153,13 +168,17 @@ export function Tour({ steps, open, onClose, current, onCurrentChange, className
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
-  const slot = className ? ` ${className}` : '';
 
   return createPortal(
     <div
       data-testid="tour-overlay"
       onClick={onClose}
-      className={`fixed inset-0 z-[var(--z-modal)] animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]${slot}`}
+      className={classNames(
+        'fixed inset-0 z-[var(--z-modal)] animate-[bp-fade-in_var(--motion-base)_var(--ease-smooth)]',
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       <svg
         data-testid="tour-spotlight"
@@ -178,7 +197,10 @@ export function Tour({ steps, open, onClose, current, onCurrentChange, className
         tabIndex={-1}
         style={panelStyle}
         onClick={(e) => e.stopPropagation()}
-        className="absolute w-[320px] rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop),var(--ele-3)] [background-image:var(--wash)] outline-none animate-[bp-zoom-in_var(--motion-base)_var(--ease-smooth)]"
+        className={classNames(
+          'absolute w-[320px] rounded-xl border border-line bg-s2 p-4 shadow-[var(--shadow-pop),var(--ele-3)] [background-image:var(--wash)] outline-none animate-[bp-zoom-in_var(--motion-base)_var(--ease-smooth)]',
+          slots?.panel,
+        )}
       >
         <div className="mb-1 flex items-start justify-between gap-2">
           <span className="pt-0.5 font-mono text-meta text-ink3">

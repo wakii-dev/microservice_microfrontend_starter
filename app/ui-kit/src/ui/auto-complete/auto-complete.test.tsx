@@ -92,3 +92,37 @@ describe('AutoComplete — matrix gaps (a11y/props)', () => {
     expect(container.firstElementChild).toHaveClass('marker');
   });
 });
+
+describe('AutoComplete — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (div wrapper) / input (combobox) / listbox / option', async () => {
+    const user = userEvent.setup();
+    render(
+      <AutoComplete
+        suggestions={SUGGESTIONS}
+        classNames={{ root: 'slot-root', input: 'slot-input', listbox: 'slot-listbox', option: 'slot-option' }}
+      />,
+    );
+    const input = screen.getByRole('combobox', { name: 'Autocomplete' });
+    expect(input.closest('.relative')).toHaveClass('slot-root');
+    expect(input).toHaveClass('slot-input');
+    await user.type(input, 'học');
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toHaveClass('slot-listbox');
+    expect(screen.getByRole('option', { name: 'Học Rust' })).toHaveClass('slot-option');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn suggestion vẫn onSelect (behavior giữ nguyên)', async () => {
+    const onSelect = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <AutoComplete suggestions={SUGGESTIONS} onSelect={onSelect} style={{ margin: '8px' }} className="user-last" />,
+    );
+    const root = screen.getByRole('combobox', { name: 'Autocomplete' }).closest('.relative') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    const input = screen.getByRole('combobox', { name: 'Autocomplete' });
+    await user.type(input, 'học');
+    await user.click(within(screen.getByRole('option', { name: 'Học Rust' })).getByRole('button'));
+    expect(onSelect).toHaveBeenCalledWith('rust');
+  });
+});

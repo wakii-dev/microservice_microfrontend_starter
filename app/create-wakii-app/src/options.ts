@@ -1,9 +1,15 @@
 // options — parse argv tự viết (0 dep parser, spec engine): flag đơn giản +
-// defaults + validate. `router`/`appName` có thể undefined = CHƯA chỉ định →
-// CLI flow prompt; `--yes` lấy default qua resolveOptions.
+// defaults + validate. `router`/`appName`/`preset` có thể undefined = CHƯA chỉ
+// định → CLI flow prompt; `--yes` lấy default qua resolveOptions.
 export const EXTRAS = ['chart', 'carousel', 'schedule', 'editor'] as const;
 export type Extra = (typeof EXTRAS)[number];
 export type Lang = 'ts' | 'js';
+
+/** 4 preset scaffold: demo (mặc định — demo page + router + extras),
+ * minimal (trắng, không data layer), product (TanStack Query + zod + MSW +
+ * feature mẫu), admin (product + overlay layout admin). */
+export const PRESETS = ['demo', 'minimal', 'product', 'admin'] as const;
+export type Preset = (typeof PRESETS)[number];
 
 export interface CliOptions {
   /** Positional đầu tiên — undefined → CLI prompt (default 'my-wakii-app'). */
@@ -12,6 +18,8 @@ export interface CliOptions {
   /** undefined = chưa chỉ định (prompt); true/false = --router/--no-router. */
   router?: boolean;
   extras: Extra[];
+  /** undefined = chưa chỉ định (prompt); default 'demo' qua resolveOptions. */
+  preset?: Preset;
   yes: boolean;
   skipInstall: boolean;
   /** --help — index.ts in usage (options không tự in). */
@@ -28,6 +36,7 @@ export interface ScaffoldPlan {
   lang: Lang;
   router: boolean;
   extras: Extra[];
+  preset: Preset;
   skipInstall: boolean;
 }
 
@@ -62,6 +71,20 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       options.router = false;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
+    } else if (arg === '--preset') {
+      const value = argv[i + 1];
+      i += 1;
+      if (!value) return { ok: false, message: `--preset cần giá trị: ${PRESETS.join('|')}` };
+      if (!(PRESETS as readonly string[]).includes(value)) {
+        return { ok: false, message: `--preset chỉ nhận: ${PRESETS.join(' | ')} — nhận: ${value}` };
+      }
+      options.preset = value as Preset;
+    } else if (arg?.startsWith('--preset=')) {
+      const value = arg.slice('--preset='.length);
+      if (!(PRESETS as readonly string[]).includes(value)) {
+        return { ok: false, message: `--preset chỉ nhận: ${PRESETS.join(' | ')} — nhận: ${value}` };
+      }
+      options.preset = value as Preset;
     } else if (arg === '--lang') {
       const value = argv[i + 1];
       i += 1;
@@ -102,16 +125,26 @@ export function parseArgs(argv: readonly string[]): ParseResult {
 /** Đổ default cho các field chưa chỉ định — dùng khi `--yes` hoặc sau prompts.
  * Extras cần router (demo subpath là route riêng — quyết định thiết kế
  * 2026-10-24: copy-overlay không thể mở route khi thiếu BrowserRouter):
- * có extras mà router bị TẮT TƯỜNG MINH → lỗi rõ cho user bỏ một trong hai. */
+ * có extras mà router bị TẮT TƯỜNG MINH → lỗi rõ cho user bỏ một trong hai.
+ * Preset khác demo: luôn có router (template đóng gói sẵn), KHÔNG nhận extras
+ * (demo-only) và KHÔNG nhận lang js (chỉ sinh bản ts). */
 export function resolveOptions(options: CliOptions): ScaffoldPlan {
+  const preset = options.preset ?? 'demo';
   if (options.extras.length > 0 && options.router === false) {
     throw new Error('--no-router mâu thuẫn với --extras (demo subpath cần route để mở) — bỏ --no-router hoặc bỏ extras');
+  }
+  if (preset !== 'demo' && options.extras.length > 0) {
+    throw new Error(`--extras chỉ dành cho preset demo (preset '${preset}' có cấu trúc riêng) — bỏ --extras hoặc dùng --preset demo`);
+  }
+  if (preset !== 'demo' && options.lang === 'js') {
+    throw new Error(`Preset '${preset}' hiện chỉ hỗ trợ TypeScript — bỏ --lang js (hoặc dùng --preset demo)`);
   }
   return {
     appName: options.appName ?? 'my-wakii-app',
     lang: options.lang,
-    router: options.extras.length > 0 ? true : (options.router ?? true),
+    router: preset !== 'demo' ? true : options.extras.length > 0 ? true : (options.router ?? true),
     extras: options.extras,
+    preset,
     skipInstall: options.skipInstall,
   };
 }

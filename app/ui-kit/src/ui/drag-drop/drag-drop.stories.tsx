@@ -112,6 +112,33 @@ export const KeyboardWorkflow: Story = {
   render: () => <KeyboardWorkflowDemo />,
 };
 
+/** CustomStyled — slots-wave classNames + style: Draggable `root` lands on the
+ * role=button wrapper and `handle` on the grip holder; DropZone `root` lands on
+ * the drop target; `style` merges on the same elements. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex items-start gap-6">
+      <Draggable
+        data={{ id: 9, label: 'Slotted card' }}
+        classNames={{ root: 'rounded-xl' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+        className="w-48 border border-dashed border-accent bg-accent/5 p-3 text-body text-ink"
+      >
+        Slotted draggable card
+      </Draggable>
+      <DropZone
+        ariaLabel="Slotted zone"
+        classNames={{ root: 'rounded-xl border-dashed border-accent bg-accent/5' }}
+        style={{ boxShadow: 'inset 0 0 16px rgba(0, 0, 0, 0.08)' }}
+        className="grid min-h-32 w-64 place-items-center border text-meta text-ink3"
+      >
+        Slotted drop zone
+      </DropZone>
+    </div>
+  ),
+};
+
 function KeyboardWorkflowDemo() {
   const [log, setLog] = useState<string[]>([]);
   const push = (zone: string) => (data: unknown) => setLog((l) => [`dropped ${JSON.stringify(data)} → ${zone}`, ...l].slice(0, 4));

@@ -64,3 +64,20 @@ export const Wrap: Story = {
     </Space>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the space div;
+ * `style` merges after the gap/align inline styles. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Space
+      size="middle"
+      classNames={{ root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-3' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      <span className="text-body text-ink">item</span>
+      <span className="text-body text-ink2">items</span>
+      <span className="text-body text-ink3">spaced</span>
+    </Space>
+  ),
+};

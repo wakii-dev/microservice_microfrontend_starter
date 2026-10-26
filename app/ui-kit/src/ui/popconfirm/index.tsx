@@ -1,8 +1,19 @@
 // Popconfirm — bubble confirm nhỏ bám trigger (style matrix 2026-10-18: bubble
 // rounded-xl, shadow var(--shadow-pop); icon warning tròn, nút small Huỷ/default + OK primary).
 // Controlled (open) — TaskItem xoá dùng; ESC = cancel.
-import { cloneElement, isValidElement, useEffect, useId, type ReactElement, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { cloneElement, isValidElement, useEffect, useId, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { Button } from '../button/index';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface PopconfirmClassNames {
+  /** Span gốc bọc trigger (relative inline-flex). */
+  root?: string;
+  /** Span neo absolute chứa bubble. */
+  bubble?: string;
+  /** Span role=dialog (thân bubble + mũi tên). */
+  dialog?: string;
+}
 
 export interface PopconfirmProps {
   /** Controlled mở/đóng bubble. */
@@ -21,21 +32,30 @@ export interface PopconfirmProps {
   onConfirm?: () => void;
   /** Huỷ = click Huỷ / ESC. */
   onCancel?: () => void;
+  className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: PopconfirmClassNames;
   /** Trigger element — bọc trong span relative (bubble absolute bên dưới). */
   children: ReactNode;
 }
 
-export function Popconfirm({
-  open,
-  title,
-  description,
-  okText = 'OK',
-  cancelText = 'Huỷ',
-  danger = false,
-  onConfirm,
-  onCancel,
-  children,
-}: PopconfirmProps) {
+export function Popconfirm(props: PopconfirmProps) {
+  const {
+    open,
+    title,
+    description,
+    okText = 'OK',
+    cancelText = 'Huỷ',
+    danger = false,
+    onConfirm,
+    onCancel,
+    className,
+    style,
+    children,
+  } = props;
+  const slots = props.classNames;
   // A11y: bubble name qua labelledby — ăn cả title ReactNode, không chỉ string.
   const titleId = useId();
   useEffect(() => {
@@ -56,14 +76,19 @@ export function Popconfirm({
     : children;
 
   return (
-    <span className="relative inline-flex">
+    <span className={classNames('relative inline-flex', slots?.root, className)} style={style}>
       {trigger}
       {open && (
-        <span className="absolute bottom-[calc(100%+10px)] left-0 z-[var(--z-popover)] w-max max-w-xs">
+        <span
+          className={classNames('absolute bottom-[calc(100%+10px)] left-0 z-[var(--z-popover)] w-max max-w-xs', slots?.bubble)}
+        >
           <span
             role="dialog"
             aria-labelledby={titleId}
-            className="block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]"
+            className={classNames(
+              'block origin-bottom-left rounded-xl border border-line bg-s2 p-3 shadow-[var(--shadow-pop)] animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]',
+              slots?.dialog,
+            )}
           >
             <span className="flex items-start gap-2">
               {/* Contrast: chữ ĐEN trên gold --st-doing (antd gold-pattern — trắng chỉ ~1.6:1);

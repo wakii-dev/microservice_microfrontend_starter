@@ -123,3 +123,25 @@ describe('VirtualScroll', () => {
 function viewport_queryAbsent(rows: HTMLElement[], index: string) {
   return !rows.some((r) => r.dataset.i === index);
 }
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('VirtualScroll — classNames + style', () => {
+  const ITEMS = Array.from({ length: 20 }, (_, i) => i);
+
+  it('slot root lên viewport; className sau slot', () => {
+    const { container } = render(
+      <VirtualScroll items={ITEMS} itemSize={40} renderItem={(n) => <div>row {n}</div>} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau height (override được)', () => {
+    const { container } = render(
+      <VirtualScroll items={ITEMS} itemSize={40} renderItem={(n) => <div>row {n}</div>} style={{ height: 99, background: 'rgb(1, 2, 3)' }} />,
+    );
+    expect(container.firstElementChild).toHaveStyle({ height: '99px', background: 'rgb(1, 2, 3)' });
+  });
+});

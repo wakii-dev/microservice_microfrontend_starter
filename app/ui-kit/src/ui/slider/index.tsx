@@ -1,5 +1,20 @@
 // Slider — antd look: track + handle + tooltip %; single + range; step; disabled.
-import { useState, type KeyboardEvent } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/track/fill/handle) +
+// style passthrough — default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
+import { useState, type CSSProperties, type KeyboardEvent } from 'react';
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface SliderClassNames {
+  /** Div row gốc — cùng element với className prop. */
+  root?: string;
+  /** Div role=slider (rail h-1.5, nhận click + keyboard). */
+  track?: string;
+  /** Div fill accent (đo bằng % theo value). */
+  fill?: string;
+  /** Span handle tròn (range mode: áp cho cả 2 handle). */
+  handle?: string;
+}
 
 export interface SliderProps {
   value?: number;
@@ -14,9 +29,18 @@ export interface SliderProps {
   range?: [number, number] | undefined;
   onRangeChange?: (range: [number, number]) => void;
   className?: string;
+  /** Inline style — passthrough lên div row gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: SliderClassNames;
 }
 
-export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 1, disabled = false, ariaLabel = 'Thanh trượt', range, onRangeChange, className }: SliderProps) {
+export function Slider(props: SliderProps) {
+  const {
+    value: valueProp, onChange, min = 0, max = 100, step = 1, disabled = false,
+    ariaLabel = 'Thanh trượt', range, onRangeChange, className, style,
+  } = props;
+  const slots = props.classNames;
   const [internal, setInternal] = useState(range ? ([...range] as [number, number]) : (valueProp ?? min));
   const value: number | [number, number] = range
     ? (range as [number, number])
@@ -59,7 +83,7 @@ export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 
   }
 
   return (
-    <div className={`flex w-full items-center gap-3${className ? ` ${className}` : ''}`}>
+    <div className={classNames('flex w-full items-center gap-3', slots?.root, className)} style={style}>
       <div
         role="slider"
         aria-label={ariaLabel}
@@ -68,21 +92,21 @@ export function Slider({ value: valueProp, onChange, min = 0, max = 100, step = 
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
-        className={`relative h-1.5 w-full rounded-pill bg-line2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
+        className={classNames('relative h-1.5 w-full rounded-pill bg-line2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none', disabled ? 'opacity-50' : 'cursor-pointer', slots?.track)}
         onClick={handleTrack}
       >
         <div
-          className="absolute h-full rounded-pill bg-accent transition-[width,left] duration-200 ease-[var(--ease-smooth)]"
+          className={classNames('absolute h-full rounded-pill bg-accent transition-[width,left] duration-200 ease-[var(--ease-smooth)]', slots?.fill)}
           style={isRange
             ? { left: `${pct(value[0])}%`, width: `${pct(value[1]) - pct(value[0])}%` }
             : { width: `${pct(value as number)}%` }}
         />
         {isRange ? (
           (value as [number, number]).map((v, i) => (
-            <span key={i} className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]" style={{ left: `${pct(v)}%` }} />
+            <span key={i} className={classNames('absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]', slots?.handle)} style={{ left: `${pct(v)}%` }} />
           ))
         ) : (
-          <span className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]" style={{ left: `${pct(value as number)}%` }} />
+          <span className={classNames('absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-pill border-2 border-accent bg-white shadow-[var(--shadow-lift)] transition-[box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)]', slots?.handle)} style={{ left: `${pct(value as number)}%` }} />
         )}
       </div>
     </div>

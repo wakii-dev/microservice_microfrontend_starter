@@ -90,3 +90,31 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `track` on
+ * the sliding track, `page` on each level page, `back` on the back button,
+ * `item`/`itemButton` on entries; `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <SlideMenu
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-2xl border border-dashed border-accent bg-accent/5',
+        back: 'bg-accent/10',
+        itemButton: 'rounded-full',
+      }}
+      items={[
+        {
+          key: 'workspace',
+          label: 'Workspace',
+          children: [
+            { key: 'tasks', label: 'Tasks' },
+            { key: 'reports', label: 'Reports' },
+          ],
+        },
+        { key: 'settings', label: 'Settings' },
+      ]}
+    />
+  ),
+};

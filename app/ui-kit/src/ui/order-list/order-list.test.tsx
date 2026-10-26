@@ -52,3 +52,26 @@ describe('OrderList', () => {
     expect(screen.getByText('3. Alpha')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('OrderList — classNames slots + style', () => {
+  const ITEMS = [
+    { label: 'One', value: 'one' },
+    { label: 'Two', value: 'two' },
+  ];
+
+  it('slots root/list/item lên đúng element; className sau slot', () => {
+    const { container } = render(<OrderList items={ITEMS} classNames={{ root: 'slot-root', list: 'slot-list', item: 'slot-item' }} className="user-last" />);
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(document.querySelector('ul.slot-list')).not.toBeNull();
+    expect(screen.getByText(/One/).closest('li')).toHaveClass('slot-item');
+  });
+
+  it('style passthrough lên root div', () => {
+    const { container } = render(<OrderList items={ITEMS} style={{ padding: '2px' }} />);
+    expect(container.firstElementChild).toHaveStyle({ padding: '2px' });
+  });
+});

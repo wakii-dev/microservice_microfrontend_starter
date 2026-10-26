@@ -80,3 +80,33 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: FloatButton `root` lands on
+ * the floating <button> and `icon` on the sliding icon span; Group slots land
+ * on the fixed stack, its menu and the round trigger; `style` merges on the
+ * same outer elements. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="relative h-40 overflow-hidden rounded-xl bg-canvas">
+      <FloatButton
+        icon={<Icon name="pencil" size={16} />}
+        tooltip="Compose"
+        classNames={{ root: 'border-dashed border-accent bg-accent/5', icon: 'text-accent' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      />
+      <FloatButtonGroup
+        icon={<Icon name="plus" size={20} />}
+        ariaLabel="Quick actions"
+        classNames={{
+          root: 'bottom-6 right-16',
+          menu: 'rounded-xl bg-s2 p-2 shadow-[var(--shadow-pop)]',
+          trigger: 'ring-2 ring-accent/40',
+        }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.28)' }}
+      >
+        <FloatButton icon={<Icon name="upload" size={16} />} tooltip="Upload" />
+      </FloatButtonGroup>
+    </div>
+  ),
+};

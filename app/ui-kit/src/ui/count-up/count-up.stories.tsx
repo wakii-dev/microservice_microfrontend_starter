@@ -78,3 +78,18 @@ function LiveUpdateDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the number
+ * span; `style` merges after the pulse animation style. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <CountUp
+      value={1284}
+      duration={1.2}
+      format={(n) => Math.round(n).toLocaleString('en-US')}
+      classNames={{ root: 'text-accent text-h2 font-semibold' }}
+      style={{ padding: 4, borderBottom: '2px dashed currentColor' }}
+    />
+  ),
+};

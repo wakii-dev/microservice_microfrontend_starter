@@ -135,3 +135,26 @@ function SplitButtonDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the relative
+ * wrapper, `button` on the single fused button, `menu` on the floating <ul>;
+ * `style` lands on the wrapper. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <SplitButton
+      label="Deploy"
+      items={[
+        { key: 'prod', label: 'To production' },
+        { key: 'sep', label: '', separator: true },
+        { key: 'staging', label: 'To staging' },
+      ]}
+      classNames={{
+        root: 'rounded-xl',
+        button: 'border-dashed ring-2 ring-accent/20',
+        menu: 'border-accent/40',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    />
+  ),
+};

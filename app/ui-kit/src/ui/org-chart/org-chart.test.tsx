@@ -96,3 +96,33 @@ describe('OrgChart', () => {
     expect(screen.getByText('Engineering')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+const ORG_DATA = {
+  key: 'ceo',
+  label: 'CEO',
+  children: [{ key: 'eng', label: 'Eng' }],
+};
+
+describe('OrgChart — classNames slots + style', () => {
+  it('slots root/tree/item/node lên đúng element mọi cấp', () => {
+    const { container } = render(
+      <OrgChart data={ORG_DATA} classNames={{ root: 'slot-root', tree: 'slot-tree', item: 'slot-item', node: 'slot-node' }} />,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-root');
+    expect(document.querySelectorAll('ul.slot-tree').length).toBe(2); // root + group
+    expect(container.querySelectorAll('li.slot-item').length).toBe(2);
+    expect(screen.getByText('CEO').closest('button')).toHaveClass('slot-node');
+    expect(screen.getByText('Eng').closest('button')).toHaveClass('slot-node');
+  });
+
+  it('style passthrough lên div gốc; className người dùng sau root slot', () => {
+    const { container } = render(
+      <OrgChart data={ORG_DATA} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

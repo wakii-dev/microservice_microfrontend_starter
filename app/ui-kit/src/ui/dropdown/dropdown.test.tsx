@@ -99,3 +99,33 @@ describe('Dropdown — keyboard a11y (batch ⑫ worker C)', () => {
     expect(trigger).toHaveFocus();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Dropdown — classNames + style', () => {
+  it('slots lên đúng element: root/menu; className sau root slot', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown
+        trigger={<button>Menu</button>}
+        items={ITEMS}
+        classNames={{ root: 'slot-root', menu: 'slot-menu' }}
+        className="user-last"
+      />,
+    );
+    const root = screen.getByRole('button', { name: 'Menu' }).closest('span')!.parentElement!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('menu')).toHaveClass('slot-menu');
+  });
+
+  it('style passthrough lên span gốc (menu vẫn mở bình thường)', async () => {
+    const user = userEvent.setup();
+    render(<Dropdown trigger={<button>Menu</button>} items={ITEMS} style={{ margin: '8px' }} />);
+    const root = screen.getByRole('button', { name: 'Menu' }).closest('span')!.parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+});

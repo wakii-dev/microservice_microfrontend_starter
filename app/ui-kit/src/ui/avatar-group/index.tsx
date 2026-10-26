@@ -1,6 +1,9 @@
 // AvatarGroup — antd Avatar.Group: stack overlap (-ml-2 + ring trắng), max →
 // pill "+N" (tooltip liệt kê tên bị ẩn), tooltip tên khi hover từng avatar.
 // Avatar giữ nguyên — group chỉ wrap. fallback ưu tiên hơn initials suy từ tên.
+// slots-wave: classNames {root} + style passthrough — default giữ nguyên DOM.
+import classNames from 'classnames';
+import type { CSSProperties } from 'react';
 import { Avatar } from '../avatar/index';
 import { Tooltip } from '../tooltip/index';
 
@@ -11,6 +14,12 @@ export interface AvatarGroupItem {
   fallback?: string;
 }
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface AvatarGroupClassNames {
+  /** Div gốc bọc stack avatar. */
+  root?: string;
+}
+
 export interface AvatarGroupProps {
   /** Danh sách avatar — mỗi item tooltip = name khi hover. */
   items: AvatarGroupItem[];
@@ -19,6 +28,10 @@ export interface AvatarGroupProps {
   /** Kích thước mỗi avatar px (truyền thẳng Avatar.size). */
   size?: number;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: AvatarGroupClassNames;
 }
 
 function initials(name: string): string {
@@ -30,7 +43,9 @@ function initials(name: string): string {
     .join('');
 }
 
-export function AvatarGroup({ items, max, size = 32, className }: AvatarGroupProps) {
+export function AvatarGroup(props: AvatarGroupProps) {
+  const { items, max, size = 32, className, style } = props;
+  const slots = props.classNames;
   const visible = max ? items.slice(0, max) : items;
   const hidden = items.slice(visible.length);
   const overlapCls = '-ml-2';
@@ -41,7 +56,7 @@ export function AvatarGroup({ items, max, size = 32, className }: AvatarGroupPro
   const stagger = ['', '[animation-delay:30ms]', '[animation-delay:60ms]', '[animation-delay:90ms]', '[animation-delay:120ms]'];
 
   return (
-    <div className={`flex items-center${className ? ` ${className}` : ''}`}>
+    <div className={classNames('flex items-center', slots?.root, className)} style={style}>
       {visible.map((item, i) => (
         <Tooltip key={`${item.name}-${i}`} title={item.name} className={i > 0 ? overlapCls : undefined}>
           <Avatar

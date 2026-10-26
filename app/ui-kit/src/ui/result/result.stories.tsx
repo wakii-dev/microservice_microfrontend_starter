@@ -80,3 +80,26 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the centered
+ * column, `icon`/`title`/`subTitle`/`extra` on each part; `style` lands on the
+ * root; the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Result
+      status="success"
+      title="Deployment complete"
+      subTitle="All 12 services passed the smoke suite."
+      extra={<Button type="primary">Open dashboard</Button>}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        icon: 'drop-shadow-lg',
+        title: 'tracking-wide uppercase text-label',
+        subTitle: 'italic',
+        extra: 'border-t border-line pt-3',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    />
+  ),
+};

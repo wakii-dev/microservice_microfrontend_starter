@@ -94,3 +94,24 @@ export const MultipleOpen: Story = {
     />
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `item` on
+ * each group wrapper, `header` on group headers, `submenu`/`subList`/`subItem`
+ * on the accordion panel; `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <PanelMenu
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-2xl border border-dashed border-accent bg-accent/5',
+        header: 'uppercase tracking-wide',
+        subItem: 'font-medium',
+      }}
+      items={[
+        { key: 'project', label: 'Project', children: [{ key: 'tasks', label: 'Tasks' }, { key: 'board', label: 'Board' }] },
+        { key: 'settings', label: 'Settings' },
+      ]}
+    />
+  ),
+};

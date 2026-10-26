@@ -130,3 +130,39 @@ describe('CascadeSelect — panel align giữa trigger (polish)', () => {
     expect(opt.className).toContain('min-w-[140px]');
   });
 });
+
+describe('CascadeSelect — classNames slots + style (slots wave 3)', () => {
+  const OPTS = [
+    { label: 'Hà Nội', value: 'hn', children: [{ label: 'Ba Đình', value: 'hn-bd' }] },
+    { label: 'Đà Nẵng', value: 'dn' },
+  ];
+
+  it('slots lên đúng element: root (div wrapper) / trigger (button) / panel (listbox) / option', async () => {
+    const user = userEvent.setup();
+    render(
+      <CascadeSelect
+        options={OPTS}
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel', option: 'slot-option' }}
+      />,
+    );
+    const root = screen.getByText('Chọn…').closest('.relative')!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.querySelector('button')).toHaveClass('slot-trigger');
+    await user.click(screen.getByText('Chọn…'));
+    const panel = screen.getByRole('listbox');
+    expect(panel).toHaveClass('slot-panel');
+    expect(screen.getByRole('option', { name: 'Đà Nẵng' })).toHaveClass('slot-option');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn leaf vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<CascadeSelect options={OPTS} onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByText('Chọn…').closest('.relative') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.click(screen.getByText('Chọn…'));
+    await user.click(screen.getByText('Đà Nẵng'));
+    expect(onChange).toHaveBeenCalledWith(['dn']);
+  });
+});

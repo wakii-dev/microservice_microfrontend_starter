@@ -47,3 +47,27 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / legend / content) +
+ * style passthrough. `root` lands on the <fieldset> (same element as
+ * `className`), `legend` on the floating header span, `content` on the padded
+ * body div; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Fieldset
+      legend="Preferences"
+      toggleable
+      classNames={{
+        root: 'border-st-done',
+        legend: 'text-st-done uppercase tracking-wide',
+        content: 'bg-accent/5',
+      }}
+      style={{ padding: 12, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    >
+      <p>Body content picks up the content slot.</p>
+    </Fieldset>
+  ),
+};

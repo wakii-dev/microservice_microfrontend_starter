@@ -94,3 +94,23 @@ export const CustomOffset: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `list` on
+ * every level <ul>, `item` on links, `dot` on rail dots; `style` lands on root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Anchor
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        item: 'uppercase tracking-wide',
+        dot: 'size-2',
+      }}
+      items={[
+        { href: '#anchor-a', title: 'Alpha' },
+        { href: '#anchor-b', title: 'Beta' },
+      ]}
+    />
+  ),
+};

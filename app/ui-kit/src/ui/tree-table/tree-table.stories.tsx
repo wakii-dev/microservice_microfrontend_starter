@@ -109,3 +109,38 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the treegrid,
+ * `headerRow` on the top strip, `row`/`cell` on body rows and cells,
+ * `expander` on the chevron button, `panel` on the animated subtree wrapper;
+ * `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <TreeTable
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'border-dashed border-accent',
+        headerRow: 'bg-accent/10 uppercase tracking-wide',
+        row: 'border-b-2',
+        expander: 'text-accent',
+      }}
+      defaultExpandedKeys={['services']}
+      columns={[
+        { key: 'name', header: 'Service' },
+        { key: 'size', header: 'Bundle', align: 'right' },
+      ]}
+      data={[
+        {
+          key: 'services',
+          values: { name: 'services', size: '—' },
+          children: [
+            { key: 'node', values: { name: 'node-svc', size: '2.1MB' } },
+            { key: 'gateway', values: { name: 'gateway', size: '0.4MB' } },
+          ],
+        },
+        { key: 'contracts', values: { name: 'contracts', size: '0.2MB' } },
+      ]}
+    />
+  ),
+};

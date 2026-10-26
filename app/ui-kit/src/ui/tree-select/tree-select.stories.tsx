@@ -103,3 +103,30 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / trigger / panel /
+ * listbox / option) + style passthrough. `root` lands on the outer relative
+ * span (same element as `className`), `trigger` on the combobox button,
+ * `panel`/`listbox`/`option` inside the dropdown; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: { ariaLabel: 'Custom', treeData: [] },
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <TreeSelect
+        ariaLabel="Custom styled tree select"
+        treeData={DEPARTMENTS}
+        classNames={{
+          root: 'rounded-xl',
+          trigger: 'border-st-done border-dashed',
+          panel: 'rounded-lg border-st-done',
+          listbox: 'bg-accent/5',
+          option: 'tracking-wide',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

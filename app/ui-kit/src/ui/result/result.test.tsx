@@ -55,3 +55,40 @@ describe('Result', () => {
     expect(document.querySelector('.pt-4.text-center')).not.toBeNull();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Result — classNames + style', () => {
+  it('slots lên đúng element: root/icon/title/subTitle/extra; className sau root slot', () => {
+    render(
+      <Result
+        status="404"
+        title="404"
+        subTitle="Mất rồi"
+        extra={<button>Về chủ</button>}
+        classNames={{
+          root: 'slot-root',
+          icon: 'slot-icon',
+          title: 'slot-title',
+          subTitle: 'slot-subtitle',
+          extra: 'slot-extra',
+        }}
+        className="user-last"
+      />,
+    );
+    const root = document.querySelector('.slot-root')!;
+    expect(root).toBeInTheDocument();
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(document.querySelector('[data-testid="result-icon"]')).toHaveClass('slot-icon');
+    expect(screen.getAllByText('404').find((el) => el.classList.contains('slot-title'))).toHaveClass('slot-title');
+    expect(screen.getByText('Mất rồi')).toHaveClass('slot-subtitle');
+    expect(screen.getByRole('button', { name: 'Về chủ' }).parentElement).toHaveClass('slot-extra');
+  });
+
+  it('style passthrough lên root (mọi status đều nhận)', () => {
+    const { rerender } = render(<Result status="success" style={{ margin: '8px' }} />);
+    expect(document.querySelector('[data-testid="result-check"]')!.parentElement).toHaveStyle({ margin: '8px' });
+    rerender(<Result status="error" style={{ margin: '8px' }} />);
+    expect(document.querySelector('[data-testid="result-icon"]')!.parentElement).toHaveStyle({ margin: '8px' });
+  });
+});

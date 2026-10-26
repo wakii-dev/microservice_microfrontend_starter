@@ -129,3 +129,33 @@ describe('Tour', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Tour — classNames + style', () => {
+  it('slots lên đúng element: overlay/panel; className sau root slot', () => {
+    render(
+      <Tour
+        steps={STEPS}
+        open
+        classNames={{ root: 'slot-overlay', panel: 'slot-panel' }}
+        className="user-last"
+        onClose={() => {}}
+      />,
+    );
+    const overlay = document.querySelector('[data-testid="tour-overlay"]')!;
+    expect(overlay).toHaveClass('slot-overlay');
+    expect(overlay.className.indexOf('slot-overlay')).toBeLessThan(overlay.className.indexOf('user-last'));
+    expect(screen.getByRole('dialog')).toHaveClass('slot-panel');
+  });
+
+  it('style passthrough lên overlay (panel vẫn mở/đóng ESC)', async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(<Tour steps={STEPS} open style={{ margin: '8px' }} onClose={onClose} />);
+    const overlay = document.querySelector('[data-testid="tour-overlay"]') as HTMLElement;
+    expect(overlay).toHaveStyle({ margin: '8px' });
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

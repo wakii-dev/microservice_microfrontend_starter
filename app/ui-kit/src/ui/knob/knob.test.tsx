@@ -40,3 +40,25 @@ describe('Knob', () => {
     expect(screen.getByRole('slider', { name: 'Điều khiển giá trị' })).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Knob — classNames + style', () => {
+  it('slot root lên svg slider; className sau slot', () => {
+    render(<Knob value={40} ariaLabel="S" classNames={{ root: 'slot-root' }} className="user-last" />);
+    const knob = screen.getByRole('slider', { name: 'S' }) as unknown as SVGElement;
+    expect(knob).toHaveClass('slot-root');
+    const cls = knob.className.baseVal;
+    expect(cls.indexOf('slot-root')).toBeLessThan(cls.indexOf('user-last'));
+  });
+
+  it('style passthrough lên svg (keyboard vẫn đổi giá trị)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Knob value={40} onChange={onChange} ariaLabel="St" style={{ margin: '8px' }} />);
+    const knob = screen.getByRole('slider', { name: 'St' }) as unknown as SVGElement;
+    expect(knob).toHaveStyle({ margin: '8px' });
+    await user.type(knob, '{ArrowUp}');
+    expect(onChange).toHaveBeenLastCalledWith(41);
+  });
+});

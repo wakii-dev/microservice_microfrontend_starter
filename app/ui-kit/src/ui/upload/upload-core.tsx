@@ -2,9 +2,17 @@
 // useUploadController (hidden input, openDialog, hàng đợi file nội bộ có status per file),
 // UploadFileList (tên + size KB/MB + × remove). Tách riêng để index ↔ dropzone không import chéo.
 // Status per file: beforeUpload false → chặn; Promise → 'uploading' (Progress ticker display-only)
+<<<<<<< Updated upstream
 // → resolve true 'done' / resolve false gỡ dòng / reject 'error' (+ reason hiển thị, retry).
 // Per-file callbacks (mission overlay-api): onItemDone/onItemError bắn khi MỖI file xong/lỗi.
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+=======
+// → resolve true 'done' / resolve false gỡ dòng / reject 'error'.
+// Customize pass (slots wave 3): classNames slots (root/dropzone/list/listItem/
+// listRemove) + style passthrough — default path (không truyền) giữ nguyên DOM.
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type ReactNode } from 'react';
+>>>>>>> Stashed changes
 import { Icon } from '../icons/index.js';
 import { Progress } from '../progress/index';
 
@@ -18,6 +26,20 @@ export interface UploadItem {
   progress?: number;
   /** Lý do lỗi (message của reject) — status='error', UploadFileList hiển thị cạnh "Lỗi". */
   error?: string;
+}
+
+/** Slot classes kiểu antd v5 (slots wave 3) — dùng chung Upload & UploadDropzone. */
+export interface UploadClassNames {
+  /** Div gốc bọc input + trigger + list — cùng element với className prop. */
+  root?: string;
+  /** Div role=button vùng kéo-thả (chỉ UploadDropzone dùng). */
+  dropzone?: string;
+  /** <ul> danh sách file. */
+  list?: string;
+  /** <li> mỗi file trong list. */
+  listItem?: string;
+  /** Button × xoá mỗi file. */
+  listRemove?: string;
 }
 
 export interface UploadProps {
@@ -41,6 +63,10 @@ export interface UploadProps {
   /** Ẩn/hiện danh sách file — mặc định true. */
   showList?: boolean;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: UploadClassNames;
   /** Trigger tuỳ chỉnh thay button mặc định (dropzone dùng children thay hint). */
   children?: ReactNode;
 }
@@ -200,6 +226,7 @@ export function useUploadController(props: UploadProps) {
   return { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange };
 }
 
+<<<<<<< Updated upstream
 /** Ring SVG cho 1 file đang upload (progressVariant='ring') — a11y trùng contract Progress bar. */
 function UploadProgressRing({ item }: { item: UploadItem }) {
   const clamped = Math.min(100, Math.max(0, item.progress ?? 0));
@@ -245,14 +272,24 @@ export function UploadFileList({
   onRetry?: (item: UploadItem) => void;
   /** 'bar' (mặc định, fallback) hoặc 'ring' — SVG vòng tròn gọn cho dòng file. */
   progressVariant?: 'bar' | 'ring';
+=======
+/** Danh sách file: tên + size + Progress (đang upload) / ✓ (done) / Lỗi (error) + × remove. */
+export function UploadFileList(props: {
+  items: UploadItem[];
+  onRemove: (item: UploadItem) => void;
+  /** Slots list/listItem/listRemove — threads từ UploadClassNames (slots wave 3). */
+  classNames?: Pick<UploadClassNames, 'list' | 'listItem' | 'listRemove'>;
+>>>>>>> Stashed changes
 }) {
+  const { items, onRemove } = props;
+  const slots = props.classNames;
   if (items.length === 0) return null;
   return (
-    <ul className="mt-2 flex list-none flex-col gap-1 p-0">
+    <ul className={classNames('mt-2 flex list-none flex-col gap-1 p-0', slots?.list)}>
       {items.map((item) => (
         <li
           key={item.id}
-          className="flex items-center gap-2 rounded-lg border border-line bg-s2 px-3 py-2 text-body text-ink"
+          className={classNames('flex items-center gap-2 rounded-lg border border-line bg-s2 px-3 py-2 text-body text-ink', slots?.listItem)}
         >
           <span className="shrink-0 text-ink3" aria-hidden="true">
             <Icon name="file" size={16} />
@@ -290,7 +327,7 @@ export function UploadFileList({
           <button
             type="button"
             aria-label={`Xoá ${item.file.name}`}
-            className="shrink-0 cursor-pointer rounded-1 border-0 bg-transparent p-1 text-ink3 hover:text-st-fail"
+            className={classNames('shrink-0 cursor-pointer rounded-1 border-0 bg-transparent p-1 text-ink3 hover:text-st-fail', slots?.listRemove)}
             onClick={() => onRemove(item)}
           >
             <Icon name="times" size={12} />

@@ -39,3 +39,24 @@ describe('ScrollPanel', () => {
     expect(panel).toHaveClass('mt-4');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('ScrollPanel — classNames + style', () => {
+  it('slot root lên div cuộn; className sau slot', () => {
+    const { container } = render(
+      <ScrollPanel classNames={{ root: 'slot-root' }} className="user-last">
+        <span>x</span>
+      </ScrollPanel>,
+    );
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau height (override được)', () => {
+    const { container } = render(<ScrollPanel style={{ height: '99px', padding: '2px' }}>x</ScrollPanel>);
+    const el = container.firstElementChild as HTMLElement;
+    expect(el).toHaveStyle({ height: '99px', padding: '2px' });
+  });
+});

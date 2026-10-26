@@ -111,3 +111,20 @@ export const MeetingAttendees: Story = {
     </Card>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the stack
+ * wrapper; `style` lands on the same div. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    max: 3,
+    items: [
+      { name: 'Ada Lovelace' },
+      { name: 'Grace Hopper' },
+      { name: 'Linus Torvalds' },
+      { name: 'Edsger Dijkstra' },
+    ],
+    classNames: { root: 'rounded-pill border border-dashed border-accent bg-accent/5 p-2' },
+    style: { padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+  },
+};

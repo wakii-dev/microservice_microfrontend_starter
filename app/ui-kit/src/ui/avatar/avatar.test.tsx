@@ -63,3 +63,15 @@ describe('Avatar — branch phụ (Tier 5 sweep)', () => {
     expect(screen.getByText('HB')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Avatar — classNames + style', () => {
+  it('slot root lên đúng span; className sau slot; style override được size', () => {
+    render(<Avatar classNames={{ root: 'slot-root' }} className="user-last" style={{ width: 64 }}>A</Avatar>);
+    const el = screen.getByText('A').parentElement!;
+    expect(el).toHaveClass('slot-root');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+    expect(el).toHaveStyle({ width: '64px' });
+  });
+});

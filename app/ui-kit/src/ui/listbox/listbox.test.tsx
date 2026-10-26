@@ -47,3 +47,28 @@ describe('Listbox — coverage audit', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Listbox — classNames + style', () => {
+  const OPTS = [
+    { label: 'Alpha', value: 'a' },
+    { label: 'Beta', value: 'b' },
+  ];
+
+  it('slot root lên ul + option lên li; className sau slot', () => {
+    const { container } = render(
+      <Listbox options={OPTS} value="a" classNames={{ root: 'slot-root', option: 'slot-opt' }} className="user-last" />,
+    );
+    const ul = container.firstElementChild!;
+    expect(ul).toHaveClass('slot-root');
+    expect(ul.className.indexOf('slot-root')).toBeLessThan(ul.className.indexOf('user-last'));
+    expect(screen.getByText('Alpha').closest('li')).toHaveClass('slot-opt');
+    expect(screen.getByText('Beta').closest('li')).toHaveClass('slot-opt');
+  });
+
+  it('style passthrough lên ul', () => {
+    const { container } = render(<Listbox options={OPTS} style={{ padding: '2px' }} />);
+    expect(container.firstElementChild).toHaveStyle({ padding: '2px' });
+  });
+});

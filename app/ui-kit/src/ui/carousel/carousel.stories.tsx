@@ -531,3 +531,23 @@ export const StatCarousel: S = {
     />
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper,
+ * `indicators`/`indicator` on the pager row, `navigator` on both arrows;
+ * `style` lands on the wrapper. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Carousel
+      style={{ padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent',
+        indicator: 'rounded-pill',
+      }}
+      items={[
+        <div key="1" className="grid h-40 place-items-center rounded-lg bg-s3 text-body text-ink2">Slide one</div>,
+        <div key="2" className="grid h-40 place-items-center rounded-lg bg-s3 text-body text-ink2">Slide two</div>,
+      ]}
+    />
+  ),
+};

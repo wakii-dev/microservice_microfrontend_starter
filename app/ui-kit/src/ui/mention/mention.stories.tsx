@@ -42,3 +42,28 @@ function MentionControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / textarea / listbox /
+ * option) + style passthrough. `root` lands on the outer relative div (same
+ * element as `className`), `textarea` on the text field, `listbox`/`option` on
+ * the mention dropdown; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="grid max-w-[320px] gap-4">
+      <Mention
+        suggestions={PEOPLE}
+        placeholder="Type @ to mention…"
+        classNames={{
+          root: 'rounded-xl',
+          textarea: 'border-st-done border-dashed',
+          listbox: 'rounded-lg border-st-done',
+          option: 'tracking-wide',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

@@ -45,8 +45,10 @@ Gắn task cho user `fail@demo.local` → saga rollback → event vào **DLQ**. 
 </div>
 
 ```bash
-# ① chỉ FE — React starter dogfood ui-kit
-npm create wakii-app@latest my-app
+# ① chỉ FE — React starter (5 preset · 3 framework)
+npm create wakii-app@latest my-app                     # demo — showcase ui-kit
+npm create wakii-app@latest my-app --preset product    # TanStack Query + zod + MSW
+npm create wakii-app@latest my-app --variant next      # hoặc astro
 
 # ② cả nền tảng — FE + 3 backend + gateway + postgres + kafka
 npm create wakii-stack@latest my-stack

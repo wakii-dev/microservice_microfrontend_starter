@@ -1,172 +1,118 @@
-# Boilerplate Microservice + Micro-frontend
+<div align="center">
 
-Template nội bộ **copy-able**: mixed-stack services (Node/Spring/Go) + Module Federation FE, demo e2e task management qua nginx gateway, Docker Compose + CI. Epic FI-62 — spec: `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` (rev 3).
+<img src="app/ui-kit/docs/assets/hero.svg" width="880" alt="wakii — tokens-first design system và full-stack platform" />
 
-**Người mới bắt đầu:** đọc [docs/walkthrough.md](docs/walkthrough.md) (fresh-clone → demo) + [docs/adr/](docs/adr/) (8 quyết định kiến trúc) + [docs/toolchain.md](docs/toolchain.md) (tool cần ở đâu). Copy thành project mới: `bash scripts/scaffold/scaffold.sh <tên-mới>`.
+# wakii · architecture-overview
 
-## 🎨 Design system — [@wakii/ui-kit](app/ui-kit)
+**Một lệnh — cả nền tảng.** Design system 90+ components · full-stack starter
+(FE + BE + infra) · module federation · event-driven — tất cả trong một repo,
+đã verify end-to-end.
 
-Bộ phận nổi bật nhất của boilerplate: design system **90+ components + 17 hooks** (antd × PrimeReact parity), tokens-first + Tailwind v4, dark theme, motion, a11y, 540 behavior tests.
+[![npm @wakii/ui-kit](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit&color=cb3837)](https://www.npmjs.com/package/@wakii/ui-kit)
+[![npm create-wakii-app](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app&color=cb3837)](https://www.npmjs.com/package/create-wakii-app)
+[![npm create-wakii-stack](https://img.shields.io/npm/v/create-wakii-stack?logo=npm&label=create-wakii-stack&color=cb3837)](https://www.npmjs.com/package/create-wakii-stack)
+[![Storybook](https://img.shields.io/badge/Storybook-live%20demo-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
+[![Tests](https://img.shields.io/badge/ui--kit%20tests-1328%20passing-brightgreen)](app/ui-kit)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[![npm](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit)](https://www.npmjs.com/package/@wakii/ui-kit)
-[![Storybook](https://img.shields.io/badge/Storybook-301%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
-[![tests](https://img.shields.io/badge/tests-540%20passing-brightgreen)](#)
+[Storybook](https://storybook-static-khaki-two.vercel.app) · [Hệ sinh thái npm](https://www.npmjs.com/~wakii) · [Walkthrough](docs/walkthrough.md) · [8 ADR](docs/adr/) · [Conventions](platform/conventions/)
 
-- 📖 **Storybook live:** https://storybook-static-khaki-two.vercel.app
-- 📦 **npmjs:** `npm i @wakii/ui-kit` · **GitHub Packages:** `@wakii/ui-kit` (org nội bộ)
-- 🖥️ **Admin showcase:** `app/admin` (Vite SPA — Sidebar+Menu, DataTable virtual, zod forms, upload, hooks demo; `pnpm --filter ./app/admin dev` → :5173)
-- Chi tiết + quickstart: [app/ui-kit/README.md](app/ui-kit/README.md)
+</div>
 
-## Kiến trúc (đã dựng xong — 6 services gồm auth-svc + 3 FE + gateway + kafka broker)
+---
+
+## 🧩 Hệ sinh thái — 3 packages công khai
+
+| Package | Một dòng | Cài |
+|---|---|---|
+| **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 90+ React components (antd × PrimeReact parity) — tokens-first, Tailwind v4, dark/light, motion, a11y, 1328 behavior tests | `pnpm add @wakii/ui-kit` |
+| **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style React starter — TS/JS, router v7, extras demo (chart · carousel · schedule · editor), dark toggle chạy thật | `npm create wakii-app@latest` |
+| **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, `docker compose up` chạy ngay, entry duy nhất gateway `:8080` | `npm create wakii-stack@latest` |
+
+> Component nặng (Chart.js · Swiper · Tiptap · FullCalendar · three) là **peer
+> optional** sau subpath exports — không dùng thì không cài, bundle stays lean.
+
+## 🏛️ Kiến trúc — 4 tầng, một cổng
 
 ```mermaid
-graph TB
-    subgraph repo ["repo này (multi-repo convention — mỗi thư mục = repo-con)"]
-        subgraph contracts ["contracts/ — source of truth"]
-            openapi["openapi/ tasks·users·activity·auth.yaml"]
-            ddl["db/tasks-schema.sql — canonical DDL"]
-            authc["auth/ users.json + token-contract.md"]
-        end
-        subgraph platform ["platform/"]
-            compose["docker-compose.yml (10 services — kafka lazy-connect, không chặn chain)"]
-            pginit["postgres/init/ (schemas + roles + default privileges)"]
-            nginx["gateway/nginx (routing + JWT presence 401)"]
-            conv["conventions/ (9 docs)"]
-        end
-        subgraph services ["services/"]
-            node["node-svc :3001 (Fastify+TS) — task CRUD + outbox relay + compensation consumer"]
-            spring["spring-svc :8081 (Spring Boot 3) — users/teams + @Transactional demo"]
-            go["go-svc :8082 (Go 1.24+chi) — activity feed/stats + Kafka consumer + saga"]
-            authsvc["auth-svc :8090 (Fastify+TS — auth thật: register/refresh/RBAC)"]
-        end
-        subgraph app ["app/"]
-            shared["shared (fe-shared — api client, token, MF helper)"]
-            uikit["ui-kit — @wakii/ui-kit design system (90+ comps + 17 hooks, published npm/GH Packages)"]
-            admin["admin :5173 — showcase SPA (Sidebar+Menu, DataTable virtual, zod forms)"]
-            shell["shell :3000 — MF host (Rspack)"]
-            remotes["remotes/ tasks :4001 + activity :4002"]
-            spike["spike (MF pin versions — đã test, prune khi scaffold)"]
-        end
-        scripts["scripts/ smoke/e2e.sh + scaffold/"]
-    end
-
-    browser["Browser"] --> gw["nginx gateway :8080<br/>CỔNG DUY NHẤT"]
-    gw -- "/" --> shell
-    gw -- "/remotes/*" --> remotes
-    gw -- "/api/tasks/* + JWT" --> node
-    gw -- "/api/users/* + JWT" --> spring
-    gw -- "/api/activity/* + JWT" --> go
-    gw -- "/api/auth/* (mở)" --> authsvc
-    node -- "validate user (2s, fail-closed 503)" --> spring
-    node -- "outbox → Kafka task-events (relay 500ms)" --> kafka[("kafka :9092 compose-internal")]
-    kafka -- "consumer go-svc-activity" --> go
-    kafka -- "compensating task.assignment_failed" --> node
-    node -- "SQL (schema tasks + outbox)" --> db[("postgres :5432")]
-    spring -- "SQL (schema users)" --> db
-    go -- "readonly schema tasks + own activity" --> db
-    authsvc -- "seed fixture (giữ UUID) + ký JWT" --> authc
-    node -.-> openapi
-    spring -.-> openapi
-    go -.-> openapi
-    node -.-> ddl
-    go -.-> ddl
+graph LR
+    B["🌐 Browser"] --> GW{"nginx gateway<br/>:8080 — cổng duy nhất"}
+    GW -- "/" --> SH["shell :3000<br/>MF host + landing"]
+    GW -- "/remotes/*" --> RM["remotes<br/>tasks :4001 · activity :4002"]
+    GW -- "/api/auth" --> AU["auth-svc :8090<br/>JWT + refresh rotation"]
+    GW -- "/api/tasks" --> ND["node-svc :3001<br/>Fastify + outbox"]
+    GW -- "/api/users" --> SP["spring-svc :8081<br/>Spring Boot 3"]
+    GW -- "/api/activity" --> GO["go-svc :8082<br/>feed + saga consumer"]
+    ND -- "outbox → events" --> K[("kafka :9092")]
+    K -- "consume" --> GO
+    ND & SP & GO --> PG[("postgres :5432<br/>schema-per-svc")]
 ```
 
-Chuỗi e2e chứng minh bởi: `scripts/smoke/e2e.sh` (local + CI job `convergence/e2e-smoke`) + browser walkthrough (human gate — [walkthrough.md](docs/walkthrough.md) mục 4).
+Chuỗi e2e chứng minh bởi smoke script: **happy** (login → tạo task → Kafka →
+activity feed realtime) + **saga** (assign user fail → compensating
+`assignment_failed` → DLQ). Demo: `alice@demo.local / demo-password`.
 
-## Port table
+| Tầng | Thành phần | Ports |
+|---|---|---|
+| **Experience** | shell (landing + MF host) · remotes (kanban tasks · activity feed) · admin showcase | 3000 · 4001-4002 · 5173 |
+| **Edge** | nginx gateway — routing + JWT presence + `/remotes/*` registry | **8080** |
+| **Services** | node-svc · spring-svc · go-svc · auth-svc | 3001 · 8081 · 8082 · 8090 |
+| **Infra** | postgres (schema-per-service) · kafka KRaft + kafka-init | 5432 · 9092 (internal) |
 
-| Thành phần | Port | | Thành phần | Port |
-|---|---|---|---|---|
-| **nginx gateway** | **8080** | | node-svc | 3001 |
-| shell (MF host) | 3000 | | spring-svc | 8081 |
-| remote tasks | 4001 | | go-svc | 8082 |
-| remote activity | 4002 | | auth-svc | 8090 |
-| postgres | 5432 | | kafka (compose-internal) | 9092 — KHÔNG expose host |
+## 🚀 Chạy thử
 
-Nguồn sự thật: `platform/conventions/05-ports.md`. Đổi port = sửa 4 chỗ cùng commit (conventions + .env.example + compose + README).
-
-## Chạy
-
-### Compose (máy có Docker — CI chạy mode này)
+**Cả stack (Docker):**
 
 ```bash
-cd platform
-cp .env.example .env        # điền JWT_SECRET (openssl rand -base64 48) + passwords
-# Bước 1 — kafka + topics TRƯỚC (kafka KHÔNG có data volume: mỗi compose down
-# là mất topics → tạo lại tường minh như CI convergence.yml, tránh 2 race:
-# consumer empty-assignment khi subscribe trước topic + DLQ Unknown Topic):
-docker compose up -d postgres kafka
-until docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1; do sleep 2; done
-for topic in task-events task-events.dlq; do
-  docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
-    --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
-done
-# Bước 2 — phần còn lại của stack (health-gated chain: pg → auth-svc/spring → node → gateway)
-docker compose up -d --build
-bash ../scripts/smoke/e2e.sh   # PASS = 2 chiều: happy (login→task→feed qua Kafka) + saga (assign svc-fail → assignment_failed → DLQ assert)
-# shell + remotes: http://localhost:8080/ → login alice@demo.local / demo-password
-# swagger: các svc /api/<svc>/docs cần Bearer (auth-svc không serve /docs — auth.yaml v2)
+cd platform && cp .env.example .env    # điền JWT_SECRET + passwords
+docker compose up -d --build           # kafka-init tạo topics, health-gated chain
+bash ../scripts/smoke/e2e.sh           # PASS = happy + saga
+open http://localhost:8080             # login alice@demo.local / demo-password
 ```
 
-> **Kafka lazy-connect** (ADR-0008, conventions/09): kafka compose-internal — 9092
-> không expose host, KHÔNG service nào `depends_on` kafka. Services connect retry
-> lúc boot (env `KAFKA_BROKERS`) — broker chưa lên không chặn health-gated chain.
-> Hợp đồng event: [contracts/events/task-events.md](contracts/events/task-events.md)
-> + golden fixtures `contracts/events/fixtures/`. SAGA demo: assign task cho
-> `fail@demo.local` → go consumer fail ×3 → task `assignment_failed` + event gốc
-> ở `task-events.dlq` (xem [walkthrough.md](docs/walkthrough.md) mục 4b).
-> ⚠️ Flyway V2 seed user `svc-fail`/`svc-activity` chạy 1 LẦN lúc volume mới —
-> pgdata volume TỪ bản cũ thiếu 2 user này → `docker compose down -v` sau pull.
-
-### Native (không Docker — từng service một)
-
-Xem [docs/walkthrough.md](docs/walkthrough.md) mục 3-đường B (đủ lệnh cho 4 service BE + 3 FE dev servers). Native không có nginx gateway — FE gọi thẳng service port (CORS dev-profile, conventions/07).
-
-### Scaffold project mới
+**Chỉ FE dùng ui-kit:**
 
 ```bash
-bash scripts/scaffold/scaffold.sh my-project
-cd my-project && pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.md
+npm create wakii-app@latest my-app     # scaffold + dogfood @wakii/ui-kit
+cd my-app && pnpm install && pnpm dev
 ```
 
-Copy + rename + prune thuần (không generator) — chi tiết [ADR 0007](docs/adr/0007-fork-not-upgrade.md).
+**Design system một mình:** [Storybook live](https://storybook-static-khaki-two.vercel.app)
+(870+ stories, lens "sử dụng thực tế": Product gallery · OTP login · Orders
+table · Checkout confirm…).
 
-## Repo map
+## 🗺️ Repo map
 
 ```
-contracts/          # source of truth API/DB/auth — spectral lint trong CI
-  openapi/          # 4 specs (tasks/users/activity/auth)
-  db/               # canonical DDL bảng tasks (node migrate khớp, go query theo)
-  auth/             # users fixture + token contract
-platform/           # compose (health-gated), postgres init, nginx, conventions/
-services/           # node-svc / spring-svc / go-svc / auth-svc — impl hoàn chỉnh, README standalone từng svc
+contracts/    source of truth — openapi (spectral lint CI) · canonical DDL · token contract
+platform/     compose + kafka-init · postgres init · gateway nginx · 9 conventions
+services/     node-svc · spring-svc · go-svc · auth-svc (README standalone từng svc)
 app/
-  shared/           # fe-shared — LOGIC: api client, token storage, error envelope, MF bootstrap (READ-LOCKED)
-  ui-kit/           # @wakii/ui-kit (npm) = @wakii/ui-kit (GitHub Packages) — 90+ components + 17 hooks,
-                    #   tokens + Tailwind v4 + Storybook 9 (ADR-0009), dist CSS compiled, 540 behavior tests
-  admin/            # showcase SPA (Vite) — Sidebar+Menu đa cấp, DataTable virtual, zod forms, upload, hooks demo
-  shell/            # MF host (Rspack) — login, nav, remote slots
-  remotes/          # tasks + activity — 2 MF remote
-  spike/            # MF pin versions — đã test (prune khi scaffold)
-scripts/
-  smoke/e2e.sh      # e2e API-level 2 chiều: happy (login→task→feed qua Kafka) + saga (→ assignment_failed → DLQ)
-  scaffold/         # sinh project mới từ boilerplate
-.github/
-  workflows/        # contracts + per-service + convergence (e2e smoke, copy-dir, scaffold)
-  workflow-templates/ # services-ci.yml.example — template cho service mới (prune khi scaffold)
-docs/
-  adr/              # 8 quyết định kiến trúc
-  walkthrough.md    # fresh-clone → demo checklist
-  toolchain.md      # tool cần ở đâu (dev/CI/copy-user)
-docs/superpowers/   # spec, plans, evidence per SF (prune khi scaffold)
+  ui-kit/     @wakii/ui-kit — 90+ components · 17 hooks · tokens · Storybook
+  shared/     fe-shared — api client · token storage · MF bootstrap (READ-LOCKED)
+  admin/      showcase SPA — DataTable virtual · zod forms · upload
+  shell/      MF host + landing showcase (Scene3D · kanban remotes)
+  remotes/    tasks (kanban drag) · activity (feed realtime)
+  create-*/   2 scaffolders npm + starter-templates + stack-template
+scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
+docs/         walkthrough · 8 ADR · toolchain
 ```
 
-## Quy tắc quan trọng (ai copy boilerplate cũng phải biết)
+## 📐 Quy tắc sống còn
 
-1. API đổi = sửa `contracts/openapi/*.yaml` TRƯỚC (contract-first — [ADR 0003](docs/adr/0003-contract-first.md)), spectral phải pass.
-2. JWT: gateway chỉ presence-check; **service tự verify** signature + expiry (`contracts/auth/token-contract.md` §4).
-3. auth-svc là auth DEMO (argon2id + refresh rotation CAS, `iss` pinned `"auth-mock"` — token-contract.md): copy dự án thật nên cắm OIDC/OAuth tại boundary này (upgrade path ghi trong token-contract.md).
-4. Compose health-gated: node/spring probe `/readyz`; go-svc `service_started` (distroless) — readiness chứng minh bằng smoke script (conventions/02 rule 3).
-5. fe-shared (logic) + ui-kit (design system) là workspace deps chung của shell/remotes — copy FE phải kèm cả `app/shared` + `app/ui-kit`.
-6. Đổi quyết định kiến trúc = đọc ADR tương ứng trước (mỗi ADR ghi Consequences + điểm cắm thay thế).
+1. **Contract-first** — API đổi = sửa `contracts/openapi/*.yaml` trước, spectral phải pass ([ADR 0003](docs/adr/0003-contract-first.md)).
+2. **Gateway chỉ presence-check JWT** — service tự verify signature + expiry ([token-contract](contracts/auth/token-contract.md) §4).
+3. **Kafka lazy-connect** — không `depends_on`, kafka-init tạo topic trước consumer (chống race empty-assignment — [ADR 0008](docs/adr/)).
+4. **Đổi port = 4 chỗ cùng commit** — conventions/05 + `.env.example` + compose + README này.
+5. **FE copy phải kèm** `app/shared` + `app/ui-kit` (workspace deps).
+6. **Quyết định kiến trúc** — đọc ADR tương ứng trước khi đổi (mỗi ADR có Consequences + điểm cắm).
+
+---
+
+<div align="center">
+
+<img src="app/ui-kit/docs/assets/constellation.svg" width="720" alt="Component constellation" />
+
+**wakii** — tokens all the way down. · MIT
+
+</div>

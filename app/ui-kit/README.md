@@ -3,7 +3,7 @@
 # 🎨 @wakii/ui-kit
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/hero.svg" width="960" alt="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses, grid background and typing indicator">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/hero.svg" width="960" alt="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses, grid background and typing indicator">
 </p>
 
 **A production-grade React design system built AI-first — 90+ components, 31 hooks, tokens-first, motion, dark theme.**
@@ -57,7 +57,7 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 | 🧪 **1290 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/token-palette.svg" width="960" alt="Design token palette — six swatches for accent, ink, line, done, doing and fail tokens blinking in sequence with their CSS variable names">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/token-palette.svg" width="960" alt="Design token palette — six swatches for accent, ink, line, done, doing and fail tokens blinking in sequence with their CSS variable names">
 </p>
 
 ## 🚀 Quick start
@@ -67,7 +67,7 @@ npm install @wakii/ui-kit
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs version 0.5.0, done in 1.4s, blinking block cursor">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs version 0.5.0, done in 1.4s, blinking block cursor">
 </p>
 
 ```tsx
@@ -88,7 +88,7 @@ export function App() {
 ```
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/dark-switch.svg" width="480" alt="Theme switch — two app panels cross-fading between light and dark palettes while sun and moon icons rotate and swap">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/dark-switch.svg" width="480" alt="Theme switch — two app panels cross-fading between light and dark palettes while sun and moon icons rotate and swap">
 </p>
 
 ### 📝 Forms with zod — schema is the single source of truth
@@ -125,7 +125,7 @@ const form = useForm({ schema, mode: 'onBlur' });
 ## 🧩 Component map
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/constellation.svg" width="960" alt="Component constellation — fourteen nodes such as Button, Table, Chart and Carousel linked by animated dashed data-flow lines with travelling packets">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/constellation.svg" width="960" alt="Component constellation — fourteen nodes such as Button, Table, Chart and Carousel linked by animated dashed data-flow lines with travelling packets">
 </p>
 
 | Group | Components |
@@ -174,7 +174,7 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 > components trong story riêng). Recipes copy-chạy: [recipes.md](../../docs/ai/recipes.md).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/wakii-dev/architecture-overview/main/app/ui-kit/docs/assets/motion-wave.svg" width="960" alt="Motion curves — enter, exit and toggle easing paths self-drawing in a loop with a dot travelling along each curve">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/motion-wave.svg" width="960" alt="Motion curves — enter, exit and toggle easing paths self-drawing in a loop with a dot travelling along each curve">
 </p>
 
 ## 🔬 Quality

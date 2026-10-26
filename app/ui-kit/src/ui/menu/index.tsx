@@ -5,8 +5,9 @@
 // calendar), disabled = text-ink4 không hover. Motion CSS thuần: expand/collapse
 // animate grid-template-rows 0fr→1fr + opacity (không JS đo chiều cao).
 // a11y: role menu/menuitem, aria-expanded, aria-haspopup, aria-current='true'.
+import classNames from 'classnames';
 import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface MenuItemData {
@@ -17,12 +18,28 @@ export interface MenuItemData {
   disabled?: boolean;
 }
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface MenuClassNames {
+  /** <nav> gốc bọc menu. */
+  root?: string;
+  /** <ul role="menu"> — áp cho mọi cấp (root + submenu). */
+  list?: string;
+  /** <li> mỗi item. */
+  item?: string;
+  /** <button role="menuitem"> — áp cả item lá lẫn trigger submenu. */
+  itemButton?: string;
+}
+
 export interface MenuProps {
   items: MenuItemData[];
   mode?: 'vertical' | 'horizontal';
   selectedKey?: string;
   onSelect?: (key: string) => void;
   className?: string;
+  /** Inline style — passthrough lên nav gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: MenuClassNames;
 }
 
 /** Sidebar collapsed → Menu icon-only (label fade). Sidebar set qua provider. */
@@ -74,14 +91,20 @@ interface LevelProps {
   onSelect?: (key: string) => void;
   openKeys: Set<string>;
   toggle: (key: string) => void;
+  slots?: MenuClassNames;
 }
 
-function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys, toggle }: LevelProps) {
+function MenuLevel(props: LevelProps) {
+  const { items, mode, depth, ulCls, selectedKey, onSelect, openKeys, toggle, slots } = props;
   const compact = useContext(MenuCompactContext);
   const vertical = mode === 'vertical';
 
   return (
-    <ul role="menu" aria-orientation={vertical ? 'vertical' : 'horizontal'} className={`m-0 list-none p-0 ${ulCls}`}>
+    <ul
+      role="menu"
+      aria-orientation={vertical ? 'vertical' : 'horizontal'}
+      className={classNames('m-0 list-none p-0', ulCls, slots?.list)}
+    >
       {items.map((item) => {
         const hasChildren = !!item.children?.length;
         const open = openKeys.has(item.key);
@@ -99,7 +122,11 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
 
 
         return (
-          <li role="none" key={item.key} className={`relative${compact ? ' flex flex-col items-center' : ''}`}>
+          <li
+            role="none"
+            key={item.key}
+            className={classNames('relative', compact && 'flex flex-col items-center', slots?.item)}
+          >
             {hasChildren ? (
               <button
                 type="button"
@@ -107,7 +134,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 aria-expanded={open}
                 aria-haspopup="menu"
                 disabled={item.disabled}
-                className={itemCls(item.disabled ? 'disabled' : 'normal', compact)}
+                className={classNames(itemCls(item.disabled ? 'disabled' : 'normal', compact), slots?.itemButton)}
                 onClick={() => !item.disabled && toggle(item.key)}
               >
                 {item.icon ? (
@@ -144,7 +171,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 role="menuitem"
                 aria-current={selected ? 'true' : undefined}
                 disabled={item.disabled}
-                className={itemCls(item.disabled ? 'disabled' : selected ? 'selected' : 'normal', compact)}
+                className={classNames(itemCls(item.disabled ? 'disabled' : selected ? 'selected' : 'normal', compact), slots?.itemButton)}
                 onClick={() => {
                   if (item.disabled) return;
                   onSelect?.(item.key);
@@ -186,6 +213,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                     onSelect={onSelect}
                     openKeys={openKeys}
                     toggle={toggle}
+                    slots={slots}
                   />
                 </div>
               </div>
@@ -204,6 +232,7 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
                 onSelect={onSelect}
                 openKeys={openKeys}
                 toggle={toggle}
+                slots={slots}
               />
             )}
           </li>
@@ -213,7 +242,9 @@ function MenuLevel({ items, mode, depth, ulCls, selectedKey, onSelect, openKeys,
   );
 }
 
-export function Menu({ items, mode = 'vertical', selectedKey, onSelect, className }: MenuProps) {
+export function Menu(props: MenuProps) {
+  const { items, mode = 'vertical', selectedKey, onSelect, className, style } = props;
+  const slots = props.classNames;
   /* Auto-open lần đầu: nhánh chứa selectedKey mở sẵn (useState initializer — chạy 1 lần). */
   const compact = useContext(MenuCompactContext);
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set(findPath(items, selectedKey) ?? []));
@@ -232,7 +263,7 @@ export function Menu({ items, mode = 'vertical', selectedKey, onSelect, classNam
   };
 
   return (
-    <nav className={className}>
+    <nav className={classNames(slots?.root, className)} style={style}>
       <MenuLevel
         items={items}
         mode={mode}
@@ -250,6 +281,7 @@ export function Menu({ items, mode = 'vertical', selectedKey, onSelect, classNam
         onSelect={handleSelect}
         openKeys={openKeys}
         toggle={toggle}
+        slots={slots}
       />
     </nav>
   );

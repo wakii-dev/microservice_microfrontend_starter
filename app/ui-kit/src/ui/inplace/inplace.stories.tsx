@@ -73,3 +73,27 @@ function InplaceControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / display / content /
+ * close) + style passthrough. `root` lands on the outer div (same element as
+ * `className`), `display` on the closed-state button, `content`/`close` on the
+ * edit row and its × button; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Inplace
+      display="Project: Wakii"
+      classNames={{
+        root: 'rounded-xl',
+        display: 'border-st-done text-st-done',
+        content: 'gap-3',
+        close: 'hover:text-st-fail',
+      }}
+      style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    >
+      <input aria-label="Edit project" defaultValue="Wakii" className="h-8 rounded-lg border border-line bg-s2 px-2 text-body" />
+    </Inplace>
+  ),
+};

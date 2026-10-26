@@ -118,3 +118,34 @@ describe('Watermark', () => {
     expect(decodeURIComponent(tileUrlOf(container))).toContain('>B<');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Watermark — classNames + style', () => {
+  it('slots lên đúng element: root/overlay; className sau root slot (tile vẫn bake)', () => {
+    const { container } = render(
+      <Watermark
+        content="SLOT"
+        classNames={{ root: 'slot-root', overlay: 'slot-overlay' }}
+        className="user-last"
+      >
+        <div>doc</div>
+      </Watermark>,
+    );
+    const root = screen.getByText('doc').parentElement!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(overlayOf(container)).toHaveClass('slot-overlay');
+    expect(tileUrlOf(container)).toContain('SLOT'); // tile bake bình thường
+  });
+
+  it('style passthrough lên container (không đụng overlay style của kit)', () => {
+    const { container } = render(
+      <Watermark content="x" style={{ margin: '8px' }}>
+        <div>doc</div>
+      </Watermark>,
+    );
+    expect(screen.getByText('doc').parentElement).toHaveStyle({ margin: '8px' });
+    expect(overlayOf(container).style.margin).toBe('');
+  });
+});

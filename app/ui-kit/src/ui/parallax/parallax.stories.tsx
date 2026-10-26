@@ -113,3 +113,26 @@ export const Disabled: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the drifting
+ * wrapper div; `style` merges before the motion transform (inactive keeps the
+ * kit's transform: none). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="max-w-xl">
+      <Parallax
+        speed={0.3}
+        classNames={{ root: 'overflow-hidden rounded-xl ring-2 ring-accent/30' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+        className="border border-line"
+      >
+        <img
+          src={photo('orca-parallax-slots', 800, 450)}
+          alt="Mountain lake, slotted parallax card (picsum seed: orca-parallax-slots)"
+          className="aspect-video w-full object-cover"
+        />
+      </Parallax>
+    </div>
+  ),
+};

@@ -232,3 +232,40 @@ describe('KanbanBoard keyboard', () => {
     expect(onCardMove).not.toHaveBeenCalled();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('KanbanBoard — classNames slots + style', () => {
+  it('slots lên đúng element: root/column/columnHeader/card/cardTitle/cardDescription', () => {
+    render(
+      <KanbanBoard
+        columns={[
+          { key: 'a', title: 'Todo', cards: [{ key: 't1', title: 'Task 1', description: 'Detail' }] },
+        ]}
+        classNames={{ root: 'slot-root', column: 'slot-col', columnHeader: 'slot-colhead', card: 'slot-card', cardTitle: 'slot-title', cardDescription: 'slot-desc' }}
+      />,
+    );
+    expect(document.querySelector('.slot-root')).not.toBeNull();
+    expect(document.querySelector('section.slot-col')).not.toBeNull();
+    // header title span không có slot riêng — columnHeader phủ cả header div
+    expect(screen.getByText('Todo')).not.toHaveClass('slot-title');
+    expect(screen.getByText('Todo').closest('section')!.querySelector('.slot-colhead')).not.toBeNull();
+    expect(screen.getByText('Task 1')).toHaveClass('slot-title');
+    expect(screen.getByText('Detail')).toHaveClass('slot-desc');
+    expect(screen.getByText('Task 1').closest('.slot-card')).not.toBeNull();
+  });
+
+  it('style passthrough lên board root; className người dùng sau root slot', () => {
+    render(
+      <KanbanBoard
+        columns={COLS}
+        style={{ padding: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      />,
+    );
+    const root = document.querySelector('.slot-root') as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

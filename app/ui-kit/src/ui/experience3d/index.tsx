@@ -6,7 +6,8 @@
 // dep hoặc WebGL không khả dụng → `fallback` node (pattern chart). reduced-motion
 // → 1 frame tĩnh ĐẸP (không rAF loop, auto-rotate off). Imperative three (không
 // R3F): dispose đầy đủ, jsdom graceful, không phụ thuộc JSX-intrinsic typing.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 
 type Three = typeof import('three');
@@ -246,6 +247,12 @@ function DefaultFallback({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface Experience3DClassNames {
+  /** Div host bọc canvas 3D (role=img). */
+  root?: string;
+}
+
 export interface Scene3DProps {
   className?: string;
   /** Chiều cao canvas (px hoặc CSS) — mặc định 420. */
@@ -254,6 +261,10 @@ export interface Scene3DProps {
   fallback?: ReactNode;
   /** Force 1 frame tĩnh (mặc định: theo prefers-reduced-motion hệ thống). */
   reducedMotion?: boolean;
+  /** Inline style — merge sau height lên div host. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: Experience3DClassNames;
 }
 
 export interface ShipModelProps extends Scene3DProps {
@@ -268,7 +279,9 @@ export interface ScrollFlythroughProps extends Scene3DProps {
 
 /** Scene3D — stage thuần: canvas + lighting 3 điểm + fog + starfield 800 hạt
  * xoay rất chậm. Dùng khi cần nền vũ trụ không có chủ thể. */
-export function Scene3D({ className, height = 420, fallback, reducedMotion }: Scene3DProps) {
+export function Scene3D(props: Scene3DProps) {
+  const { className, height = 420, fallback, reducedMotion } = props;
+  const slots = props.classNames;
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const staticFrame = reducedMotion ?? reduced;
   const { hostRef, failed, retry } = useStage(
@@ -292,8 +305,8 @@ export function Scene3D({ className, height = 420, fallback, reducedMotion }: Sc
       ref={hostRef}
       role="img"
       aria-label="Cảnh không gian 3D — trường sao và sương mù"
-      className={`relative overflow-hidden rounded-xl bg-canvas ${className ?? ''}`}
-      style={{ height }}
+      className={classNames('relative overflow-hidden rounded-xl bg-canvas', slots?.root, className)}
+      style={{ height, ...props.style }}
     >
       {failed && (fallback ?? <DefaultFallback onRetry={retry} />)}
     </div>
@@ -302,7 +315,9 @@ export function Scene3D({ className, height = 420, fallback, reducedMotion }: Sc
 
 /** ShipModel — tàu low-poly procedural + drag-rotate 360 có inertia (thả ra còn
  * trôi ~1s rồi auto-rotate idle chậm). Kéo bằng pointer (mouse/touch/pen). */
-export function ShipModel({ className, height = 420, fallback, reducedMotion, autoRotate = true }: ShipModelProps) {
+export function ShipModel(props: ShipModelProps) {
+  const { className, height = 420, fallback, reducedMotion, autoRotate = true } = props;
+  const slots = props.classNames;
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const staticFrame = reducedMotion ?? reduced;
   const drag = useRef({ x: 0, y: 0, vx: 0, vy: 0, down: false });
@@ -376,8 +391,8 @@ export function ShipModel({ className, height = 420, fallback, reducedMotion, au
       role="img"
       aria-label="Mô hình tàu 3D — kéo để xoay 360 độ"
       data-testid="ship-model"
-      className={`relative overflow-hidden rounded-xl bg-canvas ${className ?? ''}`}
-      style={{ height }}
+      className={classNames('relative overflow-hidden rounded-xl bg-canvas', slots?.root, className)}
+      style={{ height, ...props.style }}
     >
       {failed && (fallback ?? <DefaultFallback onRetry={retry} />)}
     </div>
@@ -387,7 +402,9 @@ export function ShipModel({ className, height = 420, fallback, reducedMotion, au
 /** ScrollFlythrough — camera bay theo `progress` 0..1 trên CatmullRom 4 điểm
  * vòng quanh tàu (trên → phải → dưới-trái → trước). Static mode: mỗi progress
  * đổi render lại ĐÚNG 1 frame (reduced-motion vẫn "bay" theo scroll, không loop). */
-export function ScrollFlythrough({ className, height = 480, fallback, reducedMotion, progress = 0 }: ScrollFlythroughProps) {
+export function ScrollFlythrough(props: ScrollFlythroughProps) {
+  const { className, height = 480, fallback, reducedMotion, progress = 0 } = props;
+  const slots = props.classNames;
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const staticFrame = reducedMotion ?? reduced;
   const progressRef = useRef(progress);
@@ -448,8 +465,8 @@ export function ScrollFlythrough({ className, height = 480, fallback, reducedMot
       ref={hostRef}
       role="img"
       aria-label="Cảnh bay 3D quanh mô hình tàu theo tiến trình cuộn"
-      className={`relative overflow-hidden rounded-xl bg-canvas ${className ?? ''}`}
-      style={{ height }}
+      className={classNames('relative overflow-hidden rounded-xl bg-canvas', slots?.root, className)}
+      style={{ height, ...props.style }}
     >
       {failed && (fallback ?? <DefaultFallback onRetry={retry} />)}
     </div>

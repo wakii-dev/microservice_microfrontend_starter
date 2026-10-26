@@ -85,3 +85,35 @@ describe('Mention — keyboard nav (audit fix)', () => {
     expect(screen.queryByText('@An')).toBeNull();
   });
 });
+
+describe('Mention — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (div wrapper) / textarea / listbox / option', async () => {
+    const user = userEvent.setup();
+    render(
+      <Mention
+        suggestions={PEOPLE}
+        classNames={{ root: 'slot-root', textarea: 'slot-textarea', listbox: 'slot-listbox', option: 'slot-option' }}
+      />,
+    );
+    const textarea = screen.getByRole('textbox');
+    expect(textarea.parentElement).toHaveClass('slot-root');
+    expect(textarea).toHaveClass('slot-textarea');
+    await user.type(textarea, 'hey @c');
+    const listbox = screen.getByRole('listbox', { name: 'Gợi ý mention' });
+    expect(listbox).toHaveClass('slot-listbox');
+    expect(screen.getByRole('option', { name: '@Chi' })).toHaveClass('slot-option');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn mention vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Mention suggestions={PEOPLE} onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByRole('textbox').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('relative'));
+    const textarea = screen.getByRole('textbox');
+    await user.type(textarea, 'hey @c');
+    await user.click(screen.getByRole('option', { name: '@Chi' }));
+    expect(onChange).toHaveBeenLastCalledWith('hey @Chi ');
+  });
+});

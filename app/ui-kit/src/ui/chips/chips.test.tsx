@@ -84,3 +84,30 @@ describe('Chips — matrix gaps (a11y/props)', () => {
     expect(container.firstElementChild).toHaveClass('marker');
   });
 });
+
+describe('Chips — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (span field) / tag / tagRemove / input', () => {
+    render(
+      <Chips
+        value={['react']}
+        classNames={{ root: 'slot-root', tag: 'slot-tag', tagRemove: 'slot-tag-remove', input: 'slot-input' }}
+      />,
+    );
+    const root = screen.getByRole('textbox').closest('span')!;
+    expect(root).toHaveClass('slot-root');
+    expect(screen.getByText('react')).toHaveClass('slot-tag');
+    expect(screen.getByRole('button', { name: 'Xoá react' })).toHaveClass('slot-tag-remove');
+    expect(screen.getByRole('textbox')).toHaveClass('slot-input');
+  });
+
+  it('style passthrough lên root + không truyền slots → Enter thêm tag vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Chips value={['react']} onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByRole('textbox').closest('span') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.type(screen.getByRole('textbox'), 'vue{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith(['react', 'vue']);
+  });
+});

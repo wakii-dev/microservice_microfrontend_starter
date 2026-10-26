@@ -3,6 +3,9 @@
 // (state class); dragleave/drop → thường. Drop đọc e.dataTransfer.files; click mở dialog;
 // role=button + tabIndex — Enter/Space mở dialog, aria-disabled khi disabled.
 // Chia sẻ props + controller với Upload qua upload-core.
+// Customize pass (slots wave 3): slot dropzone + list slots (upload-core) —
+// default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
 import { useState, type DragEvent, type KeyboardEvent } from 'react';
 import { Icon } from '../icons/index.js';
 import { UploadFileList, useUploadController, type UploadProps } from './upload-core.js';
@@ -14,8 +17,14 @@ const HIGHLIGHT = 'border-accent bg-accent/8 text-accent';
 const DISABLED = 'cursor-not-allowed opacity-60';
 
 export function UploadDropzone(props: UploadProps) {
+<<<<<<< Updated upstream
   const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, children } = props;
   const { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange } = useUploadController(props);
+=======
+  const { accept, multiple, disabled, showList = true, className, style } = props;
+  const slots = props.classNames;
+  const { inputRef, openDialog, items, removeItem, handleFiles, onInputChange } = useUploadController(props);
+>>>>>>> Stashed changes
   const [dragging, setDragging] = useState(false);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -31,7 +40,7 @@ export function UploadDropzone(props: UploadProps) {
   };
 
   return (
-    <div className={className}>
+    <div className={classNames(slots?.root, className)} style={style}>
       <input
         ref={inputRef}
         type="file"
@@ -47,7 +56,7 @@ export function UploadDropzone(props: UploadProps) {
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled || undefined}
-        className={`${BASE}${disabled ? ` ${DISABLED}` : dragging ? ` ${HIGHLIGHT}` : ''}`}
+        className={classNames(BASE, disabled ? DISABLED : dragging ? HIGHLIGHT : '', slots?.dropzone)}
         onClick={openDialog}
         onKeyDown={onKeyDown}
         onDragEnter={(event) => {
@@ -64,7 +73,7 @@ export function UploadDropzone(props: UploadProps) {
         }}
         onDrop={onDrop}
       >
-        {children ?? (
+        {props.children ?? (
           <>
             <span className="text-ink3" aria-hidden="true">
               <Icon name="upload" size={28} />
@@ -74,7 +83,15 @@ export function UploadDropzone(props: UploadProps) {
         )}
       </div>
       {showList && (
+<<<<<<< Updated upstream
         <UploadFileList items={items} onRemove={removeItem} onRetry={retryItem} progressVariant={progressVariant} />
+=======
+        <UploadFileList
+          items={items}
+          onRemove={removeItem}
+          classNames={slots && { list: slots.list, listItem: slots.listItem, listRemove: slots.listRemove }}
+        />
+>>>>>>> Stashed changes
       )}
     </div>
   );

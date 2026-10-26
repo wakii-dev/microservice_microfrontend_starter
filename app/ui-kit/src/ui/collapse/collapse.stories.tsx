@@ -91,3 +91,24 @@ export const DisabledItem: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper,
+ * `item` on each panel, `header` on the toggle row, `panel` on the animated
+ * grid, `content` on the padded body; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Collapse
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'rounded-2xl border-dashed border-accent',
+        header: 'uppercase tracking-wide',
+        content: 'bg-accent/5',
+      }}
+      items={[
+        { key: 'build', label: 'Build', children: 'Compile + test 10 services.' },
+        { key: 'ship', label: 'Ship', children: 'Compose up, e2e green.' },
+      ]}
+    />
+  ),
+};

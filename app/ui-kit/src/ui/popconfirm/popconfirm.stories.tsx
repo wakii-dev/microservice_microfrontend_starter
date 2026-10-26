@@ -71,3 +71,27 @@ export const DarkTheme: R = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the relative
+ * trigger wrapper, `bubble` on the absolute anchor, `dialog` on the card
+ * itself; `style` lands on the wrapper. */
+export const CustomStyled: R = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Popconfirm
+      open
+      title="Deploy to production?"
+      description="Slots restyle the bubble without touching the arrow."
+      danger
+      okText="Deploy"
+      classNames={{
+        root: 'rounded-xl',
+        bubble: 'drop-shadow-lg',
+        dialog: 'border-dashed border-accent bg-accent/5',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      <Button type="primary" danger>Deploy</Button>
+    </Popconfirm>
+  ),
+};

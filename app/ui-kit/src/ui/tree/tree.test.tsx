@@ -75,3 +75,26 @@ describe('Tree', () => {
     expect(root.querySelector('ul[role="group"]')!).toHaveClass('border-l');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Tree — classNames + style', () => {
+  const DATA = [
+    { key: 'a', label: 'Alpha', children: [{ key: 'a1', label: 'Alpha 1' }] },
+  ];
+
+  it('slots root/item/group lên đúng element mọi cấp', () => {
+    render(<Tree data={DATA} defaultExpandedKeys={['a']} classNames={{ root: 'slot-root', item: 'slot-item', group: 'slot-group' }} />);
+    expect(document.querySelector('ul[role="tree"].slot-root')).not.toBeNull();
+    expect(screen.getByRole('treeitem', { name: 'Alpha' })).toHaveClass('slot-item');
+    expect(screen.getByRole('treeitem', { name: 'Alpha 1' })).toHaveClass('slot-item');
+    expect(document.querySelector('ul[role="group"].slot-group')).not.toBeNull();
+  });
+
+  it('style passthrough lên ul gốc; className người dùng sau root slot', () => {
+    render(<Tree data={DATA} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const ul = document.querySelector('ul[role="tree"].slot-root') as HTMLElement;
+    expect(ul).toHaveStyle({ padding: '2px' });
+    expect(ul.className.indexOf('slot-root')).toBeLessThan(ul.className.indexOf('user-last'));
+  });
+});

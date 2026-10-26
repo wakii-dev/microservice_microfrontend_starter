@@ -77,3 +77,29 @@ describe('Flex', () => {
     expect(el).toHaveClass('flex-wrap', 'text-ink2');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Flex — classNames + style', () => {
+  it('slot root lên đúng div flex; className sau slot', () => {
+    const { container } = render(
+      <Flex classNames={{ root: 'slot-root' }} className="user-last">
+        <span>a</span>
+      </Flex>,
+    );
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root', 'flex');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau gap/justify/align (override được)', () => {
+    const { container } = render(
+      <Flex gap={12} style={{ padding: '4px', gap: 40 }}>
+        <span>a</span>
+      </Flex>,
+    );
+    const style = container.firstElementChild!.getAttribute('style')!;
+    expect(style).toContain('gap: 40px');
+    expect(style).toContain('padding: 4px');
+  });
+});

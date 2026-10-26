@@ -89,3 +89,25 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper,
+ * `item` on each panel, `header` on the toggle row, `panel` on the animated
+ * region, `content` on the padded body; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Accordion
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'rounded-2xl border-dashed border-accent',
+        header: 'uppercase tracking-wide',
+        content: 'bg-accent/5',
+      }}
+      defaultActiveKey="setup"
+      items={[
+        { key: 'setup', label: 'Setup', children: 'pnpm install --frozen-lockfile.' },
+        { key: 'run', label: 'Run', children: 'docker compose up -d.' },
+      ]}
+    />
+  ),
+};

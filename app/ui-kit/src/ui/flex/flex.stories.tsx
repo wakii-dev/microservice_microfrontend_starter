@@ -94,3 +94,20 @@ export const Wrap: Story = {
     </Flex>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the flex div;
+ * `style` merges after the gap/justify/align inline styles. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Flex
+      gap="middle"
+      classNames={{ root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-4' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      <Button type="primary">Slotted</Button>
+      <Button>Buttons</Button>
+      <Box label="box" />
+    </Flex>
+  ),
+};

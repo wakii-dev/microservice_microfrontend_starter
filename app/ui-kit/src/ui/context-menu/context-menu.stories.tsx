@@ -71,3 +71,23 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the
+ * right-click region, `menu` on the floating <ul>; `style` lands on the
+ * region; the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ContextMenu
+      items={items}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        menu: 'border-accent/40 ring-2 ring-accent/20',
+      }}
+      style={{ boxShadow: 'inset 0 0 24px rgba(0, 0, 0, 0.08)' }}
+      className="grid h-40 place-items-center text-ink3"
+    >
+      Right-click → menu with slotted surface
+    </ContextMenu>
+  ),
+};

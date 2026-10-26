@@ -64,3 +64,26 @@ describe('InputOTP — matrix (length/paste/backspace/disabled/a11y)', () => {
     expect(inputs[2]).toHaveValue('');
   });
 });
+
+describe('InputOTP — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (span row) / cell (mỗi ô input)', () => {
+    render(<InputOTP length={4} classNames={{ root: 'slot-root', cell: 'slot-cell' }} />);
+    const first = screen.getByLabelText('Mã OTP 1');
+    const root = first.parentElement!;
+    expect(root).toHaveClass('slot-root');
+    for (let i = 1; i <= 4; i++) {
+      expect(screen.getByLabelText(`Mã OTP ${i}`)).toHaveClass('slot-cell');
+    }
+  });
+
+  it('style passthrough lên root + không truyền slots → gõ digit vẫn auto-focus ô kế (behavior giữ nguyên)', async () => {
+    const user = userEvent.setup();
+    render(<InputOTP length={4} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByLabelText('Mã OTP 1').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.type(screen.getByLabelText('Mã OTP 1'), '9');
+    expect(document.activeElement).toBe(screen.getByLabelText('Mã OTP 2'));
+    expect(screen.getByLabelText('Mã OTP 1')).toHaveValue('9');
+  });
+});

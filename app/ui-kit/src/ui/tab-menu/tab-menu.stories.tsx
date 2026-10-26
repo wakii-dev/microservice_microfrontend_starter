@@ -47,3 +47,21 @@ export const Links: Story = {
     />
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the nav bar,
+ * `item` on every tab (link or button); `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <TabMenu
+      model={[
+        { key: 'overview', label: 'Overview' },
+        { key: 'activity', label: 'Activity' },
+        { key: 'settings', label: 'Settings' },
+      ]}
+      activeKey="overview"
+      classNames={{ root: 'rounded-xl border border-dashed border-accent bg-accent/5 px-2', item: 'uppercase tracking-wide' }}
+      style={{ padding: 8 }}
+    />
+  ),
+};

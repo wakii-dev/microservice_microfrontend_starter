@@ -13,7 +13,8 @@
 // Esc hủy; aria-live thông báo "Đã chuyển X tới cột Y, vị trí Z".
 // ⚠️ Hạn chế có chủ đích: native HTML5 DnD KHÔNG hỗ trợ touch (mobile) — muốn
 // hỗ trợ thì nâng cấp peer-dep dnd-kit (pointer engine hoàn chỉnh), KHÔNG tự viết.
-import { useState, type KeyboardEvent, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { DragDropProvider, Draggable, DropZone, useDragDrop } from '../drag-drop/index.js';
 import { Badge } from '../badge/index.js';
 import { EmptyState } from '../empty-state/index.js';
@@ -39,6 +40,22 @@ export interface KanbanColumnData {
   cards: KanbanCardData[];
 }
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface KanbanBoardClassNames {
+  /** Div gốc board (track cuộn ngang). */
+  root?: string;
+  /** <section> 1 cột. */
+  column?: string;
+  /** Div header cột (title + badge + meta). */
+  columnHeader?: string;
+  /** Div card mặc định (renderCard đè → slot không áp). */
+  card?: string;
+  /** Div title card. */
+  cardTitle?: string;
+  /** <p> mô tả card — chỉ render khi có description. */
+  cardDescription?: string;
+}
+
 export interface KanbanBoardProps {
   columns: KanbanColumnData[];
   /** toIndex = vị trí CUỐI trong cột đích SAU khi card rời nguồn (remove → splice). */
@@ -47,6 +64,10 @@ export interface KanbanBoardProps {
   renderCard?: (card: KanbanCardData, columnKey: string) => ReactNode;
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên div gốc board. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: KanbanBoardClassNames;
 }
 
 /** Kế hoạch move — toIndex đã trừ shift khi card rời chính cột đó. */
@@ -79,18 +100,20 @@ function DropLine() {
   return <div aria-hidden="true" className="h-0.5 shrink-0 rounded-pill bg-accent" />;
 }
 
-function KanbanCardView({ card, flash }: { card: KanbanCardData; flash: boolean }) {
+function KanbanCardView({ card, flash, slots }: { card: KanbanCardData; flash: boolean; slots?: KanbanBoardClassNames }) {
   return (
     <div
-      className={`rounded-xl border border-line bg-s1 p-3 transition-shadow duration-200 hover:shadow-lift${
-        flash ? ' animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]' : ''
-      }`}
+      className={classNames(
+        'rounded-xl border border-line bg-s1 p-3 transition-shadow duration-200 hover:shadow-lift',
+        flash && 'animate-[bp-bounce-in_var(--motion-base)_var(--ease-enter)]',
+        slots?.card,
+      )}
     >
       <div className="flex items-start gap-2">
         {card.left && <div className="shrink-0">{card.left}</div>}
         <div className="min-w-0 flex-1">
-          <div className="text-body font-medium text-ink">{card.title}</div>
-          {card.description && <p className="mt-0.5 text-meta text-ink2">{card.description}</p>}
+          <div className={classNames('text-body font-medium text-ink', slots?.cardTitle)}>{card.title}</div>
+          {card.description && <p className={classNames('mt-0.5 text-meta text-ink2', slots?.cardDescription)}>{card.description}</p>}
         </div>
       </div>
       {card.tag && (
@@ -107,7 +130,10 @@ interface DragState {
   fromColKey: string;
 }
 
-function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: KanbanBoardProps) {
+function BoardInner(props: KanbanBoardProps) {
+  const { columns, onCardMove, renderCard, ariaLabel, className, style } = props;
+  // props.classNames (KHÔNG destructured thành `classNames` — shadow import classnames).
+  const slots = props.classNames;
   const dnd = useDragDrop();
   const [drag, setDrag] = useState<DragState | null>(null);
   const [cursor, setCursor] = useState<{ colKey: string; index: number } | null>(null);
@@ -196,7 +222,8 @@ function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: K
     <div
       role={ariaLabel ? 'region' : undefined}
       aria-label={ariaLabel}
-      className={`flex items-start gap-4 overflow-x-auto pb-2${className ? ` ${className}` : ''}`}
+      className={classNames('flex items-start gap-4 overflow-x-auto pb-2', slots?.root, className)}
+      style={style}
     >
       <div aria-live="polite" className="sr-only">
         {live}
@@ -207,9 +234,13 @@ function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: K
           <section
             key={col.key}
             aria-label={col.title}
-            className={`flex w-72 shrink-0 flex-col gap-2 rounded-xl border bg-s2 p-3${full ? ' border-st-fail/50' : ' border-line'}`}
+            className={classNames(
+              'flex w-72 shrink-0 flex-col gap-2 rounded-xl border bg-s2 p-3',
+              full ? 'border-st-fail/50' : 'border-line',
+              slots?.column,
+            )}
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className={classNames('flex items-center justify-between gap-2', slots?.columnHeader)}>
               <div className="flex items-center gap-2">
                 <span className="text-label font-semibold text-ink">{col.title}</span>
                 <Badge variant={full ? 'failed' : 'todo'}>
@@ -252,7 +283,7 @@ function BoardInner({ columns, onCardMove, renderCard, ariaLabel, className }: K
                         // đổi class ở đây nên mượt; inner chỉ hover-shadow.
                         className="rounded-xl transition-[transform,box-shadow] duration-200 ease-[var(--ease-enter)]"
                       >
-                        {renderCard ? renderCard(card, col.key) : <KanbanCardView card={card} flash={flash === card.key} />}
+                        {renderCard ? renderCard(card, col.key) : <KanbanCardView card={card} flash={flash === card.key} slots={slots} />}
                       </Draggable>
                     </DropZone>
                   </div>

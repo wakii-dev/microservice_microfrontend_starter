@@ -64,3 +64,24 @@ describe('Slider — matrix (keyboard/clamp/range/disabled)', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe('Slider — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (row) / track (role=slider) / fill / handle', () => {
+    render(<Slider value={50} classNames={{ root: 'slot-root', track: 'slot-track', fill: 'slot-fill', handle: 'slot-handle' }} />);
+    const track = screen.getByRole('slider', { name: 'Thanh trượt' });
+    expect(track.parentElement).toHaveClass('slot-root');
+    expect(track).toHaveClass('slot-track');
+    expect(track.querySelector('.slot-fill')).not.toBeNull();
+    expect(track.querySelector('.slot-handle')).not.toBeNull();
+  });
+
+  it('style passthrough lên root + không truyền slots → keyboard vẫn onChange (behavior giữ nguyên)', () => {
+    const onChange = vi.fn();
+    render(<Slider value={50} onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByRole('slider').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('flex'));
+    fireEvent.keyDown(screen.getByRole('slider'), { key: 'ArrowRight' });
+    expect(onChange).toHaveBeenLastCalledWith(51);
+  });
+});

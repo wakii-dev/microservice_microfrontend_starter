@@ -92,3 +92,34 @@ describe('DeferredContent', () => {
     expect(screen.getByText('Fallback')).toBeInTheDocument();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('DeferredContent — classNames + style', () => {
+  it('slots lên đúng element: root + placeholder skeleton; className sau root slot', () => {
+    const { container } = render(
+      <DeferredContent
+        classNames={{ root: 'slot-root', placeholder: 'slot-placeholder' }}
+        className="user-last"
+      >
+        <p>Nội dung nặng</p>
+      </DeferredContent>,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(screen.getByLabelText('Đang tải')).toHaveClass('slot-placeholder');
+    // sau khi load, placeholder slot không dính vào children
+    last().trigger(true);
+    expect(screen.getByText('Nội dung nặng').parentElement).toHaveClass('slot-root');
+  });
+
+  it('style passthrough lên root (giữ nguyên qua 2 pha placeholder/children)', () => {
+    const { container } = render(
+      <DeferredContent style={{ margin: '8px' }}>
+        <p>x</p>
+      </DeferredContent>,
+    );
+    expect(container.firstElementChild).toHaveStyle({ margin: '8px' });
+  });
+});

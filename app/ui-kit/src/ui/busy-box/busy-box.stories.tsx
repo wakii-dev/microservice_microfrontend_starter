@@ -28,3 +28,17 @@ export const Toggle: Story = {
   args: { busy: true, children: 'x' },
   render: () => <Demo />,
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the wrapper
+ * div (both busy and idle branches); `style` merges on the same element. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    busy: true,
+    variant: 'card',
+    count: 2,
+    children: <p className="text-body text-ink">Loaded content with slotted wrapper</p>,
+    classNames: { root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-3' },
+    style: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+  },
+};

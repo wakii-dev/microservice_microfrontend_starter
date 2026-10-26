@@ -66,3 +66,42 @@ describe('Field', () => {
     expect(screen.getByRole('alert')).not.toHaveAttribute('id');
   });
 });
+
+describe('Field — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root / label / error (role=alert) / hint', () => {
+    render(
+      <Field
+        label="Email"
+        htmlFor="f-email"
+        error="Email không hợp lệ"
+        classNames={{ root: 'slot-root', label: 'slot-label', error: 'slot-error', hint: 'slot-hint' }}
+      >
+        <input id="f-email" />
+      </Field>,
+    );
+    const root = screen.getByRole('alert').parentElement!;
+    expect(root).toHaveClass('slot-root');
+    expect(screen.getByText('Email', { selector: 'label' })).toHaveClass('slot-label');
+    expect(screen.getByRole('alert')).toHaveClass('slot-error');
+    // hint không render khi có error — đổi sang hint-only vẫn nhận slot
+    cleanup();
+    render(
+      <Field label="Email" htmlFor="f-email" hint="Dùng email công việc" classNames={{ hint: 'slot-hint' }}>
+        <input id="f-email" />
+      </Field>,
+    );
+    expect(screen.getByText('Dùng email công việc')).toHaveClass('slot-hint');
+  });
+
+  it('style passthrough lên root + không truyền slots → error vẫn role=alert (behavior giữ nguyên)', () => {
+    render(
+      <Field label="Email" htmlFor="f-email" error="Bắt buộc" style={{ margin: '8px' }} className="user-last">
+        <input id="f-email" />
+      </Field>,
+    );
+    const root = screen.getByRole('alert').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThanOrEqual(0);
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'f-email-error');
+  });
+});

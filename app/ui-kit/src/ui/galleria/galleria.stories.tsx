@@ -76,3 +76,22 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the gallery,
+ * `track` on the snap scroller, `item` per slide, `caption` under images,
+ * `indicators`/`indicator` on the dots row; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    style: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+    classNames: {
+      root: 'rounded-2xl border border-dashed border-accent',
+      caption: 'uppercase tracking-wide text-accent',
+      indicator: 'size-3',
+    },
+    images: [
+      { src: 'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23ddd%22/%3E%3C/svg%3E', alt: 'Slide one', caption: 'First slide' },
+      { src: 'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23bbb%22/%3E%3C/svg%3E', alt: 'Slide two', caption: 'Second slide' },
+    ],
+  },
+};

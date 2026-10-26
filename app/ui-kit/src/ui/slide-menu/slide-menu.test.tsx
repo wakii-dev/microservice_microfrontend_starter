@@ -118,3 +118,38 @@ describe('SlideMenu — trượt cấp', () => {
     expect(screen.getByRole('menuitem', { name: 'Xoá tài khoản' }).className).toContain('text-st-fail');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('SlideMenu — classNames slots + style', () => {
+  const ITEMS: SlideMenuItem[] = [
+    { key: 'a', label: 'Alpha', children: [{ key: 'a1', label: 'Alpha 1' }] },
+  ];
+
+  it('slots lên đúng element: root/track/page/back/item/itemButton', () => {
+    render(
+      <SlideMenu
+        items={ITEMS}
+        classNames={{ root: 'slot-root', track: 'slot-track', page: 'slot-page', back: 'slot-back', item: 'slot-item', itemButton: 'slot-btn' }}
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(document.querySelector('[data-slide-track]')).toHaveClass('slot-track');
+    expect(screen.getAllByRole('menuitem', { name: 'Alpha' })[0].closest('li')).toHaveClass('slot-item');
+    expect(screen.getAllByRole('menuitem', { name: 'Alpha' })[0]).toHaveClass('slot-btn');
+    fireEvent.click(screen.getAllByRole('menuitem', { name: 'Alpha' })[0]);
+    expect(screen.getByRole('menuitem', { name: 'Alpha 1' })).toHaveClass('slot-btn');
+    const back = document.querySelector('[data-slide-back]');
+    expect(back).toHaveClass('slot-back');
+    expect(back!.textContent).toContain('Alpha');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(
+      <SlideMenu items={ITEMS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

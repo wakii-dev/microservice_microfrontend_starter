@@ -5,12 +5,27 @@
 // Polish 2026-10-18: panel căn GIỮA trigger — width theo content (w-max, left-1/2
 // -translate-x-1/2) thay vì inset-x-0 full-width; option bỏ w-full (width theo label,
 // min-w giữ cột chạm được).
-import { useState } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/trigger/panel/option)
+// + style passthrough — default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
+import { useState, type CSSProperties } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface CascadeOption {
   label: string; value: string;
   children?: CascadeOption[];
+}
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface CascadeSelectClassNames {
+  /** Div wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** Button trigger (viền/ring, chứa value/placeholder). */
+  trigger?: string;
+  /** Panel nổi (role=listbox) — các cột option (chỉ render khi mở). */
+  panel?: string;
+  /** Button mỗi option (role=option). */
+  option?: string;
 }
 
 export interface CascadeSelectProps {
@@ -19,9 +34,15 @@ export interface CascadeSelectProps {
   onChange?: (path: string[]) => void;
   placeholder?: string;
   className?: string;
+  /** Inline style — passthrough lên div wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: CascadeSelectClassNames;
 }
 
-export function CascadeSelect({ options, value = [], onChange, placeholder = 'Chọn…', className }: CascadeSelectProps) {
+export function CascadeSelect(props: CascadeSelectProps) {
+  const { options, value = [], onChange, placeholder = 'Chọn…', className, style } = props;
+  const slots = props.classNames;
   const [open, setOpen] = useState(false);
   const [level, setLevel] = useState(0);
   // Keyboard nav (a11y listbox): ↑↓ chuyển active, Enter chọn, Esc đóng — focus
@@ -36,7 +57,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
   }
 
   return (
-    <div className={`relative inline-flex w-full${className ? ` ${className}` : ''}`}>
+    <div className={classNames('relative inline-flex w-full', slots?.root, className)} style={style}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="listbox"
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -56,13 +77,13 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
             setOpen(false); setLevel(0);
           }
         }}
-        className="inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s3 px-3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 hover:shadow-[var(--ele-2)] focus:border-accent-hi focus:bg-s1 focus:shadow-[var(--ele-2)] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40 focus-visible:outline-none">
+        className={classNames('inline-flex h-8 w-full items-center justify-between rounded-lg border border-line bg-s3 px-3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 hover:shadow-[var(--ele-2)] focus:border-accent-hi focus:bg-s1 focus:shadow-[var(--ele-2)] focus:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/40 focus-visible:outline-none', slots?.trigger)}>
         <span className={value.length > 0 ? '' : 'text-ink4'}>{value.length > 0 ? value.join(' / ') : placeholder}</span>
         <span aria-hidden="true" className="text-ink3"><Icon name="chevron-right" size={12} /></span>
       </button>
       {open && (
         <div role="listbox" aria-label={placeholder}
-          className="absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]">
+          className={classNames('absolute left-1/2 top-full z-[var(--z-popover)] mt-1 flex w-max max-w-[calc(100vw-16px)] -translate-x-1/2 gap-px overflow-hidden rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-fade-in_var(--motion-fast)_var(--ease-enter)]', slots?.panel)}>
           {current.map((option, i) => (
             <button key={option.value} type="button" role="option" aria-selected={value[value.length - 1] === option.value}
               onClick={() => {
@@ -71,7 +92,7 @@ export function CascadeSelect({ options, value = [], onChange, placeholder = 'Ch
                 else { onChange?.(next); setOpen(false); setLevel(0); }
               }}
               style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
-              className={`group/opt block min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-accent/5'}`}>
+              className={classNames(`group/opt block min-w-[140px] cursor-pointer px-3 py-2 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] ${current[activeIdx] === option ? 'bg-s3' : 'hover:bg-accent/5'}`, slots?.option)}>
               {option.label}
               {option.children && (
                 <span aria-hidden="true" className="float-right text-ink3">

@@ -1,7 +1,14 @@
 // Knob — dial value (antd lite): circular indicator + drag.
 // A11y (batch ⑫ worker C): role=slider + Arrow keys (±1, clamp min/max) —
 // trước đây chỉ drag chuột, keyboard không với tới.
-import { useCallback, useRef, type KeyboardEvent } from 'react';
+import classNames from 'classnames';
+import { useCallback, useRef, type CSSProperties, type KeyboardEvent } from 'react';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface KnobClassNames {
+  /** <svg> dial (role=slider). */
+  root?: string;
+}
 
 export interface KnobProps {
   value?: number;
@@ -12,9 +19,15 @@ export interface KnobProps {
   /** aria-label cho role=slider (mặc định 'Điều khiển giá trị'). */
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên svg. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: KnobClassNames;
 }
 
-export function Knob({ value = 0, onChange, min = 0, max = 100, size = 96, ariaLabel = 'Điều khiển giá trị', className }: KnobProps) {
+export function Knob(props: KnobProps) {
+  const { value = 0, onChange, min = 0, max = 100, size = 96, ariaLabel = 'Điều khiển giá trị', className, style } = props;
+  const slots = props.classNames;
   const ref = useRef<SVGSVGElement>(null);
   const r = size / 2 - 8;
   const c = size / 2;
@@ -42,7 +55,8 @@ export function Knob({ value = 0, onChange, min = 0, max = 100, size = 96, ariaL
     <svg ref={ref} width={size} height={size} viewBox={`0 0 ${size} ${size}`}
       role="slider" aria-label={ariaLabel} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value} tabIndex={0}
       onKeyDown={onKeyDown}
-      className={`cursor-grab active:cursor-grabbing${className ? ` ${className}` : ''}`}
+      className={classNames('cursor-grab active:cursor-grabbing', slots?.root, className)}
+      style={style}
       onMouseDown={(e) => { const move = (me: MouseEvent) => onDrag(me.clientX, me.clientY); const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); }; window.addEventListener('mousemove', move); window.addEventListener('mouseup', up); onDrag(e.clientX, e.clientY); }}>
       <circle cx={c} cy={c} r={r} fill="none" stroke="var(--line2)" strokeWidth="6"
         strokeDasharray={`${arc} ${circumference}`} strokeLinecap="round"

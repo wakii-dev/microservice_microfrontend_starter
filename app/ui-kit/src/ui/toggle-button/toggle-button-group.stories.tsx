@@ -83,3 +83,21 @@ function MultipleDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the group
+ * wrapper div; `style` merges on the same element. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ToggleButtonGroup
+      ariaLabel="Slotted group"
+      value="week"
+      classNames={{ root: 'rounded-pill bg-s3 p-1' }}
+      style={{ boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.12)' }}
+    >
+      <ToggleButton value="day">Day</ToggleButton>
+      <ToggleButton value="week">Week</ToggleButton>
+      <ToggleButton value="month">Month</ToggleButton>
+    </ToggleButtonGroup>
+  ),
+};

@@ -60,3 +60,24 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the observed
+ * wrapper div, `placeholder` on the default skeleton card; `style` lands on
+ * the wrapper; the user's className always comes last. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <DeferredContent
+      classNames={{
+        root: 'rounded-xl',
+        placeholder: 'border-dashed border-accent bg-accent/5',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      className="border border-line"
+    >
+      <div className="rounded-xl border border-line bg-s1 p-4">
+        <p className="m-0 text-body text-ink">Slotted wrapper — placeholder styled while loading.</p>
+      </div>
+    </DeferredContent>
+  ),
+};

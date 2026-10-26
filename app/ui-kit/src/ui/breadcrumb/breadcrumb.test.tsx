@@ -47,3 +47,34 @@ describe('Breadcrumb — branch phụ (Tier 5 sweep)', () => {
     sep.forEach((s) => expect(s).toHaveAttribute('aria-hidden', 'true'));
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Breadcrumb — classNames + style', () => {
+  const ITEMS = [
+    { title: 'Home', href: '/' },
+    { title: 'Settings' },
+  ];
+
+  it('slots lên đúng element: root/list/item/link/label/separator', () => {
+    render(
+      <Breadcrumb
+        items={ITEMS}
+        classNames={{ root: 'slot-root', list: 'slot-list', item: 'slot-item', link: 'slot-link', label: 'slot-label', separator: 'slot-sep' }}
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(document.querySelector('ol.slot-list')).not.toBeNull();
+    expect(screen.getByText('Home')).toHaveClass('slot-link');
+    expect(screen.getByText('Settings')).toHaveClass('slot-label');
+    expect(screen.getByText('/', { selector: 'span.slot-sep' })).toBeInTheDocument();
+    expect(screen.getByText('Home').closest('li')).toHaveClass('slot-item');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(<Breadcrumb items={ITEMS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

@@ -90,3 +90,34 @@ describe('Calendar — responsive 375 (bugfix PO: cell co + grid 7 fr đều)', 
     }
   });
 });
+
+describe('Calendar — classNames slots + style (slots wave 3)', () => {
+  const NOW = new Date(2026, 9, 15);
+
+  it('slots lên đúng element: root (div grid) / header / weekdays / grid / day', () => {
+    const onChange = vi.fn();
+    render(
+      <Calendar
+        now={NOW}
+        onChange={onChange}
+        classNames={{ root: 'slot-root', header: 'slot-header', weekdays: 'slot-weekdays', grid: 'slot-grid', day: 'slot-day' }}
+      />,
+    );
+    const root = screen.getByRole('grid', { name: 'Calendar' });
+    expect(root).toHaveClass('slot-root');
+    expect(root.querySelector('.slot-header')).not.toBeNull();
+    expect(root.querySelector('.slot-weekdays')).not.toBeNull();
+    expect(root.querySelector('.slot-grid')).not.toBeNull();
+    expect(screen.getByLabelText(NOW.toDateString())).toHaveClass('slot-day');
+  });
+
+  it('style passthrough lên root + không truyền slots → click ngày vẫn onChange (behavior giữ nguyên)', () => {
+    const onChange = vi.fn();
+    render(<Calendar now={NOW} onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const root = screen.getByRole('grid', { name: 'Calendar' }) as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-block'));
+    fireEvent.click(screen.getByText('20'));
+    expect(onChange).toHaveBeenCalledWith(new Date(2026, 9, 20));
+  });
+});

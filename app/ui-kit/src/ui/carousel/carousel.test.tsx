@@ -146,3 +146,35 @@ describe('Carousel — onSlideChange & height', () => {
     expect((document.querySelector('.swiper') as HTMLElement).style.height).toBe('300px');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Carousel — classNames slots + style', () => {
+  it('slots root/indicators/indicator/navigator lên đúng element', () => {
+    const { container } = render(
+      <Carousel
+        items={[<div key="1">A</div>, <div key="2">B</div>]}
+        classNames={{ root: 'slot-root', indicators: 'slot-inds', indicator: 'slot-ind', navigator: 'slot-nav' }}
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-root');
+    expect(document.querySelector('.slot-inds')).not.toBeNull();
+    expect(screen.getAllByRole('button', { name: /Chuyển tới trang/ })[0]).toHaveClass('slot-ind');
+    expect(screen.getByRole('button', { name: 'Trước' })).toHaveClass('slot-nav');
+    expect(screen.getByRole('button', { name: 'Sau' })).toHaveClass('slot-nav');
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    const { container } = render(
+      <Carousel
+        items={[<div key="1">A</div>, <div key="2">B</div>]}
+        style={{ padding: '2px' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

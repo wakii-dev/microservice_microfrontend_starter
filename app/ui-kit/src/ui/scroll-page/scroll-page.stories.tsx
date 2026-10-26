@@ -90,3 +90,30 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the snap
+ * container (ScrollPage) and on each full-height <section> (ScrollPage.Section);
+ * `style` flows through HTMLAttributes onto the same elements. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ScrollPage
+      aria-label="Slotted deck"
+      classNames={{ root: 'rounded-xl ring-2 ring-accent/30' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      className="max-h-96 border border-line"
+    >
+      <ScrollPage.Section
+        id="slot-1"
+        aria-label="Slotted first"
+        classNames={{ root: 'bg-accent/5' }}
+        style={{ borderBottom: '1px solid var(--line)' }}
+      >
+        <SectionBody kicker="slots" title="Slotted deck" body="Container ring + section wash, default snap untouched." />
+      </ScrollPage.Section>
+      <ScrollPage.Section id="slot-2" aria-label="Slotted second" classNames={{ root: 'bg-s3' }}>
+        <SectionBody kicker="slots" title="Second page" body="Scrolls and snaps the same way." />
+      </ScrollPage.Section>
+    </ScrollPage>
+  ),
+};

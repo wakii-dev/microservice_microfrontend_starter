@@ -284,3 +284,39 @@ describe('Col — responsive qua matchMedia (mobile-first cascade)', () => {
     );
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough (Row + Col) ──
+
+describe('Grid — classNames + style', () => {
+  it('slot root lên đúng div Row và div Col; className sau slot', () => {
+    const { container } = render(
+      <Row gutter={8} classNames={{ root: 'slot-row' }} className="user-last">
+        <Col span={12} classNames={{ root: 'slot-col' }} className="user-col">
+          <span>cell</span>
+        </Col>
+      </Row>,
+    );
+    const row = container.firstElementChild!;
+    expect(row).toHaveClass('slot-row', 'flex');
+    expect(row.className.indexOf('slot-row')).toBeLessThan(row.className.indexOf('user-last'));
+    const col = row.firstElementChild!;
+    expect(col).toHaveClass('slot-col');
+    expect(col.className.indexOf('slot-col')).toBeLessThan(col.className.indexOf('user-col'));
+  });
+
+  it('style passthrough: Row merge sau gutter/justify; Col merge sau width/padding gutter', () => {
+    const { container } = render(
+      <Row gutter={8} style={{ margin: 0, background: 'rgb(1, 2, 3)' }}>
+        <Col span={12} style={{ padding: '2px', width: '80%' }}>
+          <span>cell</span>
+        </Col>
+      </Row>,
+    );
+    const rowStyle = container.firstElementChild!.getAttribute('style')!;
+    expect(rowStyle).toContain('background: rgb(1, 2, 3)');
+    expect(rowStyle).toContain('margin: 0px');
+    const colStyle = container.firstElementChild!.firstElementChild!.getAttribute('style')!;
+    expect(colStyle).toContain('padding: 2px');
+    expect(colStyle).toContain('width: 80%'); // user style thắng width từ span
+  });
+});

@@ -5,8 +5,18 @@
 // disabled = text-ink3 cursor-not-allowed, không hover bg, không viền.
 // Contract note: TasksPage giữ "Tải thêm"/"x/total" — component này stories-only
 // cho đến khi có page-based list.
+import classNames from 'classnames';
 import { useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import { Icon } from '../icons/index.js';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface PaginationClassNames {
+  /** <nav> gốc bọc dãy trang. */
+  root?: string;
+  /** Button trang/prev/next/ellipsis (áp cả active/disabled). */
+  item?: string;
+}
 
 export interface PaginationProps {
   current: number;
@@ -14,6 +24,10 @@ export interface PaginationProps {
   total: number;
   onChange?: (page: number) => void;
   className?: string;
+  /** Inline style — passthrough lên nav gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: PaginationClassNames;
 }
 
 /** Dãy trang kiểu antd: 1 … p-1 p p+1 … N (window ±1, giữ đầu/cuối). */
@@ -44,7 +58,9 @@ const ITEM_ACTIVE =
 const ITEM_DISABLED =
   'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border-none bg-transparent px-2 text-body text-ink3 cursor-not-allowed';
 
-export function Pagination({ current, pageSize, total, onChange, className }: PaginationProps) {
+export function Pagination(props: PaginationProps) {
+  const { current, pageSize, total, onChange, className, style } = props;
+  const slots = props.classNames;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const pages = useMemo(() => pageList(current, pageCount), [current, pageCount]);
 
@@ -54,11 +70,15 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
   };
 
   return (
-    <nav aria-label="Phân trang" className={`flex items-center gap-2${className ? ` ${className}` : ''}`}>
+    <nav
+      aria-label="Phân trang"
+      className={classNames('flex items-center gap-2', slots?.root, className)}
+      style={style}
+    >
       <button
         type="button"
         aria-label="Trang trước"
-        className={current === 1 ? ITEM_DISABLED : ITEM}
+        className={classNames(current === 1 ? ITEM_DISABLED : ITEM, slots?.item)}
         disabled={current === 1}
         onClick={() => go(current - 1)}
       >
@@ -70,7 +90,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
             key={p}
             type="button"
             aria-label={p === 'ellipsis-prev' ? 'Lùi 5 trang' : 'Tiến 5 trang'}
-            className={`${ITEM} tracking-[2px]`}
+            className={classNames(ITEM, 'tracking-[2px]', slots?.item)}
             onClick={() => go(p === 'ellipsis-prev' ? Math.max(1, current - 5) : Math.min(pageCount, current + 5))}
           >
             ···
@@ -81,7 +101,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
             type="button"
             aria-label={`Trang ${p}`}
             aria-current={p === current ? 'page' : undefined}
-            className={p === current ? ITEM_ACTIVE : ITEM}
+            className={classNames(p === current ? ITEM_ACTIVE : ITEM, slots?.item)}
             onClick={() => go(p)}
           >
             {p}
@@ -91,7 +111,7 @@ export function Pagination({ current, pageSize, total, onChange, className }: Pa
       <button
         type="button"
         aria-label="Trang sau"
-        className={current === pageCount ? ITEM_DISABLED : ITEM}
+        className={classNames(current === pageCount ? ITEM_DISABLED : ITEM, slots?.item)}
         disabled={current === pageCount}
         onClick={() => go(current + 1)}
       >

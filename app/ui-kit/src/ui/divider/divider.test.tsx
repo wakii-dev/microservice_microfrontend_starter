@@ -81,3 +81,23 @@ describe('Divider — combo branch (Tier 5 sweep)', () => {
     expect(spans[1]).toHaveClass('ml-4');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Divider — classNames + style', () => {
+  it('slots root/label/line lên đúng element (text + 2 line)', () => {
+    const { container } = render(
+      <Divider classNames={{ root: 'slot-root', label: 'slot-label', line: 'slot-line' }}>OR</Divider>,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-root');
+    expect(screen.getByText('OR')).toHaveClass('slot-label');
+    expect(container.querySelectorAll('.slot-line').length).toBe(2);
+  });
+
+  it('style passthrough override margin mặc định (horizontal + vertical)', () => {
+    const { container, rerender } = render(<Divider style={{ margin: '4px 0' }} />);
+    expect(container.firstElementChild).toHaveStyle({ margin: '4px 0' });
+    rerender(<Divider type="vertical" style={{ margin: '0 2px' }} />);
+    expect(container.firstElementChild).toHaveStyle({ margin: '0px 2px' });
+  });
+});

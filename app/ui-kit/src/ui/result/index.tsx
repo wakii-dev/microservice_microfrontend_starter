@@ -1,7 +1,8 @@
 // Result — trang kết quả (antd): icon lớn màu status + title + subTitle + extra.
 // Icon status = Icon SVG bộ chung (style sweep 2026-10-23 — bỏ glyph ký tự text);
 // success giữ SVG check-draw vẽ tay (motion waves); 404/500 là CHỮ SỐ cố ý, không glyph.
-import type { ReactNode } from 'react';
+import classNames from 'classnames';
+import type { CSSProperties, ReactNode } from 'react';
 import { Icon, type IconName } from '../icons/index.js';
 
 export type ResultStatus = 'success' | 'error' | 'info' | 'warning' | '404' | '500';
@@ -15,6 +16,20 @@ const CONFIG: Record<string, { icon: IconName | '404' | '500'; color: string; de
   '500': { icon: '500', color: 'var(--ink)', defaultTitle: 'Lỗi máy chủ' },
 };
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ResultClassNames {
+  /** Div gốc giữa màn. */
+  root?: string;
+  /** Khối icon status (svg check / wrapper icon). */
+  icon?: string;
+  /** Dòng tiêu đề. */
+  title?: string;
+  /** Dòng phụ dưới tiêu đề. */
+  subTitle?: string;
+  /** Hàng actions dưới cùng. */
+  extra?: string;
+}
+
 export interface ResultProps {
   /** Trạng thái — icon + màu + title mặc định theo status. */
   status?: ResultStatus;
@@ -26,16 +41,29 @@ export interface ResultProps {
   extra?: ReactNode;
   children?: ReactNode;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ResultClassNames;
 }
 
-export function Result({ status = 'info', title, subTitle, extra, children, className }: ResultProps) {
+export function Result(props: ResultProps) {
+  const { status = 'info', title, subTitle, extra, children, className, style } = props;
+  const slots = props.classNames;
   const cfg = CONFIG[status];
   return (
-    <div className={`flex flex-col items-center gap-2 py-8 text-center animate-[bp-slide-up-in_var(--motion-slow)_var(--ease-enter)]${className ? ` ${className}` : ''}`}>
+    <div
+      className={classNames(
+        'flex flex-col items-center gap-2 py-8 text-center animate-[bp-slide-up-in_var(--motion-slow)_var(--ease-enter)]',
+        slots?.root,
+        className,
+      )}
+      style={style}
+    >
       {status === 'success' ? (
         // Success — check vẽ tay (bp-check-draw): circle + tick stroke pathLength=1,
         // offset 1→0 chạy đúng mọi độ dài path. reduced-motion → hiện tức thì.
-        <svg aria-hidden="true" data-testid="result-check" viewBox="0 0 52 52" className="size-14 text-st-done">
+        <svg aria-hidden="true" data-testid="result-check" viewBox="0 0 52 52" className={classNames('size-14 text-st-done', slots?.icon)}>
           <circle
             cx="26" cy="26" r="23" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.45"
             pathLength={1} strokeDasharray={1}
@@ -52,7 +80,10 @@ export function Result({ status = 'info', title, subTitle, extra, children, clas
         <div
           aria-hidden="true"
           data-testid="result-icon"
-          className={status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink'}
+          className={classNames(
+            status === 'error' ? 'text-st-fail' : status === 'warning' ? 'text-st-doing' : 'text-ink',
+            slots?.icon,
+          )}
           style={status === 'error' || status === 'info' || status === 'warning' ? { color: cfg.color } : undefined}
         >
           {cfg.icon === '404' || cfg.icon === '500' ? (
@@ -63,10 +94,10 @@ export function Result({ status = 'info', title, subTitle, extra, children, clas
           )}
         </div>
       )}
-      <div className="text-h2 font-semibold text-ink">{title ?? cfg.defaultTitle}</div>
-      {subTitle && <div className="text-body text-ink2">{subTitle}</div>}
+      <div className={classNames('text-h2 font-semibold text-ink', slots?.title)}>{title ?? cfg.defaultTitle}</div>
+      {subTitle && <div className={classNames('text-body text-ink2', slots?.subTitle)}>{subTitle}</div>}
       {children}
-      {extra && <div className="mt-2 flex gap-2">{extra}</div>}
+      {extra && <div className={classNames('mt-2 flex gap-2', slots?.extra)}>{extra}</div>}
     </div>
   );
 }

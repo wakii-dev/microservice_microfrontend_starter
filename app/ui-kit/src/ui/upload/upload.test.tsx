@@ -288,3 +288,31 @@ describe('UploadDropzone', () => {
     expect(clickSpy).not.toHaveBeenCalled();
   });
 });
+
+describe('Upload — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root / list / listItem / listRemove (Upload) + dropzone (UploadDropzone)', () => {
+    const slots = { root: 'slot-root', dropzone: 'slot-dropzone', list: 'slot-list', listItem: 'slot-item', listRemove: 'slot-remove' };
+    const { container: c1 } = render(<Upload classNames={slots} />);
+    fireEvent.change(getFileInput(c1), { target: { files: [makeFile('a.pdf')] } });
+    expect(c1.querySelector('.slot-root')).not.toBeNull();
+    expect(c1.querySelector('ul')).toHaveClass('slot-list');
+    expect(screen.getByText('a.pdf').closest('li')).toHaveClass('slot-item');
+    expect(screen.getByLabelText('Xoá a.pdf')).toHaveClass('slot-remove');
+    cleanup();
+
+    const { container: c2 } = render(<UploadDropzone classNames={slots} />);
+    const zone = screen.getByRole('button', { name: ZONE_NAME });
+    expect(zone).toHaveClass('slot-dropzone');
+    expect(zone.parentElement).toHaveClass('slot-root');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn file vẫn onChange (behavior giữ nguyên)', () => {
+    const onChange = vi.fn();
+    const { container } = render(<Upload onChange={onChange} style={{ margin: '8px' }} className="user-last" />);
+    const rootEl = getFileInput(container).parentElement as HTMLElement;
+    expect(rootEl).toHaveStyle({ margin: '8px' });
+    expect(rootEl.className.indexOf('user-last')).toBeGreaterThanOrEqual(0);
+    fireEvent.change(getFileInput(container), { target: { files: [makeFile('b.pdf')] } });
+    expect(onChange).toHaveBeenCalledWith([expect.any(File)]);
+  });
+});

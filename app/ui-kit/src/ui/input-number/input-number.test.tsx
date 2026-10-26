@@ -155,3 +155,41 @@ describe('InputNumber — redo antd-fidelity (flush stepper + sizes + affixes)',
 function inputEl(container: HTMLElement): HTMLInputElement {
   return container.querySelector('input')!;
 }
+
+describe('InputNumber — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (span control) / input / stepper / stepUp / stepDown', () => {
+    render(
+      <InputNumber
+        ariaLabel="số lượng"
+        classNames={{ root: 'slot-root', input: 'slot-input', stepper: 'slot-stepper', stepUp: 'slot-step-up', stepDown: 'slot-step-down' }}
+      />,
+    );
+    const input = screen.getByLabelText('số lượng');
+    const root = input.parentElement!; // span control bọc input + stepper
+    expect(root).toHaveClass('slot-root');
+    expect(input).toHaveClass('slot-input');
+    const stepper = screen.getByRole('button', { name: 'Tăng' }).parentElement!;
+    expect(stepper).toHaveClass('slot-stepper');
+    expect(screen.getByRole('button', { name: 'Tăng' })).toHaveClass('slot-step-up');
+    expect(screen.getByRole('button', { name: 'Giảm' })).toHaveClass('slot-step-down');
+  });
+
+  it('style passthrough lên root + không truyền slots → stepper vẫn onChange (behavior giữ nguyên)', () => {
+    const onChange = vi.fn();
+    render(
+      <InputNumber
+        ariaLabel="n"
+        value={9}
+        max={10}
+        onChange={onChange}
+        style={{ margin: '8px' }}
+        className="user-last"
+      />,
+    );
+    const root = screen.getByLabelText('n').parentElement as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    fireEvent.click(screen.getByRole('button', { name: 'Tăng' }));
+    expect(onChange).toHaveBeenLastCalledWith(10);
+  });
+});

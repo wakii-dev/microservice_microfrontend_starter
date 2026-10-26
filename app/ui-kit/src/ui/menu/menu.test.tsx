@@ -249,3 +249,34 @@ describe('Menu — compact (sidebar icon-only, fix ⑥ 2026-10-18)', () => {
     expect(item).not.toHaveClass('justify-center');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Menu — classNames slots + style', () => {
+  const TREE: MenuItemData[] = [
+    { key: 'home', label: 'Home' },
+    { key: 'mng', label: 'Manage', children: [{ key: 'tasks', label: 'Tasks' }] },
+  ];
+
+  it('slots lên đúng element: root/list/item/itemButton (kể cả submenu)', () => {
+    render(
+      <Menu
+        items={TREE}
+        selectedKey="tasks"
+        classNames={{ root: 'slot-root', list: 'slot-list', item: 'slot-item', itemButton: 'slot-btn' }}
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    // root ul + submenu ul đều nhận slot list (submenu luôn trong DOM, collapse bằng grid-rows)
+    expect(document.querySelectorAll('ul.slot-list').length).toBe(2);
+    expect(screen.getByRole('menuitem', { name: 'Home' })).toHaveClass('slot-btn');
+    expect(screen.getByText('Home').closest('li')).toHaveClass('slot-item');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(<Menu items={TREE} style={{ padding: '8px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '8px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

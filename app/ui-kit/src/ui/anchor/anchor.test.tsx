@@ -189,3 +189,27 @@ describe('Anchor', () => {
     expect(getByText('Introduction')).toHaveAttribute('aria-current', 'true');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Anchor — classNames slots + style', () => {
+  const LINKS: AnchorLinkItem[] = [
+    { href: '#one', title: 'One', children: [{ href: '#sub', title: 'Sub' }] },
+  ];
+
+  it('slots root/list/item/dot lên đúng element', () => {
+    render(<Anchor items={LINKS} classNames={{ root: 'slot-root', list: 'slot-list', item: 'slot-item', dot: 'slot-dot' }} />);
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(document.querySelectorAll('ul.slot-list').length).toBe(2); // root + nested
+    const linkOne = document.querySelector('a[href="#one"]')!;
+    expect(linkOne).toHaveClass('slot-item');
+    expect(linkOne.querySelector('.slot-dot')).not.toBeNull();
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(<Anchor items={LINKS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />);
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

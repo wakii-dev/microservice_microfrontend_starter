@@ -54,3 +54,29 @@ describe('Space — branch phụ (Tier 5 sweep)', () => {
     expect(container.firstElementChild?.getAttribute('style')).not.toContain('align-items');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Space — classNames + style', () => {
+  it('slot root lên đúng div flex; className sau slot', () => {
+    const { container } = render(
+      <Space classNames={{ root: 'slot-root' }} className="user-last">
+        <span>a</span>
+      </Space>,
+    );
+    const el = container.firstElementChild!;
+    expect(el).toHaveClass('slot-root', 'flex');
+    expect(el.className.indexOf('slot-root')).toBeLessThan(el.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau gap (override được)', () => {
+    const { container } = render(
+      <Space size="large" style={{ gap: 40, padding: '4px' }}>
+        <span>a</span>
+      </Space>,
+    );
+    const style = container.firstElementChild!.getAttribute('style')!;
+    expect(style).toContain('gap: 40px');
+    expect(style).toContain('padding: 4px');
+  });
+});

@@ -217,3 +217,30 @@ function KeyboardDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` on the board track,
+ * `column`/`columnHeader` on each column section, `card`/`cardTitle`/
+ * `cardDescription` on the default card view; `style` lands on the board. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <KanbanBoard
+      ariaLabel="Custom styled board"
+      style={{ padding: 8 }}
+      classNames={{
+        column: 'bg-accent/5 border-dashed border-accent',
+        columnHeader: 'uppercase tracking-wide',
+        card: 'border-dashed',
+        cardTitle: 'text-accent',
+      }}
+      columns={[
+        {
+          key: 'todo',
+          title: 'Todo',
+          cards: [{ key: 'k1', title: 'Wire slots', description: 'Add classNames + style.', tag: 'ui-kit' }],
+        },
+        { key: 'done', title: 'Done', cards: [{ key: 'k2', title: 'Ship card' }] },
+      ]}
+    />
+  ),
+};

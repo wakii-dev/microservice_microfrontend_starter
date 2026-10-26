@@ -2,13 +2,30 @@
 // TreeSelect lite): chỉ chọn leaf · trigger hiện đường dẫn 'Cha / Con' ·
 // searchable theo label + đường dẫn · clearable. ARIA combobox/listbox như
 // Select; parent render group header (không role=option, không chọn được).
-import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/trigger/panel/listbox/
+// option) + style passthrough — default path (không truyền) giữ nguyên DOM.
+import classNames from 'classnames';
+import { useEffect, useId, useMemo, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Icon } from '../icons/index.js';
 
 export interface TreeNode {
   value: string;
   label: string;
   children?: TreeNode[];
+}
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface TreeSelectClassNames {
+  /** Span wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** Button trigger (role=combobox) mang viền/ring. */
+  trigger?: string;
+  /** Panel nổi bên trong (mang bg/border/shadow) — chỉ render khi mở. */
+  panel?: string;
+  /** <ul> role=listbox — chỉ render khi mở + có leaf khớp. */
+  listbox?: string;
+  /** Div role=option (mỗi leaf một div; parent là group header). */
+  option?: string;
 }
 
 export interface TreeSelectProps {
@@ -23,6 +40,10 @@ export interface TreeSelectProps {
   clearable?: boolean;
   disabled?: boolean;
   className?: string;
+  /** Inline style — passthrough lên span wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: TreeSelectClassNames;
 }
 
 interface FlatLeaf {
@@ -61,17 +82,20 @@ function filterTree(nodes: TreeNode[], q: string, ancestors: string[] = []): Tre
   return out;
 }
 
-export function TreeSelect({
-  ariaLabel,
-  treeData,
-  value,
-  onChange,
-  placeholder = 'Chọn…',
-  searchable = true,
-  clearable = true,
-  disabled = false,
-  className,
-}: TreeSelectProps) {
+export function TreeSelect(props: TreeSelectProps) {
+  const {
+    ariaLabel,
+    treeData,
+    value,
+    onChange,
+    placeholder = 'Chọn…',
+    searchable = true,
+    clearable = true,
+    disabled = false,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [search, setSearch] = useState('');
@@ -168,9 +192,9 @@ export function TreeSelect({
             onMouseEnter={() => setActive(flatIndex)}
             onClick={() => commit(visibleLeaves[flatIndex])}
             style={{ paddingLeft: 12 + depth * 16 }}
-            className={`flex h-8 cursor-pointer items-center rounded-lg pr-3 text-body ${
+            className={classNames(`flex h-8 cursor-pointer items-center rounded-lg pr-3 text-body ${
               isSelected ? 'bg-accent/10 font-semibold text-accent' : 'text-ink hover:bg-s3'
-            } ${isActive && !isSelected ? 'bg-s3' : ''}`}
+            } ${isActive && !isSelected ? 'bg-s3' : ''}`, slots?.option)}
           >
             {node.label}
           </div>
@@ -180,7 +204,7 @@ export function TreeSelect({
   }
 
   return (
-    <span className={`relative inline-flex w-full${className ? ` ${className}` : ''}`}>
+    <span className={classNames('relative inline-flex w-full', slots?.root, className)} style={style}>
       <button
         type="button"
         role="combobox"
@@ -191,9 +215,9 @@ export function TreeSelect({
         disabled={disabled}
         onClick={() => (disabled ? undefined : setOpen((o) => !o))}
         onKeyDown={onTriggerKeyDown}
-        className={`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
+        className={classNames(`inline-flex h-8 w-full min-w-[120px] cursor-pointer items-center justify-between gap-1 rounded-lg border bg-s2 px-3 text-body transition-colors focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${
           open ? 'border-accent-hi' : 'border-line hover:border-accent'
-        } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`}
+        } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4' : 'text-ink'}`, slots?.trigger)}
       >
         <span className="min-w-0 truncate">
           {hasValue ? selectedText : <span className="text-ink4">{placeholder}</span>}
@@ -215,7 +239,7 @@ export function TreeSelect({
 
       {open && (
         <span className="absolute left-0 top-full mt-1 z-[var(--z-popover)] block w-full min-w-[160px]">
-          <span className="block origin-top overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]">
+          <span className={classNames('block origin-top overflow-hidden rounded-xl border border-line bg-s2 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]', slots?.panel)}>
             {searchable && (
               <span className="block border-b border-line2 p-2">
                 <input
@@ -239,7 +263,7 @@ export function TreeSelect({
               <span className="block p-3 text-center text-body text-ink3">Không có kết quả</span>
             ) : (
               <ul id={listId} role="listbox" aria-label={ariaLabel}
-                className="m-0 max-h-60 list-none overflow-auto p-1">
+                className={classNames('m-0 max-h-60 list-none overflow-auto p-1', slots?.listbox)}>
                 {renderLevel(visibleTree, 0)}
               </ul>
             )}

@@ -11,27 +11,50 @@ import { cx } from '../../utils/dom.js';
 export interface ScrollPageProps extends HTMLAttributes<HTMLDivElement> {
   /** Nội dung — nên gồm toàn `ScrollPage.Section`. */
   children?: ReactNode;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ScrollPageClassNames;
+}
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ScrollPageClassNames {
+  /** Div container snap deck (h-screen, focusable). */
+  root?: string;
+}
+
+/** Slot classes cho Section — merge sau class mặc định (consumer append). */
+export interface ScrollPageSectionClassNames {
+  /** <section> full-height snap-start. */
+  root?: string;
 }
 
 export interface ScrollPageSectionProps extends HTMLAttributes<HTMLElement> {
   /** id + aria-label khuyến nghị cho điều hướng/landmark. */
   children?: ReactNode;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ScrollPageSectionClassNames;
 }
 
 /** Một "trang" full-height — snap về đúng khung khi cuộn. */
-export function ScrollPageSection({ className, children, ...rest }: ScrollPageSectionProps) {
+export function ScrollPageSection({ className, classNames, children, ...rest }: ScrollPageSectionProps) {
   return (
-    <section className={cx('flex min-h-full snap-start flex-col items-center justify-center px-6 py-12', className)} {...rest}>
+    <section
+      className={cx('flex min-h-full snap-start flex-col items-center justify-center px-6 py-12', classNames?.root, className)}
+      {...rest}
+    >
       {children}
     </section>
   );
 }
 
-function ScrollPageRoot({ className, children, ...rest }: ScrollPageProps) {
+function ScrollPageRoot({ className, classNames, children, ...rest }: ScrollPageProps) {
   return (
     <div
       tabIndex={0}
-      className={cx('h-screen snap-y snap-mandatory overflow-y-auto overflow-x-hidden outline-none focus-visible:ring-2 focus-visible:ring-accent/40', className)}
+      className={cx(
+        'h-screen snap-y snap-mandatory overflow-y-auto overflow-x-hidden outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+        classNames?.root,
+        className,
+      )}
       {...rest}
     >
       {children}

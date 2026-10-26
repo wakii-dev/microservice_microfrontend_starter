@@ -46,3 +46,24 @@ function ColorPickerControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / trigger / panel /
+ * swatch) + style passthrough. `root` lands on the outer column div (same
+ * element as `className`), `trigger` on the value swatch button, `panel` on
+ * the dropdown frame, `swatch` on every preset; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <ColorPicker
+      classNames={{
+        root: 'rounded-xl',
+        trigger: 'rounded-xl border-st-done border-2',
+        panel: 'rounded-lg border-st-done',
+        swatch: 'rounded-pill',
+      }}
+      style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    />
+  ),
+};

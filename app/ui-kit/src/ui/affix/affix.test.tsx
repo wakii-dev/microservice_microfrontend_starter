@@ -136,3 +136,24 @@ describe('Affix', () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Affix — classNames + style', () => {
+  it('slot root lên div sticky; className sau slot', () => {
+    const { container } = render(
+      <Affix classNames={{ root: 'slot-root' }} className="user-last">
+        <span>content</span>
+      </Affix>,
+    );
+    const root = container.firstElementChild!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+
+  it('style passthrough merge sau sticky top (override được)', () => {
+    const { container } = render(<Affix offsetTop={16} style={{ top: 4, background: 'rgb(1, 2, 3)' }}><span>x</span></Affix>);
+    const el = container.firstElementChild as HTMLElement;
+    expect(el).toHaveStyle({ top: '4px', background: 'rgb(1, 2, 3)' });
+  });
+});

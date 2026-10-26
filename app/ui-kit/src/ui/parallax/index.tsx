@@ -3,8 +3,15 @@
 // getBoundingClientRect, offset đối xứng qua tâm viewport. Ghi style TRỰC TIẾP
 // lên node (không setState — tránh re-render churn từng frame). TỰ TẮT khi
 // prefers-reduced-motion (useMediaQuery) hay `disabled` → children render tĩnh.
+import classNames from 'classnames';
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery.js';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ParallaxClassNames {
+  /** Div gốc bị transform theo scroll (bọc children). */
+  root?: string;
+}
 
 export interface ParallaxProps {
   /** Tốc độ trôi 0–1: 0 = đứng yên tương đối với viewport, 1 = trôi mạnh nhất. */
@@ -16,10 +23,16 @@ export interface ParallaxProps {
   /** Tắt hiệu ứng (children vẫn render bình thường). */
   disabled?: boolean;
   className?: string;
+  /** Inline style — merge lên div gốc (transform effective bị hiệu ứng ghi đè lúc chạy). */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: ParallaxClassNames;
   children: ReactNode;
 }
 
-export function Parallax({ speed = 0.3, strength = 120, scale = false, disabled, className, children }: ParallaxProps) {
+export function Parallax(props: ParallaxProps) {
+  const { speed = 0.3, strength = 120, scale = false, disabled, className, style, children } = props;
+  const slots = props.classNames;
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const active = !disabled && !reduced && speed !== 0;
@@ -55,7 +68,11 @@ export function Parallax({ speed = 0.3, strength = 120, scale = false, disabled,
   }, [active, speed, strength, scale]);
 
   return (
-    <div ref={ref} style={active ? undefined : ({ transform: 'none' } satisfies CSSProperties)} className={className}>
+    <div
+      ref={ref}
+      style={{ ...style, ...(active ? {} : ({ transform: 'none' } satisfies CSSProperties)) }}
+      className={classNames(slots?.root, className)}
+    >
       {children}
     </div>
   );

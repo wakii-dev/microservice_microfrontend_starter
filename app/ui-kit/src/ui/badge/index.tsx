@@ -6,7 +6,8 @@
 //    + text → standalone dot + label, không cần children.
 // Tailwind v4 migration: màu variant qua CSS var --_dot (dot + nền 12% color-mix kế
 // thừa cùng var); tokens vẫn nguồn duy nhất (@theme inline trong styles/tailwind.css).
-import type { ReactNode } from 'react';
+import classNames from 'classnames';
+import type { CSSProperties, ReactNode } from 'react';
 
 export type BadgeVariant =
   | 'todo'
@@ -51,11 +52,25 @@ const STATUS_ARIA: Record<BadgeStatus, string> = {
   default: 'default',
 };
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface BadgeClassNames {
+  /** Span gốc (áp mọi mode). */
+  root?: string;
+  /** Span chấm màu (status pill + standalone status). */
+  dot?: string;
+  /** Pill count (<sup> bọc children / span standalone count). */
+  count?: string;
+}
+
 export interface BadgeProps {
   /** Status-pill mode — dot màu + nền 12%. Mặc định 'todo'. */
   variant?: BadgeVariant;
   children?: ReactNode;
   className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: BadgeClassNames;
   /** Count mode — pill accent góc phải-trên của children (antd count). */
   count?: number;
   /** Mốc tràn — count lớn hơn hiển thị "99+" (antd overflowCount, mặc định 99). */
@@ -77,27 +92,30 @@ const SUP =
 /** Counter pop khi giá trị đổi (key=label re-mount) — depth contract, reduced-motion tắt. */
 const POP = 'animate-[bp-zoom-in_200ms_var(--ease-smooth)] motion-reduce:animate-none';
 
-export function Badge({
-  variant = 'todo',
-  children,
-  className,
-  count,
-  overflowCount = 99,
-  showZero = false,
-  dot = false,
-  status,
-  text,
-  offset,
-}: BadgeProps) {
+export function Badge(props: BadgeProps) {
+  const {
+    variant = 'todo',
+    children,
+    className,
+    style,
+    count,
+    overflowCount = 99,
+    showZero = false,
+    dot = false,
+    status,
+    text,
+    offset,
+  } = props;
+  const slots = props.classNames;
   const offsetStyle = offset ? { transform: `translate(${offset[0]}px, ${offset[1]}px)` } : undefined;
 
   // Standalone status dot + text (antd status)
   if (status) {
     return (
-      <span className={`inline-flex items-center gap-1.5 text-meta text-ink2${className ? ` ${className}` : ''}`}>
+      <span className={classNames('inline-flex items-center gap-1.5 text-meta text-ink2', slots?.root, className)} style={style}>
         <span
           aria-hidden="true"
-          className={`size-2 rounded-pill ${STATUS_VAR[status]} bg-[var(--_dot)]`}
+          className={classNames('size-2 rounded-pill', STATUS_VAR[status], 'bg-[var(--_dot)]', slots?.dot)}
         />
         {text ?? <span className="sr-only">{STATUS_ARIA[status]}</span>}
       </span>
@@ -111,12 +129,12 @@ export function Badge({
 
     if (children) {
       return (
-        <span className={`relative inline-flex${className ? ` ${className}` : ''}`}>
+        <span className={classNames('relative inline-flex', slots?.root, className)} style={style}>
           {children}
           {!hidden && (
             <sup
               key={label}
-              className={`${POP} ${SUP} ${dot ? 'size-2 min-w-2 !p-0' : ''}`}
+              className={classNames(POP, SUP, dot && 'size-2 min-w-2 !p-0', slots?.count)}
               style={offsetStyle}
             >
               {label}
@@ -131,8 +149,15 @@ export function Badge({
     return (
       <span
         key={label}
-        className={`${POP} inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white tabular-nums ${dot ? 'size-2 min-w-2 !p-0' : ''}${className ? ` ${className}` : ''}`}
-        style={offsetStyle}
+        className={classNames(
+          POP,
+          'inline-flex h-4 min-w-4 items-center justify-center rounded-pill bg-accent px-1 text-[10px] font-semibold leading-4 text-white tabular-nums',
+          dot && 'size-2 min-w-2 !p-0',
+          slots?.root,
+          slots?.count,
+          className,
+        )}
+        style={{ ...offsetStyle, ...style }}
       >
         {label}
       </span>
@@ -141,12 +166,23 @@ export function Badge({
 
   // Status-pill mode (mặc định) — dot + label trên nền 12%
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-pill py-0.5 px-2 text-meta leading-tight whitespace-nowrap text-ink2 bg-[color-mix(in_srgb,var(--_dot)_12%,transparent)] ${DOT_VAR[variant]}${className ? ` ${className}` : ''}`} role="status">
+    <span
+      className={classNames(
+        'inline-flex items-center gap-1.5 rounded-pill py-0.5 px-2 text-meta leading-tight whitespace-nowrap text-ink2 bg-[color-mix(in_srgb,var(--_dot)_12%,transparent)]',
+        DOT_VAR[variant],
+        slots?.root,
+        className,
+      )}
+      role="status"
+      style={style}
+    >
       <span
         aria-hidden="true"
-        className={`size-1.5 rounded-full bg-[var(--_dot)]${
-          variant === 'failed' ? ' animate-[bp-pulse-soft_2s_ease-in-out_infinite]' : ''
-        }`}
+        className={classNames(
+          'size-1.5 rounded-full bg-[var(--_dot)]',
+          variant === 'failed' && 'animate-[bp-pulse-soft_2s_ease-in-out_infinite]',
+          slots?.dot,
+        )}
       />
       {children}
     </span>

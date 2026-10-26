@@ -156,3 +156,30 @@ function AppShellDemo({ initialCollapsed = false }: { initialCollapsed?: boolean
     </Layout>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: slot classes land on each zone
+ * (root / sider / header / content / footer); `style` passthrough lands on the
+ * outer section without touching structural classes. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Layout
+      className="overflow-hidden rounded-xl"
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)', minHeight: 320 }}
+      classNames={{ root: 'border border-line' }}
+    >
+      <Layout.Sider classNames={{ root: 'bg-accent/10' }}>
+        <p className="m-0 p-4 text-label text-ink2">sider slot</p>
+      </Layout.Sider>
+      <Layout.Header classNames={{ root: 'bg-accent/10' }}>
+        <span className="text-h2 font-semibold text-ink">CustomStyled</span>
+      </Layout.Header>
+      <Layout.Content classNames={{ root: 'bg-s2' }}>
+        <p className="m-0 p-6 text-body text-ink2">
+          Slot classes reshape every zone without touching structural classes.
+        </p>
+      </Layout.Content>
+      <Layout.Footer classNames={{ root: 'bg-accent/10' }}>© 2026 Wakii</Layout.Footer>
+    </Layout>
+  ),
+};

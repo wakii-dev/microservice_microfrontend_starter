@@ -5,6 +5,7 @@
 // (pattern fix padding-leak V2 của Collapse — track 0fr phải clip SẠCH padding).
 // A11y: role=treegrid + rowgroup/row/cell, aria-level + aria-expanded trên row,
 // expander là <button aria-expanded aria-label>; row selected → aria-selected.
+import classNames from 'classnames';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Checkbox } from '../checkbox/index';
 import { EmptyState } from '../empty-state/index';
@@ -30,6 +31,22 @@ export interface TreeTableColumn {
   render?: (node: TreeTableNode, depth: number) => ReactNode;
 }
 
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface TreeTableClassNames {
+  /** Div gốc role="treegrid". */
+  root?: string;
+  /** Row header trên đỉnh (nền s3). */
+  headerRow?: string;
+  /** Row dữ liệu (áp cả selected). */
+  row?: string;
+  /** Cell dữ liệu + cell expander (không áp header). */
+  cell?: string;
+  /** Button expander mở/đóng nhánh. */
+  expander?: string;
+  /** Div grid animate subtree con. */
+  panel?: string;
+}
+
 export interface TreeTableProps {
   /** Cây dữ liệu — node không có children render như lá (không expander). */
   data: TreeTableNode[];
@@ -49,6 +66,10 @@ export interface TreeTableProps {
   /** Nội dung khi data rỗng (mặc định EmptyState). */
   emptyMessage?: ReactNode;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: TreeTableClassNames;
 }
 
 /** Thu toàn bộ keys của cây (select-all dùng). */
@@ -66,18 +87,21 @@ function collectKeys(nodes: TreeTableNode[]): string[] {
 
 const CELL = 'px-4 py-2.5 text-body'; // chuẩn cell Table size normal
 
-export function TreeTable({
-  data,
-  columns,
-  selectionMode = 'none',
-  selectedKeys: controlledSelected,
-  onSelectionChange,
-  expandedKeys: controlledExpanded,
-  defaultExpandedKeys = [],
-  onRowToggle,
-  emptyMessage,
-  className,
-}: TreeTableProps) {
+export function TreeTable(props: TreeTableProps) {
+  const {
+    data,
+    columns,
+    selectionMode = 'none',
+    selectedKeys: controlledSelected,
+    onSelectionChange,
+    expandedKeys: controlledExpanded,
+    defaultExpandedKeys = [],
+    onRowToggle,
+    emptyMessage,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const [innerExpanded, setInnerExpanded] = useState<Set<string>>(() => new Set(defaultExpandedKeys));
   const [innerSelected, setInnerSelected] = useState<string[]>([]);
   const openSet = controlledExpanded ? new Set(controlledExpanded) : innerExpanded;
@@ -119,9 +143,13 @@ export function TreeTable({
           aria-expanded={isBranch ? open : undefined}
           data-key={node.key}
           style={rowStyle}
-          className={`grid border-b border-line2 transition-colors duration-150 ${
-            isSelected ? 'bg-accent/10' : ''
-          } hover:bg-s3 ${selectionMode === 'single' ? 'cursor-pointer' : ''}`}
+          className={classNames(
+            'grid border-b border-line2 transition-colors duration-150',
+            isSelected && 'bg-accent/10',
+            'hover:bg-s3',
+            selectionMode === 'single' && 'cursor-pointer',
+            slots?.row,
+          )}
           onClick={() => selectionMode === 'single' && toggleRow(node.key)}
         >
           {selectionMode === 'checkbox' && (
@@ -133,7 +161,7 @@ export function TreeTable({
               />
             </div>
           )}
-          <div role="gridcell" className={`${CELL} flex items-center`} style={{ paddingLeft: `calc(var(--sp-4) * ${depth})` }}>
+          <div role="gridcell" className={classNames(CELL, 'flex items-center', slots?.cell)} style={{ paddingLeft: `calc(var(--sp-4) * ${depth})` }}>
             {isBranch ? (
               <button
                 type="button"
@@ -143,7 +171,7 @@ export function TreeTable({
                   e.stopPropagation();
                   toggleExpand(node.key);
                 }}
-                className="cursor-pointer border-none bg-transparent p-0 text-ink3 transition-colors hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+                className={classNames('cursor-pointer border-none bg-transparent p-0 text-ink3 transition-colors hover:text-ink active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none', slots?.expander)}
               >
                 {/* Expander xoay 90 như expander Table */}
                 <span className={`inline-grid place-items-center transition-transform duration-200 ${open ? 'rotate-90' : ''}`}>
@@ -158,7 +186,7 @@ export function TreeTable({
             <div
               key={col.key}
               role="gridcell"
-              className={`${CELL} ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}`}
+              className={classNames(CELL, col.align === 'right' && 'text-right', col.align === 'center' && 'text-center', slots?.cell)}
             >
               {col.render ? col.render(node, depth) : node.values[col.key] ?? ''}
             </div>
@@ -166,7 +194,7 @@ export function TreeTable({
         </div>
         {isBranch && (
           <div
-            className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            className={classNames('grid transition-[grid-template-rows] duration-200', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]', slots?.panel)}
           >
             {/* 3 tầng: clip nằm SẠCH padding — subtree nằm trong min-h-0 overflow-hidden
              * (pattern V2: để padding trên element clip ⇒ track 0fr vẫn lộ chiều cao). */}
@@ -183,14 +211,15 @@ export function TreeTable({
     <div
       role="treegrid"
       aria-readonly={selectionMode === 'none' ? undefined : false}
-      className={`overflow-auto rounded-xl border border-line${className ? ` ${className}` : ''}`}
+      className={classNames('overflow-auto rounded-xl border border-line', slots?.root, className)}
+      style={style}
     >
       {/* Header row — cùng grid template với body rows */}
       <div role="rowgroup" aria-hidden="false">
         <div
           role="row"
           style={{ gridTemplateColumns: selectionMode === 'checkbox' ? `40px ${gridCols}` : gridCols }}
-          className="grid bg-s3"
+          className={classNames('grid bg-s3', slots?.headerRow)}
         >
           {selectionMode === 'checkbox' && (
             <div role="columnheader" className={`${CELL} w-10`}>

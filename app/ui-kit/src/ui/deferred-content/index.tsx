@@ -1,7 +1,16 @@
 // DeferredContent — trì hoãn render nội dung nặng đến khi cuộn tới nhìn thấy
 // (PrimeReact lite): IntersectionObserver 1 lần, fallback loadOnInit.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Skeleton } from '../skeleton/index.js';
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface DeferredContentClassNames {
+  /** Div gốc (bọc placeholder/children — target của observer). */
+  root?: string;
+  /** Card skeleton mặc định trước khi load (placeholder custom không đi qua slot này). */
+  placeholder?: string;
+}
 
 export interface DeferredContentProps {
   /** Gọi MỘT LẦN khi nội dung vào viewport. */
@@ -14,9 +23,15 @@ export interface DeferredContentProps {
   threshold?: number;
   children: ReactNode;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: DeferredContentClassNames;
 }
 
-export function DeferredContent({ onVisible, loadOnInit = false, placeholder, threshold = 0.2, children, className }: DeferredContentProps) {
+export function DeferredContent(props: DeferredContentProps) {
+  const { onVisible, loadOnInit = false, placeholder, threshold = 0.2, children, className, style } = props;
+  const slots = props.classNames;
   const [visible, setVisible] = useState(loadOnInit);
   const ref = useRef<HTMLDivElement>(null);
   const fired = useRef(false);
@@ -46,9 +61,13 @@ export function DeferredContent({ onVisible, loadOnInit = false, placeholder, th
   }, [loadOnInit, threshold]);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={classNames(slots?.root, className)} style={style}>
       {visible ? children : (placeholder ?? (
-        <div className="flex gap-3 rounded-xl border border-line bg-s2 p-4" aria-busy="true" aria-label="Đang tải">
+        <div
+          className={classNames('flex gap-3 rounded-xl border border-line bg-s2 p-4', slots?.placeholder)}
+          aria-busy="true"
+          aria-label="Đang tải"
+        >
           <Skeleton variant="circle" />
           <div className="flex flex-1 flex-col gap-2">
             <Skeleton variant="text" />

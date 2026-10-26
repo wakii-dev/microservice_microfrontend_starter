@@ -36,3 +36,20 @@ export const CoBan: Story = {
   name: 'Basic — move up / down',
   render: () => <ControlledDemo />,
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the wrapper,
+ * `list` on the scroll list, `item` on each row; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <OrderList
+      style={{ padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{ list: 'rounded-2xl border-dashed border-accent bg-accent/5', item: 'font-medium' }}
+      items={[
+        { label: 'Design tokens', value: 'tokens' },
+        { label: 'Gateway CORS', value: 'cors' },
+        { label: 'Outbox retry', value: 'outbox' },
+      ]}
+    />
+  ),
+};

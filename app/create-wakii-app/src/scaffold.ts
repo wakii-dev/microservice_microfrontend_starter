@@ -6,7 +6,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Extra, ScaffoldPlan } from './options.js';
+import type { Extra, Preset, ScaffoldPlan } from './options.js';
 
 /** Nguồn template mặc định — 2 layout: repo (src|dist → app/starter-templates)
  * và npm package (dist → <pkg>/starter-templates, publish script bundle vào).
@@ -84,7 +84,9 @@ async function copyTree(srcDir: string, destDir: string, opts: { appName: string
   }
 }
 
-/** Đọc package.json đích → thêm deps router/extras → ghi lại (2-space + \n cuối). */
+/** Đọc package.json đích → thêm deps router/extras → ghi lại (2-space + \n cuối).
+ * Router dep chỉ merge cho preset demo — template minimal/product/admin đã có
+ * sẵn react-router (và các deps data layer) trong package.json của chúng. */
 async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: string) => void): Promise<void> {
   const pkgPath = join(dest, 'package.json');
   if (!existsSync(pkgPath)) return; // template không có package.json → bỏ qua im lặng
@@ -93,7 +95,7 @@ async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: strin
   };
   pkg.dependencies ??= {};
   const additions: string[] = [];
-  if (plan.router) {
+  if (plan.router && plan.preset === 'demo') {
     pkg.dependencies['react-router'] ??= '^7.9.0';
     additions.push('react-router@^7.9.0');
   }
@@ -107,12 +109,21 @@ async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: strin
   if (additions.length) log?.(`Merge deps: +${additions.join(' +')}`);
 }
 
-/** Scaffold 1 app: base copy → render → overlays (router trước, extras sau) →
- * render markers extras trong App.tsx router → merge deps vào package.json. */
+/** Scaffold 1 app: base copy → render → overlays (admin/router/extras) →
+ * render markers extras trong App.tsx router → merge deps vào package.json.
+ * Preset khác demo: base là <preset>-ts (template đóng gói sẵn router/query),
+ * admin đè thêm overlay template-feats/admin; mergeDeps chỉ chạy cho demo
+ * (non-demo template đã liệt kê đủ deps trong package.json của nó). */
 export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
   const { plan, dest, log } = input;
   const templatesRoot = input.templatesRoot ?? DEFAULT_TEMPLATES_ROOT;
-  const variant = plan.lang === 'js' ? 'vite-js' : 'vite-ts';
+  // admin = product-ts + overlay (không có template admin-ts riêng)
+  const presetBase: Record<Exclude<Preset, 'demo'>, string> = {
+    minimal: 'minimal-ts',
+    product: 'product-ts',
+    admin: 'product-ts',
+  };
+  const variant = plan.preset === 'demo' ? (plan.lang === 'js' ? 'vite-js' : 'vite-ts') : presetBase[plan.preset];
   const baseDir = join(templatesRoot, variant);
   if (!existsSync(baseDir)) {
     throw new Error(`Không thấy template base: ${baseDir} (cần ${variant} trong starter-templates)`);
@@ -123,7 +134,16 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
   await copyTree(baseDir, dest, { appName: plan.appName, renameExt: false, files });
 
   const featsDir = join(templatesRoot, 'template-feats');
-  if (plan.router) {
+  if (plan.preset === 'admin') {
+    const adminDir = join(featsDir, 'admin');
+    if (!existsSync(adminDir)) throw new Error(`Không thấy overlay admin: ${adminDir}`);
+    log?.('Apply overlay: admin (layout + dashboard + auth)');
+    await copyTree(adminDir, dest, { appName: plan.appName, renameExt: false, files });
+  }
+
+  if (plan.router && plan.preset === 'demo') {
+    // Overlay router là sản phẩm riêng của preset demo — minimal/product/admin
+    // có sẵn router trong template (đè nhầm main.tsx sẽ vỡ boot MSW/providers).
     const routerDir = join(featsDir, 'router');
     if (!existsSync(routerDir)) throw new Error(`Không thấy overlay router: ${routerDir}`);
     // Variant JS có bản riêng (type-free) thì dùng nguyên; không thì copy bản TS + đổi đuôi.
@@ -150,7 +170,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     });
   }
 
-  if (plan.router) {
+  if (plan.router && plan.preset === 'demo') {
     log?.('Render extras markers trong App');
     await renderExtraMarkers(dest, plan, plan.lang === 'js');
   }

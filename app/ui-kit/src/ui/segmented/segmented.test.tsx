@@ -75,3 +75,27 @@ describe('Segmented — branch phụ (Tier 5 sweep)', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Segmented — classNames + style', () => {
+  const OPTS = [
+    { label: 'Day', value: 'day' },
+    { label: 'Week', value: 'week' },
+  ];
+
+  it('slot root lên radiogroup + item lên button; className sau slot', () => {
+    const { container } = render(
+      <Segmented options={OPTS} value="day" classNames={{ root: 'slot-root', item: 'slot-item' }} className="user-last" />,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-root');
+    expect(screen.getByText('Day')).toHaveClass('slot-item');
+    const root = container.firstElementChild!;
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên radiogroup', () => {
+    const { container } = render(<Segmented options={OPTS} style={{ padding: '2px' }} />);
+    expect(container.firstElementChild).toHaveStyle({ padding: '2px' });
+  });
+});

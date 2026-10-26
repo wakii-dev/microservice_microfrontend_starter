@@ -14,6 +14,7 @@
 // ghost clone theo pointer (transform GPU) + elementFromPoint hit-test zone qua
 // marker [data-drop-zone] → pointerup dispatch CustomEvent dnd-pointer-drop, DropZone
 // tự lắng nghe và bắn onDrop(data) (event undefined như keyboard path).
+import classNames from 'classnames';
 import {
   createContext,
   useContext,
@@ -21,6 +22,7 @@ import {
   useId,
   useRef,
   useState,
+  type CSSProperties,
   type DragEvent,
   type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
@@ -199,6 +201,14 @@ export function DragDropProvider({ children }: { children: ReactNode }) {
 
 // ── Draggable ──
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface DraggableClassNames {
+  /** Div wrapper draggable (role=button). */
+  root?: string;
+  /** Div bọc handle (chỉ render khi có handle prop). */
+  handle?: string;
+}
+
 export interface DraggableProps {
   /** Payload — JSON hoá vào dataTransfer, DropZone parse lại thành object. */
   data: unknown;
@@ -218,22 +228,29 @@ export interface DraggableProps {
   /** aria-label cho role=button (không cần nếu content đã có text). */
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên wrapper. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: DraggableClassNames;
   children?: ReactNode;
 }
 
-export function Draggable({
-  data,
-  dragId,
-  handle,
-  disabled = false,
-  draggingClass,
-  onDragStart,
-  onDragEnd,
-  onKeyDown,
-  ariaLabel,
-  className,
-  children,
-}: DraggableProps) {
+export function Draggable(props: DraggableProps) {
+  const {
+    data,
+    dragId,
+    handle,
+    disabled = false,
+    draggingClass,
+    onDragStart,
+    onDragEnd,
+    onKeyDown,
+    ariaLabel,
+    className,
+    style,
+    children,
+  } = props;
+  const slots = props.classNames;
   const dnd = useDragDrop();
   const autoId = useId();
   const id = dragId ?? autoId;
@@ -326,10 +343,16 @@ export function Draggable({
       onDragEnd={handleDragEnd}
       onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
-      className={`focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none ${dragClasses}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none',
+        dragClasses,
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       {handle && (
-        <div ref={handleRef} data-drag-handle="">
+        <div ref={handleRef} data-drag-handle="" className={slots?.handle}>
           {handle}
         </div>
       )}
@@ -339,6 +362,12 @@ export function Draggable({
 }
 
 // ── DropZone ──
+
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface DropZoneClassNames {
+  /** Div zone nhận drop (marker data-drop-zone). */
+  root?: string;
+}
 
 export interface DropZoneProps {
   /** Nhận (data, event) khi drop parse được payload DRAG_MIME — event undefined
@@ -352,18 +381,25 @@ export interface DropZoneProps {
   /** Tên zone (aria-label + role=group) cho ngữ cảnh keyboard/screen-reader. */
   ariaLabel?: string;
   className?: string;
+  /** Inline style — passthrough lên div zone. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: DropZoneClassNames;
   children?: ReactNode;
 }
 
-export function DropZone({
-  onDrop,
-  accept = [DRAG_MIME],
-  activeClass,
-  disabled = false,
-  ariaLabel,
-  className,
-  children,
-}: DropZoneProps) {
+export function DropZone(props: DropZoneProps) {
+  const {
+    onDrop,
+    accept = [DRAG_MIME],
+    activeClass,
+    disabled = false,
+    ariaLabel,
+    className,
+    style,
+    children,
+  } = props;
+  const slots = props.classNames;
   const dnd = useDragDrop();
   const id = useId();
   const [isOver, setIsOver] = useState(false);
@@ -448,7 +484,14 @@ export function DropZone({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`${isOver ? highlight : ''} ${kbActive ? 'ring-2 ring-accent/60' : ''} data-[dnd-touch-over]:ring-2 data-[dnd-touch-over]:ring-accent/40 data-[dnd-touch-over]:bg-accent/10${className ? ` ${className}` : ''}`}
+      className={classNames(
+        isOver ? highlight : '',
+        kbActive ? 'ring-2 ring-accent/60' : '',
+        'data-[dnd-touch-over]:ring-2 data-[dnd-touch-over]:ring-accent/40 data-[dnd-touch-over]:bg-accent/10',
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       {children}
     </div>

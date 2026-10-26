@@ -172,3 +172,38 @@ describe('TreeSelect', () => {
     expect(screen.queryByRole('listbox')).toBeNull();
   });
 });
+
+describe('TreeSelect — classNames slots + style (slots wave 3)', () => {
+  it('slots lên đúng element: root (span wrapper) / trigger (combobox) / panel / listbox / option', async () => {
+    const user = userEvent.setup();
+    render(
+      <TreeSelect
+        ariaLabel="Địa điểm"
+        treeData={TREE}
+        classNames={{ root: 'slot-root', trigger: 'slot-trigger', panel: 'slot-panel', listbox: 'slot-listbox', option: 'slot-option' }}
+      />,
+    );
+    const root = screen.getByRole('combobox', { name: 'Địa điểm' }).closest('.relative')!;
+    expect(root).toHaveClass('slot-root');
+    expect(screen.getByRole('combobox', { name: 'Địa điểm' })).toHaveClass('slot-trigger');
+    await user.click(screen.getByRole('combobox', { name: 'Địa điểm' }));
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toHaveClass('slot-listbox');
+    expect(listbox.parentElement).toHaveClass('slot-panel');
+    expect(screen.getByRole('option', { name: 'Ba Đình' })).toHaveClass('slot-option');
+  });
+
+  it('style passthrough lên root + không truyền slots → chọn leaf vẫn onChange (behavior giữ nguyên)', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <TreeSelect ariaLabel="Địa điểm" treeData={TREE} onChange={onChange} style={{ margin: '8px' }} className="user-last" />,
+    );
+    const root = screen.getByRole('combobox', { name: 'Địa điểm' }).closest('.relative') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    expect(root.className.indexOf('user-last')).toBeGreaterThan(root.className.indexOf('inline-flex'));
+    await user.click(screen.getByRole('combobox', { name: 'Địa điểm' }));
+    await user.click(screen.getByRole('option', { name: 'Ba Đình' }));
+    expect(onChange).toHaveBeenCalledWith('hn-bd');
+  });
+});

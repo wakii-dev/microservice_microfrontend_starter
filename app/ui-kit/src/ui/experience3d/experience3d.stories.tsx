@@ -64,3 +64,19 @@ export const SceneOnly: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the host div
+ * that holds the WebGL canvas; `style` merges after the height inline style. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div data-bp-theme="dark" className="rounded-xl bg-canvas p-2">
+      <ShipModel
+        height={320}
+        classNames={{ root: 'ring-2 ring-accent/30' }}
+        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+        className="w-full"
+      />
+    </div>
+  ),
+};

@@ -98,3 +98,27 @@ function CalendarRangeDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / header / weekdays / grid
+ * / day) + style passthrough. `root` lands on the outer role=grid div (same
+ * element as `className`), `header` on the prev/next row, `weekdays`/`grid` on
+ * the two 7-col grids, `day` on every day button; `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Calendar
+      now={new Date(2026, 9, 15)}
+      value={new Date(2026, 9, 18)}
+      classNames={{
+        root: 'rounded-lg border-st-done',
+        header: 'bg-accent/5 rounded-lg',
+        weekdays: 'text-accent',
+        grid: 'gap-2',
+        day: 'tracking-wide',
+      }}
+      style={{ padding: 12, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+    />
+  ),
+};

@@ -32,3 +32,21 @@ export const DarkTheme: R = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the relative
+ * wrapper, `mask` on the blocking overlay, `message` on the centered label;
+ * `style` lands on the wrapper; the user's className always comes last. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    blocked: true,
+    message: 'Processing…',
+    children: <div className="p-8">Blocked content, restyled slots</div>,
+    classNames: {
+      root: 'rounded-xl',
+      mask: 'bg-black/70 backdrop-blur-[2px]',
+      message: 'tracking-wide uppercase text-meta',
+    },
+    style: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+  },
+};

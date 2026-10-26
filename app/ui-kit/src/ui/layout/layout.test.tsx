@@ -152,3 +152,43 @@ describe('Layout.Sider — width + context', () => {
     expect(screen.getByText('standalone').closest('div')).toHaveStyle({ width: '240px' });
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Layout — classNames slots + style', () => {
+  it('slots lên đúng element: root/header/content/footer/sider', () => {
+    const { container } = render(
+      <Layout hasSider classNames={{ root: 'slot-layout' }}>
+        <Layout.Sider classNames={{ root: 'slot-sider' }}>
+          <span>nav</span>
+        </Layout.Sider>
+        <Layout.Header classNames={{ root: 'slot-header' }}>H</Layout.Header>
+        <Layout.Content classNames={{ root: 'slot-content' }}>
+          <p>main</p>
+        </Layout.Content>
+        <Layout.Footer classNames={{ root: 'slot-footer' }}>F</Layout.Footer>
+      </Layout>,
+    );
+    expect(container.firstElementChild).toHaveClass('slot-layout');
+    expect(screen.getByText('nav').closest('div')).toHaveClass('slot-sider');
+    expect(screen.getByRole('banner')).toHaveClass('slot-header');
+    expect(screen.getByRole('main')).toHaveClass('slot-content');
+    expect(screen.getByRole('contentinfo')).toHaveClass('slot-footer');
+  });
+
+  it('style passthrough + className sau root slot; Sider style override được width', () => {
+    render(
+      <Layout style={{ minHeight: 480 }} className="user-last" classNames={{ root: 'slot-layout' }}>
+        <Layout.Header style={{ background: 'rgb(1, 2, 3)' }}>H</Layout.Header>
+        <Layout.Sider style={{ width: 320 }}>
+          <span>nav</span>
+        </Layout.Sider>
+      </Layout>,
+    );
+    const root = document.querySelector('section.slot-layout') as HTMLElement;
+    expect(root).toHaveStyle({ minHeight: '480px' });
+    expect(root.className.indexOf('slot-layout')).toBeLessThan(root.className.indexOf('user-last'));
+    expect(screen.getByRole('banner')).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+    expect(screen.getByText('nav').closest('div')).toHaveStyle({ width: '320px' });
+  });
+});

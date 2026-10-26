@@ -35,3 +35,22 @@ export const Placeholder: S = {
   name: 'Placeholder — shown when empty',
   render: () => <Editor placeholder="Enter the task description…" className="max-w-[420px]" />,
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the bordered
+ * card, `toolbar` on the sticky button strip, `content` on the ProseMirror
+ * wrapper; `style` lands on the root card. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Editor
+      content="<p>Slotted editor — toolbar and content restyled.</p>"
+      classNames={{
+        root: 'border-accent/60 shadow-lift',
+        toolbar: 'bg-accent/5',
+        content: '[&_.ProseMirror]:bg-s1',
+      }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      className="max-w-[480px]"
+    />
+  ),
+};

@@ -77,3 +77,24 @@ describe('UiImage — preview dialog (a11y batch F)', () => {
     expect(thumb).toHaveFocus(); // trả focus về trigger
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+const SLOT_SRC = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+
+describe('UiImage — classNames slots + style', () => {
+  it('slots root/preview/previewImage lên đúng element', () => {
+    render(<UiImage src={SLOT_SRC} alt="Pin" classNames={{ root: 'slot-img', preview: 'slot-preview', previewImage: 'slot-preview-img' }} />);
+    expect(screen.getByRole('button', { name: /Pin/ })).toHaveClass('slot-img');
+    fireEvent.click(screen.getByRole('button', { name: /Pin/ }));
+    expect(document.querySelector('[data-testid="image-preview"]')).toHaveClass('slot-preview');
+    expect(document.querySelector('.slot-preview-img')).not.toBeNull();
+  });
+
+  it('style passthrough lên img thumbnail; className sau root slot', () => {
+    render(<UiImage src={SLOT_SRC} alt="Pad" style={{ padding: '2px' }} classNames={{ root: 'slot-img' }} className="user-last" />);
+    const img = screen.getByRole('button', { name: /Pad/ }) as HTMLElement;
+    expect(img).toHaveStyle({ padding: '2px' });
+    expect(img.className.indexOf('slot-img')).toBeLessThan(img.className.indexOf('user-last'));
+  });
+});

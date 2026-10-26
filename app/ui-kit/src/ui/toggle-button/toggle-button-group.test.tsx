@@ -95,3 +95,37 @@ describe('ToggleButtonGroup', () => {
     expect(screen.getByRole('group', { name: 'View' })).toHaveClass('marker-group');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('ToggleButtonGroup — classNames + style', () => {
+  it('slot root lên div group; className sau slot; nút con vẫn được group quản', async () => {
+    const onChange = vi.fn();
+    render(
+      <ToggleButtonGroup
+        value="grid"
+        onChange={onChange}
+        ariaLabel="Slotted views"
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      >
+        <ToggleButton value="grid">Grid</ToggleButton>
+        <ToggleButton value="list">List</ToggleButton>
+      </ToggleButtonGroup>,
+    );
+    const group = screen.getByRole('group', { name: 'Slotted views' });
+    expect(group).toHaveClass('slot-root');
+    expect(group.className.indexOf('slot-root')).toBeLessThan(group.className.indexOf('user-last'));
+    await userEvent.setup().click(screen.getByRole('button', { name: 'List' }));
+    expect(onChange).toHaveBeenCalledWith('list');
+  });
+
+  it('style passthrough lên div group', () => {
+    render(
+      <ToggleButtonGroup ariaLabel="Styled" style={{ margin: '8px' }}>
+        <ToggleButton value="a">A</ToggleButton>
+      </ToggleButtonGroup>,
+    );
+    expect(screen.getByRole('group', { name: 'Styled' })).toHaveStyle({ margin: '8px' });
+  });
+});

@@ -58,3 +58,28 @@ function SliderControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / track / fill / handle)
+ * + style passthrough. `root` lands on the outer row div (same element as
+ * `className`), `track` on the role=slider rail, `fill` on the accent bar,
+ * `handle` on the knob(s); `style` lands on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: { ariaLabel: 'Custom styled slider' },
+  render: (args) => (
+    <div className="grid max-w-[280px] gap-4">
+      <Slider
+        {...args}
+        classNames={{
+          root: 'rounded-xl',
+          track: 'h-2.5',
+          fill: 'bg-st-done',
+          handle: 'border-st-done size-5',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

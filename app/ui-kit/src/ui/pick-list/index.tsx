@@ -3,17 +3,38 @@
 // listbox/option + aria-selected; keyboard ↑↓ + Enter/Space pick từng listbox.
 // Panel hoist ra module-level (định nghĩa trong component = function identity
 // đổi mỗi render → React remount panel, mất state keyboard + stale DOM node).
-import { useState, type KeyboardEvent } from 'react';
+import classNames from 'classnames';
+import { useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { Button } from '../button/index';
 import { Icon } from '../icons/index.js';
 
 export interface PickListItem { label: string; value: string }
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface PickListClassNames {
+  /** Div gốc bọc 2 panel + controls. */
+  root?: string;
+  /** Div 1 panel (title + listbox). */
+  panel?: string;
+  /** Div nhãn panel. */
+  panelTitle?: string;
+  /** <ul role="listbox"> trong panel. */
+  list?: string;
+  /** <li role="option"> mỗi item (áp cả picked). */
+  option?: string;
+  /** Div bọc 2 nút chuyển giữa. */
+  controls?: string;
+}
 
 export interface PickListProps {
   source: PickListItem[];
   target: PickListItem[];
   onChange?: (source: PickListItem[], target: PickListItem[]) => void;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: PickListClassNames;
 }
 
 interface PanelProps {
@@ -21,9 +42,10 @@ interface PanelProps {
   items: PickListItem[];
   picked: Set<string>;
   onPick: (v: string) => void;
+  slots?: PickListClassNames;
 }
 
-function Panel({ title, items, picked, onPick }: PanelProps) {
+function Panel({ title, items, picked, onPick, slots }: PanelProps) {
   // Keyboard a11y listbox: ↑↓ di chuyển active, Enter/Space toggle pick.
   // active khởi đầu = 0 (Enter ngay khi focus = pick item đầu — pattern listbox).
   const [activeIdx, setActiveIdx] = useState(0);
@@ -39,17 +61,23 @@ function Panel({ title, items, picked, onPick }: PanelProps) {
     }
   }
   return (
-    <div className="flex-1">
-      <div className="mb-1 text-label font-semibold text-ink2">{title}</div>
+    <div className={classNames('flex-1', slots?.panel)}>
+      <div className={classNames('mb-1 text-label font-semibold text-ink2', slots?.panelTitle)}>{title}</div>
       <ul
         role="listbox" aria-label={title} aria-multiselectable="true" tabIndex={0}
         onKeyDown={onKeyDown}
-        className="m-0 min-h-[200px] list-none rounded-xl border border-line bg-s2 p-2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none"
+        className={classNames('m-0 min-h-[200px] list-none rounded-xl border border-line bg-s2 p-2 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none', slots?.list)}
       >
         {items.map((item, i) => (
           <li key={item.value} role="option" aria-selected={picked.has(item.value)}
             onClick={() => { onPick(item.value); setActiveIdx(i); }}
-            className={`cursor-pointer rounded-lg px-3 py-1.5 text-body transition-colors ${picked.has(item.value) ? 'bg-accent/10 text-accent' : 'text-ink'} ${i === activeIdx && !picked.has(item.value) ? 'bg-s3' : ''} hover:bg-s3`}>
+            className={classNames(
+              'cursor-pointer rounded-lg px-3 py-1.5 text-body transition-colors',
+              picked.has(item.value) ? 'bg-accent/10 text-accent' : 'text-ink',
+              i === activeIdx && !picked.has(item.value) && 'bg-s3',
+              'hover:bg-s3',
+              slots?.option,
+            )}>
             {item.label}
           </li>
         ))}
@@ -58,9 +86,11 @@ function Panel({ title, items, picked, onPick }: PanelProps) {
   );
 }
 
-export function PickList({ source: sourceProp, target: targetProp, onChange, className }: PickListProps) {
-  const [source, setSource] = useState(sourceProp);
-  const [target, setTarget] = useState(targetProp);
+export function PickList(props: PickListProps) {
+  const { onChange, className, style } = props;
+  const slots = props.classNames;
+  const [source, setSource] = useState(props.source);
+  const [target, setTarget] = useState(props.target);
   const [picked, setPicked] = useState<Set<string>>(new Set());
 
   function moveToTarget() {
@@ -91,13 +121,13 @@ export function PickList({ source: sourceProp, target: targetProp, onChange, cla
   }
 
   return (
-    <div className={`flex items-center gap-3${className ? ` ${className}` : ''}`}>
-      <Panel title="Nguồn" items={source} picked={picked} onPick={togglePick} />
-      <div className="flex flex-col gap-1">
+    <div className={classNames('flex items-center gap-3', slots?.root, className)} style={style}>
+      <Panel title="Nguồn" items={source} picked={picked} onPick={togglePick} slots={slots} />
+      <div className={classNames('flex flex-col gap-1', slots?.controls)}>
         <Button size="small" aria-label="Chuyển sang đích" onClick={moveToTarget} disabled={picked.size === 0} icon={<Icon name="chevron-right" size={12} />} />
         <Button size="small" aria-label="Chuyển về nguồn" onClick={moveToSource} disabled={picked.size === 0} icon={<Icon name="chevron-left" size={12} />} />
       </div>
-      <Panel title="Đích" items={target} picked={picked} onPick={togglePick} />
+      <Panel title="Đích" items={target} picked={picked} onPick={togglePick} slots={slots} />
     </div>
   );
 }

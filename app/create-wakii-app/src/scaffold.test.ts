@@ -36,6 +36,28 @@ async function makeTemplates(): Promise<string> {
   await mkdir(join(t, 'vite-js', 'src'), { recursive: true });
   await writeFile(join(t, 'vite-js', 'package.json'), JSON.stringify({ name: '{{appName}}' }));
   await writeFile(join(t, 'vite-js', 'src', 'main.jsx'), '// js app {{appName}}');
+  // preset minimal-ts (template có sẵn router — KHÔNG cần merge deps)
+  await mkdir(join(t, 'minimal-ts', 'src', 'routes'), { recursive: true });
+  await writeFile(
+    join(t, 'minimal-ts', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '^19', 'react-router': '^7.9.0' } }),
+  );
+  await writeFile(join(t, 'minimal-ts', 'src', 'main.tsx'), "// minimal main {{appName}}");
+  await writeFile(join(t, 'minimal-ts', 'src', 'routes', 'home.tsx'), '// minimal home {{appName}}');
+  // preset product-ts (data layer đóng gói sẵn)
+  await mkdir(join(t, 'product-ts', 'src', 'routes'), { recursive: true });
+  await mkdir(join(t, 'product-ts', 'src', 'features', 'tasks'), { recursive: true });
+  await writeFile(
+    join(t, 'product-ts', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '^19', 'react-router': '^7.9.0', '@tanstack/react-query': '^5' } }),
+  );
+  await writeFile(join(t, 'product-ts', 'src', 'main.tsx'), "// product main {{appName}}");
+  await writeFile(join(t, 'product-ts', 'src', 'routes', 'home.tsx'), '// product home {{appName}}');
+  await writeFile(join(t, 'product-ts', 'src', 'features', 'tasks', 'index.ts'), "// tasks index {{appName}}");
+  // overlay admin — đè lên product-ts (mirror cấu trúc dest 1:1)
+  await mkdir(join(t, 'template-feats', 'admin', 'src', 'routes'), { recursive: true });
+  await writeFile(join(t, 'template-feats', 'admin', 'src', 'routes', 'home.tsx'), '// ADMIN home {{appName}}');
+  await writeFile(join(t, 'template-feats', 'admin', 'src', 'routes', 'login.tsx'), '// admin login {{appName}}');
   // overlay router (TS gốc) — overlay tree MIRROR cấu trúc dest (1:1):
   // template-feats/router/src/App.tsx → dest/src/App.tsx
   await mkdir(join(t, 'template-feats', 'router', 'src'), { recursive: true });
@@ -52,7 +74,15 @@ async function makeTemplates(): Promise<string> {
 }
 
 async function run(planOverrides: Partial<ScaffoldInput['plan']>, templatesRoot: string) {
-  const plan = { appName: 'my-app', lang: 'ts' as const, router: false, extras: [] as never[], skipInstall: false, ...planOverrides };
+  const plan = {
+    appName: 'my-app',
+    lang: 'ts' as const,
+    router: false,
+    extras: [] as never[],
+    preset: 'demo' as const,
+    skipInstall: false,
+    ...planOverrides,
+  };
   const log = vi.fn();
   const result = await scaffold({ plan, dest, templatesRoot, log });
   return { result, log };
@@ -139,5 +169,55 @@ describe('scaffold — JS variant', () => {
     expect(await readFile(join(dest, 'src', 'main.jsx'), 'utf8')).toContain('router main js-app');
     const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
     expect(pkg.dependencies['react-router']).toBe('^7.9.0'); // deps merge vẫn chạy
+  });
+});
+
+describe('scaffold — presets (minimal/product/admin)', () => {
+  it('preset minimal → base minimal-ts, KHÔNG overlay router, KHÔNG merge deps router', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'mini', preset: 'minimal', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'main.tsx'), 'utf8')).toContain('minimal main mini');
+    expect(await readFile(join(dest, 'src', 'routes', 'home.tsx'), 'utf8')).toContain('minimal home mini');
+    expect(existsSync(join(dest, 'src', 'App.tsx'))).toBe(false); // overlay router không dính
+    // deps giữ nguyên từ template — không merge thêm react-router
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['react-router']).toBe('^7.9.0');
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining('Merge deps'));
+  });
+
+  it('preset product → base product-ts + features/tasks; không overlay', async () => {
+    const templatesRoot = await makeTemplates();
+    await run({ appName: 'prod', preset: 'product', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'main.tsx'), 'utf8')).toContain('product main prod');
+    expect(await readFile(join(dest, 'src', 'features', 'tasks', 'index.ts'), 'utf8')).toContain('tasks index prod');
+    expect(existsSync(join(dest, 'src', 'routes', 'login.tsx'))).toBe(false); // overlay admin không dính
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['@tanstack/react-query']).toBe('^5');
+  });
+
+  it('preset admin → product-ts + overlay đè home.tsx + thêm login.tsx', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'adm', preset: 'admin', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'routes', 'home.tsx'), 'utf8')).toContain('ADMIN home adm'); // đè
+    expect(await readFile(join(dest, 'src', 'routes', 'login.tsx'), 'utf8')).toContain('admin login adm'); // thêm
+    expect(await readFile(join(dest, 'src', 'features', 'tasks', 'index.ts'), 'utf8')).toContain('tasks index adm'); // giữ từ product
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['@tanstack/react-query']).toBe('^5'); // deps product nguyên vẹn
+    expect(log).toHaveBeenCalledWith('Apply overlay: admin (layout + dashboard + auth)');
+  });
+
+  it('overlay admin thiếu trong templatesRoot → throw message rõ', async () => {
+    const t = await makeTemplates();
+    await rm(join(t, 'template-feats', 'admin'), { recursive: true, force: true });
+    await expect(run({ preset: 'admin', router: true }, t)).rejects.toThrow('Không thấy overlay admin');
+  });
+
+  it('preset minimal thiếu template → throw message rõ', async () => {
+    const t = await makeTemplates();
+    await rm(join(t, 'minimal-ts'), { recursive: true, force: true });
+    await expect(run({ preset: 'minimal', router: true }, t)).rejects.toThrow('Không thấy template base');
   });
 });

@@ -64,3 +64,25 @@ export const DangerItem: Story = {
     />
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav bar,
+ * `item`/`itemButton` on top-level entries, `submenu`/`subItem` on the hover
+ * dropdown; `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Menubar
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        itemButton: 'uppercase tracking-wide',
+        submenu: 'rounded-2xl',
+        subItem: 'font-medium',
+      }}
+      items={[
+        { key: 'file', label: 'File', children: [{ key: 'new', label: 'New' }, { key: 'open', label: 'Open' }] },
+        { key: 'edit', label: 'Edit' },
+      ]}
+    />
+  ),
+};

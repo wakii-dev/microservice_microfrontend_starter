@@ -44,3 +44,19 @@ function InputMaskControlledDemo() {
     </div>
   );
 }
+
+/* ── Customize pass (slots wave 3) — classNames slot + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slot (root — single-element comp) +
+ * style passthrough. `root` lands on the <input> itself (same element as
+ * `className`); `style` flows through InputHTMLAttributes rest props. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    mask: '999-999',
+    ariaLabel: 'Custom styled mask',
+    placeholder: '123-456',
+    classNames: { root: 'border-st-done border-dashed' },
+    style: { boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' },
+  },
+};

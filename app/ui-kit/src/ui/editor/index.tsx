@@ -5,6 +5,16 @@
 // Thân thật nằm ở EditorInner.tsx (useEditor + EditorContent + toolbar).
 import { Component, Suspense, lazy, type ReactNode } from 'react';
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface EditorClassNames {
+  /** Div gốc bọc toolbar + content (border card). */
+  root?: string;
+  /** Thanh toolbar sticky trên content. */
+  toolbar?: string;
+  /** Vùng content (bọc ProseMirror). */
+  content?: string;
+}
+
 export interface EditorProps {
   content?: string;
   onChange?: (html: string) => void;
@@ -14,6 +24,10 @@ export interface EditorProps {
   fallback?: ReactNode;
   /** Truy cập imperative editor instance (Tiptap Editor) — cho test/consumer nâng cao. */
   editorRef?: (editor: unknown | null) => void;
+  /** Inline style — passthrough lên div gốc. */
+  style?: import('react').CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: EditorClassNames;
 }
 
 class EditorErrorBoundary extends Component<{ fallback?: ReactNode; children: ReactNode }, { error: Error | null }> {

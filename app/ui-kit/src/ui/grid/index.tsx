@@ -5,6 +5,8 @@
 // responsiveObserve cũng chạy matchMedia. Breakpoint dùng thang Tailwind v4 đang
 // active trong repo (sm 640 / md 768 / lg 1024 / xl 1280) — tokens.css không có
 // token --screen nên KHÔNG tự chế thang mới.
+// slots-wave: Row/Col classNames {root} + style passthrough — default giữ nguyên DOM.
+import classNames from 'classnames';
 import { createContext, useContext, type CSSProperties, type ReactNode } from 'react';
 import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 
@@ -23,6 +25,12 @@ const GutterContext = createContext<GutterValue>({ h: 0, v: 0 });
 export type RowJustify = 'start' | 'center' | 'end' | 'space-between' | 'space-around' | 'space-evenly';
 export type RowAlign = 'start' | 'center' | 'end' | 'stretch' | 'baseline';
 
+/** Slot classes cho Row (slots-wave) — merge sau class mặc định (consumer append). */
+export interface RowClassNames {
+  /** Div flex gốc của Row. */
+  root?: string;
+}
+
 export interface RowProps {
   /** Khoảng cách giữa col: số (ngang) hoặc [ngang, dọc] px (antd gutter). */
   gutter?: number | [number, number];
@@ -34,26 +42,39 @@ export interface RowProps {
   wrap?: boolean;
   children: ReactNode;
   className?: string;
+  /** Inline style — merge SAU gutter/justify/align (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: RowClassNames;
 }
 
-export function Row({ gutter, justify, align, wrap = true, children, className }: RowProps) {
+export function Row(props: RowProps) {
+  const { gutter, justify, align, wrap = true, children, className, style } = props;
+  const slots = props.classNames;
   const [h, v] = Array.isArray(gutter) ? gutter : gutter != null ? [gutter, 0] : [0, 0];
   return (
     <GutterContext.Provider value={{ h, v }}>
       <div
-        className={`flex${wrap ? ' flex-wrap' : ' flex-nowrap'}${className ? ` ${className}` : ''}`}
+        className={classNames('flex', wrap ? 'flex-wrap' : 'flex-nowrap', slots?.root, className)}
         style={{
           marginLeft: h ? -(h / 2) : undefined,
           marginRight: h ? -(h / 2) : undefined,
           rowGap: v || undefined,
           justifyContent: justify,
           alignItems: align,
+          ...style,
         }}
       >
         {children}
       </div>
     </GutterContext.Provider>
   );
+}
+
+/** Slot classes cho Col (slots-wave) — merge sau class mặc định (consumer append). */
+export interface ColClassNames {
+  /** Div cột gốc. */
+  root?: string;
 }
 
 export interface ColProps {
@@ -67,6 +88,10 @@ export interface ColProps {
   xl?: number;
   children?: ReactNode;
   className?: string;
+  /** Inline style — merge SAU width/padding gutter (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: ColClassNames;
 }
 
 /** Clamp span về 0–24 rồi đổi ra width % (flex-basis auto → ăn width). */
@@ -76,7 +101,9 @@ function spanWidth(span: number | undefined): string | undefined {
   return `${(n / 24) * 100}%`;
 }
 
-export function Col({ span, xs, sm, md, lg, xl, children, className }: ColProps) {
+export function Col(props: ColProps) {
+  const { span, xs, sm, md, lg, xl, children, className, style: userStyle } = props;
+  const slots = props.classNames;
   const { h } = useContext(GutterContext);
   const smOn = useMediaQuery(`(min-width: ${BREAKPOINTS.sm}px)`);
   const mdOn = useMediaQuery(`(min-width: ${BREAKPOINTS.md}px)`);
@@ -97,7 +124,7 @@ export function Col({ span, xs, sm, md, lg, xl, children, className }: ColProps)
     style.paddingRight = h / 2;
   }
   return (
-    <div className={className} style={style}>
+    <div className={classNames(slots?.root, className)} style={{ ...style, ...userStyle }}>
       {children}
     </div>
   );

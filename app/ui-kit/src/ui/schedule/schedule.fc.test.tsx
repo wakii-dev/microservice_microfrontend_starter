@@ -93,3 +93,25 @@ describe('Schedule — skin smoke (FC_SKIN_CSS + height ổn định)', () => {
     await waitFor(() => expect(c2.querySelector<HTMLElement>('.bp-schedule')?.style.height).toBe('520px'), { timeout: 5000 });
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Schedule — classNames + style', () => {
+  it('slot root lên div .bp-schedule.fc; className sau slot', async () => {
+    const { container } = render(
+      <Schedule events={EVENTS} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    await screen.findByText('Task Alpha', {}, { timeout: 4000 }); // FC mount xong (.fc đã gắn)
+    const root = container.querySelector('.bp-schedule')!;
+    expect(root).toHaveClass('slot-root', 'fc');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+
+  it('style passthrough lên div gốc (FC vẫn set height riêng của nó)', async () => {
+    const { container } = render(<Schedule events={EVENTS} height={520} style={{ margin: '8px' }} />);
+    await waitFor(() => expect(container.querySelector<HTMLElement>('.bp-schedule')?.style.height).toBe('520px'), {
+      timeout: 5000,
+    });
+    expect(container.querySelector<HTMLElement>('.bp-schedule')).toHaveStyle({ margin: '8px' });
+  });
+});

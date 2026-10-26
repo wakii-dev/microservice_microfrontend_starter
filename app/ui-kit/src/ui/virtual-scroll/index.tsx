@@ -4,7 +4,14 @@
 // không đụng layout). onScrollEnd bắn 1 lần mỗi lần chạm đáy (reset khi cuộn
 // lên) — phục vụ load-more. KHÔNG deps mới, scroll event thuần.
 // ⚠️ Chỉ hỗ trợ row cao CỐ ĐỊNH (itemSize) — dynamic height cần đo thật, backlog riêng.
-import { Fragment, useEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import classNames from 'classnames';
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode, type UIEvent } from 'react';
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface VirtualScrollClassNames {
+  /** Div viewport cuộn. */
+  root?: string;
+}
 
 export interface VirtualScrollProps<T> {
   items: T[];
@@ -18,17 +25,24 @@ export interface VirtualScrollProps<T> {
   /** Bắn khi cuộn tới đáy viewport (mỗi lần chạm đáy, reset khi rời đáy). */
   onScrollEnd?: () => void;
   className?: string;
+  /** Inline style — merge SAU height (consumer override được). */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: VirtualScrollClassNames;
 }
 
-export function VirtualScroll<T>({
-  items,
-  itemSize,
-  height = 320,
-  renderItem,
-  buffer = 5,
-  onScrollEnd,
-  className,
-}: VirtualScrollProps<T>) {
+export function VirtualScroll<T>(props: VirtualScrollProps<T>) {
+  const {
+    items,
+    itemSize,
+    height = 320,
+    renderItem,
+    buffer = 5,
+    onScrollEnd,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const size = Math.max(1, itemSize); // chặn chia 0 → NaN index
   const [scrollTop, setScrollTop] = useState(0);
   // height số dùng luôn; height CSS string → đo clientHeight sau mount
@@ -62,8 +76,8 @@ export function VirtualScroll<T>({
     <div
       ref={viewportRef}
       onScroll={handleScroll}
-      className={`overflow-y-auto overflow-x-hidden${className ? ` ${className}` : ''}`}
-      style={{ height }}
+      className={classNames('overflow-y-auto overflow-x-hidden', slots?.root, className)}
+      style={{ height, ...style }}
     >
       {/* Spacer cao bằng tổng nội dung — giữ thanh cuộn đúng tỉ lệ */}
       <div style={{ height: total, position: 'relative' }}>

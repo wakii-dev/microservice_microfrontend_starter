@@ -125,3 +125,40 @@ describe('Popconfirm — icon contrast (gold pattern, lead decision 2026-10-18)'
     expect(dangerIcon.className).toContain('text-white');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Popconfirm — classNames + style', () => {
+  it('slots lên đúng element: root/bubble/dialog; className sau root slot', () => {
+    render(
+      <Popconfirm
+        open
+        title="Xoá?"
+        classNames={{ root: 'slot-root', bubble: 'slot-bubble', dialog: 'slot-dialog' }}
+        className="user-last"
+      >
+        <button>Trigger</button>
+      </Popconfirm>,
+    );
+    const root = screen.getByRole('button', { name: 'Trigger' }).closest('span')!;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    const dialog = document.querySelector('[role="dialog"]')!;
+    expect(dialog).toHaveClass('slot-dialog');
+    expect(dialog.parentElement).toHaveClass('slot-bubble');
+  });
+
+  it('style passthrough lên span gốc (bubble vẫn mở + ESC cancel)', async () => {
+    const onCancel = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <Popconfirm open title="Xoá?" onCancel={onCancel} style={{ margin: '8px' }}>
+        <button>Trigger</button>
+      </Popconfirm>,
+    );
+    const root = screen.getByRole('button', { name: 'Trigger' }).closest('span') as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px' });
+    await user.keyboard('{Escape}');
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});

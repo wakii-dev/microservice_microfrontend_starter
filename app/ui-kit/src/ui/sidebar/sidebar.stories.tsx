@@ -69,3 +69,25 @@ export const DarkTheme: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the aside, `brand`
+ * on the top strip, `body` on the scroll area, `footer` on the bottom strip,
+ * `trigger` on the collapse pill; `style` lands on the aside. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Sidebar
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'border-r-2 border-dashed border-accent',
+        brand: 'bg-accent/10',
+        body: 'bg-s1',
+        footer: 'bg-accent/10',
+      }}
+      brand={<span className="font-semibold text-ink">Slotted</span>}
+      footer={<span className="text-meta text-ink3">me@example.com</span>}
+    >
+      <Menu items={[{ key: 'home', label: 'Home' }, { key: 'reports', label: 'Reports' }]} />
+    </Sidebar>
+  ),
+};

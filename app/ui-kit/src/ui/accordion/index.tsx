@@ -6,12 +6,28 @@
 // font-medium, chevron xoay 180, animate grid-rows 0fr↔1fr — KẶC cấu trúc 3 tầng
 // grid > min-h-0 overflow-hidden > padding-div (padding phải nằm SẠCH tầng clip —
 // bug padding-leak Collapse V2, đừng tái phạm).
+import classNames from 'classnames';
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Icon } from '../icons/index.js';
 import type { CollapseItem } from '../collapse/index.js';
 
 /** Cùng shape Collapse (key/label/children/disabled). */
 export type AccordionItem = CollapseItem;
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface AccordionClassNames {
+  /** Div gốc bọc các panel. */
+  root?: string;
+  /** Div 1 panel (gồm header + content). */
+  item?: string;
+  /** Button header panel (toggle). */
+  header?: string;
+  /** Div grid animate gập/mở (role="region"). */
+  panel?: string;
+  /** Div nội dung (padding nằm ở đây). */
+  content?: string;
+}
 
 export interface AccordionProps {
   /** Các panel — shape trùng CollapseItem. */
@@ -25,6 +41,10 @@ export interface AccordionProps {
   /** Callback đổi panel — payload string (single) hoặc string[] (multiple). */
   onChange?: (key: string | string[]) => void;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: AccordionClassNames;
 }
 
 /** Chuẩn hoá prop key (string | string[] | undefined) → Set. */
@@ -33,14 +53,17 @@ function toKeySet(value: string | string[] | undefined): Set<string> {
   return new Set(Array.isArray(value) ? value : [value]);
 }
 
-export function Accordion({
-  items,
-  multiple = false,
-  defaultActiveKey,
-  activeKey,
-  onChange,
-  className,
-}: AccordionProps) {
+export function Accordion(props: AccordionProps) {
+  const {
+    items,
+    multiple = false,
+    defaultActiveKey,
+    activeKey,
+    onChange,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const isControlled = activeKey !== undefined;
   const [innerKeys, setInnerKeys] = useState<Set<string>>(() => toKeySet(defaultActiveKey));
   const openKeys = isControlled ? toKeySet(activeKey) : innerKeys;
@@ -63,11 +86,14 @@ export function Accordion({
   }
 
   return (
-    <div className={`overflow-hidden rounded-xl border border-line bg-s2${className ? ` ${className}` : ''}`}>
+    <div
+      className={classNames('overflow-hidden rounded-xl border border-line bg-s2', slots?.root, className)}
+      style={style}
+    >
       {items.map((item, i) => {
         const open = openKeys.has(item.key);
         return (
-          <div key={item.key} className={i > 0 ? 'border-t border-line2' : ''}>
+          <div key={item.key} className={classNames(i > 0 && 'border-t border-line2', slots?.item)}>
             <button
               id={`accordion-header-${item.key}`}
               type="button"
@@ -75,9 +101,11 @@ export function Accordion({
               aria-controls={`accordion-panel-${item.key}`}
               disabled={item.disabled}
               onClick={() => !item.disabled && toggle(item.key)}
-              className={`flex w-full items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                item.disabled ? 'cursor-not-allowed text-ink3' : 'cursor-pointer hover:bg-s3'
-              }`}
+              className={classNames(
+                'flex w-full items-center justify-between border-none bg-transparent px-4 py-3 text-left text-body font-medium text-ink transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+                item.disabled ? 'cursor-not-allowed text-ink3' : 'cursor-pointer hover:bg-s3',
+                slots?.header,
+              )}
             >
               {item.label}
               <span
@@ -91,12 +119,16 @@ export function Accordion({
               id={`accordion-panel-${item.key}`}
               role="region"
               aria-labelledby={`accordion-header-${item.key}`}
-              className={`grid transition-[grid-template-rows] duration-200 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+              className={classNames(
+                'grid transition-[grid-template-rows] duration-200',
+                open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                slots?.panel,
+              )}
             >
               {/* 3 tầng: clip nằm SẠCH padding — px/pb xuống tầng 3, con của element
                * bị overflow-hidden clip (bug padding-leak V2: track 0fr vẫn lộ padding). */}
               <div className="min-h-0 overflow-hidden">
-                <div className="px-4 pb-3 text-body text-ink2">{item.children}</div>
+                <div className={classNames('px-4 pb-3 text-body text-ink2', slots?.content)}>{item.children}</div>
               </div>
             </div>
           </div>

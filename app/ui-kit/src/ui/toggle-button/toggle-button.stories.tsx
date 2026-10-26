@@ -44,3 +44,15 @@ function ToggleButtonControlledDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the toggle
+ * <button>; `style` merges on the same element. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    checked: true,
+    children: 'Slotted toggle',
+    classNames: { root: 'rounded-pill border-dashed' },
+    style: { boxShadow: '0 4px 12px rgba(0, 0, 0, 0.18)' },
+  },
+};

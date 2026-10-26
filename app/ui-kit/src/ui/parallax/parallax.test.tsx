@@ -146,3 +146,32 @@ describe('Parallax', () => {
     expect(rafSpy.mock.calls.length).toBe(callsAfterMount);
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('Parallax — classNames + style', () => {
+  it('slot root lên div transform; className sau slot (hiệu ứng vẫn chạy)', async () => {
+    mockRect(0);
+    const { container } = render(
+      <Parallax speed={0.5} classNames={{ root: 'slot-root' }} className="user-last">
+        <div>hero</div>
+      </Parallax>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveClass('slot-root');
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+    await waitFrame();
+    expect(translateYOf(root)).not.toBeNaN(); // transform vẫn đặt bình thường
+  });
+
+  it('style passthrough merge lên root (inactive giữ transform:none của kit)', () => {
+    mockRect(0);
+    const { container } = render(
+      <Parallax speed={0} style={{ margin: '8px' }}>
+        <div>hero</div>
+      </Parallax>,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ margin: '8px', transform: 'none' });
+  });
+});

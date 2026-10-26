@@ -68,3 +68,25 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the fixed nav,
+ * `list` on the tablist, `item` on each <li>, `itemButton` on every tab;
+ * `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <BottomNavigation
+      style={{ boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.18)' }}
+      classNames={{
+        root: 'border-t-2 border-dashed border-accent',
+        itemButton: 'uppercase tracking-wide',
+      }}
+      defaultValue="home"
+      items={[
+        { key: 'home', label: 'Home', icon: <span aria-hidden>⌂</span> },
+        { key: 'search', label: 'Search', icon: <span aria-hidden>⌕</span> },
+        { key: 'me', label: 'Me', icon: <span aria-hidden>☺</span> },
+      ]}
+    />
+  ),
+};

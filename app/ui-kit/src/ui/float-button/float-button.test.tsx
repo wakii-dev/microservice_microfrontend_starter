@@ -105,3 +105,41 @@ describe('FloatButtonBackTop', () => {
     expect((FloatButton as unknown as { BackTop: unknown }).BackTop).toBe(FloatButtonBackTop);
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('FloatButton — classNames + style', () => {
+  it('slots lên đúng element: button/icon (FloatButton), root/menu/trigger (Group)', () => {
+    render(
+      <FloatButtonGroup open classNames={{ root: 'slot-groot', menu: 'slot-menu', trigger: 'slot-trigger' }}>
+        <FloatButton icon="+" tooltip="Soạn" classNames={{ root: 'slot-btn', icon: 'slot-icon' }} />
+      </FloatButtonGroup>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Thao tác nhanh' });
+    expect(trigger).toHaveClass('slot-trigger');
+    expect(trigger.parentElement).toHaveClass('slot-groot');
+    expect(screen.getByRole('menu')).toHaveClass('slot-menu');
+    const btn = screen.getByRole('button', { name: 'Soạn' });
+    expect(btn).toHaveClass('slot-btn');
+    expect(btn.querySelector('.slot-icon')).toBeInTheDocument();
+  });
+
+  it('style passthrough: FloatButton lên button, Group/BackTop lên div gốc', () => {
+    vi.spyOn(window, 'scrollY', 'get').mockImplementation(() => 100);
+    render(
+      <>
+        <FloatButton icon="+" tooltip="s" style={{ margin: '4px' }} />
+        <FloatButtonGroup open style={{ margin: '8px' }}>
+          <span>x</span>
+        </FloatButtonGroup>
+        <FloatButtonBackTop visibilityHeight={50} style={{ margin: '12px' }} />
+      </>,
+    );
+    fireEvent.scroll(window);
+    expect(screen.getByRole('button', { name: 's' })).toHaveStyle({ margin: '4px' });
+    const group = screen.getByRole('button', { name: 'Thao tác nhanh' }).parentElement as HTMLElement;
+    expect(group).toHaveStyle({ margin: '8px' });
+    const backTop = screen.getByRole('button', { name: 'Về đầu trang' }).parentElement as HTMLElement;
+    expect(backTop).toHaveStyle({ margin: '12px' });
+  });
+});

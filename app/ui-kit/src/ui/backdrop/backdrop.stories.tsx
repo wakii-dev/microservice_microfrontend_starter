@@ -64,3 +64,21 @@ function SpinnerDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the fixed
+ * scrim div; `style` merges after the scrim token background. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="relative max-w-xl">
+      <ContentGrid />
+      <Backdrop
+        open
+        classNames={{ root: 'backdrop-blur-sm ring-1 ring-inset ring-white/10' }}
+        style={{ boxShadow: 'inset 0 0 80px rgba(0, 0, 0, 0.35)' }}
+      >
+        <span className="text-body font-medium text-white">Slotted scrim</span>
+      </Backdrop>
+    </div>
+  ),
+};

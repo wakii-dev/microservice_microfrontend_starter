@@ -94,3 +94,24 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the wrapping
+ * span, `overlay` on the tile layer; `style` lands on the wrapper (overlay
+ * keeps its baked inline style). */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    content: 'SLOTTED',
+    children: (
+      <div className="rounded-xl border border-line bg-s1 p-6 text-body text-ink2">
+        Slotted watermark — dashed ring on the wrapper, softened tile layer.
+      </div>
+    ),
+    classNames: {
+      root: 'rounded-xl ring-2 ring-accent/30',
+      overlay: 'mix-blend-multiply',
+    },
+    style: { boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+    className: 'p-6',
+  },
+};

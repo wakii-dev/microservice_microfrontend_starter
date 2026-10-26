@@ -18,13 +18,27 @@
 // re-render — object config mới = changedParams → updateSwiper churn/re-init
 // (realIndex reset, loop setState ở vertical). Edge-state (đầu/cuối non-loop)
 // nên toggle imperative qua classList trên ref nút — không re-render.
+import classNames from 'classnames';
 import { useMemo, useRef } from 'react';
+import type { CSSProperties } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Keyboard } from 'swiper/modules';
 import type { Swiper as SwiperInstance } from 'swiper';
 import { Icon } from '../icons/index.js';
 // CSS swiper đã chuyển sang src/entries/carousel.ts (subpath '@wakii/ui-kit/carousel') —
 // barrel chính '@wakii/ui-kit' không kéo CSS nặng nữa (batch ⑩ 2026-10-18).
+
+/** Slot classes (slots-wave) — merge sau class mặc định (consumer append). */
+export interface CarouselClassNames {
+  /** Div gốc relative bọc swiper + navigators. */
+  root?: string;
+  /** Div bọc hàng indicator. */
+  indicators?: string;
+  /** Button ô vuông số trang (áp cả active — active đổi imperative classList). */
+  indicator?: string;
+  /** Nút prev/next (cùng slot cho 2 nút). */
+  navigator?: string;
+}
 
 export interface CarouselProps {
   /** Slide contents — mỗi phần tử 1 slide (key React nên đặt). */
@@ -52,6 +66,10 @@ export interface CarouselProps {
   /** Chiều cao container (bắt buộc thực tế cho vertical — default 300px). */
   height?: number | string;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes (slots-wave) — merge sau class mặc định. */
+  classNames?: CarouselClassNames;
 }
 
 const BTN_CLS =
@@ -67,21 +85,24 @@ const BULLET_CLS =
 const BULLET_INACTIVE = ['border', 'border-line', 'bg-transparent', 'text-ink', 'hover:bg-s3'];
 const BULLET_ACTIVE = ['border-none', 'bg-accent', 'font-medium', 'text-white'];
 
-export function Carousel({
-  items,
-  circular = false,
-  autoplay = false,
-  autoplayInterval = 4000,
-  pauseOnHover = false,
-  indicators = true,
-  navigators = true,
-  keyboard = true,
-  itemsPerView = 1,
-  orientation = 'horizontal',
-  onSlideChange,
-  height,
-  className,
-}: CarouselProps) {
+export function Carousel(props: CarouselProps) {
+  const {
+    items,
+    circular = false,
+    autoplay = false,
+    autoplayInterval = 4000,
+    pauseOnHover = false,
+    indicators = true,
+    navigators = true,
+    keyboard = true,
+    itemsPerView = 1,
+    orientation = 'horizontal',
+    onSlideChange,
+    height,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const swiperRef = useRef<SwiperInstance | null>(null);
   const prevBtnRef = useRef<HTMLButtonElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
@@ -121,7 +142,7 @@ export function Carousel({
   };
 
   return (
-    <div className={`relative${className ? ` ${className}` : ''}`}>
+    <div className={classNames('relative', slots?.root, className)} style={style}>
       <Swiper
         modules={[Autoplay, Keyboard]}
         slidesPerView={itemsPerView}
@@ -149,7 +170,7 @@ export function Carousel({
 
       {/* Indicators — ô vuông Pagination-style, số trang trong ô; click slideTo(i) */}
       {indicators && items.length > 1 && (
-        <div className="mt-3 flex items-center justify-center gap-2">
+        <div className={classNames('mt-3 flex items-center justify-center gap-2', slots?.indicators)}>
           {items.map((_, i) => (
             <button
               key={i}
@@ -159,7 +180,7 @@ export function Carousel({
               type="button"
               aria-label={`Chuyển tới trang ${i + 1}`}
               aria-current={i === 0 ? 'true' : undefined}
-              className={`${BULLET_CLS} ${i === 0 ? BULLET_ACTIVE.join(' ') : BULLET_INACTIVE.join(' ')}`}
+              className={classNames(BULLET_CLS, i === 0 ? BULLET_ACTIVE.join(' ') : BULLET_INACTIVE.join(' '), slots?.indicator)}
               onClick={() => swiperRef.current?.slideTo(i)}
             >
               {i + 1}
@@ -174,7 +195,7 @@ export function Carousel({
             type="button"
             aria-label="Trước"
             ref={prevBtnRef}
-            className={`${BTN_CLS} left-2 swiper-button-prev-custom`}
+            className={classNames(BTN_CLS, 'left-2 swiper-button-prev-custom', slots?.navigator)}
             onClick={() => swiperRef.current?.slidePrev()}
           >
             <Icon name="chevron-left" />
@@ -183,7 +204,7 @@ export function Carousel({
             type="button"
             aria-label="Sau"
             ref={nextBtnRef}
-            className={`${BTN_CLS} right-2 swiper-button-next-custom`}
+            className={classNames(BTN_CLS, 'right-2 swiper-button-next-custom', slots?.navigator)}
             onClick={() => swiperRef.current?.slideNext()}
           >
             <Icon name="chevron-right" />

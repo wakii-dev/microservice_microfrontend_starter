@@ -124,3 +124,19 @@ function InboxFiltersDemo() {
     </div>
   );
 }
+
+/** CustomStyled — slots-wave classNames + style: `root` on the radiogroup,
+ * `item` on every option button; `style` lands on the group. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    value: 'list',
+    options: [
+      { label: 'List', value: 'list' },
+      { label: 'Board', value: 'board' },
+      { label: 'Timeline', value: 'timeline' },
+    ],
+    classNames: { root: 'rounded-xl border border-dashed border-accent bg-accent/5', item: 'uppercase tracking-wide' },
+    style: { padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+  },
+};

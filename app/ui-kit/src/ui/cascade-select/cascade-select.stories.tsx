@@ -124,3 +124,29 @@ export const DarkTheme: Story = {
 export const Empty: Story = {
   args: { options: [], placeholder: 'Nothing to pick…' },
 };
+
+/* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
+
+/** CustomStyled — antd v5-style classNames slots (root / trigger / panel / option)
+ * + style passthrough. `root` lands on the outer relative div (same element as
+ * `className`), `trigger` on the trigger button, `panel` on the floating listbox
+ * frame, `option` on every option button; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="max-w-[280px]">
+      <CascadeSelect
+        options={TREE}
+        placeholder="Pick a location…"
+        onChange={() => {}}
+        classNames={{
+          root: 'rounded-xl',
+          trigger: 'border-st-done border-dashed',
+          panel: 'rounded-lg border-st-done',
+          option: 'tracking-wide',
+        }}
+        style={{ padding: 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' }}
+      />
+    </div>
+  ),
+};

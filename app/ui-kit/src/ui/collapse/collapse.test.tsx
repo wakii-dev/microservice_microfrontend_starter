@@ -126,3 +126,30 @@ describe('Collapse — branch phụ (Tier 5 sweep)', () => {
     expect(content).toHaveTextContent('nội dung');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('Collapse — classNames slots + style', () => {
+  const ITEMS = [
+    { key: 'a', label: 'Alpha', children: <span>content-a</span> },
+    { key: 'b', label: 'Beta', children: <span>content-b</span> },
+  ];
+
+  it('slots lên đúng element: root/item/header/panel/content', () => {
+    render(<Collapse items={ITEMS} defaultActiveKeys={['a']} classNames={{ root: 'slot-root', item: 'slot-item', header: 'slot-header', panel: 'slot-panel', content: 'slot-content' }} />);
+    expect(document.querySelector('div.slot-root')).not.toBeNull();
+    expect(screen.getByText('Alpha')).toHaveClass('slot-header');
+    expect(screen.getByText('content-a').closest('div')).toHaveClass('slot-content');
+    expect(document.querySelectorAll('.slot-item').length).toBe(2);
+    expect(document.querySelector('.slot-panel')).not.toBeNull();
+  });
+
+  it('style passthrough lên root; className người dùng sau root slot', () => {
+    const { container } = render(
+      <Collapse items={ITEMS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const root = container.firstElementChild as HTMLElement;
+    expect(root).toHaveStyle({ padding: '2px' });
+    expect(root.className.indexOf('slot-root')).toBeLessThan(root.className.indexOf('user-last'));
+  });
+});

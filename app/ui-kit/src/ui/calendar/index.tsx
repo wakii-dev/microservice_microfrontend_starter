@@ -8,7 +8,10 @@
 // DateLocaleProvider context, default vi giữ behavior cũ) + range highlight
 // (endpoint accent đặc, khoảng giữa bg-accent/10 — hover preview RangePicker)
 // + onDayHover cho DatePicker range mode.
-import { useMemo, useState } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/header/weekdays/grid/day)
+// + style passthrough — default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Icon } from '../icons/index.js';
 import { useDateLocale, type DateLocaleInput } from '../date-picker/locale.js';
 
@@ -17,6 +20,20 @@ export interface CalendarRangeValue {
   end?: Date | null;
   /** Ngày đang hover (khi end chưa chọn) — preview khoảng [start..hover]. */
   hover?: Date | null;
+}
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface CalendarClassNames {
+  /** Div gốc (role=grid) — cùng element với className prop. */
+  root?: string;
+  /** Hàng header (nav prev/next + nhãn tháng năm). */
+  header?: string;
+  /** Hàng nhãn ngày trong tuần. */
+  weekdays?: string;
+  /** Lưới 7 cột ô ngày. */
+  grid?: string;
+  /** Button mỗi ô ngày (một state class riêng theo selected/today/…). */
+  day?: string;
 }
 
 export interface CalendarProps {
@@ -32,6 +49,10 @@ export interface CalendarProps {
   /** Nhúng trong panel DatePicker: bỏ viền/nền/rounded riêng (panel đã có). */
   bare?: boolean;
   className?: string;
+  /** Inline style — passthrough lên div gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: CalendarClassNames;
 }
 
 function getMonthDays(y: number, m: number, firstDayOfWeek: 0 | 1): Date[] {
@@ -61,7 +82,19 @@ const CELL =
 const NAV_CLS =
   'flex size-8 cursor-pointer items-center justify-center rounded-lg border border-line bg-transparent text-ink transition-colors duration-200 ease-[var(--ease-smooth)] hover:border-ink/20 hover:bg-accent/5 focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none';
 
-export function Calendar({ value, onChange, now = new Date(), locale, range, onDayHover, bare = false, className }: CalendarProps) {
+export function Calendar(props: CalendarProps) {
+  const {
+    value,
+    onChange,
+    now = new Date(),
+    locale,
+    range,
+    onDayHover,
+    bare = false,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const loc = useDateLocale(locale);
   const [viewY, setViewY] = useState(value?.getFullYear() ?? now.getFullYear());
   const [viewM, setViewM] = useState(value?.getMonth() ?? now.getMonth());
@@ -89,12 +122,18 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
 
   return (
     <div
-      className={`inline-block p-4${bare ? '' : ' rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--ele-1)]'}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'inline-block p-4',
+        bare ? '' : 'rounded-xl border border-line bg-s2 bg-[image:var(--wash)] shadow-[var(--ele-1)]',
+        slots?.root,
+        className,
+      )}
+      style={style}
       role="grid"
       aria-label="Calendar"
     >
       {/* Header — padding đối xứng */}
-      <div className="mb-2 flex items-center justify-between px-1">
+      <div className={classNames('mb-2 flex items-center justify-between px-1', slots?.header)}>
         <button type="button" aria-label={loc.prevMonth} onClick={prev} className={NAV_CLS}>
           <ChevronLeftIcon />
         </button>
@@ -105,7 +144,7 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
       </div>
 
       {/* Labels ngày trong tuần — theo locale.weekdays (xếp từ firstDayOfWeek) */}
-      <div className="mb-1 grid grid-cols-7 gap-1">
+      <div className={classNames('mb-1 grid grid-cols-7 gap-1', slots?.weekdays)}>
         {loc.weekdays.map((d) => (
           <div key={d} className="flex aspect-square items-center justify-center text-meta font-semibold text-ink3">
             {d}
@@ -114,7 +153,7 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
       </div>
 
       {/* Days grid — gap-1 đều hàng/cột */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className={classNames('grid grid-cols-7 gap-1', slots?.grid)}>
         {days.map((date, i) => {
           const k = key(date);
           const isCurrent = date.getMonth() === viewM;
@@ -151,7 +190,7 @@ export function Calendar({ value, onChange, now = new Date(), locale, range, onD
               onMouseEnter={() => isCurrent && onDayHover?.(date)}
               disabled={!isCurrent}
               aria-label={date.toDateString()}
-              className={`${CELL} ${stateCls}${!isCurrent ? ' pointer-events-none' : ''}`}
+              className={classNames(CELL, stateCls, !isCurrent && 'pointer-events-none', slots?.day)}
             >
               {date.getDate()}
             </button>

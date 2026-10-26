@@ -109,3 +109,19 @@ export const FixedHeightNote: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the scroll
+ * viewport; `style` merges after the height inline style. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <VirtualScroll
+      itemSize={44}
+      height={240}
+      items={Array.from({ length: 500 }, (_, i) => i)}
+      renderItem={(n) => <div className="flex h-11 items-center px-3 text-body text-ink2">Virtual row {n + 1}</div>}
+      classNames={{ root: 'rounded-xl border border-dashed border-accent' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    />
+  ),
+};

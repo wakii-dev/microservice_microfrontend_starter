@@ -150,3 +150,32 @@ describe('SplitButton — một nút duy nhất', () => {
     }
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('SplitButton — classNames + style', () => {
+  it('slots lên đúng element: root/button/menu; className sau root slot', async () => {
+    const { container } = render(
+      <SplitButton
+        label="Lưu"
+        items={items}
+        classNames={{ root: 'slot-root', button: 'slot-button', menu: 'slot-menu' }}
+        className="user-last"
+      />,
+    );
+    const shell = container.querySelector('span.relative')!;
+    expect(shell).toHaveClass('slot-root');
+    expect(shell.className.indexOf('slot-root')).toBeLessThan(shell.className.indexOf('user-last'));
+    expect(screen.getByRole('button', { name: /Lưu/ })).toHaveClass('slot-button');
+    await openMenu(container);
+    expect(screen.getByRole('menu')).toHaveClass('slot-menu');
+  });
+
+  it('style passthrough lên span gốc (menu vẫn mở/đóng)', async () => {
+    const { container } = render(<SplitButton label="Lưu" items={items} style={{ margin: '8px' }} />);
+    const shell = container.querySelector('span.relative') as HTMLElement;
+    expect(shell).toHaveStyle({ margin: '8px' });
+    await openMenu(container);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+});

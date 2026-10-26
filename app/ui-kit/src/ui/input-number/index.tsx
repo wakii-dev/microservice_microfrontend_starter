@@ -5,8 +5,25 @@
 // + press-scale trên ICON (không scale nút — giữ fix "hở viền" 2026-10-18). Focus
 // ring vòng NGOÀI cả control (focus-within). Sizes h-6/8/10 ăn theo họ Input.
 // prefix/suffix affixes (pattern antd). Keyboard ↑↓, min/max/step clamp, disabled.
-import { useState, type FocusEvent, type ReactNode } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/input/stepper/stepUp/
+// stepDown) + style passthrough — default path (không truyền) giữ nguyên DOM.
+import classNames from 'classnames';
+import { useState, type CSSProperties, type FocusEvent, type ReactNode } from 'react';
 import { Icon } from '../icons/index.js';
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface InputNumberClassNames {
+  /** Span control gốc (viền/focus-within) — cùng element với className prop. */
+  root?: string;
+  /** <input type=number> giữa prefix/suffix và cột stepper. */
+  input?: string;
+  /** Cột stepper bên phải (span flex-col, border-l). */
+  stepper?: string;
+  /** Nút tăng (nửa trên cột stepper). */
+  stepUp?: string;
+  /** Nút giảm (nửa dưới cột stepper). */
+  stepDown?: string;
+}
 
 export interface InputNumberProps {
   /** Giá trị khởi tạo lúc mount (đọc 1 lần — state text quản lý nội bộ, prop đổi sau
@@ -35,6 +52,10 @@ export interface InputNumberProps {
   ariaLabel?: string;
   /** Append sau structural classes — escape hatch pattern antd. */
   className?: string;
+  /** Inline style — passthrough lên span control gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: InputNumberClassNames;
 }
 
 function ChevronUpIcon({ className }: { className?: string }) {
@@ -46,10 +67,12 @@ function ChevronDownIcon({ className }: { className?: string }) {
 
 const SIZE_CLS = { small: 'h-6 text-label', middle: 'h-8 text-body', large: 'h-10 text-body' } as const;
 
-export function InputNumber({
-  value, onChange, min = -Infinity, max = Infinity, step = 1, size = 'middle',
-  prefix, suffix, disabled = false, invalid = false, ariaLabel, className,
-}: InputNumberProps) {
+export function InputNumber(props: InputNumberProps) {
+  const {
+    value, onChange, min = -Infinity, max = Infinity, step = 1, size = 'middle',
+    prefix, suffix, disabled = false, invalid = false, ariaLabel, className, style,
+  } = props;
+  const slots = props.classNames;
   const [text, setText] = useState(value !== undefined ? String(value) : '');
 
   function commit(raw: string) {
@@ -82,7 +105,14 @@ export function InputNumber({
   return (
     // Depth contract: rest bg-s3 + ele-1 → focus-within bg-s1 + ring 3px accent/40 + ele-2
     <span
-      className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:ring-[3px] focus-within:ring-accent/40 ${borderCls}${disabled ? ' bg-s3 opacity-60 shadow-none' : ''}${className ? ` ${className}` : ''}`}
+      className={classNames(
+        'inline-flex w-full items-stretch overflow-hidden rounded-lg border bg-s3 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus-within:bg-s1 focus-within:shadow-[var(--ele-2)] focus-within:ring-[3px] focus-within:ring-accent/40',
+        borderCls,
+        disabled ? 'bg-s3 opacity-60 shadow-none' : '',
+        slots?.root,
+        className,
+      )}
+      style={style}
     >
       {prefix && <span className="inline-flex shrink-0 items-center pl-3 text-ink3">{prefix}</span>}
       <input
@@ -96,7 +126,7 @@ export function InputNumber({
           if (e.key === 'ArrowUp') { e.preventDefault(); bump(step); }
           if (e.key === 'ArrowDown') { e.preventDefault(); bump(-step); }
         }}
-        className={`min-w-0 flex-1 border-none bg-transparent px-3 text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${SIZE_CLS[size]}`}
+        className={classNames(`min-w-0 flex-1 border-none bg-transparent px-3 text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${SIZE_CLS[size]}`, slots?.input)}
       />
       {suffix && <span className="inline-flex shrink-0 items-center text-ink3">{suffix}</span>}
       {/* Stepper — 2 nút xếp dọc fill nửa control (h-1/2, tổng đúng chiều cao input,
@@ -106,16 +136,16 @@ export function InputNumber({
           border-t border-line (border-box nên vẫn fit 100%). Press = nền sâu hơn +
           scale trên ICON (group/up·down) — scale NÚT làm hở viền (fix 2026-10-18,
           không hồi quy). Focus ring nằm ở wrapper (vòng NGOÀI cả control). */}
-      <span className={`flex flex-col border-l ${invalid ? 'border-st-fail' : 'border-line'} ${disabled ? 'opacity-50' : ''}`}>
+      <span className={classNames(`flex flex-col border-l ${invalid ? 'border-st-fail' : 'border-line'} ${disabled ? 'opacity-50' : ''}`, slots?.stepper)}>
         <button
           type="button" aria-label="Tăng" disabled={disabled} onClick={() => bump(step)}
-          className="group/up flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10"
+          className={classNames('group/up flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-tr-lg rounded-br-none border-none bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10', slots?.stepUp)}
         >
           <ChevronUpIcon className="transition-transform duration-150 ease-[var(--ease-smooth)] group-active/up:scale-90" />
         </button>
         <button
           type="button" aria-label="Giảm" disabled={disabled} onClick={() => bump(-step)}
-          className="group/down flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10"
+          className={classNames('group/down flex h-1/2 w-7 cursor-pointer items-center justify-center rounded-br-lg rounded-tr-none border-t border-line bg-transparent text-ink2 transition-colors duration-200 ease-[var(--ease-smooth)] hover:bg-ink/5 hover:text-accent active:bg-ink/10', slots?.stepDown)}
         >
           <ChevronDownIcon className="transition-transform duration-150 ease-[var(--ease-smooth)] group-active/down:scale-90" />
         </button>

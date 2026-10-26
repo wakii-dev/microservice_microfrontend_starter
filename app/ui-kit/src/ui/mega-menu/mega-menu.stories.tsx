@@ -135,3 +135,42 @@ export const DarkTheme: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the nav, `trigger` on
+ * top-level buttons, `panel`/`group`/`groupLabel`/`leaf` reshape the hover
+ * panel; `style` lands on the nav. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <MegaMenu
+      style={{ padding: 8 }}
+      classNames={{
+        root: 'rounded-xl border border-dashed border-accent bg-accent/5',
+        panel: 'rounded-2xl bg-s1',
+        groupLabel: 'uppercase tracking-wide',
+        leaf: 'rounded-full',
+      }}
+      items={[
+        {
+          key: 'platform',
+          label: 'Platform',
+          children: [
+            {
+              key: 'build',
+              label: 'Build',
+              items: [
+                { key: 'services', label: 'Services' },
+                { key: 'gateway', label: 'Gateway' },
+              ],
+            },
+            {
+              key: 'ship',
+              label: 'Ship',
+              items: [{ key: 'compose', label: 'Compose' }],
+            },
+          ],
+        },
+      ]}
+    />
+  ),
+};

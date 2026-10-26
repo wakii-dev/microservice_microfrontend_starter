@@ -66,3 +66,39 @@ describe('BottomNavigation', () => {
     expect(screen.getByRole('tab', { name: /Tìm/ }).className).toContain('text-ink3');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('BottomNavigation — classNames slots + style', () => {
+  const ITEMS = [
+    { key: 'home', label: 'Home', icon: <span>⌂</span> },
+    { key: 'me', label: 'Me', icon: <span>☺</span> },
+  ];
+
+  it('slots lên đúng element: root/list/item/itemButton', () => {
+    render(
+      <BottomNavigation
+        items={ITEMS}
+        classNames={{ root: 'slot-root', list: 'slot-list', item: 'slot-item', itemButton: 'slot-btn' }}
+      />,
+    );
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(document.querySelector('ul.slot-list')).not.toBeNull();
+    expect(screen.getByRole('tab', { name: /Home/ }).closest('li')).toHaveClass('slot-item');
+    expect(screen.getByRole('tab', { name: /Home/ })).toHaveClass('slot-btn');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(
+      <BottomNavigation
+        items={ITEMS}
+        style={{ background: 'rgb(1, 2, 3)' }}
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+      />,
+    );
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ background: 'rgb(1, 2, 3)' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

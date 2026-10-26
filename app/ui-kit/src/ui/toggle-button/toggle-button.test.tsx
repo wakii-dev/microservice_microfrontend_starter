@@ -36,3 +36,27 @@ describe('ToggleButton — matrix (props thật: checked/onChange/disabled/class
     expect(screen.getByRole('button', { name: 'c' })).toHaveClass('marker');
   });
 });
+
+// ── slots-wave: classNames slot + style passthrough ──
+
+describe('ToggleButton — classNames + style', () => {
+  it('slot root lên button cả 2 trạng thái; className sau slot', () => {
+    const { rerender } = render(
+      <ToggleButton checked classNames={{ root: 'slot-root' }} className="user-last">on</ToggleButton>,
+    );
+    const btn = screen.getByRole('button', { name: 'on' });
+    expect(btn).toHaveClass('slot-root');
+    expect(btn.className.indexOf('slot-root')).toBeLessThan(btn.className.indexOf('user-last'));
+    rerender(<ToggleButton checked={false} classNames={{ root: 'slot-root' }} className="user-last">on</ToggleButton>);
+    expect(screen.getByRole('button', { name: 'on' })).toHaveClass('slot-root');
+  });
+
+  it('style passthrough lên button (toggle vẫn bấm được)', async () => {
+    const onChange = vi.fn();
+    render(<ToggleButton onChange={onChange} style={{ margin: '8px' }}>s</ToggleButton>);
+    const btn = screen.getByRole('button', { name: 's' });
+    expect(btn).toHaveStyle({ margin: '8px' });
+    await userEvent.setup().click(btn);
+    expect(onChange).toHaveBeenCalledWith(true);
+  });
+});

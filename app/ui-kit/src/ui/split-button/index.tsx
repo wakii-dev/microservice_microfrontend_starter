@@ -3,7 +3,8 @@
 // không có chỗ nối. Chevron là span vùng-click riêng (stopPropagation) mở menu;
 // bấm phần còn lại = action chính. Keyboard: Enter/Space = action chính,
 // ArrowDown = mở menu + focus item đầu. Menu/click-away/ESC/a11y giữ từ batch trước.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import classNames from 'classnames';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ButtonSize, ButtonType } from '../button/index';
 import { Icon } from '../icons/index.js';
 import { useClickAway } from '../../hooks/useClickAway.js';
@@ -18,6 +19,16 @@ export interface SplitButtonItem {
   separator?: boolean;
 }
 
+/** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định (consumer append). */
+export interface SplitButtonClassNames {
+  /** Span gốc bọc nút + menu (relative inline-flex). */
+  root?: string;
+  /** Nút duy nhất (label + chevron). */
+  button?: string;
+  /** <ul> menu absolute khi mở. */
+  menu?: string;
+}
+
 export interface SplitButtonProps {
   label: string;
   type?: ButtonType;
@@ -28,6 +39,10 @@ export interface SplitButtonProps {
   onClick?: () => void;
   onItemClick?: (key: string) => void;
   className?: string;
+  /** Inline style — passthrough lên span gốc. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots-wave) — merge sau class mặc định. */
+  classNames?: SplitButtonClassNames;
 }
 
 /** Chiều cao đồng步 Button; chevron zone thêm px bên phải bên trong CÙNG nút. */
@@ -42,16 +57,19 @@ const ITEM_NORMAL =
 const ITEM_DANGER =
   'flex w-full cursor-pointer items-center gap-2 rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-st-fail transition-colors hover:bg-st-fail/12';
 
-export function SplitButton({
-  label,
-  type = 'primary',
-  danger,
-  size = 'middle',
-  items,
-  onClick,
-  onItemClick,
-  className,
-}: SplitButtonProps) {
+export function SplitButton(props: SplitButtonProps) {
+  const {
+    label,
+    type = 'primary',
+    danger,
+    size = 'middle',
+    items,
+    onClick,
+    onItemClick,
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const [open, setOpen] = useState(false);
   const containerRef = useClickAway<HTMLSpanElement>(() => setOpen(false));
   const menuRef = useRef<HTMLUListElement>(null);
@@ -87,7 +105,7 @@ export function SplitButton({
       : 'bg-s2 text-ink hover:bg-s3';
 
   return (
-    <span ref={containerRef} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
+    <span ref={containerRef} className={classNames('relative inline-flex', slots?.root, className)} style={style}>
       <button
         type="button"
         aria-haspopup="menu"
@@ -100,7 +118,14 @@ export function SplitButton({
             setOpen(true);
           }
         }}
-        className={`inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border ${shellBorder} ${SIZE[size]} ${mainCls} border-0 font-medium tracking-[0.01em] outline-none transition-all duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40 `}
+        className={classNames(
+          'inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg border',
+          shellBorder,
+          SIZE[size],
+          mainCls,
+          'border-0 font-medium tracking-[0.01em] outline-none transition-all duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-lift)] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent/40',
+          slots?.button,
+        )}
       >
         {label}
         {/* Vùng chevron: span click riêng BÊN TRONG nút — stopPropagation để không
@@ -122,7 +147,10 @@ export function SplitButton({
           ref={menuRef}
           role="menu"
           aria-label={label}
-          className="absolute left-0 top-full z-[var(--z-dropdown)] m-0 mt-1 min-w-[140px] list-none origin-top-left rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]"
+          className={classNames(
+            'absolute left-0 top-full z-[var(--z-dropdown)] m-0 mt-1 min-w-[140px] list-none origin-top-left rounded-lg border border-line bg-s2 p-1 shadow-[var(--shadow-pop)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]',
+            slots?.menu,
+          )}
         >
           {items.map((item) =>
             item.separator ? (

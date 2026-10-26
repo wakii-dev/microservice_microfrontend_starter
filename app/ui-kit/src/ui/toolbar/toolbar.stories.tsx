@@ -33,3 +33,15 @@ export const WithExtra: S = {
     ),
   },
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the bar, `start` on
+ * the left cluster, `end` on the right cluster; `style` lands on the bar. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    classNames: { root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-2', end: 'text-accent' },
+    style: { padding: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+    children: <span className="text-body text-ink">Toolbar content</span>,
+    extra: <span className="text-meta">exported 42 rows</span>,
+  },
+};

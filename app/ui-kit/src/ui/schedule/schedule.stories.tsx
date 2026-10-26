@@ -59,3 +59,21 @@ export const CustomFallback: S = {
   name: 'Custom fallback when @fullcalendar/* missing',
   args: { fallback: <p className="p-4 text-body text-ink3">Schedule needs @fullcalendar/* packages — see ui-kit README.</p> },
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` lands on the
+ * .bp-schedule host div FullCalendar mounts into; `style` merges on the same
+ * element (FC still manages its own height inline style). */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Schedule
+      events={[
+        { id: 's1', title: 'Slotted event', start: '2026-10-27' },
+      ]}
+      height={480}
+      classNames={{ root: 'shadow-lift ring-2 ring-accent/20' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+      className="rounded-xl"
+    />
+  ),
+};

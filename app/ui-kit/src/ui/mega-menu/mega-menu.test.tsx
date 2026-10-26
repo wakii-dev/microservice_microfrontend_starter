@@ -128,3 +128,42 @@ describe('MegaMenu — panel + a11y', () => {
     expect(screen.getByRole('menuitem', { name: 'Xoá dự án' }).className).toContain('text-st-fail');
   });
 });
+
+// ── slots-wave: classNames slots + style passthrough ──
+
+describe('MegaMenu — classNames slots + style', () => {
+  const ITEMS: MegaMenuItem[] = [
+    {
+      key: 'products',
+      label: 'Products',
+      children: [{ key: 'g1', label: 'Group 1', items: [{ key: 'a', label: 'Alpha' }] }],
+    },
+  ];
+
+  it('slots lên đúng element: root/item/trigger/panel/group/groupLabel/leaf', () => {
+    render(
+      <MegaMenu
+        items={ITEMS}
+        classNames={{
+          root: 'slot-root', item: 'slot-item', trigger: 'slot-trigger', panel: 'slot-panel',
+          group: 'slot-group', groupLabel: 'slot-group-label', leaf: 'slot-leaf',
+        }}
+      />,
+    );
+    fireEvent.mouseEnter(screen.getByRole('button', { name: 'Products' }));
+    expect(document.querySelector('nav.slot-root')).not.toBeNull();
+    expect(screen.getByRole('menu')).toHaveClass('slot-panel');
+    expect(screen.getByText('Group 1').parentElement).toHaveClass('slot-group');
+    expect(screen.getByText('Group 1')).toHaveClass('slot-group-label');
+    expect(screen.getByText('Alpha')).toHaveClass('slot-leaf');
+  });
+
+  it('style passthrough lên nav; className người dùng sau root slot', () => {
+    render(
+      <MegaMenu items={ITEMS} style={{ padding: '2px' }} classNames={{ root: 'slot-root' }} className="user-last" />,
+    );
+    const nav = document.querySelector('nav.slot-root') as HTMLElement;
+    expect(nav).toHaveStyle({ padding: '2px' });
+    expect(nav.className.indexOf('slot-root')).toBeLessThan(nav.className.indexOf('user-last'));
+  });
+});

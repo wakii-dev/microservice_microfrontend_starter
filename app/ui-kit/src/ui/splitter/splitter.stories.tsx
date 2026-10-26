@@ -22,3 +22,21 @@ export const Vertical: S = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the flex wrapper,
+ * `first`/`second` on the panels, `divider` on the drag handle; `style` lands
+ * on the root. */
+export const CustomStyled: S = {
+  name: 'CustomStyled (classNames + style)',
+  args: {
+    classNames: { root: 'rounded-xl border border-dashed border-accent p-2', divider: 'bg-accent' },
+    style: { height: '100%', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' },
+    first: <div className="grid h-full place-items-center rounded-lg bg-s3 text-body text-ink2">First panel</div>,
+    second: <div className="grid h-full place-items-center rounded-lg bg-s3 text-body text-ink2">Second panel</div>,
+  },
+  render: (args) => (
+    <div style={{ height: 240 }}>
+      <Splitter {...args} />
+    </div>
+  ),
+};

@@ -1,5 +1,20 @@
 // Mention — @autocomplete trong textarea (lite: trigger @ + suggestion list).
-import { useRef, useState } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/textarea/listbox/
+// option) + style passthrough — default path (không truyền) giữ nguyên DOM.
+import classNames from 'classnames';
+import { useRef, useState, type CSSProperties } from 'react';
+
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface MentionClassNames {
+  /** Div wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** <textarea> gõ nội dung (viền/focus). */
+  textarea?: string;
+  /** <ul> role=listbox dropdown gợi ý (chỉ render khi có @match). */
+  listbox?: string;
+  /** Button role=option — mỗi gợi ý một button. */
+  option?: string;
+}
 
 export interface MentionProps {
   value?: string;
@@ -7,9 +22,15 @@ export interface MentionProps {
   suggestions?: string[];
   placeholder?: string;
   className?: string;
+  /** Inline style — passthrough lên div wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: MentionClassNames;
 }
 
-export function Mention({ value: valueProp, onChange, suggestions = [], placeholder, className }: MentionProps) {
+export function Mention(props: MentionProps) {
+  const { value: valueProp, onChange, suggestions = [], placeholder, className, style } = props;
+  const slots = props.classNames;
   const [internal, setInternal] = useState('');
   const value = valueProp ?? internal;
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -39,10 +60,10 @@ export function Mention({ value: valueProp, onChange, suggestions = [], placehol
   }
 
   return (
-    <div className={`relative${className ? ` ${className}` : ''}`}>
+    <div className={classNames('relative', slots?.root, className)} style={style}>
       <textarea
         ref={ref} value={value} placeholder={placeholder}
-        className="w-full rounded-lg border border-line bg-s3 p-3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus:border-accent-hi focus:bg-s1 focus:shadow-[var(--ele-2)] focus:ring-[3px] focus:ring-accent/40 focus:outline-none"
+        className={classNames('w-full rounded-lg border border-line bg-s3 p-3 text-body text-ink placeholder:text-ink4 shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] focus:border-accent-hi focus:bg-s1 focus:shadow-[var(--ele-2)] focus:ring-[3px] focus:ring-accent/40 focus:outline-none', slots?.textarea)}
         onChange={(e) => { setInternal(e.target.value); onChange?.(e.target.value); detectMention(e.target.value, e.target.selectionStart); setActiveIdx(0); }}
         onKeyDown={(e) => {
           if (mentionQuery !== null && matches.length > 0) {
@@ -60,12 +81,12 @@ export function Mention({ value: valueProp, onChange, suggestions = [], placehol
         }}
       />
       {mentionQuery !== null && matches.length > 0 && (
-        <ul role="listbox" aria-label="Gợi ý mention" className="absolute z-[var(--z-popover)] m-0 origin-bottom list-none rounded-xl border border-line bg-s2 bg-[image:var(--wash)] p-1 shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]" style={{ bottom: '100%', left: 0 }}>
+        <ul role="listbox" aria-label="Gợi ý mention" className={classNames('absolute z-[var(--z-popover)] m-0 origin-bottom list-none rounded-xl border border-line bg-s2 bg-[image:var(--wash)] p-1 shadow-[var(--shadow-pop),var(--ele-3)] animate-[bp-zoom-in_var(--motion-fast)_var(--ease-enter)]', slots?.listbox)} style={{ bottom: '100%', left: 0 }}>
           {matches.map((s, i) => (
             <li key={s}>
               <button type="button" role="option" aria-selected={i === activeIdx}
                 style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
-                className={`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${i === activeIdx ? 'bg-s3' : 'hover:bg-accent/5'}`}
+                className={classNames(`w-full cursor-pointer rounded-lg border-none bg-transparent px-3 py-1.5 text-left text-body text-ink transition-colors duration-200 ease-[var(--ease-smooth)] animate-[bp-slide-up-in_240ms_var(--ease-smooth)_backwards] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${i === activeIdx ? 'bg-s3' : 'hover:bg-accent/5'}`, slots?.option)}
                 onClick={() => selectMention(s)}>@{s}</button>
             </li>
           ))}

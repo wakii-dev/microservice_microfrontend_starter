@@ -55,3 +55,29 @@ describe('InputMask — matrix (props thật: mask/value/onChange/ariaLabel + re
     expect(container.firstElementChild).toHaveClass('marker');
   });
 });
+
+describe('InputMask — classNames slot root + style (slots wave 3)', () => {
+  it('slot root lên đúng <input> (cùng element className); style passthrough qua rest', () => {
+    render(
+      <InputMask
+        mask="999-999"
+        ariaLabel="phone"
+        classNames={{ root: 'slot-root' }}
+        className="user-last"
+        style={{ margin: '8px' }}
+      />,
+    );
+    const input = screen.getByLabelText('phone');
+    expect(input).toHaveClass('slot-root');
+    expect(input).toHaveStyle({ margin: '8px' });
+    expect(input.className.indexOf('slot-root')).toBeLessThan(input.className.indexOf('user-last'));
+  });
+
+  it('không truyền slots → mask vẫn chạy (behavior giữ nguyên)', () => {
+    const onChange = vi.fn();
+    render(<InputMask mask="999-999" ariaLabel="p" onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText('p'), { target: { value: '123456' } });
+    expect(screen.getByLabelText('p')).toHaveValue('123-456');
+    expect(onChange).toHaveBeenLastCalledWith('123-456');
+  });
+});

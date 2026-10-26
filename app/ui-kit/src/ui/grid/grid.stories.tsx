@@ -177,3 +177,23 @@ export const WrapAndNested: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the Row flex div and
+ * each Col div; `style` merges after the gutter inline styles. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <Row
+      gutter={[16, 16]}
+      classNames={{ root: 'rounded-xl border border-dashed border-accent bg-accent/5 p-4' }}
+      style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)' }}
+    >
+      <Col span={12} md={8} classNames={{ root: 'rounded-lg bg-s3 p-3' }}>
+        Col slot — 12/24
+      </Col>
+      <Col span={12} md={16} classNames={{ root: 'rounded-lg bg-s2 p-3' }}>
+        Col slot — 16/24 at md
+      </Col>
+    </Row>
+  ),
+};

@@ -64,3 +64,17 @@ export const Orientation: Story = {
     </div>
   ),
 };
+
+/** CustomStyled — slots-wave classNames + style: `root` on the separator,
+ * `label` on the text span, `line` on the rule spans; `style` lands on the root. */
+export const CustomStyled: Story = {
+  name: 'CustomStyled (classNames + style)',
+  render: () => (
+    <div className="flex flex-col gap-4">
+      <Divider classNames={{ label: 'uppercase tracking-wide text-accent', line: 'border-dashed' }}>Sections</Divider>
+      <Divider dashed orientation="left" classNames={{ root: 'text-accent' }} style={{ margin: '8px 0' }}>
+        Slotted margin
+      </Divider>
+    </div>
+  ),
+};

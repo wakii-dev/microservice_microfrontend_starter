@@ -4,7 +4,10 @@
 // 1970-01-01 khi input là string (time thuần). Panel portal giống DatePicker.
 // Design: trigger theo pattern Input (border-line, focus accent, rounded-lg h-8),
 // panel bg-s2 border shadow-pop, nút nhanh active bg-accent text-white.
-import { useRef, useState } from 'react';
+// Customize pass (slots wave 3): classNames slots (root/trigger/panel) + style
+// passthrough — default path (không truyền) giữ nguyên DOM/behavior.
+import classNames from 'classnames';
+import { useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Icon } from '../icons/index.js';
 import { useDateLocale, type DateLocaleInput } from '../date-picker/locale.js';
@@ -60,6 +63,16 @@ export function TimeSpinner({ value, onChange, locale }: TimeSpinnerProps) {
   );
 }
 
+/** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định (consumer append). */
+export interface TimePickerClassNames {
+  /** Span wrapper ngoài (relative) — cùng element với className prop. */
+  root?: string;
+  /** Button trigger (viền/ring, chứa value/placeholder + icon clock). */
+  trigger?: string;
+  /** Panel nổi qua portal — spinner + nút "Bây giờ" (chỉ render khi mở). */
+  panel?: string;
+}
+
 export interface TimePickerProps {
   /** Date (giữ phần ngày khi phát onChange) hoặc string 'HH:mm'. */
   value?: Date | string;
@@ -70,6 +83,10 @@ export interface TimePickerProps {
   /** Mốc "bây giờ" — inject được để test deterministic. */
   now?: Date;
   className?: string;
+  /** Inline style — passthrough lên span wrapper ngoài. */
+  style?: CSSProperties;
+  /** Slot classes kiểu antd v5 (slots wave 3) — merge sau class mặc định. */
+  classNames?: TimePickerClassNames;
 }
 
 function parseValue(value: Date | string | undefined): TimeParts {
@@ -78,15 +95,18 @@ function parseValue(value: Date | string | undefined): TimeParts {
   return match ? { h: Number(match[1]), m: Number(match[2]) } : { h: 0, m: 0 };
 }
 
-export function TimePicker({
-  value,
-  onChange,
-  placeholder = 'HH:mm',
-  disabled = false,
-  locale,
-  now = new Date(),
-  className,
-}: TimePickerProps) {
+export function TimePicker(props: TimePickerProps) {
+  const {
+    value,
+    onChange,
+    placeholder = 'HH:mm',
+    disabled = false,
+    locale,
+    now = new Date(),
+    className,
+    style,
+  } = props;
+  const slots = props.classNames;
   const loc = useDateLocale(locale);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
@@ -101,16 +121,19 @@ export function TimePicker({
   const ariaLabel = value !== undefined ? `${loc.timeValuePrefix} ${pad(parts.h)}:${pad(parts.m)}` : loc.timeTriggerLabel;
 
   return (
-    <span ref={ref} className={`relative inline-flex${className ? ` ${className}` : ''}`}>
+    <span ref={ref} className={classNames('relative inline-flex', slots?.root, className)} style={style}>
       <button
         type="button"
         aria-label={ariaLabel}
         aria-expanded={open}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-lg border bg-s3 px-3 text-body shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)] focus-visible:ring-[3px] focus-visible:ring-accent/40 focus-visible:outline-none ${
-          open ? 'border-accent-hi' : 'border-line hover:border-ink/20'
-        } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4 shadow-none' : 'text-ink'}`}
+        className={classNames(
+          `inline-flex h-8 w-full min-w-[100px] cursor-pointer items-center gap-2 rounded-lg border bg-s3 px-3 text-body shadow-[var(--ele-1)] transition-[background-color,border-color,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:shadow-[var(--ele-2)] focus-visible:ring-[3px] focus-visible:ring-accent/40 focus-visible:outline-none ${
+            open ? 'border-accent-hi' : 'border-line hover:border-ink/20'
+          } ${disabled ? 'cursor-not-allowed bg-s3 text-ink4 shadow-none' : 'text-ink'}`,
+          slots?.trigger,
+        )}
       >
         <span className={value !== undefined ? 'tabular-nums' : 'text-ink4'}>{value !== undefined ? `${pad(parts.h)}:${pad(parts.m)}` : placeholder}</span>
         <span aria-hidden="true" className="ml-auto text-ink3"><Icon name="clock" size={14} /></span>
@@ -118,7 +141,10 @@ export function TimePicker({
       {open && createPortal(
         <div className="fixed inset-0 z-[var(--z-popover)]" onClick={() => setOpen(false)}>
           <div
-            className="absolute w-[180px] animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)] rounded-xl border border-line bg-s2 bg-[image:var(--wash)] p-3 shadow-[var(--shadow-pop),var(--ele-3)]"
+            className={classNames(
+              'absolute w-[180px] animate-[bp-zoom-in_var(--motion-base)_var(--ease-enter)] rounded-xl border border-line bg-s2 bg-[image:var(--wash)] p-3 shadow-[var(--shadow-pop),var(--ele-3)]',
+              slots?.panel,
+            )}
             style={{ left: ref.current?.getBoundingClientRect().left ?? 0, top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 4 }}
             onClick={(e) => e.stopPropagation()}
           >

@@ -1,6 +1,6 @@
 {
   "name": "create-wakii-stack",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
   "description": "CLI scaffold full-stack (FE+BE) dùng @wakii/ui-kit — full-copy + prune theo manifest (spec Hybrid C)",
@@ -19,7 +19,7 @@
   "author": "wakii-dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wakii-dev/architecture-overview.git",
+    "url": "git+https://github.com/wakii-dev/microservice_microfrontend_starter.git",
     "directory": "app/create-wakii-stack"
   },
   "bin": {

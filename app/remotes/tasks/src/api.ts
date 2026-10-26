@@ -75,6 +75,8 @@ export interface FetchTasksParams {
   limit?: number;
   offset?: number;
   status?: TaskStatus;
+  /** Search tiêu đề — node-svc ILIKE literal case-insensitive (trim/escape phía server). */
+  q?: string;
 }
 
 function buildTasksPath(params: FetchTasksParams = {}): string {
@@ -86,6 +88,9 @@ function buildTasksPath(params: FetchTasksParams = {}): string {
   });
   if (params.status) {
     query.set('status', params.status);
+  }
+  if (params.q) {
+    query.set('q', params.q);
   }
   return `/api/tasks?${query.toString()}`;
 }

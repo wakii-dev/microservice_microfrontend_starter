@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="docs/assets/readme/landing.png" alt="wakii — landing showcase: hero 3D + bento + marquee, chạy thật từ stack trong repo này" width="920" />
+<img src="docs/assets/readme/hero.svg" alt="microservice_microfrontend_starter — animated hero: blossom logo, token dots quỹ đạo, ripple pulse" width="880" />
 
-# wakii
+# microservice_microfrontend_starter
 
-### Design system 90+ components · full-stack platform · một lệnh
+### Microservice + micro-frontend starter — full-stack, one command.
 
-Mọi thứ bạn thấy trong ảnh trên là **sản phẩm thật của repo này** — chạy bằng
+Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của repo này** — chạy bằng
 `docker compose up`, không mock, không screenshot từ dự án khác.
 
 **90+** components · **1328** tests · **3** npm packages · **10** services
@@ -17,21 +17,32 @@ Mọi thứ bạn thấy trong ảnh trên là **sản phẩm thật của repo 
 [![Storybook](https://img.shields.io/badge/Storybook-870%2B%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+<img src="docs/assets/readme/stack-marquee.svg" alt="Stack chạy ngang vô hạn — React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion" width="920" />
+
 </div>
 
 ---
 
 ## Sản phẩm thật, không lời hứa
 
+<img src="docs/assets/readme/landing.png" alt="Landing showcase — hero 3D + bento + marquee, chạy thật từ stack trong repo" width="920" />
+
 | Kanban — kéo card đổi status | Activity — Kafka realtime |
 |:---:|:---:|
 | <img src="docs/assets/readme/kanban.png" alt="Kanban board — drag đổi status qua framer-motion" width="440" /> | <img src="docs/assets/readme/activity.png" alt="Activity feed — event Kafka hiện realtime sau khi tạo task" width="440" /> |
+| <img src="docs/assets/readme/kanban-drag.svg" alt="Animated kanban — card tự trượt todo → doing → done, cột đích sáng, badge đếm nhảy số" width="440" /> | <img src="docs/assets/readme/feed-pulse.svg" alt="Animated activity feed — event pop-in, live dot pulse" width="440" /> |
 
 Tạo một task ở Kanban → event đi qua **Kafka** → xuất hiện ngay ở Activity feed.
 Gắn task cho user `fail@demo.local` → saga rollback → event vào **DLQ**. Tất cả
 được kiểm chứng bởi [`scripts/smoke/e2e.sh`](scripts/smoke/e2e.sh) chạy trong CI.
 
 ## Bắt đầu trong 30 giây
+
+<div align="center">
+
+<img src="docs/assets/readme/terminal.svg" alt="Terminal gõ lệnh npm create wakii-stack — scaffold full stack, services ready, mở localhost:8080" width="640" />
+
+</div>
 
 ```bash
 # ① chỉ FE — React starter dogfood ui-kit
@@ -57,11 +68,37 @@ pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 | ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, extras demo, dark toggle chạy thật |
 | 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, prune compose/lock/workspace đúng selection, `kafka-init` chống race topic |
 
+```bash
+pnpm add @wakii/ui-kit                   # 🎨 design system
+npm create wakii-app@latest my-app       # ⚡ FE starter
+npm create wakii-stack@latest my-stack   # 🏗️ full platform
+```
+
+<div align="center">
+
+<img src="docs/assets/readme/token-palette.svg" alt="Design tokens nhấp nháy theo lượt — accent · ink · line · done · doing · fail" width="920" />
+
+</div>
+
 > Cả ba cũng có **mirror trên [GitHub Packages](https://github.com/orgs/wakii-dev/packages)** (`@wakii-dev/ui-kit` · `@wakii-dev/create-wakii-app` · `@wakii-dev/create-wakii-stack`) — registry `npm.pkg.github.com`, tiện cho org cài nội bộ. npmjs vẫn là bản canonical.
+
+## Motion & dark mode built-in
+
+<div align="center">
+
+<img src="docs/assets/readme/dark-switch.svg" alt="Dark mode — hai panel cross-fade light/dark ngược pha, sun/moon xoay swap theo data-bp-theme" width="480" />
+
+<img src="docs/assets/readme/motion-wave.svg" alt="Motion curves — enter ease-out, exit ease-in, toggle spring, tự vẽ + dot chạy theo đường cong" width="920" />
+
+</div>
 
 ## Bên dưới là gì
 
-> 🌐 Browser → **gateway :8080** (cổng duy nhất) → shell · remotes · auth · node · spring · go → postgres + kafka — tạo 1 task, xem nó chạy qua Kafka tới activity feed trong ~1 giây.
+<div align="center">
+
+<img src="docs/assets/readme/arch-flow.svg" alt="Diagram kiến trúc chạy — Browser → gateway :8080 pulse → 4 services sáng lần lượt → postgres pulse + kafka topic ring, packet chạy cong vào activity feed" width="920" />
+
+</div>
 
 | Tầng | Thành phần |
 |---|---|
@@ -98,10 +135,16 @@ scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
 
 ---
 
-<div align="center"><sub>
+<div align="center">
 
-**wakii** — tokens all the way down · MIT
+<img src="docs/assets/readme/constellation.svg" alt="Constellation — 14 nhóm component nối nhau bằng đường dữ liệu chảy + packet glow" width="920" />
+
+<sub>
+
+**microservice_microfrontend_starter** — microservice + micro-frontend, tokens all the way down · MIT
 
 [Storybook](https://storybook-static-khaki-two.vercel.app) · [npm](https://www.npmjs.com/~wakii) · [Walkthrough](docs/walkthrough.md) · [ADR](docs/adr/)
 
-</sub></div>
+</sub>
+
+</div>

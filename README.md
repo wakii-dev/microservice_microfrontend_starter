@@ -1,104 +1,117 @@
 <div align="center">
 
-<img src="app/ui-kit/docs/assets/hero.svg" width="880" alt="wakii — tokens-first design system và full-stack platform" />
+<img src="docs/assets/readme/landing.png" alt="wakii — landing showcase: hero 3D + bento + marquee, chạy thật từ stack trong repo này" width="920" />
 
-# wakii · architecture-overview
+# wakii
 
-**Một lệnh — cả nền tảng.** Design system 90+ components · full-stack starter
-(FE + BE + infra) · module federation · event-driven — tất cả trong một repo,
-đã verify end-to-end.
+### Design system 90+ components · full-stack platform · một lệnh
+
+Mọi thứ bạn thấy trong ảnh trên là **sản phẩm thật của repo này** — chạy bằng
+`docker compose up`, không mock, không screenshot từ dự án khác.
+
+**90+** components · **1328** tests · **3** npm packages · **10** services
 
 [![npm @wakii/ui-kit](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit&color=cb3837)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![npm create-wakii-app](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app&color=cb3837)](https://www.npmjs.com/package/create-wakii-app)
 [![npm create-wakii-stack](https://img.shields.io/npm/v/create-wakii-stack?logo=npm&label=create-wakii-stack&color=cb3837)](https://www.npmjs.com/package/create-wakii-stack)
-[![Storybook](https://img.shields.io/badge/Storybook-live%20demo-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
-[![Tests](https://img.shields.io/badge/ui--kit%20tests-1328%20passing-brightgreen)](app/ui-kit)
+[![Storybook](https://img.shields.io/badge/Storybook-870%2B%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[Storybook](https://storybook-static-khaki-two.vercel.app) · [Hệ sinh thái npm](https://www.npmjs.com/~wakii) · [Walkthrough](docs/walkthrough.md) · [8 ADR](docs/adr/) · [Conventions](platform/conventions/)
-
 </div>
 
 ---
 
-## 🧩 Hệ sinh thái — 3 packages công khai
+## Sản phẩm thật, không lời hứa
 
-| Package | Một dòng | Cài |
-|---|---|---|
-| **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 90+ React components (antd × PrimeReact parity) — tokens-first, Tailwind v4, dark/light, motion, a11y, 1328 behavior tests | `pnpm add @wakii/ui-kit` |
-| **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style React starter — TS/JS, router v7, extras demo (chart · carousel · schedule · editor), dark toggle chạy thật | `npm create wakii-app@latest` |
-| **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, `docker compose up` chạy ngay, entry duy nhất gateway `:8080` | `npm create wakii-stack@latest` |
+| Kanban — kéo card đổi status | Activity — Kafka realtime |
+|:---:|:---:|
+| <img src="docs/assets/readme/kanban.png" alt="Kanban board — drag đổi status qua framer-motion" width="440" /> | <img src="docs/assets/readme/activity.png" alt="Activity feed — event Kafka hiện realtime sau khi tạo task" width="440" /> |
 
-> Component nặng (Chart.js · Swiper · Tiptap · FullCalendar · three) là **peer
-> optional** sau subpath exports — không dùng thì không cài, bundle stays lean.
+Tạo một task ở Kanban → event đi qua **Kafka** → xuất hiện ngay ở Activity feed.
+Gắn task cho user `fail@demo.local` → saga rollback → event vào **DLQ**. Tất cả
+được kiểm chứng bởi [`scripts/smoke/e2e.sh`](scripts/smoke/e2e.sh) chạy trong CI.
 
-## 🏛️ Kiến trúc — 4 tầng, một cổng
-
-> Luồng: **Browser → gateway :8080** → shell/remotes (FE) · /api/* → auth · node · spring · go → postgres + kafka (event task → activity feed realtime).
-
-Chuỗi e2e chứng minh bởi smoke script: **happy** (login → tạo task → Kafka →
-activity feed realtime) + **saga** (assign user fail → compensating
-`assignment_failed` → DLQ). Demo: `alice@demo.local / demo-password`.
-
-| Tầng | Thành phần | Ports |
-|---|---|---|
-| **Experience** | shell (landing + MF host) · remotes (kanban tasks · activity feed) · admin showcase | 3000 · 4001-4002 · 5173 |
-| **Edge** | nginx gateway — routing + JWT presence + `/remotes/*` registry | **8080** |
-| **Services** | node-svc · spring-svc · go-svc · auth-svc | 3001 · 8081 · 8082 · 8090 |
-| **Infra** | postgres (schema-per-service) · kafka KRaft + kafka-init | 5432 · 9092 (internal) |
-
-## 🚀 Chạy thử
-
-**Cả stack (Docker):**
+## Bắt đầu trong 30 giây
 
 ```bash
-cd platform && cp .env.example .env    # điền JWT_SECRET + passwords
-docker compose up -d --build           # kafka-init tạo topics, health-gated chain
-bash ../scripts/smoke/e2e.sh           # PASS = happy + saga
-open http://localhost:8080             # login alice@demo.local / demo-password
+# ① chỉ FE — React starter dogfood ui-kit
+npm create wakii-app@latest my-app
+
+# ② cả nền tảng — FE + 3 backend + gateway + postgres + kafka
+npm create wakii-stack@latest my-stack
+cd my-stack && cp platform/.env.example platform/.env
+docker compose --env-file platform/.env up -d      # → http://localhost:8080
+
+# ③ design system một mình
+pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 ```
 
-**Chỉ FE dùng ui-kit:**
+> Đăng nhập demo: `alice@demo.local / demo-password` · Storybook:
+> [storybook-static-khaki-two.vercel.app](https://storybook-static-khaki-two.vercel.app)
 
-```bash
-npm create wakii-app@latest my-app     # scaffold + dogfood @wakii/ui-kit
-cd my-app && pnpm install && pnpm dev
+## Ba packages, một hệ sinh thái
+
+| | Package | Là gì |
+|---|---|---|
+| 🎨 | **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 90+ React components (antd × PrimeReact parity) — tokens-first, Tailwind v4, `UiKitProvider` theming, peer-deps optional sau subpath (`/carousel` `/chart` `/editor` `/schedule` `/experience3d`) |
+| ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, extras demo, dark toggle chạy thật |
+| 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, prune compose/lock/workspace đúng selection, `kafka-init` chống race topic |
+
+## Bên dưới là gì
+
+```mermaid
+graph LR
+    B["🌐 Browser"] --> GW{"gateway :8080<br/>cổng duy nhất"}
+    GW --> SH["shell · landing + MF host"]
+    GW --> RM["remotes · tasks kanban · activity feed"]
+    GW --> AU["auth-svc<br/>JWT + refresh rotation"]
+    GW --> ND["node-svc<br/>Fastify · outbox"]
+    GW --> SP["spring-svc<br/>Spring Boot 3"]
+    GW --> GO["go-svc<br/>saga consumer"]
+    ND -- "outbox → events" --> K[("kafka<br/>kafka-init tạo topics")]
+    K -- "consume" --> GO
+    ND & SP & GO --> PG[("postgres<br/>schema-per-service")]
 ```
 
-**Design system một mình:** [Storybook live](https://storybook-static-khaki-two.vercel.app)
-(870+ stories, lens "sử dụng thực tế": Product gallery · OTP login · Orders
-table · Checkout confirm…).
+| Tầng | Thành phần |
+|---|---|
+| **Experience** | shell (landing 3D + nav) · remotes (kanban drag · feed realtime) · admin showcase |
+| **Edge** | nginx gateway — routing · JWT presence · `/remotes/*` registry |
+| **Services** | node-svc :3001 · spring-svc :8081 · go-svc :8082 · auth-svc :8090 |
+| **Infra** | postgres :5432 (schema-per-svc) · kafka :9092 (KRaft + kafka-init) |
 
-## 🗺️ Repo map
+## Repo map
 
 ```
-contracts/    source of truth — openapi (spectral lint CI) · canonical DDL · token contract
-platform/     compose + kafka-init · postgres init · gateway nginx · 9 conventions
-services/     node-svc · spring-svc · go-svc · auth-svc (README standalone từng svc)
+contracts/    source of truth — openapi (spectral CI) · canonical DDL · token contract
+platform/     compose + kafka-init · postgres init · gateway · 9 conventions
+services/     node · spring · go · auth — README standalone từng service
 app/
-  ui-kit/     @wakii/ui-kit — 90+ components · 17 hooks · tokens · Storybook
-  shared/     fe-shared — api client · token storage · MF bootstrap (READ-LOCKED)
+  ui-kit/     @wakii/ui-kit — components · hooks · tokens · Storybook
+  shared/     fe-shared — api client · token storage · MF bootstrap
+  shell/      MF host + landing showcase (Scene3D three · tilt card)
+  remotes/    tasks (kanban) · activity (feed)
   admin/      showcase SPA — DataTable virtual · zod forms · upload
-  shell/      MF host + landing showcase (Scene3D · kanban remotes)
-  remotes/    tasks (kanban drag) · activity (feed realtime)
-  create-*/   2 scaffolders npm + starter-templates + stack-template
+  create-*/   scaffolders npm + starter-templates + stack-template
+docs/         walkthrough · 8 ADR · toolchain · assets/readme (ảnh thật)
 scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
-docs/         walkthrough · 8 ADR · toolchain
 ```
 
-## 📐 Quy tắc sống còn
+## Quy tắc sống còn
 
-1. **Contract-first** — API đổi = sửa `contracts/openapi/*.yaml` trước, spectral phải pass ([ADR 0003](docs/adr/0003-contract-first.md)).
-2. **Gateway chỉ presence-check JWT** — service tự verify signature + expiry ([token-contract](contracts/auth/token-contract.md) §4).
-3. **Kafka lazy-connect** — không `depends_on`, kafka-init tạo topic trước consumer (chống race empty-assignment — [ADR 0008](docs/adr/)).
-4. **Đổi port = 4 chỗ cùng commit** — conventions/05 + `.env.example` + compose + README này.
-5. **FE copy phải kèm** `app/shared` + `app/ui-kit` (workspace deps).
-6. **Quyết định kiến trúc** — đọc ADR tương ứng trước khi đổi (mỗi ADR có Consequences + điểm cắm).
+1. **Contract-first** — sửa `contracts/openapi/*.yaml` trước, spectral phải pass ([ADR 0003](docs/adr/0003-contract-first.md))
+2. **Gateway chỉ presence-check JWT** — service tự verify signature ([token-contract §4](contracts/auth/token-contract.md))
+3. **Kafka lazy-connect + kafka-init** — topic tồn tại trước consumer, không `depends_on` broker ([ADR 0008](docs/adr/))
+4. **Đổi port = 4 chỗ cùng commit** — conventions/05 · `.env.example` · compose · README
+5. **FE copy kèm** `app/shared` + `app/ui-kit` (workspace deps)
+6. **Đổi kiến trúc** — đọc ADR trước (mỗi ADR ghi Consequences + điểm cắm thay thế)
 
 ---
 
-<div align="center">
+<div align="center"><sub>
 
-**wakii** — tokens all the way down. · MIT
+**wakii** — tokens all the way down · MIT
 
-</div>
+[Storybook](https://storybook-static-khaki-two.vercel.app) · [npm](https://www.npmjs.com/~wakii) · [Walkthrough](docs/walkthrough.md) · [ADR](docs/adr/)
+
+</sub></div>

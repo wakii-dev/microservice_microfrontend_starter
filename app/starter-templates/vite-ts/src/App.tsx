@@ -9,6 +9,7 @@ import {
   Card,
   CountUp,
   Icon,
+  Input,
   Link,
   Statistic,
   Table,
@@ -64,6 +65,7 @@ export function App() {
   const { theme, setTheme } = useAppTheme();
   const [claps, setClaps] = useState(0);
   const [tags, setTags] = useState(STARTER_TAGS);
+  const [subscribed, setSubscribed] = useState(false);
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
@@ -139,6 +141,35 @@ export function App() {
           </div>
         </section>
 
+        {/* Customize pass — SÓNG-3 slots: mọi component nhận `classNames` (slot
+         * classes theo antd v5) + `style` passthrough — restyle không cần wrapper.
+         * Demo: Input root pill (form login style) + Button root pill + Tag accent. */}
+        <section className="flex flex-col gap-3">
+          <Title level={3}>Customize pass</Title>
+          <div className="flex max-w-md flex-wrap items-center gap-2">
+            <Input
+              placeholder="you@example.com"
+              aria-label="Email"
+              classNames={{ root: 'min-w-0 flex-[1_1_180px]' }}
+              style={{ borderRadius: 'var(--r-pill)' }}
+            />
+            <Button type="primary" classNames={{ root: 'rounded-pill' }} onClick={() => setSubscribed(true)}>
+              Subscribe
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Tag — variant accent tự chế bằng utilities qua slot root */}
+            <Tag classNames={{ root: 'border-accent/40 bg-accent/10 text-accent' }} style={{ fontWeight: 600 }}>
+              slot classes
+            </Tag>
+            {/* Tag — style passthrough thẳng lên element */}
+            <Tag style={{ fontStyle: 'italic' }}>style passthrough</Tag>
+          </div>
+          {subscribed && (
+            <Text type="secondary">Subscribed — check your inbox (demo only, nothing was sent).</Text>
+          )}
+        </section>
+
         {/* Table — 3 cột, 5 hàng */}
         <section className="flex flex-col gap-3">
           <Title level={3}>Table</Title>
@@ -155,8 +186,17 @@ export function App() {
           </div>
         </section>
 
-        {/* Card — links ra kit */}
-        <Card title="What's inside" extra={<Tag>@wakii/ui-kit</Tag>}>
+        {/* Card — links ra kit. SÓNG-3 slots: classNames.root = hover emphasis
+         * (lift + shadow) — style passthrough viền nổi hơn. */}
+        <Card
+          title="What's inside"
+          extra={<Tag>@wakii/ui-kit</Tag>}
+          classNames={{
+            root:
+              'transition-[transform,box-shadow] duration-200 ease-[var(--ease-smooth)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lift)]',
+          }}
+          style={{ borderColor: 'var(--line2)' }}
+        >
           <ul className="m-0 flex list-none flex-col gap-2 p-0 text-body">
             <li>
               <Link href="https://storybook-static-khaki-two.vercel.app" target="_blank" rel="noreferrer">

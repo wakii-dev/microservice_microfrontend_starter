@@ -33,7 +33,7 @@ fi
 [ -e "$DEST" ] && rm -rf "$DEST"
 mkdir -p "$DEST"
 
-rsync -a \
+rsync -a --exclude='go.sum' \
   --exclude='/app/stack-template/' \
   --exclude='.git/' \
   --exclude='node_modules/' \

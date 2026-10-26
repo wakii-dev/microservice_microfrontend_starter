@@ -2,6 +2,10 @@
 
 # 🎨 @wakii/ui-kit
 
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/hero.svg" width="960" alt="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses, grid background and typing indicator">
+</p>
+
 **A production-grade React design system built AI-first — 90+ components, 31 hooks, tokens-first, motion, dark theme.**
 
 Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
@@ -33,7 +37,7 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 [📖 Live Storybook](https://storybook-static-khaki-two.vercel.app) ·
 [📦 npm](https://www.npmjs.com/package/@wakii/ui-kit) ·
 [🏠 GitHub](https://github.com/wakii-dev/architecture-overview) ·
-[📚 Full docs](./USAGE.md)
+[📚 Full docs](https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/USAGE.md)
 
 </div>
 
@@ -52,11 +56,19 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 | 🪶 **Smart weight** | Heavy engines (Swiper, Chart.js, Tiptap, FullCalendar) are optional peers behind subpath exports — your bundle stays lean |
 | 🧪 **1290 behavior tests** | We test clicks → callbacks, state classes, keyboard flows. Not smoke renders |
 
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/token-palette.svg" width="960" alt="Design token palette — six swatches for accent, ink, line, done, doing and fail tokens blinking in sequence with their CSS variable names">
+</p>
+
 ## 🚀 Quick start
 
 ```bash
 npm install @wakii/ui-kit
 ```
+
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs version 0.5.0, done in 1.4s, blinking block cursor">
+</p>
 
 ```tsx
 // one CSS file — tokens + utilities + motion, all compiled
@@ -74,6 +86,10 @@ export function App() {
 ```html
 <html data-bp-theme="dark">
 ```
+
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/dark-switch.svg" width="480" alt="Theme switch — two app panels cross-fading between light and dark palettes while sun and moon icons rotate and swap">
+</p>
 
 ### 📝 Forms with zod — schema is the single source of truth
 
@@ -104,9 +120,13 @@ const form = useForm({ schema, mode: 'onBlur' });
 - **Motion showcases**: `Landing` + `Parallax Landing` (depth-trio hero, parallax lab) + `Cinematic Experience` (glass-nav chaptershell) templates.
 - **Team-OS domain pack**: `PingFeed`, `StagePipeline`, `DebtBoard`, `TeamDashboard`, `InboxThread`.
 - **Chart dark-live**: `useChartColors` probe + `data-bp-theme` observer — charts re-resolve colors on theme toggle, no reload.
-- **Icon set 52** (`filter-fill` / `filter-slash` mới) — glyph characters swept to SVG everywhere. Full detail: [CHANGELOG.md](./CHANGELOG.md).
+- **Icon set 52** (`filter-fill` / `filter-slash` mới) — glyph characters swept to SVG everywhere. Full detail: [CHANGELOG.md](https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/CHANGELOG.md).
 
 ## 🧩 Component map
+
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/constellation.svg" width="960" alt="Component constellation — fourteen nodes such as Button, Table, Chart and Carousel linked by animated dashed data-flow lines with travelling packets">
+</p>
 
 | Group | Components |
 |---|---|
@@ -153,6 +173,10 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 > Auth, Settings, Landing, Parallax Landing, Cinematic Experience (kèm demo Team-OS
 > components trong story riêng). Recipes copy-chạy: [recipes.md](../../docs/ai/recipes.md).
 
+<p align="center">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/motion-wave.svg" width="960" alt="Motion curves — enter, exit and toggle easing paths self-drawing in a loop with a dot travelling along each curve">
+</p>
+
 ## 🔬 Quality
 
 - **1290 behavior tests / 163 test files** (clicks → callbacks, state classes, keyboard flows)
@@ -163,7 +187,7 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 ## 📚 Documentation
 
 - [USAGE.md](./USAGE.md) — deep dives per group (forms, icons, subpaths, z-index)
-- [CHANGELOG.md](./CHANGELOG.md) / [MIGRATION.md](./MIGRATION.md) — releases & breaking changes (Alert filled, antd Pagination, subpath heavy engines)
+- [CHANGELOG.md](https://github.com/wakii-dev/architecture-overview/blob/main/app/ui-kit/CHANGELOG.md) / [MIGRATION.md](./MIGRATION.md) — releases & breaking changes (Alert filled, antd Pagination, subpath heavy engines)
 - [parity-matrix.md](../docs/parity-matrix.md) — component-by-component benchmark vs antd/PrimeReact
 
 <div align="center">

@@ -61,6 +61,16 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: q
+          in: query
+          required: false
+          description: |
+            Tìm theo tiêu đề — case-insensitive substring (SQL ILIKE `%q%`).
+            Service trim rồi bỏ qua nếu rỗng; ký tự LIKE `%` `_` `\` được escape
+            nên luôn khớp LITERAL (không coi là wildcard).
+          schema:
+            type: string
+            maxLength: 200
         - name: limit
           in: query
           required: false

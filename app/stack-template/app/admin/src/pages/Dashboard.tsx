@@ -8,7 +8,9 @@
 // - Headers: chart + timeline cùng pattern title trái + Tag phải
 // Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, Chart, Col, EmptyState, Icon, Row, Tag, Timeline, message } from '@wakii/ui-kit';
+import { Button, Card, Col, EmptyState, Icon, Row, Tag, Timeline, message } from '@wakii/ui-kit';
+// 0.6.0: Chart rời barrel chính — component nặng (peer chart.js) import qua subpath.
+import { Chart } from '@wakii/ui-kit/chart';
 
 const STATS = [
   { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },

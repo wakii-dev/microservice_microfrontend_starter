@@ -73,17 +73,25 @@ export function Checkbox(props: CheckboxProps) {
           slots?.box,
         )}
       />
-      {/* tick — chỉ khi checked thật (không hiện khi indeterminate) */}
+      {/* tick — chỉ khi checked thật (không hiện khi indeterminate). grid/hidden
+       * LOẠI NHAU (mirror dash span) — không ghép hidden+grid phụ thuộc cascade;
+       * -ml-6 = -(size-4 16px + gap-2 8px) → overlay đúng tâm box, không shift text;
+       * `relative` đưa span vào stratum positioned — input checked có scale (stacking
+       * context) paint TRÊN span thường đã từng đè mất tick (bug 2026-10-25). */}
       <span
         aria-hidden="true"
-        className={`-ml-5 hidden size-4 place-items-center text-[10px] font-bold text-white ${inputChecked && !tri ? 'grid peer-checked:grid peer-checked:animate-[bp-check-pop_160ms_cubic-bezier(0.34,1.56,0.64,1)]' : ''}`}
+        className={`relative -ml-6 size-4 place-items-center text-[10px] font-bold text-white ${
+          inputChecked && !tri
+            ? 'grid peer-checked:animate-[bp-check-pop_160ms_cubic-bezier(0.34,1.56,0.64,1)]'
+            : 'hidden'
+        }`}
       >
         <Icon name="check" size={12} />
       </span>
-      {/* dash indeterminate — nền accent, không animation pop */}
+      {/* dash indeterminate — nền accent, không animation pop (relative: cùng lý do tick) */}
       <span
         aria-hidden="true"
-        className={`-ml-5 size-4 items-center justify-center text-[10px] font-bold leading-none text-white ${tri ? 'grid' : 'hidden'}`}
+        className={`relative -ml-6 size-4 items-center justify-center text-[10px] font-bold leading-none text-white ${tri ? 'grid' : 'hidden'}`}
       >
         <span className="h-0.5 w-2 rounded-[1px] bg-white" />
       </span>

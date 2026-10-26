@@ -35,14 +35,17 @@ class EditorErrorBoundary extends Component<{ fallback?: ReactNode; children: Re
   }
 }
 
-// Specifier qua BIẾN — esbuild (splitting:false) không thể inline dynamic import
-// có specifier động; './editorInner.js' là entry tsup riêng (peer @tiptap/* chỉ
-// nằm đó, không lọt vào index bundle — consumer không cài tiptap vẫn build được).
-const EDITOR_INNER_ENTRY = './editorInner.js';
-// type qua import type (không kéo runtime) — specifier động làm TS không suy được
+// Specifier LITERAL (0.6.0 — BUG #4): './EditorInner.js' (khớp casing file thật —
+// TS1149 nếu lệch) là entry tsup riêng (peer @tiptap/* chỉ nằm đó, không lọt vào
+// index bundle). Trước đây qua BIẾN để né esbuild inline dynamic import
+// (splitting:false) — nhưng khiến bundler consumer không phân tích được lazy split.
+// Literal: TS suy type, vite dev prebundle + rollup consumer build đều resolve được;
+// peer thiếu → build error RÕ. esbuild splitting:false sẽ inline EditorInner vào
+// dist/editor.js (specifier không lọt dist — hết lo case-sensitivity).
+// type qua import type (không kéo runtime)
 import type { EditorInner as EditorInnerFn } from './EditorInner.js';
 const EditorInner = lazy(() =>
-  import(EDITOR_INNER_ENTRY).then((m) => ({ default: m.EditorInner as typeof EditorInnerFn })),
+  import('./EditorInner.js').then((m) => ({ default: m.EditorInner as typeof EditorInnerFn })),
 );
 
 export function Editor(props: EditorProps) {

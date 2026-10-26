@@ -72,9 +72,16 @@ export { Galleria, type GalleriaProps, type GalleriaImage } from './ui/galleria/
 export { Tree, type TreeProps, type TreeNodeData } from './ui/tree/index.js';
 export { TreeTable, type TreeTableProps, type TreeTableNode, type TreeTableColumn } from './ui/tree-table/index.js';
 export { Splitter, type SplitterProps } from './ui/splitter/index.js';
-export { Chart, useChartTheme, type ChartProps, type ChartConfig, type ChartDataset } from './ui/chart/index.js';
-export { Schedule, type ScheduleProps, type ScheduleEvent } from './ui/schedule/index.js';
-export { Editor, type EditorProps } from './ui/editor/index.js';
+// 0.6.0 BREAKING: Chart/Schedule/Editor rời barrel chính (theo Carousel 0.5.0).
+// Lý do: dist npm dùng dynamic import specifier LITERAL cho peer (chart.js/
+// @fullcalendar/*) — component phải tách subpath để barrel giữ nguyên tắc 0-deps,
+// còn specifier literal chỉ resolve được khi consumer cài peer (khai báo đủ ở
+// package.json — build error RÕ thay vì fallback câm lặng, BUG #4).
+// Import component qua subpath: `@wakii/ui-kit/chart|schedule|editor`.
+// Types GIỮ ở barrel (export type — bị xoá lúc build, không kéo runtime peer vào graph).
+export type { ChartProps, ChartConfig, ChartDataset } from './ui/chart/index.js';
+export type { ScheduleProps, ScheduleEvent } from './ui/schedule/index.js';
+export type { EditorProps } from './ui/editor/index.js';
 export { Watermark, type WatermarkProps, type WatermarkFont } from './ui/watermark/index.js';
 
 export { ContextMenu, type ContextMenuProps } from './ui/context-menu/index.js';

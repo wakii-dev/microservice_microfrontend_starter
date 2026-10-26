@@ -1,9 +1,27 @@
 {
   "name": "create-wakii-stack",
-  "version": "0.1.5",
+  "version": "0.1.8",
   "private": true,
   "type": "module",
   "description": "CLI scaffold full-stack (FE+BE) dùng @wakii/ui-kit — full-copy + prune theo manifest (spec Hybrid C)",
+  "keywords": [
+    "wakii",
+    "fullstack",
+    "scaffold",
+    "react",
+    "vite",
+    "go",
+    "kafka",
+    "cli",
+    "template"
+  ],
+  "license": "MIT",
+  "author": "wakii-dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wakii-dev/microservice_microfrontend_starter.git",
+    "directory": "app/create-wakii-stack"
+  },
   "bin": {
     "create-wakii-stack": "./dist/index.js"
   },

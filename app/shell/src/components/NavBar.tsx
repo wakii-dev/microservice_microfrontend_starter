@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Button, Icon, useLocalStorage } from '@wakii/ui-kit';
+import { Button, useLocalStorage } from '@wakii/ui-kit';
 import { auth } from '../api';
 
 /* Dark toggle toàn host (batch ⑰ — pattern AdminLayout): data-bp-theme trên
@@ -79,7 +79,10 @@ export function NavBar() {
     >
       <span className="flex items-center gap-2 text-body font-semibold tracking-[-0.01em] text-ink">
         <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-accent">
-          <Icon name="menu-bars" size={12} className="text-white" />
+          {/* Logo mark "W" (wakii) — brand chung create-wakii-app/-stack (bộ Icon chưa có glyph logo). */}
+          <svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" className="text-white">
+            <path d="M1.5 3l2.2 6L6 5.2 8.3 9l2.2-6" />
+          </svg>
         </span>
         Boilerplate
       </span>

@@ -5,7 +5,7 @@
 // SF-2 (FI-79): mutation + INSERT outbox trong CÙNG 1 tx (db.transaction —
 // conventions/09 rule 2). Thứ tự trong tx: task mutation TRƯỚC, outbox SAU —
 // fail ở bước nào cũng rollback cả 2 (test: repo.drizzle.test.ts seam).
-import { and, count, desc, eq, ne, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, ne, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { outbox, tasks } from './db/schema.js';
 import type {
@@ -20,6 +20,14 @@ import type {
 
 type Row = typeof tasks.$inferSelect;
 type Tx = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
+
+/**
+ * Escape ký tự wildcard của LIKE (`%` `_` và chính `\`) — `q` khớp LITERAL trong
+ * title, không phải pattern. `\` là escape char mặc định của Postgres LIKE/ILIKE.
+ */
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
 
 function toTask(row: Row): Task {
   return {
@@ -45,6 +53,7 @@ export class DrizzleTaskRepo implements TaskRepo {
     const conditions = [
       filter.status ? eq(tasks.status, filter.status) : undefined,
       filter.assigneeId ? eq(tasks.assigneeId, filter.assigneeId) : undefined,
+      filter.q ? ilike(tasks.title, `%${escapeLike(filter.q)}%`) : undefined,
     ].filter(Boolean);
 
     const rows = await this.db

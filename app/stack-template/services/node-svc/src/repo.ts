@@ -35,6 +35,9 @@ export interface Task {
 export interface ListFilter {
   status?: TaskStatus; // query param — writable 3 giá trị (tasks.yaml)
   assigneeId?: string;
+  /** Search tiêu đề (query param `q`) — route đã trim (rỗng → không truyền).
+   *  Repo escape ký tự LIKE `%_\` rồi ILIKE %q% — khớp literal, case-insensitive. */
+  q?: string;
   limit: number; // 1..100
   offset: number; // >=0
 }

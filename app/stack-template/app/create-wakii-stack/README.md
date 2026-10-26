@@ -1,5 +1,9 @@
 # create-wakii-stack
 
+[![npm](https://img.shields.io/badge/npm-create--wakii--stack-cb3837?logo=npm&logoColor=white)]
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+
 Scaffold the **full Wakii architecture** (FE + BE + infra) as a pruned monorepo snapshot — CRA-style CLI: interactive multiselect, non-interactive flags. Strategy **Hybrid C**: copy the full template, then **prune against a manifest** (delete paths, cut compose blocks, clean `depends_on`, filter gateway conf/env keys) — no template engine, original content untouched.
 
 > **Not on npm yet — publishing soon.** The CLI ships in this repository today.
@@ -65,3 +69,7 @@ A monorepo snapshot pruned according to `stack-manifest.json`:
 pnpm --filter create-wakii-stack typecheck
 pnpm --filter create-wakii-stack test   # 3-service fixture template in tmp — no network
 ```
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

@@ -4,6 +4,35 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.6.0] — 2026-10-25 (customize pass — classNames slots + style passthrough toàn thư viện)
+
+### Added
+
+- **Customize pass (SÓNG-3, waves 1-3)**: `classNames` slots (antd v5-style) + `style` passthrough cho ~30 components — Button (root/icon), Input (root/input/prefix/suffix), Textarea, Select, Checkbox, Radio, Switch, Card, Tag (+Checkable), Spinner, Alert, v.v. Default path (không truyền) giữ nguyên DOM/GUI hoàn toàn — consumer append qua slots, `className` user luôn cuối.
+- Barrel export đầy đủ `*ClassNames` types (ButtonClassNames, InputClassNames, TagClassNames, SpinnerClassNames, …).
+- Dep `classnames` cho merge gọn slots.
+
+### Fixed
+
+- Spinner story CustomStyled bỏ annotation StoryObj (TS2322 sót wave 2).
+- ButtonClassNames sót barrel trong PR #93.
+
+## [0.6.1] – [0.6.2] — 2026-10-25 (bản intermediate do release song song — xem git log)
+
+## [0.6.3] / [0.6.4] — 2026-10-25 (BREAKING — lazy-load npm chạy thật: Chart/Schedule/Editor rời barrel)
+
+### Breaking
+
+- **`Chart` / `Schedule` / `Editor` rời barrel chính** → import qua subpath `@wakii/ui-kit/chart` · `@wakii/ui-kit/schedule` · `@wakii/ui-kit/editor` (theo Carousel 0.5.0). `useChartTheme` đi theo `Chart` qua subpath. Types vẫn export từ barrel. Consumer monorepo duy nhất dùng barrel (admin `Dashboard.tsx`) đã đổi subpath.
+
+### Fixed
+
+- **BUG #4 — npm consumers (Vite dev + prod) thấy Chart/Schedule/Editor rơi fallback vĩnh viễn**: dist dynamic import peer qua BIẾN specifier → bundler không phân tích tĩnh được → bundle prod giữ `import("chart.js/auto")` bare → fallback câm lặng kể cả khi peer đã cài. Fix: specifier LITERAL — vite dev + rollup đều resolve khi peer installed; peer thiếu → build error rõ ràng. Verify e2e consumer ngoài monorepo: prod code-split + dev canvas painted thật.
+
+### Added
+
+- `peerDependencies` đủ 3 peer lazy-import: `@fullcalendar/daygrid` + `@fullcalendar/interaction` `^6.1.15`, `@tiptap/starter-kit` `^3.32.0` (meta optional).
+
 ## [0.5.0] — 2026-10-24 (BREAKING — barrel chính sạch彻底 peer imports)
 
 ### Breaking

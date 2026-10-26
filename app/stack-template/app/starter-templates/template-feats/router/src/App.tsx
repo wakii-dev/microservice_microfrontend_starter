@@ -277,7 +277,11 @@ export function App() {
         <div className="mx-auto flex min-h-[60px] w-full max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-6">
           <span className="flex items-center gap-2 text-body font-semibold tracking-[-0.01em] text-ink">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-accent">
-              <Icon name="menu-bars" size={12} className="text-white" />
+              {/* Logo mark "W" (wakii) — brand riêng của app scaffold, bộ Icon
+                  chưa có glyph logo (precedent Sun/Moon icon ở trên). */}
+              <svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <path d="M1.5 3l2.2 6L6 5.2 8.3 9l2.2-6" />
+              </svg>
             </span>
             {'{{appName}}'}
           </span>

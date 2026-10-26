@@ -1,5 +1,6 @@
 // API shape tests — assert URL/method/header/body khớp contract tasks.yaml + envelope decode.
 // SF-3 (VU-56): fetchTasks nhận params limit/offset/status (clamp limit 1..100, offset ≥ 0) + deleteTask.
+// Search server-side: fetchTasks nhận thêm q (URLSearchParams encode; node-svc tự trim + escape LIKE).
 import {
   ApiError,
   createTask,
@@ -55,6 +56,37 @@ describe('api — remote tasks', () => {
 
     const [url] = fetchMock.mock.calls[0];
     expect(url).toBe('/api/tasks?limit=100&offset=0');
+  });
+
+  it('fetchTasks — q lên query (search server-side, sau status theo contract)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchTasks({ q: 'báo cáo' });
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/tasks?limit=10&offset=0&q=b%C3%A1o+c%C3%A1o');
+  });
+
+  it('fetchTasks — q rỗng KHÔNG gởi param (server tự trim — không gửi param thừa)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchTasks({ q: '' });
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/tasks?limit=10&offset=0');
+  });
+
+  it('fetchTasks — q ký tự LIKE (`%` `_`) được encode an toàn trên URL', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ items: [], total: 0 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchTasks({ q: '100%_x' });
+
+    const [url] = fetchMock.mock.calls[0];
+    // URLSearchParams encode % → %25 (escape LIKE là việc node-svc)
+    expect(url).toBe('/api/tasks?limit=10&offset=0&q=100%25_x');
   });
 
   it('deleteTask — DELETE /api/tasks/{id} + Authorization, 204 không body', async () => {

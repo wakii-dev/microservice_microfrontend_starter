@@ -1,0 +1,17 @@
+---
+// Trang chủ — shell tĩnh (head + global.css); toàn bộ UI demo chạy trong island
+// KitDemo (client:load) vì component kit chỉ sống trong React island.
+import '../styles/global.css';
+import KitDemo from '../components/KitDemo';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{{appName}}</title>
+  </head>
+  <body>
+    <KitDemo client:load />
+  </body>
+</html>

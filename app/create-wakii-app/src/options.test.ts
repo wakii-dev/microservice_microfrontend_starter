@@ -90,11 +90,12 @@ describe('resolveOptions', () => {
       router: true,
       extras: [],
       preset: 'demo',
+      variant: 'vite',
       skipInstall: false,
     });
     // extras kéo theo router; tắt router tường minh + extras → lỗi rõ
     expect(resolveOptions({ appName: 'x', lang: 'js', router: true, extras: ['chart'], yes: false, skipInstall: true })).toEqual({
-      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', skipInstall: true,
+      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', variant: 'vite', skipInstall: true,
     });
     expect(() => resolveOptions({ lang: 'ts', router: false, extras: ['chart'], yes: true, skipInstall: false })).toThrow(/mâu thuẫn/);
   });
@@ -121,5 +122,21 @@ describe('resolveOptions', () => {
     expect(() => resolveOptions({ lang: 'js', preset: 'admin', extras: [], yes: true, skipInstall: false })).toThrow(
       /chỉ hỗ trợ TypeScript/,
     );
+  });
+});
+
+describe('resolveOptions — variant framework', () => {
+  it('--variant next parse + default vite', () => {
+    const vr = parseArgs(['--variant', 'next']);
+    if (vr.ok) expect(vr.options.variant).toBe('next');
+    expect(parseArgs(['--variant', 'nuxt']).ok).toBe(false);
+    const plan = resolveOptions({ lang: 'ts', extras: [], yes: false, skipInstall: false, variant: 'next' });
+    expect(plan.variant).toBe('next');
+    expect(resolveOptions({ lang: 'ts', extras: [], yes: false, skipInstall: false }).variant).toBe('vite');
+  });
+  it('variant != vite conflict preset/extras/js → lỗi rõ', () => {
+    expect(() => resolveOptions({ lang: 'ts', extras: [], yes: false, skipInstall: false, variant: 'astro', preset: 'product' })).toThrow(/chỉ dành cho preset demo/);
+    expect(() => resolveOptions({ lang: 'js', extras: [], yes: false, skipInstall: false, variant: 'astro' })).toThrow(/chỉ hỗ trợ TypeScript/);
+    expect(() => resolveOptions({ lang: 'ts', extras: ['chart'], yes: false, skipInstall: false, variant: 'astro' })).toThrow(/chỉ dành cho variant vite/);
   });
 });

@@ -14,9 +14,7 @@ pnpm dev      # http://localhost:5173
 
 The demo page dogfoods the kit: `Button` · `Tag` · `Alert` · `Table` · `Statistic`
 + `CountUp` · `Card` · `Typography` (`Title`/`Text`) · `Icon` · `Link` — plus a
-working dark mode toggle in the top-right corner. It also demonstrates the
-**customize pass** (ui-kit 0.6+): every component accepts `classNames` slots and
-`style` passthrough — see the "Customize pass" section in `src/App.tsx`.
+working dark mode toggle in the top-right corner.
 
 ## How theming works
 

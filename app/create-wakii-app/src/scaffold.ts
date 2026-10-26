@@ -95,7 +95,7 @@ async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: strin
   };
   pkg.dependencies ??= {};
   const additions: string[] = [];
-  if (plan.router && plan.preset === 'demo') {
+  if (plan.router && plan.preset === 'demo' && (plan.variant ?? 'vite') === 'vite') {
     pkg.dependencies['react-router'] ??= '^7.9.0';
     additions.push('react-router@^7.9.0');
   }
@@ -123,14 +123,23 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     product: 'product-ts',
     admin: 'product-ts',
   };
-  const variant = plan.preset === 'demo' ? (plan.lang === 'js' ? 'vite-js' : 'vite-ts') : presetBase[plan.preset];
-  const baseDir = join(templatesRoot, variant);
+  const variant = plan.variant ?? 'vite';
+  const demoBase: Record<'vite' | 'next' | 'astro', string> = {
+    vite: plan.lang === 'js' ? 'vite-js' : 'vite-ts',
+    next: 'next-ts',
+    astro: 'astro-ts',
+  };
+  const baseName = plan.preset === 'demo' ? demoBase[variant] : presetBase[plan.preset];
+  const baseDir = join(templatesRoot, baseName);
   if (!existsSync(baseDir)) {
-    throw new Error(`Không thấy template base: ${baseDir} (cần ${variant} trong starter-templates)`);
+    throw new Error(`Không thấy template base: ${baseDir} (cần ${baseName} trong starter-templates)`);
   }
+  // Overlay router/extras + markers là cơ chế riêng demo × vite — next/astro
+  // có routing/trang riêng trong template, overlay đè sẽ vỡ boot.
+  const isViteDemo = plan.preset === 'demo' && variant === 'vite';
 
   const files: string[] = [];
-  log?.(`Copy base template (${variant})`);
+  log?.(`Copy base template (${baseName})`);
   await copyTree(baseDir, dest, { appName: plan.appName, renameExt: false, files });
 
   const featsDir = join(templatesRoot, 'template-feats');
@@ -141,7 +150,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     await copyTree(adminDir, dest, { appName: plan.appName, renameExt: false, files });
   }
 
-  if (plan.router && plan.preset === 'demo') {
+  if (plan.router && isViteDemo) {
     // Overlay router là sản phẩm riêng của preset demo — minimal/product/admin
     // có sẵn router trong template (đè nhầm main.tsx sẽ vỡ boot MSW/providers).
     const routerDir = join(featsDir, 'router');
@@ -170,7 +179,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     });
   }
 
-  if (plan.router && plan.preset === 'demo') {
+  if (plan.router && isViteDemo) {
     log?.('Render extras markers trong App');
     await renderExtraMarkers(dest, plan, plan.lang === 'js');
   }

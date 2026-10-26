@@ -80,6 +80,7 @@ async function run(planOverrides: Partial<ScaffoldInput['plan']>, templatesRoot:
     router: false,
     extras: [] as never[],
     preset: 'demo' as const,
+    variant: 'vite' as const,
     skipInstall: false,
     ...planOverrides,
   };

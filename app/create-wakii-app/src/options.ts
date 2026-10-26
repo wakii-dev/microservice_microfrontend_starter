@@ -11,6 +11,10 @@ export type Lang = 'ts' | 'js';
 export const PRESETS = ['demo', 'minimal', 'product', 'admin'] as const;
 export type Preset = (typeof PRESETS)[number];
 
+/** Framework template của preset demo: vite (mặc định) | next (App Router) | astro (React island). */
+export const VARIANTS = ['vite', 'next', 'astro'] as const;
+export type Variant = (typeof VARIANTS)[number];
+
 export interface CliOptions {
   /** Positional đầu tiên — undefined → CLI prompt (default 'my-wakii-app'). */
   appName?: string;
@@ -20,6 +24,8 @@ export interface CliOptions {
   extras: Extra[];
   /** undefined = chưa chỉ định (prompt); default 'demo' qua resolveOptions. */
   preset?: Preset;
+  /** undefined = chưa chỉ định (prompt khi demo); default 'vite'. Chỉ áp preset demo. */
+  variant?: Variant;
   yes: boolean;
   skipInstall: boolean;
   /** --help — index.ts in usage (options không tự in). */
@@ -37,6 +43,7 @@ export interface ScaffoldPlan {
   router: boolean;
   extras: Extra[];
   preset: Preset;
+  variant: Variant;
   skipInstall: boolean;
 }
 
@@ -85,6 +92,20 @@ export function parseArgs(argv: readonly string[]): ParseResult {
         return { ok: false, message: `--preset chỉ nhận: ${PRESETS.join(' | ')} — nhận: ${value}` };
       }
       options.preset = value as Preset;
+    } else if (arg === '--variant') {
+      const value = argv[i + 1];
+      i += 1;
+      if (!value) return { ok: false, message: `--variant cần giá trị: ${VARIANTS.join('|')}` };
+      if (!(VARIANTS as readonly string[]).includes(value)) {
+        return { ok: false, message: `--variant chỉ nhận: ${VARIANTS.join(' | ')} — nhận: ${value}` };
+      }
+      options.variant = value as Variant;
+    } else if (arg?.startsWith('--variant=')) {
+      const value = arg.slice('--variant='.length);
+      if (!(VARIANTS as readonly string[]).includes(value)) {
+        return { ok: false, message: `--variant chỉ nhận: ${VARIANTS.join(' | ')} — nhận: ${value}` };
+      }
+      options.variant = value as Variant;
     } else if (arg === '--lang') {
       const value = argv[i + 1];
       i += 1;
@@ -130,6 +151,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
  * (demo-only) và KHÔNG nhận lang js (chỉ sinh bản ts). */
 export function resolveOptions(options: CliOptions): ScaffoldPlan {
   const preset = options.preset ?? 'demo';
+  const variant = options.variant ?? 'vite';
   if (options.extras.length > 0 && options.router === false) {
     throw new Error('--no-router mâu thuẫn với --extras (demo subpath cần route để mở) — bỏ --no-router hoặc bỏ extras');
   }
@@ -139,12 +161,22 @@ export function resolveOptions(options: CliOptions): ScaffoldPlan {
   if (preset !== 'demo' && options.lang === 'js') {
     throw new Error(`Preset '${preset}' hiện chỉ hỗ trợ TypeScript — bỏ --lang js (hoặc dùng --preset demo)`);
   }
+  if (variant !== 'vite' && preset !== 'demo') {
+    throw new Error(`--variant ${variant} chỉ dành cho preset demo (template framework khác) — bỏ --variant hoặc dùng --preset demo`);
+  }
+  if (variant !== 'vite' && options.lang === 'js') {
+    throw new Error(`--variant ${variant} hiện chỉ hỗ trợ TypeScript — bỏ --lang js`);
+  }
+  if (variant !== 'vite' && options.extras.length > 0) {
+    throw new Error(`--extras chỉ dành cho variant vite (overlay demo chưa hỗ trợ ${variant}) — bỏ --extras`);
+  }
   return {
     appName: options.appName ?? 'my-wakii-app',
     lang: options.lang,
-    router: preset !== 'demo' ? true : options.extras.length > 0 ? true : (options.router ?? true),
+    router: variant !== 'vite' || preset !== 'demo' ? true : options.extras.length > 0 ? true : (options.router ?? true),
     extras: options.extras,
     preset,
+    variant,
     skipInstall: options.skipInstall,
   };
 }

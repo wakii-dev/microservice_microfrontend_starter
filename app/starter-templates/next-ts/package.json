@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@wakii/ui-kit": "^0.6.4",
+    "@wakii/ui-kit": "^0.7.1",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",

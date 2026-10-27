@@ -15,7 +15,7 @@ import './app.css'; // tailwind utilities (spec tailwind-migration)
 import { useQuery } from '@tanstack/react-query';
 import { MotionConfig, motion } from 'motion/react';
 import { useCallback } from 'react';
-import { Alert, Button, EmptyState, Icon, Link, Skeleton, Spinner } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, Flex, Icon, Link, Skeleton, Spinner } from '@wakii/ui-kit';
 import { ActivityFeedItem, ActivityStats, ApiError, fetchFeed, fetchStats } from './api';
 import { StatTile } from './components/StatTile';
 import { Timeline } from './components/Timeline';
@@ -94,36 +94,40 @@ export function ActivityPage() {
           </Button>
         </header>
 
-        <div aria-label="Thống kê tasks" className="grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-          {statsError && (
-            <Alert className="col-span-full" type="error" message={`Stats: ${statsError}`} />
-          )}
-          {loadingStats ? (
-            <div className="col-span-full grid gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
-              <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
-            </div>
-          ) : (
-            stats && (
-              <>
-                <StatTile ariaLabel="Tổng số task" label="Tổng task" value={stats.totalTasks} />
-                {STATUS_TILES.map(({ key, label }) => (
-                  <StatTile
-                    key={key}
-                    ariaLabel={`Task ${label}`}
-                    label={label}
-                    value={stats.tasksByStatus[key]}
-                  />
-                ))}
-                {stats.recentEvents !== undefined && (
-                  <StatTile
-                    ariaLabel="Sự kiện 24h qua"
-                    label="Sự kiện 24h qua"
-                    value={stats.recentEvents}
-                  />
-                )}
-              </>
-            )
-          )}
+        {/* Stats layout = Flex kit (kit chưa có Row/Col — wrap + flex-1 tiles thay
+         * grid auto-fit cũ; wrapper div giữ aria-label contract). */}
+        <div aria-label="Thống kê tasks">
+          <Flex wrap gap="middle">
+            {statsError && (
+              <Alert className="w-full basis-full" type="error" message={`Stats: ${statsError}`} />
+            )}
+            {loadingStats ? (
+              <div className="grid w-full basis-full gap-3 grid-cols-[repeat(auto-fit,minmax(140px,1fr))]">
+                <Skeleton variant="card" count={4} className="[&>div]:grid [&>div]:gap-[inherit] [&>div]:grid-cols-[inherit]" />
+              </div>
+            ) : (
+              stats && (
+                <>
+                  <StatTile ariaLabel="Tổng số task" label="Tổng task" value={stats.totalTasks} />
+                  {STATUS_TILES.map(({ key, label }) => (
+                    <StatTile
+                      key={key}
+                      ariaLabel={`Task ${label}`}
+                      label={label}
+                      value={stats.tasksByStatus[key]}
+                    />
+                  ))}
+                  {stats.recentEvents !== undefined && (
+                    <StatTile
+                      ariaLabel="Sự kiện 24h qua"
+                      label="Sự kiện 24h qua"
+                      value={stats.recentEvents}
+                    />
+                  )}
+                </>
+              )
+            )}
+          </Flex>
         </div>
 
         {feedError && <Alert type="error" message={feedError} />}

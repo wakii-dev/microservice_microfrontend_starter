@@ -35,6 +35,11 @@ mkdir -p "$DEST"
 
 rsync -a --exclude='go.sum' \
   --exclude='/app/stack-template/' \
+  --exclude='/app/create-wakii-app/' \
+  --exclude='/app/create-wakii-stack/' \
+  --exclude='/app/starter-templates/' \
+  --exclude='/app/spike/' \
+  --exclude='/app/ui-kit/' \
   --exclude='.git/' \
   --exclude='node_modules/' \
   --exclude='dist/' \

@@ -77,26 +77,6 @@ services:
       retries: 12
       start_period: 20s
 
-  kafka-init:
-    # Fix gốc race auto-create (report worker-kafka 2026-10-25): consumer join
-    # group TRƯỚC khi topic tồn tại → generation assignment RỖNG vĩnh viễn
-    # (kafka-go không re-subscribe khi topic xuất hiện sau — FetchMessage block
-    # câm, feed trống). One-shot tạo topic idempotent (--if-not-exists) TRƯỚC
-    # khi go-svc/node-svc boot; go-svc tự EnsureTopics phòng N-1 (main.go).
-    image: apache/kafka:3.9.0
-    restart: "no"
-    depends_on:
-      kafka:
-        condition: service_healthy
-    entrypoint: ["/bin/bash", "-c"]
-    command:
-      - |
-        set -e
-        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic task-events --partitions 1 --replication-factor 1
-        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic task-events.dlq --partitions 1 --replication-factor 1
-        echo "--- topics sau kafka-init ---"
-        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
-
   auth-svc:
     build: ../services/auth-svc # auth thật (VU-59) thay auth-mock — cùng surface :8090 /api/auth/*
     environment:
@@ -171,10 +151,6 @@ services:
         condition: service_healthy
       spring-svc:
         condition: service_healthy # readyz node kiểm spring reachable lúc boot — gate ở đây (SF-7)
-      # topic phải tồn tại trước khi producer/consumer đụng kafka (race auto-create
-      # — report worker-kafka 2026-10-25); fail rõ còn hơn race câm (starter)
-      kafka-init:
-        condition: service_completed_successfully
     healthcheck: # SF-7: health-gated /readyz (conventions/02) — node:22-alpine có busybox wget
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/readyz"]
       interval: 5s
@@ -231,10 +207,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # consumer join group PHẢI sau khi topic tồn tại (race auto-create —
-      # report worker-kafka 2026-10-25); go-svc còn tự EnsureTopics phòng N-1
-      kafka-init:
-        condition: service_completed_successfully
 
   # --- FE entries: shell (SF-5 thêm — GAP-ANSWER coordinator trên epic FI-62 2026-10-12:
   #     "BẠN tự thêm theo port table, coordinator duyệt ở review"). remote-tasks /

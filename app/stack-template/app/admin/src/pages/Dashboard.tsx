@@ -1,181 +1,307 @@
-// Dashboard — MỘT THỂ THỐNG NHẤT (vision-audit coordinator 2026-10-18).
-// ANCHOR = chart card: Card (bg-s2 + border-line + rounded-xl + body p-6, header
-// title + extra phải). Mọi khối theo anchor đó:
-// - Stat cards: cùng Card, nội dung icon size-10 (accent/10) + label text-ink2 +
-//   số text-2xl font-semibold + delta pill nhỏ thống nhất (không Statistic/Tag rời rạc)
-// - Nhịp dọc: MỘT scale gap-6 giữa mọi hàng (hết mt-4/mt-6 lẫn lộn)
-// - Cột phải: Timeline + EmptyState stacked flex-1 — hai card CAO ĐỀU
-// - Headers: chart + timeline cùng pattern title trái + Tag phải
-// Grid responsive 1/2/4 cột stats; chart 3/5 + phải 2/5 trên xl.
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, Col, EmptyState, Icon, Row, Tag, Timeline, message } from '@wakii/ui-kit';
-// 0.6.0: Chart rời barrel chính — component nặng (peer chart.js) import qua subpath.
+// Dashboard — ghép theo Templates/Dashboard (templates-dashboard--dashboard) của kit:
+// Row/Col + Card/Statistic KPI (CountUp live + refresh) · chart line + doughnut màu
+// resolve qua useChartPalette (hook public theming 2 — thay probe tự vẽ cũ) · Table
+// tasks gần đây (sort + expand + summary + empty/loading demo) · Timeline hoạt động ·
+// quick-add → table + toast · team presence AvatarGroup. Data qua fetchDashboard()
+// mock (shape thật + latency) — skeleton Card loading + Table loading thật.
+// Customize pass: Card/Statistic + Layout zones dùng classNames slots (dogfood
+// slots-wave; Button slots skip — kit leak prop qua rest, xem comment nút Làm mới).
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Avatar,
+  AvatarGroup,
+  Button,
+  Card,
+  Col,
+  CountUp,
+  EmptyState,
+  Field,
+  Icon,
+  Input,
+  Row,
+  Select,
+  Statistic,
+  Switch,
+  Table,
+  Tag,
+  Timeline,
+  message,
+  useChartPalette,
+  type ChartConfig,
+  type TableColumn,
+} from '@wakii/ui-kit';
 import { Chart } from '@wakii/ui-kit/chart';
+import { fetchDashboard, type DashboardData, type RecentTask } from '../data/dashboard.js';
 
-const STATS = [
-  { title: 'Người dùng', value: '1.284', tag: '+12%', icon: 'users' as const },
-  { title: 'Tasks đang mở', value: '316', tag: '+5%', icon: 'check-circle' as const },
-  { title: 'File upload', value: '89', tag: '+23%', icon: 'upload' as const },
-  { title: 'Uptime', value: '99,98%', tag: 'SLA', icon: 'info-circle' as const },
-];
+// Pill tone theo trạng thái KPI — bg token/10 + chữ token (same PILL_CLS template).
+const PILL_CLS = {
+  accent: 'bg-accent/10 text-accent',
+  done: 'bg-st-done/10 text-st-done',
+  doing: 'bg-st-doing/10 text-st-doing',
+  fail: 'bg-st-fail/10 text-st-fail',
+} as const;
 
-// Shape FLAT chuẩn kit (labels/datasets top-level — Chart component wrap `data`
-// khi đẩy vào chart.js; fix 2026-10-24: component giờ hiểu cả flat lẫn nested,
-// consumer chuẩn hoá về flat theo type khai báo — hết cast `as unknown`).
-const CHART_CONFIG_BASE = {
-  type: 'line' as const,
-  labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
-  datasets: [
-    {
-      label: 'Tasks',
-      data: [12, 19, 8, 22, 30, 25, 18],
-      tension: 0.35,
-      fill: true,
-    },
-    {
-      label: 'Uploads',
-      data: [4, 7, 3, 9, 12, 8, 6],
-      tension: 0.35,
-      fill: true,
-    },
-  ],
-  // animation:false — render đồng bộ lúc constructor, không phụ thuộc rAF (headless/tab
-  // background vẫn vẽ đúng frame đầu)
-  options: { responsive: true, maintainAspectRatio: false, animation: false },
+const STATUS_PILL: Record<RecentTask['status'], { label: string; cls: string }> = {
+  todo: { label: 'Cần làm', cls: 'bg-s3 text-ink2' },
+  doing: { label: 'Đang làm', cls: 'bg-st-doing/10 text-st-doing' },
+  done: { label: 'Xong', cls: 'bg-st-done/10 text-st-done' },
+  fail: { label: 'Lỗi', cls: 'bg-st-fail/10 text-st-fail' },
 };
 
-// Màu chart — probe token theo theme scope (port pattern app/ui-kit/src/templates/
-// dashboard.stories.tsx: canvas không hiểu var(--), đọc computed style qua span ẩn,
-// fallback hex y nguyên template). Bổ sung MutationObserver trên <html data-bp-theme>:
-// AdminLayout toggle dark KHÔNG remount trang — đổi theme là chart re-resolve ngay.
-const FALLBACK_COLORS = { accent: '#1677ff', done: '#52c41a' };
-
-function useChartColors() {
-  const probeRef = useRef<HTMLSpanElement>(null);
-  const [colors, setColors] = useState(FALLBACK_COLORS);
-  useLayoutEffect(() => {
-    const read = () => {
-      const cs = probeRef.current ? getComputedStyle(probeRef.current) : null;
-      if (!cs) return;
-      setColors({
-        accent: cs.getPropertyValue('--accent').trim() || FALLBACK_COLORS.accent,
-        done: cs.getPropertyValue('--st-done').trim() || FALLBACK_COLORS.done,
-      });
-    };
-    read();
-    const observer = new MutationObserver(read);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bp-theme'] });
-    return () => observer.disconnect();
-  }, []);
-  return { probeRef, colors };
-}
-
-const HAS_CHART_DATA = CHART_CONFIG_BASE.datasets.some((dataset) => dataset.data.length > 0);
+const QUICK_STATUS_OPTIONS = [
+  { label: 'Cần làm', value: 'todo' },
+  { label: 'Đang làm', value: 'doing' },
+  { label: 'Xong', value: 'done' },
+];
 
 export function Dashboard() {
-  // Màu chart theo theme — probe + re-resolve khi dark toggle (xem useChartColors)
-  const { probeRef, colors } = useChartColors();
-  // Dataset màu theo token theme (probe span ẩn + MutationObserver dark toggle)
-  const CHART_CONFIG = useMemo(
-    () => ({
-      ...CHART_CONFIG_BASE,
-      datasets: CHART_CONFIG_BASE.datasets.map((ds, i) => {
-        const color = i === 0 ? colors.accent : colors.done;
-        // Fill giữ alpha 12% như bản cũ — color-mix trên token (canvas không support
-        // color-mix thì chỉ bỏ fill, line vẫn vẽ đúng màu token)
-        return { ...ds, borderColor: color, backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)` };
-      }),
-    }),
-    [colors],
-  );
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [tasks, setTasks] = useState<RecentTask[]>([]);
+  const [emptyDemo, setEmptyDemo] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
+  const [quickTitle, setQuickTitle] = useState('');
+  const [quickStatus, setQuickStatus] = useState('todo');
+  const { ref: paletteRef, palette } = useChartPalette();
+
+  // Load mock fetch — lần đầu skeleton, refresh → CountUp animate lại từ số cũ.
+  const load = useCallback(async (announce: boolean) => {
+    const next = await fetchDashboard();
+    setData(next);
+    setTasks(next.tasks);
+    if (announce) message.success('Đã đồng bộ dữ liệu sprint');
+  }, []);
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  // Chart config — màu dataset từ palette token (canvas không hiểu var(--…)); đổi
+  // theme → palette re-resolve → config đổi → Chart re-init (live dark toggle).
+  const lineConfig = useMemo<ChartConfig | null>(() => {
+    if (!data) return null;
+    return {
+      type: 'line',
+      labels: data.weekly.labels,
+      datasets: [
+        { label: 'Đóng', data: data.weekly.closed, borderColor: palette.accent, backgroundColor: palette.accent, borderWidth: 2 },
+        { label: 'Tạo', data: data.weekly.created, borderColor: palette.stDone, backgroundColor: palette.stDone, borderWidth: 2 },
+      ],
+      options: { responsive: true, maintainAspectRatio: false, elements: { line: { tension: 0.35 } } },
+    };
+  }, [data, palette]);
+
+  const doughnutConfig = useMemo<ChartConfig | null>(() => {
+    if (!data) return null;
+    return {
+      type: 'doughnut',
+      labels: ['Done', 'Doing', 'Todo', 'Fail'],
+      datasets: [
+        {
+          label: 'Phân bố',
+          data: [data.distribution.done, data.distribution.doing, data.distribution.todo, data.distribution.fail],
+          backgroundColor: [palette.stDone, palette.stDoing, palette.accent, palette.stFail],
+          borderWidth: 0,
+        },
+      ],
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: { legend: { position: 'bottom' as const, labels: { color: palette.ink3, boxWidth: 10 } } },
+      },
+    };
+  }, [data, palette]);
+
+  function quickAdd() {
+    const title = quickTitle.trim();
+    if (!title) {
+      message.error('Tiêu đề trống — nhập ít nhất 1 ký tự.');
+      return;
+    }
+    setTasks((prev) => [
+      { id: Date.now(), title, status: quickStatus as RecentTask['status'], assignee: 'Alice', hours: 0, updated: 'vừa xong' },
+      ...prev,
+    ]);
+    setQuickTitle('');
+    message.success(`Đã thêm "${title}" vào sprint.`);
+  }
+
+  const columns: TableColumn<RecentTask>[] = [
+    { key: 'title', title: 'Task', sortable: true },
+    {
+      key: 'status',
+      title: 'Trạng thái',
+      render: (t) => (
+        <span className={`inline-flex rounded-pill px-2 py-0.5 text-[10px] font-medium ${STATUS_PILL[t.status].cls}`}>
+          {STATUS_PILL[t.status].label}
+        </span>
+      ),
+    },
+    {
+      key: 'assignee',
+      title: 'Assignee',
+      render: (t) => (
+        <span className="flex items-center gap-1.5">
+          <Avatar size={20}>{t.assignee.charAt(0).toUpperCase()}</Avatar>
+          <span className="text-label text-ink2">{t.assignee}</span>
+        </span>
+      ),
+    },
+    { key: 'hours', title: 'Giờ', align: 'right', sortable: true, render: (t) => <span className="tabular-nums">{t.hours}h</span> },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Probe đọc token trong đúng theme scope (dark toggle cascade tới đây) */}
-      <span ref={probeRef} aria-hidden="true" className="hidden" />
-      <div className="flex items-center justify-between">
-        <h1 className="m-0 text-h1 font-semibold text-ink">Dashboard</h1>
-        <Button icon={<Icon name="refresh" size={12} />}>Làm mới</Button>
+      {/* Probe đọc token trong đúng theme scope — palette live theo dark toggle */}
+      <span ref={paletteRef} aria-hidden="true" className="hidden" />
+
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="m-0 text-h1 font-semibold text-ink">Dashboard</h1>
+          <p className="mb-0 mt-1 text-body text-ink2">Tổng quan sprint — compose 100% @wakii/ui-kit.</p>
+        </div>
+        {/* NOTE: không dùng classNames slots trên Button — kit đang leak prop qua
+            {...rest} (ButtonClassNames đọc được nhưng không destructure) → warning
+            React. Gap ghi vào report cho ui-kit sửa; chỗ slots dùng Layout/Card/Statistic. */}
+        <Button
+          icon={<Icon name="refresh" size={12} />}
+          className="shrink-0"
+          loading={!data}
+          onClick={() => void load(true)}
+        >
+          Làm mới
+        </Button>
       </div>
 
-      {/* 4 stat cards — cùng anchor Card; icon + label + số + delta pill đồng bộ.
-          Grid KPI rows qua Row/Col (24-col: 1 cột mobile / 2 cột ≥sm / 4 cột ≥xl). */}
+      {/* KPI — Row/Col 24-col (1/2/4 cột) + Card loading skeleton + Statistic CountUp.
+          Customize pass — Card classNames slots (h-full đều cao + body p-4 dày hơn),
+          Statistic classNames.title + valueStyle. */}
       <Row gutter={[24, 24]}>
-        {STATS.map((stat) => (
-          <Col key={stat.title} xs={24} sm={12} xl={6}>
-            <Card hoverable className="h-full">
-              <div className="flex items-center gap-3">
-                <span
-                  aria-hidden="true"
-                  className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent/10 text-accent"
-                >
-                  <Icon name={stat.icon} size={18} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-body text-ink2">{stat.title}</div>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <span className="text-2xl font-semibold leading-tight text-ink">{stat.value}</span>
-                    <span className="rounded-pill bg-st-done/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-st-done">
-                      {stat.tag}
-                    </span>
+        {(data?.kpis ?? [null, null, null, null]).map((kpi, i) => (
+          <Col key={kpi?.key ?? i} xs={24} sm={12} xl={6}>
+            <Card hoverable loading={!kpi} classNames={{ root: 'h-full', body: 'p-4' }}>
+              {kpi && (
+                <div className="flex items-center gap-3">
+                  <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-lg ${PILL_CLS[kpi.tone]}`}>
+                    <Icon name={kpi.icon} size={16} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {/* Customize pass — Statistic classNames.title (truncate khi hẹp) */}
+                    <Statistic
+                      title={kpi.title}
+                      value={<CountUp value={kpi.value} decimals={kpi.decimals} duration={1.2} format={(n) => n.toLocaleString('vi-VN')} />}
+                      suffix={kpi.unit}
+                      classNames={{ title: 'truncate' }}
+                    />
                   </div>
+                  <span className={`shrink-0 rounded-pill px-1.5 py-0.5 text-[10px] font-medium ${PILL_CLS[kpi.tone]}`}>{kpi.delta}</span>
                 </div>
-              </div>
+              )}
             </Card>
           </Col>
         ))}
       </Row>
 
-      {/* Chart (3/5 trái) + cột phải 2/5: Timeline trên + EmptyState dưới — flex-1
-          mỗi card = CAO ĐỀU (grid rows fr/fr tương đương) */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <Card title="Hoạt động 7 ngày" extra={<Tag>Tuần này</Tag>} className="xl:col-span-3">
-          {HAS_CHART_DATA ? (
-            <div className="h-64">
-              <Chart config={CHART_CONFIG} height={256} />
-            </div>
-          ) : (
-            <EmptyState title="Chưa có dữ liệu" description="Chưa có hoạt động nào trong 7 ngày qua." />
-          )}
+      {/* Charts — line 7 ngày (2/3) + doughnut phân bố (1/3); mobile stack tự nhiên */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <Card title="Tiến độ 7 ngày" extra={<Tag>Tuần này</Tag>} className="xl:col-span-2">
+          {lineConfig && <Chart config={lineConfig} height={240} />}
         </Card>
-        <div className="flex flex-col gap-6 xl:col-span-2">
-          <Card title="Timeline hoạt động" extra={<Tag>real-time</Tag>} className="flex-1">
-            <Timeline
-              items={[
-                {
-                  key: 't1',
-                  children: 'Alice Nguyen tạo task "Sửa bug login"',
-                  label: '10 phút trước',
-                },
-                {
-                  key: 't2',
-                  color: 'var(--st-done)',
-                  children: 'Bot sync Kafka — 24 events đã xử lý',
-                  label: '1 giờ trước',
-                },
-                {
-                  key: 't3',
-                  children: 'Bob Tran upload 3 file vào "Báo cáo Q4"',
-                  label: '3 giờ trước',
-                },
-                {
-                  key: 't4',
-                  color: 'var(--st-fail)',
-                  children: 'Saga gán task thất bại — DLQ có message mới',
-                  label: 'Hôm qua',
-                },
-              ]}
-            />
+        <Card title="Phân bố trạng thái">{doughnutConfig && <Chart config={doughnutConfig} height={240} />}</Card>
+      </div>
+
+      {/* Table gần đây (2/3) + cột phải: Timeline + quick-add + presence (1/3) */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <Card
+          title="Tasks gần đây"
+          className="xl:col-span-2"
+          extra={
+            <span className="flex items-center gap-3 text-meta text-ink3">
+              <label className="flex cursor-pointer items-center gap-1.5">
+                Empty demo
+                <Switch checked={emptyDemo} onChange={setEmptyDemo} size="small" aria-label="Bật demo empty state" />
+              </label>
+              <label className="flex cursor-pointer items-center gap-1.5">
+                Loading demo
+                <Switch checked={loadingDemo} onChange={setLoadingDemo} size="small" aria-label="Bật demo loading skeleton" />
+              </label>
+            </span>
+          }
+        >
+          <Table
+            columns={columns}
+            dataSource={emptyDemo ? [] : tasks}
+            rowKey="id"
+            size="small"
+            loading={loadingDemo || !data}
+            emptyMessage={
+              <EmptyState
+                title="Sprint đã sạch bóng"
+                description="Không còn task nào khớp — thêm task nhanh ở card bên phải."
+                action={<Button size="small" onClick={() => setEmptyDemo(false)}>Hiện lại</Button>}
+              />
+            }
+            expandable={{
+              expandedRowRender: (t) => (
+                <div className="text-label text-ink2">
+                  Cập nhật {t.updated} · Assignee {t.assignee} · Ưu tiên {t.status === 'fail' ? 'cao' : 'trung bình'}
+                </div>
+              ),
+            }}
+            summary={(page) => (
+              <div className="flex items-center justify-between text-label text-ink2">
+                <span>{page.length} task trên trang</span>
+                <span className="text-ink">Σ {page.reduce((s, t) => s + t.hours, 0)}h worklog</span>
+              </div>
+            )}
+          />
+        </Card>
+
+        <div className="flex flex-col gap-6">
+          <Card title="Timeline hoạt động" extra={<Tag>real-time</Tag>}>
+            <Timeline items={data?.activity ?? []} />
           </Card>
-          <Card className="flex-1">
-            <EmptyState
-              title="Chưa có báo cáo tuần"
-              description="Báo cáo sẽ tự sinh vào mỗi sáng thứ Hai, hoặc tạo ngay bây giờ."
-              action={
-                <Button type="primary" onClick={() => message.info('Tạo báo cáo (demo)')}>
-                  Tạo báo cáo
+
+          {/* Quick-add — Field mini → toast + prepend table (parity template §8) */}
+          <Card title="Thêm task nhanh">
+            <form
+              className="grid gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                quickAdd();
+              }}
+            >
+              <Field label="Tiêu đề" htmlFor="quick-title">
+                <Input
+                  id="quick-title"
+                  name="title"
+                  placeholder="VD: Viết recipe useFieldArray…"
+                  value={quickTitle}
+                  onChange={(e) => setQuickTitle(e.target.value)}
+                />
+              </Field>
+              <div className="flex items-end gap-2">
+                <Select
+                  ariaLabel="Trạng thái"
+                  className="w-32"
+                  value={quickStatus}
+                  onChange={(v) => setQuickStatus(String(v))}
+                  options={QUICK_STATUS_OPTIONS}
+                />
+                <Button htmlType="submit" type="primary" icon={<Icon name="plus" size={14} />}>
+                  Thêm
                 </Button>
-              }
-            />
+              </div>
+            </form>
+          </Card>
+
+          <Card title="Team đang online">
+            <div className="flex flex-col gap-3">
+              <AvatarGroup items={data?.team ?? []} max={4} size={32} />
+              <p className="m-0 text-meta text-ink3">
+                {data?.team.length ?? 0} thành viên · 4 đang worklog (presence pill "+2" hover ra tên).
+              </p>
+            </div>
           </Card>
         </div>
       </div>

@@ -252,7 +252,7 @@ describe('scaffold — README sinh', () => {
     const readme = await readFile(join(dest, 'README.md'), 'utf8');
     expect(readme).toContain('# hop-stack');
     expect(readme).toContain('- node-svc _(be)_');
-    expect(readme).toContain('docker compose --env-file platform/.env up -d');
+    expect(readme).toContain('docker compose -f platform/docker-compose.yml --env-file platform/.env up -d');
     expect(readme).toContain('bash scripts/smoke/e2e.sh');
     expect(readme).toContain('http://localhost:8080');
     expect(readme).toContain('http://localhost:3000');

@@ -1,11 +1,12 @@
 import { Component, ComponentType, ReactNode, Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import { type LoadRemoteModuleOptions, type RemoteName, loadRemoteModule, resolveRemoteUrl } from '@wakii/fe-shared';
-import { Button, Icon, Skeleton } from '@wakii/ui-kit';
+import { Alert, Button, Icon, Skeleton } from '@wakii/ui-kit';
 
 /**
  * Slot load 1 remote (conventions/08 registry) vào layout.
  * Remote down / load fail → error boundary hiện fallback + retry — KHÔNG trắng trang
  * (spec slice mục 7; remote thật là việc SF-6, host-side chỉ cần sẵn slot).
+ * Fallback compose từ Alert kit (role=alert sẵn — redesign shell-kit 2026-10-27).
  */
 
 interface RemoteErrorBoundaryProps {
@@ -23,18 +24,21 @@ class RemoteErrorBoundary extends Component<RemoteErrorBoundaryProps, { error: E
   render() {
     if (this.state.error) {
       return (
-        <div role="alert" className="flex flex-col items-start gap-4 rounded-xl border border-line bg-s2 p-6">
-          <p className="m-0 text-ink2">
-            Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
-            xuống). Vui lòng thử lại.
-          </p>
-          <Button onClick={this.props.onRetry}>
-            <span className="inline-flex items-center gap-1.5">
-              <Icon name="refresh" size={14} />
+        <Alert
+          type="error"
+          variant="outlined"
+          message={
+            <>
+              Không tải được phần <strong>{this.props.remoteName}</strong> (remote có thể đang
+              xuống). Vui lòng thử lại.
+            </>
+          }
+          description={
+            <Button icon={<Icon name="refresh" size={14} />} onClick={this.props.onRetry}>
               Thử lại
-            </span>
-          </Button>
-        </div>
+            </Button>
+          }
+        />
       );
     }
     return this.props.children;

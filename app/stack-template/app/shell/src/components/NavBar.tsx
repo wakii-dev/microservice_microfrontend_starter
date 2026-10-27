@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { isExpired, readClaims, tokenStorage } from '@wakii/fe-shared';
-import { Button, useLocalStorage } from '@wakii/ui-kit';
+import { Avatar, Button, Divider, Layout, useLocalStorage } from '@wakii/ui-kit';
 import { auth } from '../api';
 
 /* Dark toggle toàn host (batch ⑰ — pattern AdminLayout): data-bp-theme trên
@@ -52,10 +52,13 @@ const NAV_ITEMS = [
 ] as const;
 
 /**
- * App chrome redesign (landing motion 2026-10-25): sticky + blur khi scroll +
- * active pill layoutId (framer-motion — pill trượt mượt giữa link). HÀNH VI GIỮ
- * NGUYÊN: NavLink aria-current (contract test), brand Boilerplate, dark toggle,
- * user chip + logout qua wrapper refresh-client.
+ * App chrome compose từ ui-kit (redesign shell-kit 2026-10-27): khung là
+ * Layout.Header (sticky, role=banner), user chip dùng Avatar kit. GIỮ HÀNH VI:
+ * NavLink aria-current="page" (contract test — Menu kit render button/menuitem,
+ * không đúng semantic site-nav) + active pill layoutId framer-motion (motion đã
+ * duyệt; kit không có nav-pill primitive) + dark toggle + logout refresh-client.
+ * Scroll-blur giữ: override qua inline style (kit Header mặc định bg-s1 đặc —
+ * inline style thắng chắc, không phụ thuộc thứ tự utilities).
  */
 export function NavBar() {
   const navigate = useNavigate();
@@ -72,10 +75,24 @@ export function NavBar() {
   }
 
   return (
-    <header
-      className={`sticky top-0 z-40 flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-2 transition-colors duration-300 max-md:px-3 ${
-        scrolled ? 'border-line bg-s1/80 backdrop-blur-md' : 'border-transparent bg-s1'
-      }`}
+    <Layout.Header
+      sticky
+      className="flex-wrap"
+      style={{
+        // Kit Header khoá h-16 — nav cần wrap 2 hàng trên mobile: bỏ height cố định,
+        // giữ sàn 64px (≈ h-16) bằng minHeight.
+        height: 'auto',
+        minHeight: 64,
+        // Giữ z cũ (40) — trên mọi content in-flow, dưới portal/modal của remote.
+        zIndex: 40,
+        transition: 'background-color 300ms ease, border-color 300ms ease',
+        // Scroll-blur (landing motion đã duyệt): nền s1 80% + blur khi cuộn;
+        // mép trên chưa cuộn thì trong suốt viền.
+        backgroundColor: scrolled ? 'color-mix(in oklab, var(--color-s1) 80%, transparent)' : 'var(--color-s1)',
+        borderColor: scrolled ? 'var(--color-line)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(12px)' : undefined,
+        WebkitBackdropFilter: scrolled ? 'blur(12px)' : undefined,
+      }}
     >
       <span className="flex items-center gap-2 text-body font-semibold tracking-[-0.01em] text-ink">
         <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-[5px] bg-accent">
@@ -86,7 +103,7 @@ export function NavBar() {
         </span>
         Boilerplate
       </span>
-      <span aria-hidden="true" className="h-[18px] w-px shrink-0 self-center bg-line max-md:hidden" />
+      <Divider type="vertical" className="shrink-0 self-center max-md:hidden" />
       <nav aria-label="Điều hướng chính" className="flex flex-wrap gap-0.5">
         {NAV_ITEMS.map((item) => {
           const active = item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to);
@@ -112,6 +129,8 @@ export function NavBar() {
         })}
       </nav>
       <div className="ml-auto flex flex-wrap items-center gap-2">
+        {/* Icon-button compact — idiom theo chính template dashboard của kit
+         * (nút bell): kit Button có hover-lift/ripple không hợp icon nav. */}
         <button
           type="button"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -126,12 +145,18 @@ export function NavBar() {
               className="flex h-7 max-w-[260px] items-center gap-2 rounded-2 border border-line bg-s2 py-0 pl-1 pr-2.5 max-md:max-w-[180px]"
               data-testid="nav-user"
             >
-              <span
-                aria-hidden="true"
-                className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent/15 text-meta font-semibold text-accent"
+              <Avatar
+                size={20}
+                className="shrink-0"
+                style={{
+                  // Accent-tinted initial (look đã duyệt) — inline style thắng mặc
+                  // định bg-s3 của Avatar mà không phụ thuộc thứ tự utilities.
+                  backgroundColor: 'color-mix(in oklab, var(--color-accent) 15%, transparent)',
+                  color: 'var(--color-accent)',
+                }}
               >
                 {claims.email?.charAt(0)?.toUpperCase() ?? '?'}
-              </span>
+              </Avatar>
               <span className="overflow-hidden text-ellipsis whitespace-nowrap text-meta text-ink2">
                 {claims.email}
               </span>
@@ -149,6 +174,6 @@ export function NavBar() {
           </Link>
         )}
       </div>
-    </header>
+    </Layout.Header>
   );
 }

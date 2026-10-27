@@ -170,6 +170,15 @@ pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.m
 # rồi lặp lại mục 2-4 trong project mới
 ```
 
+Cấu trúc output theo cơ chế scaffold:
+
+- **`npm create wakii-stack`** (CLI chính thức, engine prune): `app/ui-kit` **không còn**
+  trong project sinh ra — FE apps cài `@wakii/ui-kit` từ npm registry (dist-tag `latest`,
+  lockfile ghim bản cụ thể ngay lúc scaffold; nâng cấp = `pnpm update @wakii/ui-kit`).
+  `app/shared` (fe-shared) vẫn kèm, consumed-qua-source. Chi tiết: [ADR-0010](adr/0010-stack-fe-npm-deps.md).
+- **`scripts/scaffold/scaffold.sh`** (copy repo sống cho dev nội bộ — lệnh trên): vẫn kèm
+  cả `app/shared` + `app/ui-kit` qua source.
+
 Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playbook.md](wakii-playbook.md) — decision tree story/single/fix + 4 archetype chia SF + gates.
 
 ## 6. CI báo gì

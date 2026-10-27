@@ -54,6 +54,7 @@ A monorepo snapshot pruned according to `stack-manifest.json`:
 - `platform/.env.example` — keys filtered per service (+ shared keys like `JWT_SECRET`).
 - A generated **README** with the up command and ports (`gateway :8080`, `shell :3000`).
 - Placeholders `__STACK_NAME__` / `__STACK_ORG__` rendered into package.json `name`, the compose project `name:`, the README H1, and docs org — **service names inside `services/` are never rewritten** so the stack runs as-is.
+- **FE deps come from the npm registry** — `app/ui-kit` is pruned from the output; FE apps install `@wakii/ui-kit` from npm (dist-tag `latest`, engine rewrites `workspace:*` → `latest` and re-syncs the lockfile; upgrade later with `pnpm update @wakii/ui-kit`). No design-system source ships in the stack. `app/shared` (fe-shared) is still embedded, consumed via source. See [ADR 0010](../../docs/adr/0010-stack-fe-npm-deps.md).
 - FE-only SPA outside a stack? Use [`create-wakii-app`](https://www.npmjs.com/package/create-wakii-app) instead.
 
 ## Architecture (repo)

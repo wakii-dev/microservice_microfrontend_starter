@@ -17,14 +17,9 @@ const HIGHLIGHT = 'border-accent bg-accent/8 text-accent';
 const DISABLED = 'cursor-not-allowed opacity-60';
 
 export function UploadDropzone(props: UploadProps) {
-<<<<<<< Updated upstream
-  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, children } = props;
-  const { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange } = useUploadController(props);
-=======
-  const { accept, multiple, disabled, showList = true, className, style } = props;
+  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, style, children } = props;
   const slots = props.classNames;
-  const { inputRef, openDialog, items, removeItem, handleFiles, onInputChange } = useUploadController(props);
->>>>>>> Stashed changes
+  const { inputRef, openDialog, items, removeItem, handleFiles, retryItem, onInputChange } = useUploadController(props);
   const [dragging, setDragging] = useState(false);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -83,15 +78,13 @@ export function UploadDropzone(props: UploadProps) {
         )}
       </div>
       {showList && (
-<<<<<<< Updated upstream
-        <UploadFileList items={items} onRemove={removeItem} onRetry={retryItem} progressVariant={progressVariant} />
-=======
         <UploadFileList
           items={items}
           onRemove={removeItem}
+          onRetry={retryItem}
+          progressVariant={progressVariant}
           classNames={slots && { list: slots.list, listItem: slots.listItem, listRemove: slots.listRemove }}
         />
->>>>>>> Stashed changes
       )}
     </div>
   );

@@ -122,6 +122,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     minimal: 'minimal-ts',
     product: 'product-ts',
     admin: 'product-ts',
+    landing: 'landing-ts',
   };
   const variant = plan.variant ?? 'vite';
   const demoBase: Record<'vite' | 'next' | 'astro', string> = {

@@ -1,0 +1,105 @@
+name: starter-templates
+
+# =============================================================================
+# GOLDEN-PATH CI — bảo vệ starter-templates + create-wakii-app (chống tái diễn
+# sự cố 0.5.0/0.6.x: CLI publish nhưng app scaffold ra không install/build được).
+# Luôn chạy ĐỦ vòng đời người dùng thật: gate test/typecheck CLI → build tsup →
+# scaffold cả 7 kiểu vào /tmp → mỗi app phải pnpm install + build (+ test với
+# product/admin). Bất kỳ kiểu nào gãy → job ĐỎ, không publish được qua mắt.
+#
+# ⚠️ LƯU Ý (2026-10): GitHub Actions hiện ĐANG DISABLE (billing — xem CLAUDE.md
+# mục CI). Workflow này đã sẵn sàng, sẽ tự chạy khi bật lại Actions.
+# =============================================================================
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "app/starter-templates/**"
+      - "app/create-wakii-app/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/starter-templates.yml"
+  pull_request:
+    paths:
+      - "app/starter-templates/**"
+      - "app/create-wakii-app/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/starter-templates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read # least-privilege (chuẩn các workflow từ 2026-10-17)
+
+concurrency:
+  group: starter-templates-${{ github.ref }}
+  cancel-in-progress: true # push mới hơn thay push cũ — golden-path không cần kết quả cũ
+
+env:
+  CI: "true" # runner đã set sẵn, ghi tường minh: mọi prompt tương tác (CLI/pnpm/vite) bị chặn
+
+jobs:
+  golden-path:
+    name: scaffold 7 kiểu → install + build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20 # next/astro install chậm là điểm nghẽn chính — đã tính trong ngưỡng
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install (workspace, frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Bước 1 — gate unit: test parser/scaffold + typecheck CLI
+      - name: Gate — create-wakii-app test + typecheck
+        run: |
+          pnpm --filter create-wakii-app test
+          pnpm --filter create-wakii-app typecheck
+
+      # Bước 2 — build CLI (y hệt scripts.build + publish-npm.sh; dist/index.js
+      # resolve templates từ app/starter-templates theo layout repo)
+      - name: Build CLI (tsup ESM)
+        run: pnpm --filter create-wakii-app exec tsup src/index.ts --format esm
+
+      # Bước 3 — GOLDEN-PATH: scaffold đủ 7 kiểu vào /tmp (mỗi kiểu 1 step để
+      # thấy ngay kiểu nào gãy). --yes + CI=true → zero prompt.
+      - name: Scaffold — demo-ts (extras chart,carousel)
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/demo-ts --preset demo --extras chart,carousel --yes
+      - name: Scaffold — demo-js (--lang js)
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/demo-js --preset demo --lang js --yes
+      - name: Scaffold — next (--variant next)
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/next --preset demo --variant next --yes
+      - name: Scaffold — astro (--variant astro)
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/astro --preset demo --variant astro --yes
+      - name: Scaffold — minimal
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/minimal --preset minimal --yes
+      - name: Scaffold — product
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/product --preset product --yes
+      - name: Scaffold — admin
+        run: node app/create-wakii-app/dist/index.js /tmp/golden/admin --preset admin --yes
+
+      # Bước 4 — mỗi app scaffold phải sống sót vòng đời thật: install + build
+      # (product/admin thêm test). Bất kỳ app nào fail → job ĐỎ. next/astro
+      # install chậm — chấp nhận (timeout-job 20 phút đã tính).
+      - name: Golden-path — install + build (+test product/admin) từng app
+        run: |
+          set -euo pipefail
+          for app in demo-ts demo-js next astro minimal product admin; do
+            echo "==> [$app] pnpm install"
+            (cd "/tmp/golden/$app" && pnpm install --no-frozen-lockfile)
+            echo "==> [$app] pnpm build"
+            (cd "/tmp/golden/$app" && pnpm build)
+            case "$app" in
+              product|admin)
+                echo "==> [$app] pnpm test"
+                (cd "/tmp/golden/$app" && pnpm test)
+                ;;
+            esac
+          done

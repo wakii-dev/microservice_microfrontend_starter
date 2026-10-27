@@ -5,10 +5,11 @@ export const EXTRAS = ['chart', 'carousel', 'schedule', 'editor'] as const;
 export type Extra = (typeof EXTRAS)[number];
 export type Lang = 'ts' | 'js';
 
-/** 4 preset scaffold: demo (mặc định — demo page + router + extras),
+/** 5 preset scaffold: demo (mặc định — demo page + router + extras),
  * minimal (trắng, không data layer), product (TanStack Query + zod + MSW +
- * feature mẫu), admin (product + overlay layout admin). */
-export const PRESETS = ['demo', 'minimal', 'product', 'admin'] as const;
+ * feature mẫu), admin (product + overlay layout admin), landing (1 trang
+ * landing motion showcase — Reveal/Parallax/CountUp/CollapseTransition). */
+export const PRESETS = ['demo', 'minimal', 'product', 'admin', 'landing'] as const;
 export type Preset = (typeof PRESETS)[number];
 
 /** Framework template của preset demo: vite (mặc định) | next (App Router) | astro (React island). */

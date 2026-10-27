@@ -5,7 +5,7 @@
 import * as p from '@clack/prompts';
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { EXTRAS, PRESETS, parseArgs, resolveOptions, type Preset, type ScaffoldPlan } from './options.js';
+import { EXTRAS, PRESETS, VARIANTS, parseArgs, resolveOptions, type Preset, type ScaffoldPlan, type Variant } from './options.js';
 import { scaffold } from './scaffold.js';
 
 const USAGE = `create-wakii-app — scaffold app React + @wakii/ui-kit
@@ -13,7 +13,8 @@ const USAGE = `create-wakii-app — scaffold app React + @wakii/ui-kit
 Usage: pnpm create wakii-app [appName] [flags]
 
 Flags:
-  --preset <tên>      demo | minimal | product | admin (default: demo)
+  --preset <tên>      demo | minimal | product | admin | landing (default: demo)
+  --variant <tên>     vite | next | astro — framework của preset demo (default: vite)
   --lang ts|js        Ngôn ngữ (default: ts — preset khác demo chỉ hỗ trợ ts)
   --router/--no-router  react-router v7, preset demo (default: có)
   --extras <list>     Extras phẩy ngăn cách: chart,carousel,schedule,editor —
@@ -23,15 +24,19 @@ Flags:
   -h, --help          In hướng dẫn
 
 Presets:
-  demo      Trang demo dogfooding @wakii/ui-kit + router + extras (mặc định)
+  demo      Trang demo dogfooding @wakii/ui-kit + router + extras (mặc định) —
+            chọn framework: vite | next | astro
   minimal   Cấu trúc chuẩn, trang trắng — không data layer
   product   Chuẩn cấu trúc + TanStack Query + zod + MSW + feature tasks mẫu
   admin     product + layout admin (Sidebar + Menu + dashboard + login)
+  landing   1 trang landing motion showcase (Reveal/Parallax/CountUp/FAQ) — không router
 
 Ví dụ:
   pnpm create wakii-app my-app
   pnpm create wakii-app my-app --preset product
   pnpm create wakii-app admin-app --preset admin --yes
+  pnpm create wakii-app landing-app --preset landing --yes
+  pnpm create wakii-app my-app --variant next
   pnpm create wakii-app my-app --lang ts --router --extras chart,carousel
 `;
 
@@ -40,6 +45,13 @@ const PRESET_PROMPTS: Record<Preset, string> = {
   minimal: 'minimal — cấu trúc chuẩn, trang trắng, không data layer',
   product: 'product — chuẩn cấu trúc + TanStack Query + zod + MSW + feature mẫu',
   admin: 'admin — product + layout admin (Sidebar + dashboard + login)',
+  landing: 'landing — 1 trang landing motion showcase (Reveal/Parallax/CountUp/FAQ), không router',
+};
+
+const VARIANT_PROMPTS: Record<Variant, string> = {
+  vite: 'vite — SPA Vite (mặc định, hỗ trợ extras)',
+  next: 'next — Next.js App Router',
+  astro: 'astro — Astro + React island',
 };
 
 function printNextSteps(plan: ScaffoldPlan): void {
@@ -87,9 +99,25 @@ async function main(): Promise<void> {
     }
     options = { ...options, preset };
   }
-  // Router/extras chỉ là lựa chọn của preset demo — non-demo template đóng gói sẵn.
+  // Variant hỏi NGAY SAU preset (chỉ demo) — next/astro có trang + routing riêng
+  // trong template, overlay router/extras của vite không áp dụng.
   const presetIsDemo = (options.preset ?? 'demo') === 'demo';
-  if (presetIsDemo && options.router === undefined && options.extras.length === 0 && !options.yes) {
+  if (presetIsDemo && options.variant === undefined && !options.yes) {
+    const variant = await p.select<Variant>({
+      message: 'Framework cho demo?',
+      initialValue: 'vite',
+      options: VARIANTS.map((value) => ({ value, label: VARIANT_PROMPTS[value] })),
+    });
+    if (p.isCancel(variant)) {
+      p.cancel('Huỷ — không scaffold gì.');
+      return;
+    }
+    options = { ...options, variant };
+  }
+  // Router/extras là overlay demo × vite — chọn next/astro thì bỏ prompt (tránh
+  // tạo cấu hình chắc chắn lỗi ở resolveOptions).
+  const variantIsVite = (options.variant ?? 'vite') === 'vite';
+  if (presetIsDemo && variantIsVite && options.router === undefined && options.extras.length === 0 && !options.yes) {
     const withRouter = await p.confirm({ message: 'Thêm react-router v7?', initialValue: true });
     if (p.isCancel(withRouter)) {
       p.cancel('Huỷ — không scaffold gì.');
@@ -97,7 +125,7 @@ async function main(): Promise<void> {
     }
     options = { ...options, router: withRouter };
   }
-  if (presetIsDemo && !options.yes && !options.extrasProvided) {
+  if (presetIsDemo && variantIsVite && !options.yes && !options.extrasProvided) {
     const chosen = await p.multiselect({
       message: 'Extras (tuỳ chọn — demo subpath component nặng)',
       options: EXTRAS.map((value) => ({ value, label: value })),

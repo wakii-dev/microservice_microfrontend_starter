@@ -219,7 +219,7 @@ ${access}## Run
 \`\`\`bash
 cd ${selection.appName}
 cp platform/.env.example platform/.env   # điền secret trước khi up
-docker compose --env-file platform/.env up -d
+docker compose -f platform/docker-compose.yml --env-file platform/.env up -d
 \`\`\`
 
 ${manifest.smoke ? `## Smoke\n\n\`\`\`bash\n${manifest.smoke}\n\`\`\`\n` : ''}

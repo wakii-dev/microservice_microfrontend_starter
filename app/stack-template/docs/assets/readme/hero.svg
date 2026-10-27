@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="340" viewBox="0 0 960 340" role="img" aria-label="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses and typing indicator">
+  <title>@wakii/ui-kit — tokens-first · dark · motion</title>
+  <desc>Wakii W logo mark (white W stroke in an accent hexagon) pulsing at the center while ten token dots orbit on two counter-rotating rings, their colors cycling through accent and status tokens; ripple pulses radiate over a faint grid; typing dots bounce under the tagline.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101319"/>
+      <stop offset="1" stop-color="#171b25"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1677ff"/>
+      <stop offset="0.55" stop-color="#4096ff"/>
+      <stop offset="1" stop-color="#5e6ad2"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#1677ff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#1677ff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#d9dfec" stroke-width="1"/>
+    </pattern>
+    <clipPath id="cardClip"><rect x="1.5" y="1.5" width="957" height="337" rx="18"/></clipPath>
+  </defs>
+
+  <!-- canvas card -->
+  <rect x="1.5" y="1.5" width="957" height="337" rx="18" fill="url(#bg)" stroke="#2a3040" stroke-width="1.5"/>
+  <g clip-path="url(#cardClip)">
+    <rect x="1.5" y="1.5" width="957" height="337" fill="url(#grid)" opacity="0.5"/>
+    <ellipse cx="480" cy="122" rx="175" ry="122" fill="url(#glow)">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="6s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+
+  <!-- ripple pulses radiating from the mark -->
+  <g fill="none" stroke="#1677ff" stroke-width="1.5">
+    <circle cx="480" cy="122" r="50" opacity="0.5">
+      <animate attributeName="r" values="50;116" dur="3.6s" begin="0s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0" dur="3.6s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="480" cy="122" r="50" opacity="0.5">
+      <animate attributeName="r" values="50;116" dur="3.6s" begin="-1.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0" dur="3.6s" begin="-1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="480" cy="122" r="50" opacity="0.5">
+      <animate attributeName="r" values="50;116" dur="3.6s" begin="-2.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0" dur="3.6s" begin="-2.4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- orbit rings -->
+  <circle cx="480" cy="122" r="80" fill="none" stroke="#c7d3ee" stroke-width="1" stroke-dasharray="3 6"/>
+  <circle cx="480" cy="122" r="48" fill="none" stroke="#d5def2" stroke-width="1" stroke-dasharray="2 5"/>
+
+  <!-- outer orbit: 6 token dots, counter-rotating, each cycling accent → status colors -->
+  <g>
+    <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 480 122" to="360 480 122" dur="36s" repeatCount="indefinite"/>
+    <circle cx="560" cy="122" r="5.5" fill="#1677ff" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="520" cy="191.3" r="5.5" fill="#4096ff" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="-1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="440" cy="191.3" r="5.5" fill="#52c41a" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="-2.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="122" r="5.5" fill="#faad14" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="-3.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="440" cy="52.7" r="5.5" fill="#ff4d4f" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="-4.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="520" cy="52.7" r="5.5" fill="#1677ff" stroke="#ffffff" stroke-width="1.5">
+      <animate attributeName="fill" values="#1677ff;#4096ff;#52c41a;#faad14;#ff4d4f;#1677ff" dur="7.2s" begin="-6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- inner orbit: 4 accent dots, reverse rotation -->
+  <g>
+    <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="360 480 122" to="0 480 122" dur="22s" repeatCount="indefinite"/>
+    <circle cx="513.9" cy="155.9" r="4.5" fill="#5e6ad2" stroke="#ffffff" stroke-width="1.2">
+      <animate attributeName="fill" values="#5e6ad2;#828fff;#1677ff;#5e6ad2" dur="6s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="446.1" cy="155.9" r="4.5" fill="#828fff" stroke="#ffffff" stroke-width="1.2">
+      <animate attributeName="fill" values="#5e6ad2;#828fff;#1677ff;#5e6ad2" dur="6s" begin="-1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="446.1" cy="88.1" r="4.5" fill="#1677ff" stroke="#ffffff" stroke-width="1.2">
+      <animate attributeName="fill" values="#5e6ad2;#828fff;#1677ff;#5e6ad2" dur="6s" begin="-3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="513.9" cy="88.1" r="4.5" fill="#5e6ad2" stroke="#ffffff" stroke-width="1.2">
+      <animate attributeName="fill" values="#5e6ad2;#828fff;#1677ff;#5e6ad2" dur="6s" begin="-4.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- logo mark: slowly rotating hexagon + blossom petals + heartbeat core -->
+  <g>
+    <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 480 122" to="360 480 122" dur="90s" repeatCount="indefinite"/>
+    <polygon points="526,122 503,82.2 457,82.2 434,122 457,161.8 503,161.8" fill="none" stroke="#1677ff" stroke-width="1.5" opacity="0.4"/>
+  </g>
+  <g>
+    <polygon points="501,122 484.5,96 475.5,96 459,122 475.5,148 484.5,148" fill="#1677ff" fill-opacity="0.95"/>
+    <path d="M470.4 111.7l4.9 13.2 4.7-9.2 4.7 9.2 4.9-13.2" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="480" cy="122" r="34" fill="none" stroke="#1677ff" stroke-width="1.5" opacity="0.35">
+      <animate attributeName="r" values="34;40;34" dur="2.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.35;0;0.35" dur="2.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- corner chips -->
+  <g font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="12">
+    <rect x="28" y="26" width="126" height="24" rx="12" fill="#1a2130" stroke="#2a3040"/>
+    <text x="91" y="42" text-anchor="middle" fill="#e8eaf0">115 components</text>
+    <rect x="862" y="26" width="70" height="24" rx="12" fill="#1a2130" stroke="#2a3040"/>
+    <text x="897" y="42" text-anchor="middle" fill="#e8eaf0">v0.6</text>
+  </g>
+
+  <!-- title + tagline -->
+  <g font-family="ui-sans-serif, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" text-anchor="middle">
+    <text x="480" y="262" font-size="40" font-weight="700" letter-spacing="0.5" fill="url(#titleGrad)">wakii</text>
+    <text x="480" y="288" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="15" letter-spacing="2" fill="#9aa4b8">tokens-first · dark · motion</text>
+  </g>
+
+  <!-- typing dots -->
+  <g>
+    <circle cx="448" cy="306" r="4" fill="#1677ff">
+      <animate attributeName="cy" values="306;297;306" dur="1.15s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="480" cy="306" r="4" fill="#4096ff">
+      <animate attributeName="cy" values="306;297;306" dur="1.15s" begin="0.19s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="512" cy="306" r="4" fill="#5e6ad2">
+      <animate attributeName="cy" values="306;297;306" dur="1.15s" begin="0.38s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

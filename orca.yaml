@@ -7,8 +7,8 @@
 name: architecture-overview
 description: >
   Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services
-  (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task management
-  qua nginx gateway, Docker Compose + CI. Scaffold project mới:
+  (Node/Spring/Go/.NET) + Module Federation FE (Rspack), demo e2e task
+  management qua nginx gateway, Docker Compose + CI. Scaffold project mới:
   bash scripts/scaffold/scaffold.sh <tên-mới>
 
 stack:
@@ -16,13 +16,15 @@ stack:
   pnpm: ">=9"            # corepack enable — root packageManager pin 9.15.9
   jdk: "21"
   go: "1.24"
+  dotnet: "8.0"          # NOT required on dev machines — dotnet-svc builds/tests via Docker (ADR-0011)
   postgres: "16"
   workspaces: pnpm workspace (root) NHƯNG node-svc + auth-svc có standalone lockfile (cài riêng, xem services.auth-svc.install)
 
 # ── Contracts — SOURCE OF TRUTH. Sửa contract TRƯỚC, code theo sau. ──────────
 contracts:
-  openapi: [contracts/openapi/tasks.yaml, contracts/openapi/users.yaml, contracts/openapi/activity.yaml, contracts/openapi/auth.yaml]
+  openapi: [contracts/openapi/tasks.yaml, contracts/openapi/users.yaml, contracts/openapi/activity.yaml, contracts/openapi/auth.yaml, contracts/openapi/dotnet.yaml]
   ddl_canonical: contracts/db/tasks-schema.sql
+  ddl_dotnet: contracts/db/notifications-schema.sql   # canonical dotnet-svc (mirror embedded migration)
   events_contract: contracts/events/task-events.md
   event_fixtures: contracts/events/fixtures/   # golden envelope — node/go test cùng nguồn
   auth_users_fixture: contracts/auth/users.json  # id UUID CỐ ĐỊNH — không đổi id user cũ
@@ -60,6 +62,15 @@ services:
     healthz: [/healthz, /readyz]
     owns: schema activity (tự migrate) — feed/stats + Kafka consumer (idempotent, retry ×3 → DLQ + saga)
     note: đọc-ONLY schema tasks qua role go_readonly; snapshot openapi nhúng phải bit-identical contract (CI drift-guard)
+  dotnet-svc:
+    path: services/dotnet-svc
+    port: 8083
+    tech: ASP.NET Core 8 Minimal API + Dapper (ADR-0011 — 4th language)
+    run: docker build services/dotnet-svc   # no .NET SDK on dev — build/test via Docker
+    test: docker build -t dotnet-svc:local services/dotnet-svc   # xunit runs inside the build stage
+    healthz: [/healthz, /readyz]
+    owns: schema notifications (self-migrating) — single-table CRUD scoped to JWT sub
+    note: NO kafka, NO inter-service calls; JWT self-verified layer 2 (iss pinned auth-mock)
   auth-svc:
     path: services/auth-svc
     port: 8090
@@ -113,7 +124,7 @@ run:
           --bootstrap-server localhost:9092 --create --if-not-exists --topic "$topic" \
           --partitions 1 --replication-factor 1
       done
-      docker compose --env-file .env up -d --build        # 10 services, health-gated chain
+      docker compose --env-file .env up -d --build        # 11 services, health-gated chain
     verify: bash scripts/smoke/e2e.sh                      # 2 chiều — happy + saga + DLQ assert
     url: http://localhost:8080
   native: docs/walkthrough.md                              # đường B — từng service, SMOKE_SAGA=0 cho smoke
@@ -126,11 +137,12 @@ test_all:              # full suite local — PASS hết trước khi claim done
   - pnpm --filter auth-svc test
   - cd services/go-svc && go test ./...
   - cd services/spring-svc && ./mvnw test
+  - docker build -t dotnet-svc:local services/dotnet-svc   # xunit in the build stage (no SDK needed)
 
 docs:
   start_here: docs/walkthrough.md          # fresh-clone → demo chạy được
   conventions: platform/conventions/       # 01–09 — BẮT BUỘC, không đúng = review fail
-  adr: docs/adr/                           # 0001–0009 — quyết định kiến trúc đã chốt
+  adr: docs/adr/                           # 0001–0011 — quyết định kiến trúc đã chốt
   toolchain: docs/toolchain.md
   ci: .github/workflows/                   # 10 workflows (HIỆN DISABLE — xem gotchas) — bảng mô tả ở CLAUDE.md
   evidence: docs/superpowers/evidence/     # test-run + screenshots theo story

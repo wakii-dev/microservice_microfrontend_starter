@@ -470,6 +470,10 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   // LƯU Ý: app/shared KHÔNG prune — fe-shared consumed qua source (workspace:*).
   const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike', 'app/ui-kit'];
   const prunedPaths: string[] = [];
+  // Dir KHÔNG có trong template từ trước (snapshot exclude) — vẫn đưa vào
+  // pruneWorkspaceRefs để dọn pnpm-lock importers/workspace globs sót lại
+  // (lock copy từ repo chính chứa đủ importers — thiếu dọn là frozen-lock fail).
+  const TEMPLATE_ABSENT = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/spike', 'app/ui-kit'];
   for (const relPath of ALWAYS_PRUNE) {
     const target = join(dest, relPath);
     if (existsSync(target)) {
@@ -526,7 +530,7 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   // 4b. dọn references workspace (Dockerfile COPY / pnpm-lock importers /
   // pnpm-workspace globs / rspack include pattern) của mọi dir đã prune —
   // docker build from-scratch gãy nếu thiếu (bắt trên stack Desktop 0.1.4)
-  await pruneWorkspaceRefs(dest, prunedPaths, log);
+  await pruneWorkspaceRefs(dest, [...new Set([...prunedPaths, ...TEMPLATE_ABSENT])], log);
 
   // 4c. FE deps → npm registry (app/ui-kit đã prune ở bước 0): rewrite
   // workspace:* → latest rồi đồng bộ lockfile (pnpm lockfile-only; không có

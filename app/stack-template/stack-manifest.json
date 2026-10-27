@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "$comment": "Nguồn chân lý prune cho create-wakii-stack engine. Đã xác minh against platform/docker-compose.yml (11 service blocks), platform/gateway/nginx/nginx.conf (routes thật) và platform/.env.example (2026-10-25 — recon Mission #8).Ý nghĩa field: paths = đường dẫn template xoá khi service KHÔNG được chọn; composeService = tên khối trong platform/docker-compose.yml (null = không có trong compose); gatewayBlocks = route nginx thuộc service trong platform/gateway/nginx/nginx.conf; envKeys = dòng .env.example thuộc service (engine xoá dòng khi service bị prune); requires = service phải có mặt khi service này được chọn; devLocal = chạy được ngoài compose (pnpm --filter <pkg> dev).",
+  "$comment": "Nguồn chân lý prune cho create-wakii-stack engine. Đã xác minh against platform/docker-compose.yml (11 service blocks), platform/gateway/nginx/nginx.conf (routes thật) và platform/.env.example (2026-10-27 — dotnet-svc added).Ý nghĩa field: paths = đường dẫn template xoá khi service KHÔNG được chọn; composeService = tên khối trong platform/docker-compose.yml (null = không có trong compose); gatewayBlocks = route nginx thuộc service trong platform/gateway/nginx/nginx.conf; envKeys = dòng .env.example thuộc service (engine xoá dòng khi service bị prune); requires = service phải có mặt khi service này được chọn; devLocal = chạy được ngoài compose (pnpm --filter <pkg> dev).",
   "placeholder": {
     "stackName": "__STACK_NAME__",
     "org": "__STACK_ORG__",
@@ -53,7 +53,8 @@
         "SPRING_SVC_DB_PASSWORD",
         "GO_SVC_DB_PASSWORD",
         "GO_READONLY_DB_PASSWORD",
-        "AUTH_SVC_DB_PASSWORD"
+        "AUTH_SVC_DB_PASSWORD",
+        "DOTNET_SVC_DB_PASSWORD"
       ],
       "requires": [],
       "devLocal": false
@@ -195,6 +196,26 @@
       "devLocal": false
     },
     {
+      "id": "dotnet-svc",
+      "type": "be",
+      "description": "ASP.NET Core 8 Minimal API — notifications single-table CRUD scoped to JWT sub (ADR-0011, 4th language). Standalone with postgres: NO kafka, NO inter-service calls; JWT self-verified (layer 2). gatewayBlocks use literal nginx line markers (pruneGatewayConf matches by substring — the descriptive style used by older entries never matches a real line and silently no-ops).",
+      "paths": [
+        "services/dotnet-svc/**"
+      ],
+      "composeService": "dotnet-svc",
+      "gatewayBlocks": [
+        "location = /api/dotnet",
+        "location /api/dotnet/ {"
+      ],
+      "envKeys": [
+        "DOTNET_SVC_PORT"
+      ],
+      "requires": [
+        "postgres"
+      ],
+      "devLocal": false
+    },
+    {
       "id": "shell",
       "type": "fe",
       "description": "MF host :3000 — import remoteEntry của 2 remote qua gateway /remotes/ (chạy compose) hoặc dev server.",
@@ -302,6 +323,7 @@
     "node-svc": "http://localhost:3001",
     "spring-svc": "http://localhost:8081",
     "go-svc": "http://localhost:8082",
+    "dotnet-svc": "http://localhost:8083",
     "postgres": "localhost:5432"
   }
 }

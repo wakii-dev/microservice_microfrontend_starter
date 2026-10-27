@@ -2,6 +2,10 @@
 
 Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task management qua nginx gateway. Bản đồ structured cho agent parse: [orca.yaml](orca.yaml). Cho người mới: [docs/walkthrough.md](docs/walkthrough.md).
 
+> New agent here (Claude/Codex/Cursor): read [AGENTS.md](AGENTS.md) first — reading order + git/multi-session rules + quick verify.
+> Knowledge base (detailed gotchas + where-is-what): [docs/ai/knowledge.md](docs/ai/knowledge.md).
+> UI recipes: [docs/ai/recipes.md](docs/ai/recipes.md); the ui-kit quick reference lives in Part II of AGENTS.md.
+
 ## Nguyên tắc vàng (vi phạm = review fail)
 
 1. **Contracts là source of truth** — sửa spec/DDL/event contract TRƯỚC, code theo sau (`contracts/`).
@@ -14,10 +18,11 @@ Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services (Node/Spring
 ```
 contracts/    openapi (tasks·users·activity·auth) + db/tasks-schema.sql (canonical DDL)
               + events/ (task-events.md + fixtures golden) + auth/users.json (id cố định)
-platform/     docker-compose.yml (10 services) · gateway/nginx ·
+platform/     docker-compose.yml (11 services) · gateway/nginx ·
               postgres/init · conventions/ (01–09)
 services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
               spring-svc :8081 (Boot 3 — users/teams) · go-svc :8082 (chi — activity, Kafka consumer, saga)
+              dotnet-svc :8083 (ASP.NET Core 8 Minimal API — notifications, ADR-0011)
               auth-svc :8090 (Fastify+TS+Drizzle — register/login/refresh/RBAC, epic auth-real)
 app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (38 components + Storybook + motion)
               shell :3000 (MF host) · remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
@@ -42,7 +47,7 @@ docs/         walkthrough · adr/0001–0010 · toolchain · superpowers/ (spec+
 
 ## Ports (nguồn sự thật: `platform/conventions/05-ports.md`)
 
-gateway **8080** · shell 3000 · remote tasks 4001 · remote activity 4002 · node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-svc 8090 · postgres 5432. Sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
+gateway **8080** · shell 3000 · remote tasks 4001 · remote activity 4002 · node-svc 3001 · spring-svc 8081 · go-svc 8082 · dotnet-svc 8083 · auth-svc 8090 · postgres 5432. Sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
 
 ## Workflow có contracts (sửa API)
 
@@ -80,11 +85,11 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | Workflow | Nội dung |
 |---|---|
 | `contracts` | spectral + gitleaks + compose config + boot auth-svc + schemathesis FULL |
-| `services-node-svc` / `services-go-svc` / `services-spring-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
+| `services-node-svc` / `services-go-svc` / `services-spring-svc` / `services-dotnet-svc` | build + test + docker build + boot-smoke (node/go có kafka) |
 | `shell` / `remotes-tasks` / `remotes-activity` | install + typecheck + test + build |
 | `ui-kit` | install + typecheck + test + coverage + **build-storybook** (ADR-0009 — không publish) |
 | `git-guard` | mọi PR — enforce branch name (`wakii-dev/<loại>-<slug>`) + commit message theo [git-flow.md](docs/git-flow.md); feedback sớm hơn = `git config core.hooksPath .githooks` |
-| `convergence` | mọi push — e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone (fe-shared + ui-kit) + scaffold build được |
+| `convergence` | mọi push — e2e 2 chiều trên compose 11 services (happy qua Kafka + saga → DLQ assert) + copy-dir standalone (fe-shared + ui-kit) + scaffold build được |
 
 ## Gotchas (đầy đủ trong `gotchas:` của orca.yaml)
 

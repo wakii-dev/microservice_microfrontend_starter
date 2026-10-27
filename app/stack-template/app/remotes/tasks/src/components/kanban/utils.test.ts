@@ -1,7 +1,8 @@
-// Tests kanban utils — groupByColumn (failed vào đầu todo) · sortTasks · pickColumn.
+// Tests kanban utils — groupByColumn (failed tách khỏi 3 cột) · sortTasks ·
+// assigneeInitials cho Avatar card. (pickColumn đã bỏ — drag do kit board lo.)
 import { describe, expect, it } from 'vitest';
 import type { Task } from '../../api';
-import { groupByColumn, pickColumn, sortTasks } from './utils.js';
+import { assigneeInitials, groupByColumn, sortTasks } from './utils.js';
 
 function task(partial: Partial<Task> & { id: string }): Task {
   return {
@@ -16,18 +17,14 @@ function task(partial: Partial<Task> & { id: string }): Task {
   };
 }
 
-const rect = (left: number, top: number, right: number, bottom: number) =>
-  ({ left, top, right, bottom, width: right - left, height: bottom - top, x: left, y: top }) as DOMRect;
-
 describe('groupByColumn', () => {
-  it('nhóm 3 status; assignment_failed vào ĐẦU cột todo (status hệ thống, không drag)', () => {
+  it('nhóm 3 status; assignment_failed KHÔNG nằm trong 3 cột (slim column riêng ở board)', () => {
     const grouped = groupByColumn([
       task({ id: 'a', status: 'todo' }),
       task({ id: 'f', status: 'assignment_failed' }),
       task({ id: 'b', status: 'in_progress' }),
       task({ id: 'c', status: 'done' }),
     ]);
-    // assignment_failed KHÔNG nằm trong 3 cột writable (slim column riêng ở board)
     expect(grouped.todo.map((t) => t.id)).toEqual(['a']);
     expect(grouped.in_progress.map((t) => t.id)).toEqual(['b']);
     expect(grouped.done.map((t) => t.id)).toEqual(['c']);
@@ -45,18 +42,14 @@ describe('sortTasks', () => {
   });
 });
 
-describe('pickColumn', () => {
-  const rects = {
-    todo: rect(0, 0, 200, 400),
-    in_progress: rect(210, 0, 410, 400),
-    done: null as DOMRect | null,
-  };
-  it('điểm trúng cột → status đó', () => {
-    expect(pickColumn({ x: 100, y: 200 }, rects)).toBe('todo');
-    expect(pickColumn({ x: 300, y: 200 }, rects)).toBe('in_progress');
+describe('assigneeInitials (Avatar card)', () => {
+  it('rút 2 ký tự đầu khỏi id — uppercase, bỏ dấu gạch', () => {
+    expect(assigneeInitials('33333333-3333-3333-3333-333333333333')).toBe('33');
+    expect(assigneeInitials('ab-cd')).toBe('AB');
   });
-  it('ngoài mọi cột / cột rect null → null', () => {
-    expect(pickColumn({ x: 500, y: 200 }, rects)).toBeNull();
-    expect(pickColumn({ x: 350, y: 200 }, { done: null })).toBeNull();
+  it('id rỗng/null → null (card render "Chưa gán")', () => {
+    expect(assigneeInitials(null)).toBeNull();
+    expect(assigneeInitials('')).toBeNull();
+    expect(assigneeInitials('---')).toBeNull();
   });
 });

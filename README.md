@@ -4,18 +4,31 @@
 
 # microservice_microfrontend_starter
 
-### Microservice + micro-frontend starter — full-stack, one command.
+### AI-native full-stack starter for vibe coding — agents clone the repo and get to work.
+
+Rules as **directives** ([AGENTS.md](AGENTS.md)) · contracts **machine-checkable** (spectral + drift-guard) · one-command verify (`pnpm verify:quick`) · generators (`gen:service` / `gen:app` / `gen:feature`) · **N-lane** team workflow with a watchdog.
 
 Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của repo này** — chạy bằng
 `docker compose up`, không mock, không screenshot từ dự án khác.
 
-**90+** components · **1328** tests · **3** npm packages · **10** services
+**90+** components · **1328** tests · **3** npm packages · **11** services
 
 [![npm @wakii/ui-kit](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit&color=cb3837)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![npm create-wakii-app](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app&color=cb3837)](https://www.npmjs.com/package/create-wakii-app)
 [![npm create-wakii-stack](https://img.shields.io/npm/v/create-wakii-stack?logo=npm&label=create-wakii-stack&color=cb3837)](https://www.npmjs.com/package/create-wakii-stack)
 [![Storybook](https://img.shields.io/badge/Storybook-870%2B%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## 🤖 Agents know where everything is
+
+| Agent needs | Open / run | Machine contract |
+|---|---|---|
+| **Rules** — dos & don'ts | [AGENTS.md](AGENTS.md) → [CLAUDE.md](CLAUDE.md) | if-then directives; branch + commit regex enforced by husky |
+| **Knowledge** — traps + task→file map | [docs/ai/knowledge.md](docs/ai/knowledge.md) · [docs/ai/recipes.md](docs/ai/recipes.md) | IF/THEN gotchas; 20 copy-paste recipes |
+| **Workflow** — feature → PR | [docs/WORKFLOW.md](docs/WORKFLOW.md) + skill `wakii-ship-feature` | gated lifecycle; 5-line PR checklist |
+| **Generators** — scaffold a service / app / feature | `pnpm gen:service` · `gen:app` · `gen:feature` | `--json` → `{created[], modified[], next_steps[]}` — next_steps = AI follow-up directives |
+| **Verify** — one command before any PASS | `pnpm verify:quick` | `--json` → `[{step, status, duration}]` + exit code |
+| **Team** — N parallel lanes | [docs/team/TEAM.md](docs/team/TEAM.md) · `bash scripts/team/lanes-status.sh` | 1 coordinator with independent gates — N workers, one worktree each |
 
 <img src="docs/assets/readme/stack-marquee.svg" alt="Stack chạy ngang vô hạn — React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion" width="920" />
 
@@ -106,7 +119,7 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 |---|---|
 | **Experience** | shell (landing 3D + nav) · remotes (kanban drag · feed realtime) · admin showcase |
 | **Edge** | nginx gateway — routing · JWT presence · `/remotes/*` registry |
-| **Services** | node-svc :3001 · spring-svc :8081 · go-svc :8082 · auth-svc :8090 |
+| **Services** | node-svc :3001 · spring-svc :8081 · go-svc :8082 · dotnet-svc :8083 · auth-svc :8090 |
 | **Infra** | postgres :5432 (schema-per-svc) · kafka :9092 (KRaft + kafka-init) |
 
 ## Repo map
@@ -114,7 +127,7 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 ```
 contracts/    source of truth — openapi (spectral CI) · canonical DDL · token contract
 platform/     compose + kafka-init · postgres init · gateway · 9 conventions
-services/     node · spring · go · auth — README standalone từng service
+services/     node · spring · go · dotnet · auth — README standalone từng service
 app/
   ui-kit/     @wakii/ui-kit — components · hooks · tokens · Storybook
   shared/     fe-shared — api client · token storage · MF bootstrap

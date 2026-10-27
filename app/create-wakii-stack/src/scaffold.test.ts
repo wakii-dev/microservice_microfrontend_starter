@@ -21,6 +21,12 @@ const COMPOSE = `services:
       postgres:
         condition: service_healthy
 
+  dotnet-svc:
+    image: dotnet
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   gateway:
     image: nginx
     depends_on:
@@ -52,6 +58,10 @@ const GATEWAY_CONF = `http {
     server node-svc:3001;
   }
 
+  upstream dotnet_svc {
+    server dotnet-svc:8083;
+  }
+
   server {
     location /api/auth {
       proxy_pass http://auth_svc;
@@ -59,6 +69,10 @@ const GATEWAY_CONF = `http {
 
     location /api/tasks {
       proxy_pass http://node_svc;
+    }
+
+    location /api/dotnet {
+      proxy_pass http://dotnet_svc;
     }
   }
 }
@@ -68,13 +82,15 @@ const ENV = `POSTGRES_USER=postgres
 POSTGRES_PASSWORD=changeme
 NODE_SVC_DB_PASSWORD=nodedb
 SPRING_SVC_DB_PASSWORD=springdb
+DOTNET_SVC_DB_PASSWORD=dotnetdb
 JWT_SECRET=secret
+DOTNET_SVC_PORT=8083
 `;
 
 const MANIFEST = {
   version: 1,
   services: {
-    postgres: { layer: 'core' },
+    postgres: { layer: 'core', envKeys: ['DOTNET_SVC_DB_PASSWORD'] },
     'auth-svc': { layer: 'core' },
     gateway: { layer: 'core' },
     'node-svc': {
@@ -84,6 +100,12 @@ const MANIFEST = {
       gatewayBlocks: ['upstream node_svc', 'location /api/tasks'],
     },
     'spring-svc': { layer: 'be', paths: ['services/spring-svc'], envKeys: ['SPRING_SVC_DB_PASSWORD'] },
+    'dotnet-svc': {
+      layer: 'be',
+      paths: ['services/dotnet-svc'],
+      envKeys: ['DOTNET_SVC_PORT'],
+      gatewayBlocks: ['upstream dotnet_svc', 'location /api/dotnet'],
+    },
     shell: { layer: 'fe' },
   },
   files: {
@@ -114,6 +136,8 @@ beforeEach(async () => {
   await writeFile(join(templateRoot, 'platform', 'gateway', 'nginx', 'nginx.conf'), GATEWAY_CONF);
   await writeFile(join(templateRoot, 'services', 'node-svc', 'index.js'), '// __STACK_NAME__ node');
   await writeFile(join(templateRoot, 'services', 'spring-svc', 'pom.xml'), '<!-- spring -->');
+  await mkdir(join(templateRoot, 'services', 'dotnet-svc'), { recursive: true });
+  await writeFile(join(templateRoot, 'services', 'dotnet-svc', 'Dockerfile'), 'FROM scratch\n');
   await writeFile(join(templateRoot, '.DS_Store'), 'junk');
 });
 
@@ -246,13 +270,46 @@ describe('scaffold — dọn workspace refs sau prune', () => {
   });
 });
 
+describe('scaffold — dotnet-svc selection (ADR-0011 BE service)', () => {
+  it('selection includes dotnet-svc → compose block + gateway block + env keys + path kept', async () => {
+    await scaffold(
+      { selection: selection({ services: ['postgres', 'gateway', 'node-svc', 'shell', 'dotnet-svc'] }), dest, templateRoot },
+    );
+    const out = await readFile(join(dest, 'platform', 'docker-compose.yml'), 'utf8');
+    expect(out).toContain('  dotnet-svc:'); // compose block kept
+    expect(out).toContain('create-wakii-stack: pruned auth-svc, spring-svc'); // only unselected pruned
+    const conf = await readFile(join(dest, 'platform', 'gateway', 'nginx', 'nginx.conf'), 'utf8');
+    expect(conf).toContain('upstream dotnet_svc');
+    expect(conf).toContain('location /api/dotnet');
+    const env = await readFile(join(dest, 'platform', '.env.example'), 'utf8');
+    expect(env).toContain('DOTNET_SVC_PORT=8083');
+    expect(env).toContain('DOTNET_SVC_DB_PASSWORD=dotnetdb'); // belongs to postgres (init script role)
+    expect(existsSync(join(dest, 'services', 'dotnet-svc'))).toBe(true);
+  });
+
+  it('dotnet-svc NOT selected → compose block, gateway marker, port key, path all pruned (DB password kept with postgres)', async () => {
+    const dest2 = join(root, 'dest2');
+    await scaffold({ selection: selection({ services: ['postgres', 'gateway', 'node-svc', 'shell'] }), dest: dest2, templateRoot });
+    const out = await readFile(join(dest2, 'platform', 'docker-compose.yml'), 'utf8');
+    expect(out).not.toContain('  dotnet-svc:');
+    expect(out).toContain('create-wakii-stack: pruned auth-svc, spring-svc, dotnet-svc'); // manifest order
+    const conf = await readFile(join(dest2, 'platform', 'gateway', 'nginx', 'nginx.conf'), 'utf8');
+    expect(conf).not.toContain('dotnet_svc');
+    expect(conf).not.toContain('/api/dotnet');
+    const env = await readFile(join(dest2, 'platform', '.env.example'), 'utf8');
+    expect(env).not.toContain('DOTNET_SVC_PORT');
+    expect(env).toContain('DOTNET_SVC_DB_PASSWORD=dotnetdb'); // postgres still selected
+    expect(existsSync(join(dest2, 'services', 'dotnet-svc'))).toBe(false);
+  });
+});
+
 describe('scaffold — README sinh', () => {
   it('README.md ở đỉnh dest: services chọn + up + smoke + ports', async () => {
     await scaffold({ selection: selection({ appName: 'hop-stack', services: ['postgres', 'gateway', 'node-svc', 'shell'] }), dest, templateRoot });
     const readme = await readFile(join(dest, 'README.md'), 'utf8');
     expect(readme).toContain('# hop-stack');
     expect(readme).toContain('- node-svc _(be)_');
-    expect(readme).toContain('docker compose --env-file platform/.env up -d');
+    expect(readme).toContain('docker compose -f platform/docker-compose.yml --env-file platform/.env up -d');
     expect(readme).toContain('bash scripts/smoke/e2e.sh');
     expect(readme).toContain('http://localhost:8080');
     expect(readme).toContain('http://localhost:3000');

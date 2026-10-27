@@ -1,6 +1,6 @@
 # Fresh-clone walkthrough — từ clone đến demo chạy được
 
-Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 10 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
+Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 11 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
 
 ## 0. Toolchain cần có
 
@@ -44,7 +44,7 @@ for topic in task-events task-events.dlq; do
   docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
     --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
 done
-docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
+docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (11 services, kafka lazy-connect)
 bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 15 bước, 3 luồng:
                                     #   happy     : login→task→feed QUA KAFKA (outbox → topic → go consumer)
                                     #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 204)
@@ -56,7 +56,7 @@ bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. P
 ### Đường B — Native (không Docker — từng service một)
 
 ```bash
-# 4 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
+# 5 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
 cd services/auth-svc && JWT_SECRET=<dev-secret> PORT=8090 \
   DATABASE_URL="postgres://auth_svc:<pw>@localhost:5432/boilerplate" \
   USERS_FIXTURE_PATH=$(pwd)/../../contracts/auth/users.json \
@@ -75,6 +75,9 @@ cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
   DATABASE_URL="postgres://go_svc:<pw>@localhost:5432/boilerplate" \
   DATABASE_READONLY_URL="postgres://<owner-user>:<owner-pw>@localhost:5432/boilerplate" \
   SPRING_SVC_URL=http://localhost:8081 go run ./cmd/server
+
+cd services/dotnet-svc/src/DotnetSvc && JWT_SECRET=<dev-secret> DOTNET_SVC_PORT=8083 \
+  DATABASE_URL="postgres://dotnet_svc:<pw>@localhost:5432/boilerplate" dotnet run   # needs .NET SDK 8 (unlike the other 4 services)
 
 # FE (3 terminal):
 cd app/shell   && pnpm dev   # :3000
@@ -95,10 +98,11 @@ Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08
 Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo light **antd-look** (decision 2026-10-17 — spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`): nền canvas `#f5f5f5`, khối trắng `#ffffff`, 1 accent `#1677ff`, badge pill chấm-màu; dark (palette direction B cũ) là theme phụ qua `UiKitProvider` (`data-bp-theme`).
 
 1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → thấy **dashboard chào** với quick links Tasks/Activity + box **TÀI KHOẢN DEMO** (`alice@demo.local / demo-password`, `fail@demo.local`). Login → nav phải hiện user chip (avatar + email) + nút **Đăng xuất**.
-2. Nav → **Tasks** (item nav active gạch accent): form **Tạo task** (Tiêu đề + Mô tả) → task mới xuất hiện đầu danh sách, heading **"Danh sách (x/total)"** cập nhật. Thử tiếp:
-   - **Sửa inline**: nút *Sửa* trên card → input inline tiêu đề/mô tả → *Lưu* (PATCH thật) / *Huỷ*.
-   - **Đổi status**: select trên card (`Cần làm` / `Đang làm` / `Xong`) — lúc PATCH đang bay item hiện spinner + select khoá (per-item busy).
-   - **Lọc**: chip `Tất cả` / `Cần làm` / `Đang làm` / `Xong` → danh sách + "x/total" lọc theo `?status=`.
+2. Nav → **Tasks** (active pill accent) — **Kanban board 3 cột** (Cần làm / Đang làm / Xong) + toolbar (search debounce · sort mới/cũ nhất · **＋ Thêm** mở Modal tạo) + progress bar n/N xong. Thử tiếp:
+   - **Kéo card sang cột khác** → đổi status (framer-motion drag; fallback combobox status trên card cho bàn phím).
+   - **Sửa**: nút *Sửa* trên card → Modal sửa (tên/mô tả) → *Lưu* (PATCH thật).
+   - **Đổi status không kéo**: combobox trên card (`Cần làm` / `Đang làm` / `Xong`).
+   - **Search server-side**: ô tìm kiếm lọc qua `?q=` (ILIKE node-svc) — task chưa tải cũng tìm thấy; sort mới/cũ nhất.
    - **Tải thêm**: nếu total > số đã tải, nút *Tải thêm* cuối danh sách nạp trang kế (limit/offset thật), "x/total" tăng dần tới đủ.
    - **Xoá**: nút *Xoá* → xác nhận inline ("Xoá task này?" → *Xác nhận xoá* / *Huỷ*) — xoá thật qua DELETE.
    - Mỗi card hiển thị assignee (UUID rút gọn monospace, hover thấy đủ), "Chưa gán" nếu trống, + createdAt vi-VN.
@@ -169,6 +173,15 @@ pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.m
 # rồi lặp lại mục 2-4 trong project mới
 ```
 
+Cấu trúc output theo cơ chế scaffold:
+
+- **`npm create wakii-stack`** (CLI chính thức, engine prune): `app/ui-kit` **không còn**
+  trong project sinh ra — FE apps cài `@wakii/ui-kit` từ npm registry (dist-tag `latest`,
+  lockfile ghim bản cụ thể ngay lúc scaffold; nâng cấp = `pnpm update @wakii/ui-kit`).
+  `app/shared` (fe-shared) vẫn kèm, consumed-qua-source. Chi tiết: [ADR-0010](adr/0010-stack-fe-npm-deps.md).
+- **`scripts/scaffold/scaffold.sh`** (copy repo sống cho dev nội bộ — lệnh trên): vẫn kèm
+  cả `app/shared` + `app/ui-kit` qua source.
+
 Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playbook.md](wakii-playbook.md) — decision tree story/single/fix + 4 archetype chia SF + gates.
 
 ## 6. CI báo gì
@@ -177,7 +190,7 @@ Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playb
 |----------|---------|-----------|
 | `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
 | `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
-| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
+| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 11 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
 
 ## 7. Hành trình team — app-fit 4 apps + tài liệu nội bộ (2026-10-18)
 

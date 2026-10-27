@@ -15,6 +15,7 @@ Mọi HTTP service expose 2 endpoint không-auth (gateway không chặn, service
 | spring-svc | Flyway migration xong + DataSource healthy |
 | go-svc | Migration schema `activity` xong + SELECT thử được schema `tasks` (readonly role) |
 | auth-svc | migration schema auth + seed fixture xong (/readyz kiểm DB thật — rule 2) |
+| dotnet-svc | migration schema `notifications` done + real table exists (`to_regclass`) |
 
 ## Quy tắc
 

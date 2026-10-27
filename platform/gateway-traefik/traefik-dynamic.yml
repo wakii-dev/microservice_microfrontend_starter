@@ -1,0 +1,84 @@
+# Traefik dynamic config — tái tạo ĐÚNG hành vi nginx gateway (nginx.conf)
+# nhưng theo mô hình Traefik: routers/middlewares/services khai báo, không map $uri.
+# Spike 2026-10-27: chạy song song :8088, nginx gốc giữ :8080 để so sánh parity.
+
+http:
+  middlewares:
+    # Parity client_max_body_size 2m (nginx) — upload qua gateway giới hạn 2MB
+    body-limit-2m:
+      buffering:
+        maxRequestBodyBytes: 2097152
+    # X-Request-Id parity: Traefik core không sinh id. Upgrade path: pilot plugin
+    # RequestID (github.com/pitpik/traefik-plugin-requestid) rồi gắn vào routers.
+    # Hiện tại: client gửi X-Request-Id sẽ được pass-through mặc định (đủ trace 1 chiều).
+    # Parity "JWT presence" của nginx: hỏi auth-presence (mini nginx trả 200 nếu
+    # có Authorization, 401 + error envelope nếu thiếu). Đường nâng cấp thật:
+    # trỏ address về auth-svc /verify — revoke được token tại cửa.
+    jwt-presence:
+      forwardAuth:
+        address: "http://auth-presence:8081/check"
+        trustForwardHeader: false
+    strip-remotes-tasks:
+      stripPrefix:
+        prefixes: ["/remotes/tasks"]
+    strip-remotes-activity:
+      stripPrefix:
+        prefixes: ["/remotes/activity"]
+
+  routers:
+    api-tasks:
+      rule: "PathPrefix(`/api/tasks`)"
+      service: node-svc
+      middlewares: [body-limit-2m, jwt-presence]
+      priority: 100
+    api-users:
+      rule: "PathPrefix(`/api/users`)"
+      service: spring-svc
+      middlewares: [body-limit-2m, jwt-presence]
+      priority: 100
+    api-activity:
+      rule: "PathPrefix(`/api/activity`)"
+      service: go-svc
+      middlewares: [body-limit-2m, jwt-presence]
+      priority: 100
+    api-auth:
+      rule: "PathPrefix(`/api/auth`)"
+      service: auth-svc
+      priority: 100
+    remotes-tasks:
+      rule: "PathPrefix(`/remotes/tasks`)"
+      service: remote-tasks
+      middlewares: [body-limit-2m, strip-remotes-tasks]
+      priority: 50
+    remotes-activity:
+      rule: "PathPrefix(`/remotes/activity`)"
+      service: remote-activity
+      middlewares: [body-limit-2m, strip-remotes-activity]
+      priority: 50
+    shell:
+      rule: "PathPrefix(`/`)"
+      service: shell
+      priority: 1
+
+  services:
+    node-svc:
+      loadBalancer:
+        servers: [{ url: "http://node-svc:3001" }]
+    spring-svc:
+      loadBalancer:
+        servers: [{ url: "http://spring-svc:8081" }]
+    go-svc:
+      loadBalancer:
+        servers: [{ url: "http://go-svc:8082" }]
+    auth-svc:
+      loadBalancer:
+        servers: [{ url: "http://auth-svc:8090" }]
+    remote-tasks:
+      loadBalancer:
+        servers: [{ url: "http://remote-tasks:4001" }]
+    remote-activity:
+      loadBalancer:
+        servers: [{ url: "http://remote-activity:4002" }]
+    shell:
+      loadBalancer:
+        servers: [{ url: "http://shell:3000" }]

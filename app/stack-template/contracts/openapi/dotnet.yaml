@@ -1,0 +1,262 @@
+openapi: 3.0.3
+info:
+  title: Notifications API (dotnet-svc)
+  version: 0.1.0
+  description: |
+    Source of truth for the dotnet-svc notifications API (ASP.NET Core 8 Minimal API —
+    4th language of the boilerplate, ADR-0011). dotnet-svc OWNS schema `notifications`
+    (self-migrating at boot — mirror of the go-svc/spring pattern).
+    Every path is routed by the gateway through `/api/dotnet` (pass-through — the service
+    mounts this prefix). Auth: JWT Bearer required; dotnet-svc verifies signature +
+    expiry + iss ITSELF (token-contract.md §4 — 2-layer enforcement, gateway only
+    presence-checks). Each user sees only their own notifications (user_id = JWT sub,
+    no cross-schema FK).
+servers:
+  - url: /api/dotnet
+tags:
+  - name: notifications
+  - name: health
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      summary: Liveness probe (mirrored under the prefix — naked /healthz is also exposed for compose/CI probes)
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Service alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [health]
+      summary: Readiness probe (schema notifications migration done + real DB check)
+      operationId: getReadyz
+      responses:
+        "200":
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /notifications:
+    get:
+      tags: [notifications]
+      summary: List notifications of the current user (JWT sub) — newest first
+      operationId: listNotifications
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: List (newest first) + total for the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [notifications]
+      summary: Create a notification for the current user
+      operationId: createNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "400":
+          description: Payload violates the schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /notifications/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [notifications]
+      summary: Read one notification owned by the current user
+      operationId: getNotification
+      responses:
+        "200":
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found (or owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      tags: [notifications]
+      summary: Mark read / unread
+      operationId: updateNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "400":
+          description: Payload violates the schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found (or owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [notifications]
+      summary: Delete a notification owned by the current user
+      operationId: deleteNotification
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Not found (or owned by another user)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid JWT
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Notification:
+      type: object
+      required: [id, userId, title, read, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID v4 generated by the service on create
+        userId:
+          type: string
+          format: uuid
+          description: JWT sub — owning user (no cross-schema FK — mirrors tasks-schema.sql decision #1)
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type: string
+          nullable: true
+          maxLength: 5000
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    NotificationList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        total:
+          type: integer
+    NotificationInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        body:
+          type: string
+          maxLength: 5000
+    NotificationUpdate:
+      type: object
+      required: [read]
+      properties:
+        read:
+          type: boolean
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      description: Shared error envelope — normalized shape in platform/conventions/04-error-envelope.md
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            requestId:
+              type: string
+              nullable: true
+            details:
+              nullable: true

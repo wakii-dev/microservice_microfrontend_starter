@@ -1,0 +1,112 @@
+name: services-dotnet-svc
+
+# CI for dotnet-svc (ASP.NET Core 8 notifications — ADR-0011). Copied from
+# .github/workflow-templates/services-ci.yml.example. Jobs: build-test
+# (setup-dotnet + dotnet test), docker-build (xunit runs inside the build stage),
+# boot-smoke (compose postgres + auth-svc + dotnet-svc → health + real CRUD).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "services/dotnet-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+      - ".github/workflows/services-dotnet-svc.yml"
+      - "contracts/openapi/dotnet.yaml"
+  pull_request:
+    paths:
+      - "services/dotnet-svc/**"
+      - "platform/docker-compose.yml"
+      - "platform/postgres/init/**"
+      - ".github/workflows/services-dotnet-svc.yml"
+      - "contracts/openapi/dotnet.yaml"
+
+permissions:
+  contents: read # least-privilege (P2 security-audit SF-7 — repo-wide follow-up)
+
+jobs:
+  build-test:
+    name: build + test (dotnet-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: unit tests (envelope + validator + log shape + migration resource + URL conversion — no DB)
+        run: dotnet test services/dotnet-svc/tests/DotnetSvc.Tests/DotnetSvc.Tests.csproj -c Release --nologo
+
+  docker-build:
+    name: docker build (dotnet-svc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (multi-stage — platform/conventions/01; xunit runs in the build stage)
+        run: docker build -t dotnet-svc:ci services/dotnet-svc
+
+  boot-smoke:
+    name: boot-smoke (dotnet-svc + postgres + auth-svc)
+    runs-on: ubuntu-latest
+    env:
+      JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot postgres + auth-svc + dotnet-svc (fresh volume — init script creates schema notifications + role dotnet_svc)
+        run: |
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+            up -d --build postgres auth-svc dotnet-svc
+          for i in $(seq 1 30); do
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
+              exec -T postgres pg_isready -U boilerplate -d boilerplate >/dev/null 2>&1 && break
+            sleep 2
+          done
+
+      - name: Smoke — /healthz + /readyz (migration done — conventions/02)
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8083/readyz >/dev/null && break
+            sleep 2
+          done
+          curl -sf http://localhost:8083/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8083/readyz | grep -q '"status":"ok"'
+          # mirror under the prefix (conventions/02 rule 6 — schemathesis runs on the prefixed base-url)
+          curl -sf http://localhost:8083/api/dotnet/readyz | grep -q '"status":"ok"'
+
+      - name: Real CRUD via alice's JWT (login auth-svc — same JWT_SECRET) + 401 with a bad token
+        run: |
+          TOKEN=$(curl -s -X POST http://localhost:8090/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"alice@demo.local","password":"demo-password"}' \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["accessToken"])')
+          CREATE=$(curl -s -o /tmp/created.json -w '%{http_code}' -X POST http://localhost:8083/api/dotnet/notifications \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+            -d '{"title":"Smoke notification","body":"from CI boot-smoke"}')
+          [ "$CREATE" = "201" ] || { echo "POST = $CREATE, want 201"; cat /tmp/created.json; exit 1; }
+          ID=$(python3 -c 'import json; print(json.load(open("/tmp/created.json"))["id"])')
+          LIST=$(curl -sf http://localhost:8083/api/dotnet/notifications -H "Authorization: Bearer $TOKEN")
+          echo "$LIST" | python3 -c '
+          import json, sys
+          l = json.load(sys.stdin)
+          assert l["total"] >= 1 and any(i["title"] == "Smoke notification" for i in l["items"]), l'
+          PATCH=$(curl -s -o /tmp/patched.json -w '%{http_code}' -X PATCH "http://localhost:8083/api/dotnet/notifications/$ID" \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"read":true}')
+          [ "$PATCH" = "200" ] || { echo "PATCH = $PATCH, want 200"; cat /tmp/patched.json; exit 1; }
+          python3 -c 'import json; assert json.load(open("/tmp/patched.json"))["read"] is True'
+          DEL=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "http://localhost:8083/api/dotnet/notifications/$ID" \
+            -H "Authorization: Bearer $TOKEN")
+          [ "$DEL" = "204" ] || { echo "DELETE = $DEL, want 204"; exit 1; }
+          GONE=$(curl -s -o /tmp/gone.json -w '%{http_code}' "http://localhost:8083/api/dotnet/notifications/$ID" \
+            -H "Authorization: Bearer $TOKEN")
+          [ "$GONE" = "404" ] || { echo "GET after delete = $GONE, want 404"; exit 1; }
+          grep -q '"code":"NOT_FOUND"' /tmp/gone.json
+          # validation: empty title → 400 VALIDATION_ERROR
+          BAD=$(curl -s -o /tmp/bad.json -w '%{http_code}' -X POST http://localhost:8083/api/dotnet/notifications \
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"title":""}')
+          [ "$BAD" = "400" ] || { echo "POST empty title = $BAD, want 400"; exit 1; }
+          grep -q '"code":"VALIDATION_ERROR"' /tmp/bad.json
+          # 401 from the service itself (enforcement layer 2 — independent of the gateway, token-contract §4)
+          CODE=$(curl -s -o /tmp/u401.json -w '%{http_code}' http://localhost:8083/api/dotnet/notifications \
+            -H "Authorization: Bearer wrong-token")
+          [ "$CODE" = "401" ] || { echo "wrong-token = $CODE, want 401"; exit 1; }
+          grep -q '"code":"UNAUTHORIZED"' /tmp/u401.json

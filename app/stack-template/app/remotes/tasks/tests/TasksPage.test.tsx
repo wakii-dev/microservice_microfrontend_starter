@@ -1,7 +1,8 @@
-// Component tests — KANBAN BOARD (redesign 2026-10-25): 3 cột render đúng ·
-// tạo/sửa qua Modal · đổi status qua fallback dropdown (drag jsdom không simulate)
-// · xoá 2 bước · search SERVER-SIDE (q param + empty state riêng) · sort ·
-// progress · load-more · skeleton.
+// Component tests — KANBAN BOARD (redesign compose-từ-kit 2026-10-27): 3 cột
+// render đúng (board = KanbanBoard kit — region theo nhãn cột) · tạo/sửa qua
+// Modal · đổi status qua fallback dropdown · drag KEYBOARD kit (Space → ←→ →
+// Enter — HTML5 mouse drag jsdom không simulate) · xoá 2 bước · toast message ·
+// search SERVER-SIDE (q param + empty state riêng) · sort · progress · load-more.
 // Mock api layer (mirror suite cũ) — intent tests giữ: in-place mutation KHÔNG refetch.
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -60,7 +61,8 @@ function mockList(items: api.Task[] = [TASK_A], total = items.length) {
 }
 
 function columnOf(label: string) {
-  return within(screen.getByRole('region', { name: `Cột ${label}` }));
+  // kit board: cột = <section aria-label={nhãn}> (implicit region)
+  return within(screen.getByRole('region', { name: label }));
 }
 
 beforeEach(() => {
@@ -130,10 +132,10 @@ describe('TasksPage — Kanban board', () => {
     expect(alert).toHaveTextContent('spring-svc');
   });
 
-  it('board rỗng → mỗi cột hint "Kéo card vào đây"', async () => {
+  it('board rỗng → mỗi cột hint EmptyState "Kéo thẻ vào đây"', async () => {
     mockList([]);
     render(<TasksPage />, { wrapper: createWrapper() });
-    expect(await screen.findAllByText('Kéo card vào đây')).toHaveLength(3);
+    expect(await screen.findAllByText('Kéo thẻ vào đây')).toHaveLength(3);
   });
 
   it('loading đầu → skeleton 3 cột thay board', () => {
@@ -188,7 +190,7 @@ describe('TasksPage — Kanban board', () => {
     const badge = await screen.findByRole('status', { name: 'Trạng thái task Task A' });
     expect(badge).toHaveTextContent('Gán thất bại');
     expect(screen.queryByRole('combobox', { name: 'Trạng thái task Task A' })).not.toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Cột Gán thất bại' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Gán thất bại' })).toBeInTheDocument();
     // task hệ thống tách cột riêng — KHÔNG nằm trong 3 cột writable
     expect(columnOf('Cần làm').queryByText('Task A')).not.toBeInTheDocument();
     expect(columnOf('Gán thất bại').getByText('Task A')).toBeInTheDocument();
@@ -384,11 +386,43 @@ describe('TasksPage — Kanban board', () => {
     expect(columnOf('Cần làm').getAllByText(/^Task [AB]$/).map((el) => el.textContent)).toEqual(['Task B', 'Task A']);
   });
 
-  it('progress "n/N xong" theo số card done', async () => {
+  it('progress "n/N xong" theo số card done (kit Progress — valuenow = %)', async () => {
     mockList([TASK_A, TASK_C]);
     render(<TasksPage />, { wrapper: createWrapper() });
     expect(await screen.findByText('1/2 xong')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar', { name: 'Tiến độ hoàn thành' })).toHaveAttribute('aria-valuenow', '1');
+    // kit Progress: aria-valuenow = % chuẩn WAI (1/2 = 50); text n/N render cạnh bar
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+  });
+
+  it('drag KEYBOARD kit board (Space nhặt → ←→ đổi cột → Enter thả) → updateTask status', async () => {
+    const user = userEvent.setup();
+    mockedApi.updateTask.mockResolvedValue({ ...TASK_A, status: 'in_progress' });
+    render(<TasksPage />, { wrapper: createWrapper() });
+
+    // card wrapper của kit board: role=button, aria-label = title (Draggable)
+    const card = await screen.findByRole('button', { name: 'Task A' });
+    await user.click(card); // focus
+    await user.keyboard(' '); // Space — nhặt card (keyboard drag)
+    await user.keyboard('{ArrowRight}'); // cột bên phải: Cần làm → Đang làm
+    await user.keyboard('{Enter}'); // thả
+
+    await waitFor(() => expect(mockedApi.updateTask).toHaveBeenCalledWith(TASK_A.id, { status: 'in_progress' }));
+    await waitFor(() => expect(columnOf('Đang làm').getByText('Task A')).toBeInTheDocument());
+    expect(mockedApi.fetchTasks).toHaveBeenCalledTimes(1); // in-place — KHÔNG refetch
+  });
+
+  it('keyboard drag CÙNG cột (Space → ↑↓ → Enter) → KHÔNG gọi updateTask (thứ tự do sort)', async () => {
+    const user = userEvent.setup();
+    render(<TasksPage />, { wrapper: createWrapper() });
+
+    const card = await screen.findByRole('button', { name: 'Task A' });
+    await user.click(card);
+    await user.keyboard(' ');
+    await user.keyboard('{ArrowDown}'); // đổi vị trí trong cùng cột
+    await user.keyboard('{Enter}');
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Task A' })).toBeInTheDocument());
+    expect(mockedApi.updateTask).not.toHaveBeenCalled();
   });
 
   it('Tải thêm — fetchTasks offset rồi board nối thêm items', async () => {

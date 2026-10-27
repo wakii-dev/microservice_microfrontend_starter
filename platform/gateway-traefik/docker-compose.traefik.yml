@@ -1,0 +1,32 @@
+# Traefik gateway overlay — spike thay nginx KHÔNG sửa compose chính.
+# Chạy: docker compose -f docker-compose.traefik.yml up -d  (từ platform/gateway-traefik)
+# Port 8088 song song nginx :8080 để so parity; bỏ khi hết spike:
+#   docker compose -f docker-compose.traefik.yml down -v
+name: wakii-stack-demo-traefik
+
+services:
+  gateway-traefik:
+    image: traefik:v3.3
+    command:
+      - --providers.file.directory=/etc/traefik
+      - --providers.docker.exposedbydefault=false   # tắt docker provider — dùng thuần file
+      - --entrypoints.web.address=:8080
+      - --api.dashboard=true
+      - --log.level=INFO
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks: [stack]
+
+  # forwardAuth target cho middleware jwt-presence (xem presence.conf)
+  auth-presence:
+    image: nginx:alpine
+    volumes:
+      - ./presence.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [stack]
+
+networks:
+  stack:
+    name: wakii-stack-demo_default
+    external: true

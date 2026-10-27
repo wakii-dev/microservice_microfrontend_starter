@@ -13,14 +13,9 @@ export type { UploadItem, UploadProps, UploadStatus, UploadClassNames } from './
 const TRIGGER_ICON = <Icon name="upload" size={14} />;
 
 export function Upload(props: UploadProps) {
-<<<<<<< Updated upstream
-  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, children } = props;
-  const { inputRef, openDialog, items, removeItem, retryItem, onInputChange } = useUploadController(props);
-=======
-  const { accept, multiple, disabled, showList = true, className, style } = props;
+  const { accept, multiple, disabled, showList = true, progressVariant = 'bar', className, style, children } = props;
   const slots = props.classNames;
-  const { inputRef, openDialog, items, removeItem, onInputChange } = useUploadController(props);
->>>>>>> Stashed changes
+  const { inputRef, openDialog, items, removeItem, retryItem, onInputChange } = useUploadController(props);
 
   return (
     <div className={classNames(slots?.root, className)} style={style}>
@@ -41,15 +36,13 @@ export function Upload(props: UploadProps) {
         </Button>
       )}
       {showList && (
-<<<<<<< Updated upstream
-        <UploadFileList items={items} onRemove={removeItem} onRetry={retryItem} progressVariant={progressVariant} />
-=======
         <UploadFileList
           items={items}
           onRemove={removeItem}
+          onRetry={retryItem}
+          progressVariant={progressVariant}
           classNames={slots && { list: slots.list, listItem: slots.listItem, listRemove: slots.listRemove }}
         />
->>>>>>> Stashed changes
       )}
     </div>
   );

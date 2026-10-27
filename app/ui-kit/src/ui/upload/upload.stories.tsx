@@ -69,7 +69,6 @@ export const DarkTheme: Story = {
   ),
 };
 
-<<<<<<< Updated upstream
 /** Per-file callbacks + progress ring + retry — file >1.5MB fail "mạng" lần đầu, Retry lần 2 xong. */
 function PerFileDemo() {
   const [done, setDone] = useState(0);
@@ -106,7 +105,8 @@ function PerFileDemo() {
 export const PerFileCallbacks: Story = {
   name: 'Per-file callbacks — onItemDone/onItemError + ring + retry',
   render: () => <PerFileDemo />,
-=======
+};
+
 /* ── Customize pass (slots wave 3) — classNames slots + style passthrough ── */
 
 /** CustomStyled — antd v5-style classNames slots (root / dropzone / list /
@@ -138,5 +138,4 @@ export const CustomStyled: Story = {
       />
     </div>
   ),
->>>>>>> Stashed changes
 };

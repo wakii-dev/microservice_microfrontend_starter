@@ -12,7 +12,7 @@
 // type=primary+danger · .tsk-btn--danger-ghost → type=text+danger.
 // API theo antd: `type` = variant, `htmlType` = HTML button type.
 // Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
-import classNames from 'classnames';
+import cx from 'classnames';
 import { useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
 
@@ -93,9 +93,10 @@ export function Button(props: ButtonProps) {
     children,
     disabled,
     onPointerDown,
+    classNames,
     ...rest
   } = props;
-  const slots = props.classNames;
+  const slots = classNames;
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
   // icon chỉ bọc span khi consumer truyền classNames.icon — default path giữ DOM y hệt
   const iconSlot = slots?.icon;
@@ -127,7 +128,7 @@ export function Button(props: ButtonProps) {
       type={htmlType}
       disabled={disabled || loading}
       onPointerDown={handlePointerDown}
-      className={classNames(
+      className={cx(
         BASE,
         'relative overflow-hidden',
         loading ? 'cursor-wait' : 'cursor-pointer',

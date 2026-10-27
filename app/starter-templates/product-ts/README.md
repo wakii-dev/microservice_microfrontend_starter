@@ -77,6 +77,22 @@ MSW — bỏ dynamic import trong `src/main.tsx` để tắt) hoặc dùng build
 Want just a blank page without the data layer? Scaffold with `--preset minimal`.
 Need an admin layout (sidebar + menu + dashboard + login)? Use `--preset admin`.
 
+## Thêm Chart vào dashboard (chart.js)
+
+Overlay không sửa được `package.json` của bạn, nên Chart chưa cài sẵn — 2 bước:
+
+```bash
+pnpm add chart.js
+```
+
+```tsx
+import { Chart } from '@wakii/ui-kit/chart';   // subpath — chart.js lazy bên trong
+
+<Chart config={{ type: 'bar', labels: ['T2','T3','T4'], datasets: [{ label: 'Tasks', data: [3,5,2] }] }} height={240} />
+```
+
+Màu tự theo theme light/dark; muốn palette tự chọn vẫn ăn dark: `useChartPalette()` từ `@wakii/ui-kit`.
+
 ## Links
 
 - Storybook (live playground): <https://storybook-static-khaki-two.vercel.app>

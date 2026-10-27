@@ -4,6 +4,7 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Button, Text, Title, UiKitProvider } from '@wakii/ui-kit';
 import { queryClient } from '@/app/query-client';
 
@@ -46,6 +47,8 @@ export function Providers({ children }: { children: ReactNode }) {
     <UiKitProvider>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>{children}</ErrorBoundary>
+        {/* DevTools chỉ bundle ở DEV (tree-shaken khỏi production build). */}
+        {import.meta.env.DEV && <ReactQueryDevtools initialOpen={false} buttonPosition="bottom-left" />}
       </QueryClientProvider>
     </UiKitProvider>
   );

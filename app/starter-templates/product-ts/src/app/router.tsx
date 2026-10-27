@@ -4,12 +4,15 @@
 // 2) khai báo 1 dòng <Route> trong <Routes> dưới đây (+ NavLink nếu cần điều
 //    hướng — tham khảo product-ts khi project nhiều trang).
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router';
+import { NavLink, Route, Routes } from 'react-router';
 import { Skeleton } from '@wakii/ui-kit';
 import { useAppTheme } from '@/app/theme';
+import { ProtectedRoute } from '@/app/protected-route';
+import { demoSignedIn } from '@/routes/private';
 
 const HomePage = lazy(() => import('@/routes/home'));
 const NotFoundPage = lazy(() => import('@/routes/not-found'));
+const PrivatePage = lazy(() => import('@/routes/private'));
 
 /* Fallback khi chunk route đang load — skeleton khung trang, không nhảy layout. */
 function RouteFallback() {
@@ -58,6 +61,25 @@ export function Router() {
             </span>
             {'{{appName}}'}
           </span>
+          <nav aria-label="Main navigation" className="flex gap-0.5">
+            <NavLink
+              end
+              to="/"
+              className={({ isActive }) =>
+                `rounded-2 px-2.5 py-1 text-label no-underline transition-colors ${isActive ? 'text-ink' : 'text-ink2 hover:text-ink'}`
+              }
+            >
+              Home
+            </NavLink>
+            <NavLink
+              to="/private"
+              className={({ isActive }) =>
+                `rounded-2 px-2.5 py-1 text-label no-underline transition-colors ${isActive ? 'text-ink' : 'text-ink2 hover:text-ink'}`
+              }
+            >
+              Private
+            </NavLink>
+          </nav>
           <div className="ml-auto">
             <button
               type="button"
@@ -75,6 +97,14 @@ export function Router() {
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route element={<HomePage />} path="/" />
+            <Route
+              path="/private"
+              element={
+                <ProtectedRoute isAuthenticated={demoSignedIn()}>
+                  <PrivatePage />
+                </ProtectedRoute>
+              }
+            />
             <Route element={<NotFoundPage />} path="*" />
           </Routes>
         </Suspense>

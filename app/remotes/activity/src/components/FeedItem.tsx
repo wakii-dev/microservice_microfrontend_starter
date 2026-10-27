@@ -1,11 +1,11 @@
-// Feed item entry (SF-4, hand-off §4): «userName» + badge action + «taskTitle» đậm,
-// time mono vi-VN bên phải. Dot màu action nằm trong Badge primitive (không thêm dot rail).
-// Badge GIỮ thay Tag: Tag là chip trung tính không variant — mất mapping màu per-action
-// (created=accent, deleted=ink3, assignmentFailed=st-fail…) mà tests khóa contract dot-var.
-// User-display fields render TRỰC TIẾP từ response (spec slice mục 2 — không tự bịa placeholder).
-// Motion redesign: li = motion.li variants (hidden → show pop-in / exit fade) —
-// được Timeline stagger qua variants propagation + AnimatePresence (entry mới chèn
-// vào đầu feed pop-in khi event tới).
+// FeedItem — entry content cho Timeline KIT (redesign compose-từ-kit 2026-10-27):
+// kit Timeline render <li> + dot màu per action (item.color = token var) — file
+// này chỉ render phần nhìn bên trong: «userName» + Badge action + «taskTitle»,
+// time mono vi-VN bên phải. Entry MỚI pop-in GIỮ motion: motion.div khi mount
+// (initial → animate); MotionConfig reducedMotion="user" ở page ràng buộc.
+// Badge GIỮ thay Tag: Tag không variant — mất mapping màu per-action
+// (created=accent, deleted=ink3, assignmentFailed=st-fail…) mà tests khóa
+// contract dot-var. User-display fields render TRỰC TIẾP từ response.
 import { motion } from 'motion/react';
 import { Badge } from '@wakii/ui-kit';
 import type { BadgeVariant } from '@wakii/ui-kit';
@@ -21,19 +21,25 @@ export const ACTION_BADGE: Record<string, { label: string; variant: BadgeVariant
   'task.assignment_failed': { label: 'gán thất bại', variant: 'assignmentFailed' },
 };
 
-/** Entry variants — Timeline stagger propagation + AnimatePresence exit. */
-export const feedEntryVariants = {
-  hidden: { opacity: 0, y: -6, scale: 0.985 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.25, ease: 'easeOut' as const } },
-  exit: { opacity: 0, scale: 0.97, transition: { duration: 0.18, ease: 'easeIn' as const } },
+/** action → màu dot trên rail Timeline kit (mirror variant Badge — hand-off §3). */
+export const ACTION_DOT: Record<string, string> = {
+  'task.created': 'var(--accent)',
+  'task.updated': 'var(--st-doing)',
+  'task.assigned': 'var(--accent-hi)',
+  'task.deleted': 'var(--ink3)',
+  'task.assignment_failed': 'var(--st-fail)',
 };
 
 export function FeedItem({ item }: { item: ActivityFeedItem }) {
   const action = ACTION_BADGE[item.action];
   return (
-    <motion.li
-      variants={feedEntryVariants}
-      className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 py-2 pl-4 max-md:pl-3"
+    // pop-in khi entry mount (event mới tới qua invalidate ['activity']) — exit
+    // animation không còn (kit Timeline tự render li, không AnimatePresence).
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
+      className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2"
     >
       <span className="act-feed-item__main min-w-0">
         <strong className="font-semibold text-ink">{item.userName}</strong>{' '}
@@ -48,6 +54,6 @@ export function FeedItem({ item }: { item: ActivityFeedItem }) {
       <time className="whitespace-nowrap font-mono text-meta text-ink3" dateTime={item.timestamp}>
         {formatTime(item.timestamp)}
       </time>
-    </motion.li>
+    </motion.div>
   );
 }

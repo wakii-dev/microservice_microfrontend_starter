@@ -53,7 +53,7 @@ IF verify:quick is unavailable THEN run per package:
 
 ## 4. Generator directives
 
-- IF a new service / app / feature is needed THEN `pnpm gen:service` · `pnpm gen:app` · `pnpm gen:feature` (landing via the generators lane — code at `scripts/generators/`).
+- IF a new service / app / feature is needed THEN `pnpm gen:service <name> [--db shared|dedicated]` · `pnpm gen:app <name> [--remote]` · `pnpm gen:feature <name> --app <app>` — run from repo root (`pnpm install` first: scripts import `yaml`); `--root <dir>` to target a copy; `--json` → `{created, modified, next_steps}` — execute next_steps verbatim. Remove: `pnpm remove:service <name>` (core services refused).
 - IF a program needs the result THEN add `--json` → `{"created": [<files>], "modified": [<files>], "next_steps": [<directives>]}`. `next_steps` = AI-executable follow-up directives (path + action) — NOT instructions for human readers.
 
 ## 5. Demo + ports

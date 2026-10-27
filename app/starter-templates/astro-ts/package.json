@@ -12,7 +12,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@wakii/ui-kit": "^0.6.4",
+    "@wakii/ui-kit": "^0.7.1",
     "astro": "^7.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

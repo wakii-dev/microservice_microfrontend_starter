@@ -85,3 +85,33 @@ export const CustomTheme: Story = {
     </div>
   ),
 };
+
+export const RadiusAndFontOverride: Story = {
+  name: 'RadiusAndFontOverride — radius + font runtime (0-break theming)',
+  args: { children: 'x' },
+  render: () => (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <UiKitProvider>
+        <DemoContent />
+        <RadiusProbe label="Default — rounded-lg/xl = Tailwind default (8/12px), system font" />
+      </UiKitProvider>
+      <UiKitProvider theme={{ radiusLg: '20px', radiusXl: '28px', radiusPill: '12px', font: 'Georgia, "Times New Roman", serif' }}>
+        <DemoContent />
+        <RadiusProbe label="radiusLg 20px + radiusXl 28px + font Georgia — mọi rounded-lg/xl/pill subtree tự ăn qua CSS var, 0 component đổi" />
+      </UiKitProvider>
+    </div>
+  ),
+};
+
+// Thẻ rounded-xl + button rounded-lg + pill badge — soi trực tiếp khác biệt radius/font giữa 2 provider.
+function RadiusProbe({ label }: { label: string }) {
+  return (
+    <div className="rounded-xl border border-line bg-s2 p-4" style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Button size="small">rounded-lg</Button>
+        <Badge variant="doing">pill</Badge>
+      </div>
+      <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--ink2)' }}>{label}</p>
+    </div>
+  );
+}

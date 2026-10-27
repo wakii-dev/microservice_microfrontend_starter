@@ -99,6 +99,12 @@
   --r-2: 8px; /* button, input, pill — modern base */
   --r-3: 12px; /* card, panel — modern LG */
   --r-pill: 9999px;
+  /* Map Tailwind rounded-lg/xl sang token — 0-break: giá trị TRÙNG default Tailwind
+     (0.5rem/0.75rem) nên không component nào đổi hình; tailwind.css @theme map
+     --radius-lg/xl → var này → override runtime (UiKitProvider radiusLg/radiusXl)
+     ăn toàn bộ chỗ dùng rounded-lg/xl (462 chỗ) không sửa 1 component nào. */
+  --r-lg: 8px; /* = rounded-lg (Tailwind default 0.5rem) */
+  --r-xl: 12px; /* = rounded-xl (Tailwind default 0.75rem) */
   /* Spacing scale 4base */
   --sp-1: 4px;
   --sp-2: 8px;

@@ -103,6 +103,28 @@ describe('UiKitProvider', () => {
     expect(scope.style.getPropertyValue('--ink')).toBe('#1f2937');
   });
 
+  it('radius + font override → --r-lg/--r-xl/--r-pill/--f đúng var trên wrapper (theming 0-break)', () => {
+    const { container } = render(
+      <UiKitProvider
+        theme={{
+          radiusLg: '16px',
+          radiusXl: '24px',
+          radiusPill: '10px',
+          font: 'Georgia, serif',
+        }}
+      >
+        <Badge variant="created">created</Badge>
+      </UiKitProvider>,
+    );
+    const scope = container.firstElementChild as HTMLElement;
+    expect(scope.style.getPropertyValue('--r-lg')).toBe('16px');
+    expect(scope.style.getPropertyValue('--r-xl')).toBe('24px');
+    expect(scope.style.getPropertyValue('--r-pill')).toBe('10px');
+    expect(scope.style.getPropertyValue('--f')).toBe('Georgia, serif');
+    // radius/font là token thường — không bật dark scope
+    expect(scope).not.toHaveAttribute('data-bp-theme');
+  });
+
   it('theme object nested: con ghi đè đúng var, cha giữ var của mình', () => {
     const { container } = render(
       <UiKitProvider theme={{ accent: '#111111', canvas: '#ffffff' }}>

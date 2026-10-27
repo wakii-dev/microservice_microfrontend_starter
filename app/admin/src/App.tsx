@@ -1,6 +1,9 @@
-// App — routing admin (batch ⑦). AppRoutes tách riêng để test render với MemoryRouter.
+// App — routing admin. ThemeProvider (UiKitProvider dark/light) bọc toàn app —
+// theme 1 click ở bất kỳ đâu (Header/Sidebar/Settings) đổi cả subtree. AppRoutes
+// tách riêng để test render với MemoryRouter.
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { AdminLayout } from './layout/AdminLayout.js';
+import { ThemeProvider } from './theme.js';
 import { Dashboard } from './pages/Dashboard.js';
 import { Users } from './pages/Users.js';
 import { UploadPage } from './pages/UploadPage.js';
@@ -26,8 +29,10 @@ export function AppRoutes() {
 
 export function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

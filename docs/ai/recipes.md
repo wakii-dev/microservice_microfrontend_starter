@@ -1,4 +1,4 @@
-# AI Recipes — 19 công thức UI dùng `@wakii/ui-kit`
+# AI Recipes — 20 công thức UI dùng `@wakii/ui-kit`
 
 Code dưới dùng **API thật đã verify theo source** (audit 2026-10-18). Import gốc:
 
@@ -911,6 +911,659 @@ export function LandingMotionComposable() {
 ```
 
 Ghi chú: quy tắc **composable** — (1) mỗi primitive bọc một element riêng, KHÔNG gộp 2 hiệu ứng lên cùng div (transform/opacity ghi đè nhau); (2) `Reveal` quản entrance, `Transition`/`CollapseTransition` quản state in/out do user, `Parallax` quản scroll — trục nào về nó; (3) reduced-motion tắt cả ba nhờ block global (`Parallax` còn tự ngắt listener qua `useMediaQuery`). `CollapseTransition` là tên barrel của `Collapse` trong `ui/transition` (trùng tên `Collapse` — xem AGENTS.md nhóm Theming & Motion).
+
+## 20. ProductPresetFeature — CRUD feature theo containers/ui/hooks/api (product preset)
+
+**Khi nào dùng:** app scaffold từ `create-wakii-app --preset product` (hoặc `admin` — cùng data layer,
+thêm sidebar/login) và cần thêm 1 feature CRUD có backend. KHÔNG viết trang "một file to": copy cấu
+trúc `features/tasks/` của template `product-ts` (create-wakii-app 0.2.3), tách đúng 6 lớp —
+`eslint-plugin-boundaries` trong scaffold sẽ chặn mọi import đi lệch tầng. (Preset `minimal` không
+mang data layer → recipe này không áp dụng trực tiếp.) Code dưới lấy NGUYÊN tên file/hàm từ
+`features/tasks/` — feature mới = copy + đổi `tasks` → `<tên>`.
+
+### Cấu trúc 6 file tạo mới
+
+```text
+features/<tên>/
+├── index.ts           # CỔNG DUY NHẤT ra ngoài — chỉ export containers + ui
+├── schema/schema.ts   # zod: type TS + parse response + validate form — sửa shape ở ĐÂY DUY NHẤT
+├── api/<tên>-api.ts   # fetch qua shared client + zod parse — THUẦN TS, cấm react
+├── hooks/             # useTasks (query + mutation optimistic), useTaskForm (useForm kit)
+├── containers/        # nơi DUY NHẤT nối hooks/api → ui qua props
+└── ui/                # presentational — nhận props, KHÔNG tự fetch
+```
+
+Thứ tự viết: **schema → api → hooks → ui → containers → index** (hợp đồng dữ liệu trước, code theo
+sau); test đặt cạnh file `*.test.ts(x)`.
+
+`schema/schema.ts` — zod là nguồn sự thật (runtime parse + TS type + validate form):
+
+```ts
+import { z } from 'zod';
+
+export const taskStatusSchema = z.enum(['todo', 'doing', 'done']);
+export type TaskStatus = z.infer<typeof taskStatusSchema>;
+
+export const taskSchema = z.object({
+  id: z.number(),
+  title: z.string().min(1),
+  status: taskStatusSchema,
+  assignee: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type Task = z.infer<typeof taskSchema>;
+
+/** Form tạo task — schema zod truyền thẳng vào useForm. */
+export const taskFormSchema = z.object({
+  title: z.string().min(1, 'Tiêu đề bắt buộc').max(120, 'Tiêu đề tối đa 120 ký tự'),
+});
+export type TaskFormValues = z.infer<typeof taskFormSchema>;
+
+/** Chu kỳ trạng thái khi toggle: todo → doing → done → todo. */
+export function nextTaskStatus(status: TaskStatus): TaskStatus {
+  return status === 'todo' ? 'doing' : status === 'doing' ? 'done' : 'todo';
+}
+
+/** Nhãn tiếng Việt cho status — dùng chung Table/Tag. */
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
+  todo: 'Cần làm',
+  doing: 'Đang làm',
+  done: 'Xong',
+};
+```
+
+`api/tasks-api.ts` — call qua shared client rồi PARSE zod trước khi trả; data sai shape vỡ ở ranh
+giới api, không lan vào UI:
+
+```ts
+import { createQueryKeys } from '@/shared/api/query-keys';
+import { apiFetch } from '@/shared/api/client';
+import {
+  nextTaskStatus,
+  taskFormSchema,
+  taskSchema,
+  type Task,
+  type TaskFormValues,
+  type TaskStatus,
+} from '../schema/schema';
+
+/** Keys TanStack Query của resource tasks — dùng trong hooks (useTasks…). */
+export const tasksKeys = createQueryKeys('tasks');
+
+const TASKS_PATH = '/tasks';
+
+export const tasksApi = {
+  async list(): Promise<Task[]> {
+    const raw = await apiFetch<unknown>(TASKS_PATH);
+    return taskSchema.array().parse(raw);
+  },
+
+  async create(values: TaskFormValues): Promise<Task> {
+    const raw = await apiFetch<unknown>(TASKS_PATH, { method: 'POST', body: taskFormSchema.parse(values) });
+    return taskSchema.parse(raw);
+  },
+
+  /** Đổi task sang trạng thái tiếp theo (todo → doing → done → todo). */
+  async toggleStatus(task: Task): Promise<Task> {
+    const next: TaskStatus = nextTaskStatus(task.status);
+    const raw = await apiFetch<unknown>(`${TASKS_PATH}/${task.id}`, { method: 'PATCH', body: { status: next } });
+    return taskSchema.parse(raw);
+  },
+
+  /** DELETE trả 204 → client trả undefined. */
+  async remove(id: Task['id']): Promise<void> {
+    await apiFetch<unknown>(`${TASKS_PATH}/${id}`, { method: 'DELETE' });
+  },
+};
+```
+
+`hooks/useTasks.ts` — TanStack Query chuẩn: toggle OPTIMISTIC (onMutate snapshot → onError rollback
+→ onSettled re-sync):
+
+```ts
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { tasksApi, tasksKeys } from '../api/tasks-api';
+import { nextTaskStatus, type Task } from '../schema/schema';
+
+export function useTasks() {
+  const queryClient = useQueryClient();
+  const query = useQuery({ queryKey: tasksKeys.lists(), queryFn: () => tasksApi.list() });
+
+  const toggle = useMutation({
+    mutationFn: (task: Task) => tasksApi.toggleStatus(task),
+    onMutate: async (task) => {
+      await queryClient.cancelQueries({ queryKey: tasksKeys.lists() });
+      const previous = queryClient.getQueryData<Task[]>(tasksKeys.lists());
+      queryClient.setQueryData<Task[]>(tasksKeys.lists(), (old) =>
+        old?.map((t) => (t.id === task.id ? { ...t, status: nextTaskStatus(task.status) } : t)),
+      );
+      return { previous };
+    },
+    onError: (_error, _task, context) => {
+      // Server chối → trả lại đúng trạng thái user đã thấy trước khi bấm.
+      if (context?.previous) queryClient.setQueryData(tasksKeys.lists(), context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() });
+    },
+  });
+
+  return { query, toggle };
+}
+```
+
+Form hook mỏng — useForm kit (recipe 1) + schema của feature:
+
+```ts
+import { useForm } from '@wakii/ui-kit';
+import { taskFormSchema, type TaskFormValues } from '../schema/schema';
+
+export function useTaskForm() {
+  return useForm<TaskFormValues>({ schema: taskFormSchema, initialValues: { title: '' }, mode: 'onSubmit' });
+}
+```
+
+`ui/` — THUẦN props, không import hooks/api (`TaskItem` — hàng toggle + tiêu đề — xem template):
+
+```tsx
+import { useState } from 'react';
+import {
+  Alert,
+  Button,
+  Popconfirm,
+  Table,
+  Tag,
+  Text,
+  type TableColumn,
+} from '@wakii/ui-kit';
+import { TASK_STATUS_LABEL, type Task, type TaskStatus } from '../schema/schema';
+import { TaskItem } from './TaskItem';
+
+export interface TasksPageProps {
+  tasks: Task[];
+  loading?: boolean;
+  /** Lỗi load list (nếu có) — hiện Alert thay bảng. */
+  error?: string | null;
+  onToggle: (task: Task) => void;
+  onDelete: (task: Task) => void;
+  deleting?: boolean;
+}
+
+const STATUS_TAG_CLS: Record<TaskStatus, string> = {
+  todo: 'text-ink2',
+  doing: 'text-st-doing',
+  done: 'text-st-done',
+};
+
+export function TasksPage({ tasks, loading = false, error, onToggle, onDelete, deleting = false }: TasksPageProps) {
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
+
+  if (error) {
+    return <Alert type="error" message="Không tải được danh sách task" description={error} />;
+  }
+
+  const columns: TableColumn<Task>[] = [
+    {
+      key: 'task',
+      title: 'Task',
+      render: (row: Task) => <TaskItem task={row} onToggle={onToggle} />,
+    },
+    { key: 'assignee', title: 'Người thực hiện', render: (row: Task) => <Text type="secondary">{row.assignee ?? '—'}</Text> },
+    {
+      key: 'status',
+      title: 'Trạng thái',
+      render: (row: Task) => (
+        <Tag className={STATUS_TAG_CLS[row.status]}>{TASK_STATUS_LABEL[row.status]}</Tag>
+      ),
+    },
+    {
+      key: 'actions',
+      title: '',
+      render: (row: Task) => (
+        <Popconfirm
+          open={confirmingId === row.id}
+          title={`Xoá "${row.title}"?`}
+          onConfirm={() => {
+            onDelete(row);
+            setConfirmingId(null);
+          }}
+          onCancel={() => setConfirmingId(null)}
+          okText="Xoá"
+          cancelText="Giữ"
+        >
+          <Button
+            type="text"
+            size="small"
+            disabled={deleting}
+            aria-label={`Xoá task ${row.title}`}
+            onClick={() => setConfirmingId(row.id)}
+          >
+            Xoá
+          </Button>
+        </Popconfirm>
+      ),
+    },
+  ];
+
+  return (
+    <Table columns={columns} dataSource={tasks} rowKey="id" loading={loading} />
+  );
+}
+```
+
+```tsx
+import type { FormEvent } from 'react';
+import { Button, Field, Input, type FormInstance } from '@wakii/ui-kit';
+import type { TaskFormValues } from '../schema/schema';
+
+export interface TaskFormProps {
+  form: FormInstance<TaskFormValues>;
+  submitting?: boolean;
+  /** Được gọi SAU khi schema validate pass (giá trị đã parse). */
+  onSubmit: (values: TaskFormValues) => void;
+}
+
+export function TaskForm({ form, submitting = false, onSubmit }: TaskFormProps) {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    form.handleSubmit(onSubmit);
+  };
+
+  return (
+    <form className="flex items-start gap-2" onSubmit={handleSubmit} noValidate>
+      <Field label="Task mới" htmlFor="task-title" error={form.errors.title} className="flex-1">
+        <Input
+          id="task-title"
+          name="title"
+          placeholder="Ví dụ: Nối API thật"
+          value={form.values.title}
+          invalid={!!form.errors.title}
+          onChange={form.handleChange('title')}
+          onBlur={form.handleBlur('title')}
+        />
+      </Field>
+      <Button htmlType="submit" type="primary" loading={submitting} disabled={submitting}>
+        Thêm
+      </Button>
+    </form>
+  );
+}
+```
+
+`containers/` — nối data ↔ UI, không render layout gì thêm:
+
+```tsx
+// TasksPageContainer — useTasks (query + toggle optimistic) + mutation xoá
+// (useMutation + invalidate) rồi bơm props cho ui/TasksPage.
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { message } from '@wakii/ui-kit';
+import { tasksApi, tasksKeys } from '../api/tasks-api';
+import type { Task } from '../schema/schema';
+import { useTasks } from '../hooks/useTasks';
+import { TasksPage } from '../ui/TasksPage';
+
+export function TasksPageContainer() {
+  const queryClient = useQueryClient();
+  const { query, toggle } = useTasks();
+
+  const remove = useMutation({
+    mutationFn: (task: Task) => tasksApi.remove(task.id),
+    onSuccess: () => {
+      message.success('Đã xoá task');
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() });
+    },
+    onError: () => message.error('Xoá task thất bại — thử lại nhé'),
+  });
+
+  return (
+    <TasksPage
+      tasks={query.data ?? []}
+      loading={query.isPending}
+      error={query.isError ? (query.error instanceof Error ? query.error.message : String(query.error)) : null}
+      onToggle={(task) => toggle.mutate(task)}
+      onDelete={(task) => remove.mutate(task)}
+      deleting={remove.isPending}
+    />
+  );
+}
+```
+
+```tsx
+// TaskFormContainer — nối useTaskForm (form state + zod) với mutation create:
+// submit pass schema → POST → invalidate list → reset form + toast.
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { message } from '@wakii/ui-kit';
+import { tasksApi, tasksKeys } from '../api/tasks-api';
+import { useTaskForm } from '../hooks/useTaskForm';
+import { TaskForm } from '../ui/TaskForm';
+
+export function TaskFormContainer() {
+  const form = useTaskForm();
+  const queryClient = useQueryClient();
+
+  const create = useMutation({
+    mutationFn: (values: { title: string }) => tasksApi.create(values),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() });
+      form.reset();
+      message.success(`Đã thêm "${created.title}"`);
+    },
+    onError: (error) => message.error(error instanceof Error ? error.message : 'Thêm task thất bại'),
+  });
+
+  return <TaskForm form={form} submitting={create.isPending} onSubmit={(values) => create.mutate(values)} />;
+}
+```
+
+`index.ts` — cửa vào duy nhất của feature (import lách vào trong = lỗi lint):
+
+```ts
+export { TasksPageContainer } from './containers/TasksPageContainer';
+export { TaskFormContainer } from './containers/TaskFormContainer';
+export { TasksPage, type TasksPageProps } from './ui/TasksPage';
+export { TaskForm, type TaskFormProps } from './ui/TaskForm';
+export { TaskItem, type TaskItemProps } from './ui/TaskItem';
+```
+
+### Quy tắc boundary — ai được import ai
+
+Enforce bằng `eslint-plugin-boundaries` trong scaffold (default **disallow** — luật không liệt kê
+= cấm), vi phạm = lỗi `pnpm lint` chặn commit. File `*.test.ts(x)` là ngoại lệ duy nhất được
+import tự do.
+
+| Từ ↓ | ✅ Được import | ❌ Bị chặn | Vì sao |
+|---|---|---|---|
+| `routes/` | `features/*/index.ts`, `shared/ui`, `shared/lib`, `routes/` khác | thẳng vào `containers/`, `hooks/`, `api/` | feature chỉ có 1 cửa — đổi internals không vỡ trang |
+| `containers/` | `hooks/`, `api/`, `schema/`, `ui/`, `shared/*` | ngược lên `routes/`, `mocks/` | nơi DUY NHẤT chạm data layer |
+| `hooks/` | `api/`, `schema/`, `shared/api`, `shared/lib` | `ui/` | hook trả data/state — render là việc của `ui/` |
+| `ui/` | `schema/`, `shared/ui`, `shared/lib` | `containers/`, `hooks/`, `api/` | UI dumb nhận props → render thuần |
+| `api/` | `schema/`, `shared/api`, `shared/lib`, `env.ts` | `react`/`react-dom` + mọi UI | tầng thuần TS — chạy được trong test node không cần DOM |
+| `schema/` | `shared/lib` | mọi tầng data | nguồn sự thật dữ liệu, mọi tầng đọc được |
+| `mocks/` | chỉ nội bộ `mocks/` | schema của app | handler đóng vai server — trả data THÔ, client mới parse |
+
+Vì sao tách đến mức này: (1) **test tách tầng** — ui test truyền props cứng không cần mock API,
+hooks test mock module api không cần network, api test là tầng DUY NHẤT cần MSW (xem phần test
+dưới); (2) **UI dumb tái dùng** — `TasksPage` render được với BẤT KỲ nguồn `Task[]` nào (MSW,
+backend thật, fixture), không khóa vào cách fetch.
+
+### Wire route + NavLink + ProtectedRoute
+
+```tsx
+// routes/tasks.tsx — trang DÙNG feature, import QUA CỔNG index (không lách vào trong)
+import { TasksPageContainer, TaskFormContainer } from '@/features/tasks';
+import { PageHeader } from '@/shared/ui/PageHeader';
+
+export default function TasksPageRoute() {
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Tasks" description="CRUD theo preset product" />
+      <TaskFormContainer />
+      <TasksPageContainer />
+    </div>
+  );
+}
+```
+
+```tsx
+// app/router.tsx — 1) lazy page → 2) khai báo <Route> → 3) NavLink vào header nav
+const TasksPageRoute = lazy(() => import('@/routes/tasks'));
+
+<NavLink
+  to="/tasks"
+  className={({ isActive }) =>
+    `rounded-2 px-2.5 py-1 text-label no-underline transition-colors ${isActive ? 'text-ink' : 'text-ink2 hover:text-ink'}`
+  }
+>
+  Tasks
+</NavLink>
+
+<Route element={<TasksPageRoute />} path="/tasks" />
+
+{/* Route cần auth — bọc ProtectedRoute (điều kiện demo: localStorage; thay bằng check token thật) */}
+<Route
+  path="/private"
+  element={
+    <ProtectedRoute isAuthenticated={demoSignedIn()}>
+      <PrivatePage />
+    </ProtectedRoute>
+  }
+/>
+```
+
+`ProtectedRoute` (`@/app/protected-route`): chưa thoả `isAuthenticated` → `<Navigate replace
+to={fallback}>` (mặc định `'/'`) kèm `state.from` để trang login quay lại đúng chỗ sau khi đăng nhập.
+
+### MSW — handler giả + query-keys factory
+
+Dev chạy KHÔNG cần backend: worker MSW (bật trong dev qua `main.tsx`) chặn fetch. Thêm resource
+mới = thêm store + handlers vào `src/mocks/`:
+
+```ts
+// mocks/tasks.db.ts — store GIẢ trong bộ nhớ, reset mỗi lần reload. Data THÔ
+// (không import schema app — handler đóng vai server, client mới parse/validate).
+export interface TaskRow {
+  id: number;
+  title: string;
+  status: 'todo' | 'doing' | 'done';
+  assignee: string | null;
+  createdAt: string;
+}
+
+let nextId = 4;
+
+export const tasksDb: TaskRow[] = [
+  { id: 1, title: 'Đọc AGENTS.md', status: 'done', assignee: 'alice', createdAt: '2026-01-10T08:00:00.000Z' },
+  { id: 2, title: 'Thêm feature đầu tiên', status: 'doing', assignee: 'bob', createdAt: '2026-01-11T09:30:00.000Z' },
+];
+
+export function insertTask(row: Omit<TaskRow, 'id' | 'createdAt'>): TaskRow {
+  const task: TaskRow = { ...row, id: nextId++, createdAt: new Date().toISOString() };
+  tasksDb.unshift(task);
+  return task;
+}
+```
+
+```ts
+// mocks/handlers.ts — CRUD giả (msw). Wildcard '*/tasks' khớp CẢ fetch relative
+// (dev, origin = vite server) lẫn absolute khi đặt VITE_API_URL nối backend thật.
+import { delay, http, HttpResponse } from 'msw';
+import { insertTask, tasksDb, type TaskRow } from './tasks.db';
+
+const TASKS_PATTERN = '*/tasks';
+
+export const handlers = [
+  http.get(TASKS_PATTERN, async () => {
+    await delay(150); // mô phỏng độ trễ mạng — để skeleton/loading có vai diễn
+    return HttpResponse.json(tasksDb);
+  }),
+
+  http.post(TASKS_PATTERN, async ({ request }) => {
+    const body = (await request.json()) as Partial<Pick<TaskRow, 'title' | 'status' | 'assignee'>>;
+    if (!body.title) {
+      return HttpResponse.json({ message: 'Thiếu tiêu đề task.' }, { status: 422 });
+    }
+    const created = insertTask({ title: body.title, status: body.status ?? 'todo', assignee: body.assignee ?? null });
+    return HttpResponse.json(created, { status: 201 });
+  }),
+
+  http.patch(`${TASKS_PATTERN}/:id`, async ({ request, params }) => {
+    const id = Number(params.id);
+    const body = (await request.json()) as Partial<Pick<TaskRow, 'status'>>;
+    const task = tasksDb.find((t) => t.id === id);
+    if (!task) return HttpResponse.json({ message: `Không thấy task #${id}.` }, { status: 404 });
+    if (body.status) task.status = body.status;
+    return HttpResponse.json(task);
+  }),
+
+  http.delete(`${TASKS_PATTERN}/:id`, ({ params }) => {
+    const id = Number(params.id);
+    const index = tasksDb.findIndex((t) => t.id === id);
+    if (index === -1) return HttpResponse.json({ message: `Không thấy task #${id}.` }, { status: 404 });
+    tasksDb.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+];
+```
+
+Query-key KHÔNG hardcode — dùng factory có sẵn `shared/api/query-keys.ts` (pattern TKDodo,
+invalidate hợp theo tiền tố):
+
+```ts
+import { createQueryKeys } from '@/shared/api/query-keys';
+
+export const tasksKeys = createQueryKeys('tasks');
+// tasksKeys.all         → ['tasks']                  — gốc resource
+// tasksKeys.lists()     → ['tasks', 'list']          — invalidate mọi list
+// tasksKeys.list(f)     → ['tasks', 'list', f]       — cache riêng per filter-set
+// tasksKeys.detail(id)  → ['tasks', 'detail', id]
+```
+
+### Test mẫu 3 loại — mỗi tầng mock đúng tầng của mình
+
+**Hook** — `renderHook` + wrapper QueryClientProvider, mock MODULE api (không cần network);
+assert đặc trưng của optimistic: cache đổi NGAY trước khi server trả lời:
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import { act } from 'react';
+import type { ReactNode } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTaskStatus, type Task } from '../schema/schema';
+import { useTasks } from './useTasks';
+
+const TASKS: Task[] = [
+  { id: 1, title: 'Viết test', status: 'todo', assignee: null, createdAt: '2026-01-10T08:00:00.000Z' },
+];
+
+const listMock = vi.fn<() => Promise<Task[]>>();
+const toggleApiMock = vi.fn<(task: Task) => Promise<Task>>();
+
+vi.mock('../api/tasks-api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/tasks-api')>();
+  return {
+    ...actual,
+    tasksApi: {
+      ...actual.tasksApi,
+      list: () => listMock(),
+      toggleStatus: (task: Task) => toggleApiMock(task),
+    },
+  };
+});
+
+function makeWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  return { wrapper, queryClient };
+}
+
+describe('useTasks', () => {
+  beforeEach(() => {
+    listMock.mockReset().mockResolvedValue(TASKS);
+    toggleApiMock.mockReset().mockImplementation(async (task) => ({ ...task, status: nextTaskStatus(task.status) }));
+  });
+
+  it('toggle → OPTIMISTIC: cache đổi ngay khi server chưa trả (todo → doing)', async () => {
+    let resolveToggle: ((task: Task) => void) | undefined;
+    toggleApiMock.mockImplementation(
+      () => new Promise<Task>((resolve) => { resolveToggle = resolve; }),
+    );
+    const { wrapper, queryClient } = makeWrapper();
+    const { result } = renderHook(() => useTasks(), { wrapper });
+    await waitFor(() => expect(result.current.query.data).toEqual(TASKS));
+
+    act(() => result.current.toggle.mutate(TASKS[0]));
+
+    // Trước khi promise toggle resolve — cache ĐÃ đổi (không chờ server)
+    await waitFor(() => {
+      const cached = queryClient.getQueryData<Task[]>(['tasks', 'list']);
+      expect(cached?.find((t) => t.id === 1)?.status).toBe('doing');
+    });
+
+    await act(async () => resolveToggle?.({ ...TASKS[0], status: 'doing' }));
+    await waitFor(() => expect(result.current.toggle.isPending).toBe(false));
+  });
+});
+```
+
+**UI** — RTL với props CỨNG, không mock data layer (props là hợp đồng duy nhất cần assert):
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { TASK_STATUS_LABEL, type Task } from '../schema/schema';
+import { TasksPage } from './TasksPage';
+
+const FIXED_TASKS: Task[] = [
+  { id: 1, title: 'Đọc AGENTS.md', status: 'done', assignee: 'alice', createdAt: '2026-01-10T08:00:00.000Z' },
+];
+
+describe('TasksPage', () => {
+  it('render bảng với props cứng: tiêu đề + nhãn trạng thái + nút xoá', () => {
+    render(<TasksPage tasks={FIXED_TASKS} onToggle={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByText('Đọc AGENTS.md')).toBeInTheDocument();
+    expect(screen.getByText(TASK_STATUS_LABEL.done)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xoá task Đọc AGENTS.md' })).toBeInTheDocument();
+  });
+
+  it('error → Alert thay bảng', () => {
+    render(<TasksPage tasks={[]} error="Mạng gãy" onToggle={vi.fn()} onDelete={vi.fn()} />);
+    expect(screen.getByText('Không tải được danh sách task')).toBeInTheDocument();
+    expect(screen.queryByText('Đọc AGENTS.md')).not.toBeInTheDocument();
+  });
+});
+```
+
+**API** — tầng DUY NHẤT cần network-mock: msw node dùng LẠI `handlers` của app + assert zod parse
+ở ranh giới api:
+
+```ts
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { setupServer } from 'msw/node';
+import { HttpResponse, http } from 'msw';
+import { z } from 'zod';
+import { handlers } from '@/mocks/handlers';
+import { tasksApi } from './tasks-api';
+
+const server = setupServer(...handlers);
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('tasksApi', () => {
+  it('list → msw handler trả seed + zod parse thành Task[]', async () => {
+    const tasks = await tasksApi.list();
+    expect(tasks.length).toBeGreaterThanOrEqual(2);
+    expect(typeof tasks[0].id).toBe('number');
+  });
+
+  it('response SAI shape → zod chặn ở ranh giới api (không lan vào UI)', async () => {
+    server.use(
+      http.get('*/tasks', () => HttpResponse.json([{ id: 'khong-phai-so', title: 42 }])),
+    );
+    await expect(tasksApi.list()).rejects.toBeInstanceOf(z.ZodError);
+  });
+
+  it('lỗi server → ApiError với message từ envelope', async () => {
+    server.use(http.get('*/tasks', () => HttpResponse.json({ message: 'CSDL cháy.' }, { status: 500 })));
+    await expect(tasksApi.list()).rejects.toThrow('CSDL cháy.');
+  });
+});
+```
+
+Ghi chú: wire feature mới theo thứ tự — (1) copy 6 lớp đổi `tasks` → `<tên>`, sửa `schema.ts`
+TRƯỚC; (2) thêm db + handlers vào `mocks/`, key factory trong api file; (3) trang
+`routes/<tên>.tsx` import qua index + khai báo `Route`/`NavLink` trong `app/router.tsx`; (4) 3
+test cạnh file. Chốt mỗi feature: `pnpm lint && pnpm typecheck && pnpm test`. `apiFetch` + error
+envelope chung nằm ở `@/shared/api/client` (lỗi server ném `ApiError` với `message` từ envelope);
+nối backend thật = đặt env `VITE_API_URL` — MSW tự nhường chỗ, handlers giữ nguyên làm test.
+Ma trận import đầy đủ xem `AGENTS.md` trong scaffold.
 
 ---
 

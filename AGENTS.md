@@ -24,6 +24,8 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | Menu trượt cấp (panel/hamburger) | `SlideMenu` (translateX giữa cấp, back + ESC) — recipe 18 |
 | Date/time | `DatePicker` (range/showTime, locale vi/en) · `TimePicker` · `Calendar` |
 
+> **Customize (từ 0.7)**: MỌI component đều nhận `classNames` slots (antd v5-style, `root` + sub-parts tuỳ comp — vd `Input` có `input`/`prefix`/`suffix`, `Card` có `header`/`body`...) và `style` passthrough. Default path giữ nguyên DOM. Xem type `<Comp>ClassNames` import từ barrel.
+
 ## Layout & Nav — khi nào dùng
 
 | Component | Use when | Most valuable prop | Common combos |
@@ -31,7 +33,7 @@ Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipe
 | `Row`/`Col` | 24-col responsive grid — KPI rows, dashboard card mosaics, form column splits | `gutter` on `Row` (number or `[h, v]` px — antd mechanic: negative margin + col padding) | `Col span={24} md={12} xl={6}` mobile-first (xs→xl resolve qua matchMedia) · wrap `Card`/`Statistic` dashboards · nest rows for sub-layouts |
 | `Flex` | One-axis layout fast — toolbars, button rows, stacked forms (skip 24-col math) | `gap` (`'small' \| 'middle' \| 'large'` \| px, default 8) | `vertical` for stacked form fields · justify/align raw CSS values · lighter than `Row`/`Col` when columns don't matter |
 | `Anchor` | In-page TOC with scroll-spy — docs, long settings, detail pages | `items` (`href: '#section-id'` + nested `children` for sub-levels) | `affix` sticky rail beside long content · `offsetTop` to clear sticky headers · `onClick` for analytics · `getContainer` for inner scroll areas |
-| `Layout` | App frame — Header/Content/Footer/Sider zones (antd Layout parity) | `Layout.Sider` (`width`/`collapsed`/`collapsedWidth` — mặc định 200↔80 khớp Sidebar) | `Layout hasSider` + `Sidebar` inside Sider · `Header sticky` top bar · `useSiderCollapsed()` cho UI đọc trạng thái thu gọn |
+| `Layout` | App frame — Header/Content/Footer/Sider zones (antd Layout parity) | `Layout.Sider` (`width`/`collapsed`/`collapsedWidth` — mặc định 200↔80 khớp Sidebar) | `Layout hasSider` + `Sidebar` inside Sider · `Header sticky` top bar · `useSiderCollapsed()` cho UI đọc trạng thái thu gọn · `classNames` slots |
 
 ## Menu family — khi nào dùng
 
@@ -46,14 +48,14 @@ So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa c�
 
 | Component | Use when | Most valuable prop | Common combos |
 |---|---|---|---|
-| `Avatar` | Identity chip for a user/entity — letter initials by default, photo when `src` loads (fade-in; broken src falls back to initials) | `src` (falls back to initials children — on load fail too) | `AvatarGroup` (stacks) · `List` rows · `Card` extra |
+| `Avatar` | Identity chip for a user/entity — letter initials by default, photo when `src` loads (fade-in; broken src falls back to initials) | `src` (falls back to initials children — on load fail too) | `AvatarGroup` (stacks) · `List` rows · `Card` extra · `classNames` slots |
 | `AvatarGroup` | Stacked team/assignee faces with overflow | `max` — folds the rest into a "+N" pill whose tooltip lists hidden names | `Card` head extra · `Table` assignee cell · `Tooltip` built-in per avatar |
-| `Badge` | Status pill (task/activity variants) OR antd-style count badge — corner count on children, standalone status dot | `variant` pill · `count`+`overflowCount` (99+) · `dot` · `status`+`text` · `offset` | `Table` status cells · bell `count` corner · filter status legend |
-| `Card` | Grouped content panel with head/body/actions | `title` (pair with `hoverable` for clickable cards) · `loading` skeleton body · `size="small"` dense | `Card`+`Statistic` dashboard · `Card`+`Chart` · `Card`+`List` |
+| `Badge` | Status pill (task/activity variants) OR antd-style count badge — corner count on children, standalone status dot | `variant` pill · `count`+`overflowCount` (99+) · `dot` · `status`+`text` · `offset` | `Table` status cells · bell `count` corner · filter status legend · `classNames` slots |
+| `Card` | Grouped content panel with head/body/actions | `title` (pair with `hoverable` for clickable cards) · `loading` skeleton body · `size="small"` dense | `Card`+`Statistic` dashboard · `Card`+`Chart` · `Card`+`List` · `classNames` slots |
 | `Carousel` | Sliding content — hero banner, media strip, onboarding steps | `itemsPerView` (1 = hero, 3-4 = card rail) | `Carousel`+`Image` gallery · built-in indicators/navigators/keyboard |
 | `Chart` | Data viz: bar/line/pie/doughnut/radar | `config` (chart.js shape, per-dataset colors; per-dataset `type` for mixed) | `Card`+`Chart` dashboard · `fallback` node for missing peer-dep `chart.js` · heavy: subpath `@wakii/ui-kit/chart` (rời barrel 0.6.0) |
 | `Collapse` | Progressive disclosure — FAQ, settings sections, logs | `items` (key/label/children, per-item `disabled`) · `accordion` (one open at a time) | inside `Card` body · default-open key via `defaultActiveKeys` |
-| `Descriptions` | Label:value readout of an entity (task detail, meta panel) | `items` · `size="small"` + `colon` | `Drawer`/`Modal` detail pane · `Card` body · `bordered` for dense data |
+| `Descriptions` | Label:value readout of an entity (task detail, meta panel) | `items` · `size="small"` + `colon` | `Drawer`/`Modal` detail pane · `Card` body · `bordered` for dense data · `classNames` slots |
 | `Divider` | Separate/space content sections | `children` — text label embedded in the rule · `orientation="left|right"` | `Typography` sections · landing hero · settings groups |
 | `Draggable` / `DropZone` | Native HTML5 drag & drop primitives — reorder lists, drop targets (0 deps) | `Draggable data` (JSON payload qua dataTransfer, MIME riêng) · `DropZone onDrop(data)` parse ngược | `DragDropProvider` + keyboard: Space nhặt (`aria-pressed`) → Arrows zone → Enter thả / Esc hủy · `Draggable handle` giới hạn vùng kéo · `disabled` khoá card · `DropZone activeClass` thay highlight · `accept` lọc theo `dataTransfer.types` · ⚠️ không hỗ trợ touch — peer-dep dnd-kit nếu cần |
 | `Editor` | Rich text (Tiptap v3) — notes, descriptions, inline HTML content | `content`+`onChange` (HTML string) · `placeholder` · `editorRef` imperative access | `fallback` node when peer-dep `@tiptap/*` missing · heavy: subpath `@wakii/ui-kit/editor` (rời barrel 0.6.0) |
@@ -66,12 +68,12 @@ So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa c�
 | `Segmented` | Compact single-choice switcher with no panels — view period, density, sort mode | `options` (`disabled` per-option) + controlled `value`/`onChange` | swap for `Tabs` when you don't need content panels · toolbar/filter-bar headers |
 | `Skeleton` | Loading placeholder mirroring the real layout before data lands | `variant` (text/row/card/circle/button) + `count` | stack `circle`+`text`+`row` to compose a card · `Table loading` renders its own — prefer that for grids · `classNames` slots (`wrapper`/`bone`) |
 | `Statistic` | Big-number KPI readout (title + value + prefix/suffix) | `value` (+ `prefix`/`suffix`) | `Card` dashboards · `valueStyle` to color by status · tabular-nums built in |
-| `Steps` | Horizontal wizard progress header (done/current/waiting) | `current` (prop-driven, no internal state) | `Button` next/back beneath it (recipe 4) · `aria-current="step"` built in |
+| `Steps` | Horizontal wizard progress header (done/current/waiting) | `current` (prop-driven, no internal state) | `Button` next/back beneath it (recipe 4) · `aria-current="step"` built in · `classNames` slots |
 | `Table` | Data grid — sort/filter/paginate/select for CRUD backbones | `columns` (`sortable`/`filterable`/`render`/`align`) | recipe 2 CRUD · `virtual` for 5k+ rows · `selectionMode` for bulk actions · `globalFilter` · `expandable` master-detail rows (recipe 13) · `classNames` slots (`wrapper`/`header`/`row`/`cell`) |
 | `Timesheet` | Weekly hours grid — rows = tasks/projects × 7 day columns (always Mon-start), cell = hours; row/column/grand totals built in for timesheet approval | `rows` (+ `editable` → `onCellChange(rowKey, dayIndex, value)`, clamp 0–24 step 0.5) | `Statistic` weekly total (recipe 15) · `week` + `onWeekChange` prev/next nav · `locale` vi/en · weekend columns shaded · `loading` skeleton |
 | `Tabs` | Switch between content panels in place — settings, detail views | `items` (+ controlled `activeKey`/`onChange`) | settings pages (recipe 9) · `Segmented` when panels aren't needed · `classNames` slots (`wrapper`/`tablist`/`tab`/`panel`) |
 | `Tag` | Tiny label chip — statuses, metadata; `Tag.Checkable` for filter chips | `closable`+`onClose` (consumer removes) · Checkable `checked`+`onChange` | `Table` status cells · `Checkable` chip groups in filter bars · `List` row meta |
-| `Timeline` | Vertical activity feed — dot + text + time per entry | `items` (per-item `color` dot, `label` time) · `mode="alternate|left|right"` (label column) · `pending` hollow dot | `Card` body feeds · audit/history panels (recipe 6) · deploy logs with "rolling out…" tail |
+| `Timeline` | Vertical activity feed — dot + text + time per entry | `items` (per-item `color` dot, `label` time) · `mode="alternate|left|right"` (label column) · `pending` hollow dot | `Card` body feeds · audit/history panels (recipe 6) · deploy logs with "rolling out…" tail · `classNames` slots |
 | `Tree` | Expand/collapse hierarchy — file trees, category nav | `data` (+ `defaultExpandedKeys`; uncontrolled expand state) · `showLine` connector borders | side navigation panels · use `TreeSelect` when a value must be picked |
 | `TreeTable` | Hierarchical data as a grid — file trees with columns, WBS/org with metadata | `data` (recursive `{key, children?, values}`) + `columns` (`header`/`align`/`render`) | `defaultExpandedKeys`/`expandedKeys` + `onRowToggle` · `selectionMode` single/checkbox (+ select-all đếm cả node gập) · indent `--sp-4` × depth · expand animate grid-rows 3-tier clip |
 | `VirtualScroll` | Windowed list for 10k+ rows — mount only the visible window + buffer, GPU translate | `itemSize` (FIXED row height px — dynamic height is a known backlog) | `height` px or `'100%'` (measured after mount) · `onScrollEnd` fires once per bottom-hit for load-more · pair with `List`-style rows · NOT for `Table` (use `Table virtual`) |
@@ -155,16 +157,16 @@ So sánh nhanh: `Menubar` = dropdown 1 cấp gọn · `MegaMenu` = panel đa c�
 | `BlockUI` | Lock a region in place while it is busy | `blocked` + `message` (label centered on the scrim) | wrap `Table`/`Card` during fetch · pair with `Spinner` outside the lock |
 | `ContextMenu` | Right-click menu on a region — positioned at the pointer | `items` (key `'---'` = divider; `danger`/`disabled` per item) | `onItemClick` switch by key · arrow-key nav + ESC + outside-click built-in |
 | `Drawer` | Side panel for detail/form without leaving context (portal, focus trap, scroll lock) | `open` + `onClose` (ESC, mask click, × wired) | `width` (default 378 antd) · `footer` action row · `Descriptions` as body · `classNames` slots |
-| `Dropdown` | Button-triggered action menu | `items` + `onItemClick` | `trigger` = `Button` · `'---'` divider · `danger`/`disabled` per item · ArrowUp/Down/Home/End + `role=menu/menuitem` built-in |
+| `Dropdown` | Button-triggered action menu | `items` + `onItemClick` | `trigger` = `Button` · `'---'` divider · `danger`/`disabled` per item · ArrowUp/Down/Home/End + `role=menu/menuitem` built-in · `classNames` slots |
 | `Message` | Transient global toast — static API, 3s auto-dismiss | `message.success\|info\|warning\|error(content)` | call anywhere (no React state) · `classNames` slots |
 | `Modal` | Blocking confirm/dialog on top of the page (portal, focus trap, scroll lock) | `open` + `onOk`/`onCancel` (ESC + mask + × all cancel) | `danger` red OK · `confirmLoading` locks both buttons · `okText`/`cancelText` · `classNames` slots |
 | `Notification` | Rich toast with title + description — static API, 4.5s | `notification.success(title, description?)` | manual × close built-in · `classNames` slots |
 | `Popconfirm` | Confirm bubble anchored to a trigger (delete guard) | `open` (controlled) + `onConfirm`/`onCancel` | `danger` red icon/OK · `title` + `description` · ESC = cancel · `okText`/`cancelText` |
-| `Popover` | Rich anchored panel — free `content` ReactNode (lists, links, mini actions), unlike Tooltip's text-only hint | `content` (any ReactNode; pair with `title` for the divider head) | `trigger` `hover\|click\|focus` (default hover) · controlled `open`/`onOpenChange` · `placement` top/bottom · ESC + click-outside close built in |
+| `Popover` | Rich anchored panel — free `content` ReactNode (lists, links, mini actions), unlike Tooltip's text-only hint | `content` (any ReactNode; pair with `title` for the divider head) | `trigger` `hover\|click\|focus` (default hover) · controlled `open`/`onOpenChange` · `placement` top/bottom · ESC + click-outside close built in · `classNames` slots |
 | `Progress` | Line progress bar with % readout | `percent` (clamped 0–100) | `status="exception\|success"` recolors bar · `showInfo={false}` hides % |
 | `Result` | Full-area status page (success/error/404/500/warning/info) | `status` (drives icon, color, default title) | `title`/`subTitle` override · `extra` action buttons |
 | `Spinner` | Inline busy indicator (ring/dots/bars) | `label` (REQUIRED aria-label) | `size` (`sm`/`md`/`lg`) + `color` (`inverse` on dark surfaces) · pair with `BlockUI` scrim |
-| `Tooltip` | Hover/focus hint bubble (top/bottom) — portal-free, wraps the trigger in place | `title` (bubble content) · `placement` `top`/`bottom` | wrap any focusable trigger · `aria-describedby` auto-wired · ESC dismisses |
+| `Tooltip` | Hover/focus hint bubble (top/bottom) — portal-free, wraps the trigger in place | `title` (bubble content) · `placement` `top`/`bottom` | wrap any focusable trigger · `aria-describedby` auto-wired · ESC dismisses · `classNames` slots |
 | `Watermark` | Content guard overlay — repeated diagonal text tile over previews/documents/drafts | `content` (string or `string[]` for multi-line) | wraps any block (children stay interactive — overlay `pointer-events-none`) · `rotate`/`opacity`/`font`/`fontColor` custom tile · corner-anchored via `left`/`top`/`width`/`height` · dark theme re-bakes the tile automatically |
 
 ## Quy tắc BẮT BUỘC (vi phạm = review fail)

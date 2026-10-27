@@ -22,7 +22,7 @@ services/     node-svc :3001 (Fastify+TS+Drizzle — CRUD, outbox, compensation)
 app/     shared (fe-shared — logic: api/token/error/MF) · ui-kit (38 components + Storybook + motion)
               shell :3000 (MF host) · remotes/tasks :4001 · remotes/activity :4002 · spike (MF pins)
 scripts/      smoke/e2e.sh (2 chiều) · scaffold/scaffold.sh
-docs/         walkthrough · adr/0001–0009 · toolchain · superpowers/ (spec+plan+evidence theo story)
+docs/         walkthrough · adr/0001–0010 · toolchain · superpowers/ (spec+plan+evidence theo story)
 ```
 
 ## Lệnh hằng ngày
@@ -68,7 +68,7 @@ spec OpenAPI → `pnpm lint:contracts` → codegen node-svc types → impl → s
 | Sửa API/contract | `contracts/openapi/*.yaml` + `platform/conventions/04` (envelope) + skill `sync-contracts` |
 | Đụng Kafka/outbox/saga/DLQ | `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md` |
 | Đụng FE/MF/design system | `docs/adr/0002` + `docs/adr/0009` + `app/ui-kit/README.md` + `app/shared/README.md` |
-| Vì sao kiến trúc vậy | `docs/adr/0001–0009` |
+| Vì sao kiến trúc vậy | `docs/adr/0001–0010` |
 | Tổ chức epic/story với Wakii | `docs/wakii-playbook.md` (4 archetype chia SF + gates) |
 | Tạo service mới | skill `add-service` (`.claude/skills/`) — thủ tục 4 SF + lệnh verify |
 | Mở PR / merge / branch | `docs/git-flow.md` — mọi thay đổi vào `main` qua PR (template `.github/pull_request_template.md`) |

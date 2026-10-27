@@ -1,6 +1,10 @@
 // Marquee — dải tech-stack chạy ngang vô hạn (CSS keyframes marquee trong
 // app.css, pause on hover; prefers-reduced-motion tắt ở media query cùng chỗ).
 // Nội dung nhân đôi ×2 + translateX(-50%) = loop liền mạch không nhảy.
+// Redesign shell-kit (2026-10-27): chip hiển thị là Tag kit (padding override
+// qua style cho khớp look đã duyệt — classnames kit không merge conflict).
+import { Tag } from '@wakii/ui-kit';
+
 const STACK = [
   'React 19',
   'Module Federation',
@@ -23,13 +27,14 @@ export function Marquee() {
         {[0, 1].map((copy) => (
           <div key={copy} aria-hidden={copy === 1} className="flex items-center gap-8">
             {STACK.map((tech) => (
-              <span
+              <Tag
                 key={`${copy}-${tech}`}
-                className="flex items-center gap-2 whitespace-nowrap rounded-pill border border-line bg-s1 px-4 py-1.5 text-label text-ink2"
+                className="whitespace-nowrap"
+                style={{ paddingBlock: 6, paddingInline: 16 }}
+                icon={<span aria-hidden="true" className="size-1.5 rounded-pill bg-accent" />}
               >
-                <span aria-hidden="true" className="size-1.5 rounded-pill bg-accent" />
                 {tech}
-              </span>
+              </Tag>
             ))}
           </div>
         ))}

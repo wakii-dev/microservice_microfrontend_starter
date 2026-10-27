@@ -1,6 +1,6 @@
 # ADR — Architecture Decision Records (boilerplate FI-62)
 
-Mỗi quyết định kiến trúc của boilerplate = 1 ADR ngắn (Context / Decision / Consequences). Người copy nên đọc đủ 9 trước khi đổi bất kỳ quyết định nào.
+Mỗi quyết định kiến trúc của boilerplate = 1 ADR ngắn (Context / Decision / Consequences). Người copy nên đọc đủ 10 trước khi đổi bất kỳ quyết định nào.
 
 | # | Quyết định | File |
 |---|-----------|------|
@@ -13,3 +13,4 @@ Mỗi quyết định kiến trúc của boilerplate = 1 ADR ngắn (Context / D
 | 7 | Fork-not-upgrade (copy boilerplate, không dependence) | [0007-fork-not-upgrade.md](0007-fork-not-upgrade.md) |
 | 8 | Kafka + Outbox + Saga (supersede 0006) | [0008-kafka-outbox-saga.md](0008-kafka-outbox-saga.md) |
 | 9 | Tách UI kit khỏi fe-shared (design system ≠ logic) | [0009-ui-kit-split.md](0009-ui-kit-split.md) |
+| 10 | Stack scaffold cài `@wakii/ui-kit` từ npm (prune source) | [0010-stack-fe-npm-deps.md](0010-stack-fe-npm-deps.md) |

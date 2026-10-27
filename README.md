@@ -122,7 +122,7 @@ app/
   remotes/    tasks (kanban) · activity (feed)
   admin/      showcase SPA — DataTable virtual · zod forms · upload
   create-*/   scaffolders npm + starter-templates + stack-template
-docs/         walkthrough · 8 ADR · toolchain · assets/readme (ảnh thật)
+docs/         walkthrough · 10 ADR · toolchain · assets/readme (ảnh thật)
 scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
 ```
 
@@ -132,7 +132,7 @@ scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
 2. **Gateway chỉ presence-check JWT** — service tự verify signature ([token-contract §4](contracts/auth/token-contract.md))
 3. **Kafka lazy-connect + kafka-init** — topic tồn tại trước consumer, không `depends_on` broker ([ADR 0008](docs/adr/))
 4. **Đổi port = 4 chỗ cùng commit** — conventions/05 · `.env.example` · compose · README
-5. **FE copy kèm** `app/shared` + `app/ui-kit` (workspace deps)
+5. **Stack scaffold kèm** `app/shared` (source); `app/ui-kit` cài từ npm — `@wakii/ui-kit` latest, không kèm source ([ADR 0010](docs/adr/0010-stack-fe-npm-deps.md))
 6. **Đổi kiến trúc** — đọc ADR trước (mỗi ADR ghi Consequences + điểm cắm thay thế)
 
 ---

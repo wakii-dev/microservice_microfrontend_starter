@@ -1,0 +1,7 @@
+# Clean build context (conventions/01 rule 6) — bin/obj are local build artifacts
+.git
+.github
+docs
+**/bin/
+**/obj/
+*.md

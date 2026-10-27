@@ -21,6 +21,11 @@
 #     đổi VALUE giữ KEY — gap-answer epic VU-59 mục ①②④⑤⑥⑦, coordinator
 #     APPROVED).
 #   2026-10-23: go-svc env roles đã đúng ở entry (đã fix từ trước) — xoá services/go-svc/ci.compose.override.yml (redundant) — coordinator duyệt.
+#   2026-10-27: + entry dotnet-svc (ASP.NET Core 8 notifications — 4th language,
+#     ADR-0011; mission brief wakii-dev/feat-dotnet-svc) — postgres env gains
+#     DOTNET_SVC_DB_PASSWORD (init script creates schema notifications + role
+#     dotnet_svc); gateway depends_on dotnet-svc service_healthy. NO kafka
+#     (service consumes nothing — requires is postgres only).
 # ============================================================================
 
 name: __STACK_NAME__
@@ -38,6 +43,7 @@ services:
       GO_SVC_DB_PASSWORD: ${GO_SVC_DB_PASSWORD:?set in .env}
       GO_READONLY_DB_PASSWORD: ${GO_READONLY_DB_PASSWORD:?set in .env}
       AUTH_SVC_DB_PASSWORD: ${AUTH_SVC_DB_PASSWORD:?set in .env}
+      DOTNET_SVC_DB_PASSWORD: ${DOTNET_SVC_DB_PASSWORD:?set in .env}
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
@@ -126,6 +132,8 @@ services:
       # poll /api/activity/stats (SF-7, FI-75).
       go-svc:
         condition: service_started
+      dotnet-svc:
+        condition: service_healthy
     # KHÔNG healthcheck cho gateway — nginx proxy thuần, không route /readyz
     # (probe sẽ 404); wait do scripts/smoke/e2e.sh poll /api/auth/readyz đảm nhiệm.
 
@@ -207,6 +215,29 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  dotnet-svc:
+    # ASP.NET Core 8 Minimal API — notifications CRUD (ADR-0011, 4th language).
+    # NO kafka (service consumes no events) + NO inter-service URLs —
+    # postgres only; JWT self-verified (token-contract §4) so no auth-svc depends_on.
+    build: ../services/dotnet-svc
+    environment:
+      DOTNET_SVC_PORT: 8083 # container port FIXED (conventions/05)
+      DATABASE_URL: postgres://dotnet_svc:${DOTNET_SVC_DB_PASSWORD:?set in .env}@postgres:5432/${POSTGRES_DB:?set in .env}
+      JWT_SECRET: ${JWT_SECRET:?set in .env}
+      CORS_DEV_ORIGIN: ${CORS_DEV_ORIGIN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${DOTNET_SVC_PORT:-8083}:8083" # host-side
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck: # health-gated /readyz (conventions/02) — runtime image gets wget installed (Dockerfile)
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8083/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s # wait for migration + first-run JIT
 
   # --- FE entries: shell (SF-5 thêm — GAP-ANSWER coordinator trên epic FI-62 2026-10-12:
   #     "BẠN tự thêm theo port table, coordinator duyệt ở review"). remote-tasks /

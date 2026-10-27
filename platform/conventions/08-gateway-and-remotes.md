@@ -7,6 +7,7 @@
 | `/api/tasks/*` | `node-svc:3001` | ✓ thiếu `Authorization` → 401 | pass-through, KHÔNG rewrite — service mount `/api/tasks` prefix |
 | `/api/users/*` | `spring-svc:8081` | ✓ 401 | |
 | `/api/activity/*` | `go-svc:8082` | ✓ 401 | |
+| `/api/dotnet/*` | `dotnet-svc:8083` | ✓ 401 | notifications (ADR-0011) |
 | `/api/auth/*` | `auth-svc:8090` | ✗ mở | entry login + register + refresh (auth.yaml v2) |
 | `/` | `shell:3000` | ✗ | MF host (SF-5) — 502 đến khi shell tồn tại |
 | `/remotes/<name>/*` | remote `<name>` | ✗ | remote static (SF-6) — 502 đến khi tồn tại |

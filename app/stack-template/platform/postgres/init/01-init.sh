@@ -1,8 +1,8 @@
 #!/bin/bash
 # ============================================================================
 # Postgres init — chạy MỘT LẦN trên volume mới (docker-entrypoint-initdb.d).
-# Tạo: 4 schemas (tasks/users/activity/auth) + 1 LOGIN role per service + 1
-# readonly role cho go-svc đọc schema `tasks`.
+# Tạo: 5 schemas (tasks/users/activity/auth/notifications) + 1 LOGIN role per
+# service + 1 readonly role cho go-svc đọc schema `tasks`.
 #
 # ĐIỂM MÚT: ALTER DEFAULT PRIVILEGES FOR ROLE node_svc — grant SELECT hiệu lực
 # cho BẢNG SINH SAU bởi migration của node-svc (SF-2). Không có default
@@ -16,6 +16,7 @@ CREATE SCHEMA IF NOT EXISTS tasks;
 CREATE SCHEMA IF NOT EXISTS users;
 CREATE SCHEMA IF NOT EXISTS activity;
 CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS notifications;
 
 -- LOGIN role per service — mỗi service chỉ đụng schema của mình
 -- Ràng buộc (P2 security-audit SF-5): password KHÔNG chứa dấu nháy đơn (')
@@ -26,6 +27,7 @@ CREATE ROLE node_svc   LOGIN PASSWORD '${NODE_SVC_DB_PASSWORD}';
 CREATE ROLE spring_svc LOGIN PASSWORD '${SPRING_SVC_DB_PASSWORD}';
 CREATE ROLE go_svc     LOGIN PASSWORD '${GO_SVC_DB_PASSWORD}';
 CREATE ROLE auth_svc   LOGIN PASSWORD '${AUTH_SVC_DB_PASSWORD}';
+CREATE ROLE dotnet_svc LOGIN PASSWORD '${DOTNET_SVC_DB_PASSWORD}';
 
 -- readonly role — go-svc đọc stats từ schema tasks (canonical DDL của SF-1)
 CREATE ROLE go_readonly LOGIN PASSWORD '${GO_READONLY_DB_PASSWORD}';
@@ -35,10 +37,12 @@ GRANT USAGE, CREATE ON SCHEMA tasks    TO node_svc;
 GRANT USAGE, CREATE ON SCHEMA users    TO spring_svc;
 GRANT USAGE, CREATE ON SCHEMA activity TO go_svc;
 GRANT USAGE, CREATE ON SCHEMA auth     TO auth_svc;
+GRANT USAGE, CREATE ON SCHEMA notifications TO dotnet_svc;
 ALTER ROLE node_svc   SET search_path = tasks;
 ALTER ROLE spring_svc SET search_path = users;
 ALTER ROLE go_svc     SET search_path = activity;
 ALTER ROLE auth_svc   SET search_path = auth;
+ALTER ROLE dotnet_svc SET search_path = notifications;
 
 -- Readonly read path
 GRANT USAGE ON SCHEMA tasks TO go_readonly;

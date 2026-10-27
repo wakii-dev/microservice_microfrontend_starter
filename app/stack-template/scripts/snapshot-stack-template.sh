@@ -34,6 +34,7 @@ fi
 mkdir -p "$DEST"
 
 rsync -a --exclude='go.sum' \
+  --exclude='obj/' --exclude='bin/' \
   --exclude='/app/stack-template/' \
   --exclude='/app/create-wakii-app/' \
   --exclude='/app/create-wakii-stack/' \

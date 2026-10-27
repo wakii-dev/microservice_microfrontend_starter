@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>DotnetSvc</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Real globalization (icu) — not invariant: log/API messages are human-readable -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
+    <PackageReference Include="Npgsql" Version="8.0.5" />
+  </ItemGroup>
+
+  <!-- Canonical DDL mirror — the table + index portion of
+       contracts/db/notifications-schema.sql (the `notifications` schema itself is
+       created by platform/postgres/init/01-init.sh as superuser; the dotnet_svc
+       role has no CREATE on the DATABASE — APPLY CONTEXT in the DDL).
+       Changing the DDL = changing this file in the SAME commit. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\0001_init.sql" />
+  </ItemGroup>
+
+</Project>

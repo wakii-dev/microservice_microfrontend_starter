@@ -2,7 +2,7 @@ name: convergence
 
 # SF-5 (FI-81, story FI-76) — convergence proof: e2e 2 chiều (happy login→task→feed
 # QUA KAFKA + saga assign svc-fail → assignment_failed → DLQ assert) trên compose
-# 10 services + copy-dir standalone + scaffold output build được.
+# 11 services + copy-dir standalone + scaffold output build được.
 # File RIÊNG của convergence — KHÔNG đụng workflow-templates (SF-1 sở hữu).
 # Browser walkthrough KHÔNG nằm ở đây (human gate tại checkpoint — docs/walkthrough.md).
 
@@ -18,7 +18,7 @@ jobs:
   e2e-smoke:
     name: "e2e 2 chiều — compose login→task→feed (Kafka) + saga → assignment_failed → DLQ"
     runs-on: ubuntu-latest
-    timeout-minutes: 30 # 10 services + kafka build/boot — nới từ 20 của SF-7
+    timeout-minutes: 30 # 11 services + kafka build/boot — nới từ 20 của SF-7
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +48,7 @@ jobs:
           docker compose -f platform/docker-compose.yml --env-file platform/.env.example \
             exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
-      - name: Boot full stack (10 services, health-gated chain — kafka lazy-connect)
+      - name: Boot full stack (11 services, health-gated chain — kafka lazy-connect)
         run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build
 
       - name: Wait gateway chain ready (poll /api/auth/readyz — gateway không có /readyz riêng)

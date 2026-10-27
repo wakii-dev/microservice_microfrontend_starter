@@ -13,6 +13,7 @@ Port cố định, giá trị dev = giá trị compose (override được qua `.
 | node-svc | 3001 | Fastify + TS |
 | spring-svc | 8081 | Spring Boot 3 |
 | go-svc | 8082 | Go chi |
+| dotnet-svc | 8083 | ASP.NET Core 8 Minimal API (notifications — ADR-0011) |
 | auth-svc | 8090 | Fastify + TS (auth thật — epic auth-real) |
 | postgres | 5432 | Postgres 16 |
 
@@ -26,6 +27,7 @@ REMOTE_ACTIVITY_PORT=4002
 NODE_SVC_PORT=3001
 SPRING_SVC_PORT=8081
 GO_SVC_PORT=8082
+DOTNET_SVC_PORT=8083
 AUTH_PORT=8090
 POSTGRES_PORT=5432
 ```

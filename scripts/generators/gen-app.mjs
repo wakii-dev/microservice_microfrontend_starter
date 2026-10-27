@@ -1,19 +1,14 @@
 #!/usr/bin/env node
-// gen-app.mjs — `pnpm gen:app <tên> [--remote] [--port N]`
-// Non-remote: SPA Vite TS + @wakii/ui-kit + Layout kit + dark toggle (pattern
-// app/admin) — dev-only, KHÔNG đụng compose/nginx.
-// --remote: MF remote Rspack (pattern app/remotes/tasks) + compose entry static
-// (port trống kế tiếp 4003+) + gateway map /remotes/<name>/ + .env REMOTE_* —
-// shell slot = TODO note (không tự sửa shell).
-// Output contract: --json → {created, modified, next_steps} (lib/result.mjs).
+// gen-app.mjs — `pnpm gen:app <name> [--remote] [--port N]`
+// Non-remote: a Vite TS SPA + @wakii/ui-kit + Layout kit + dark toggle (the app/admin
+// pattern) — dev-only, compose/nginx untouched.
+// --remote: an MF Rspack remote (the app/remotes/tasks pattern) + a compose static
+// entry (next free port 4003+) + the gateway /remotes/<name>/ map line + REMOTE_* env —
+// the shell slot stays a TODO directive (the shell is never auto-edited).
+// Output contract for AI: --json → {created, removed, modified, next_steps}.
 import fs from 'node:fs';
 import path from 'node:path';
-import {
-  composeHasService,
-  insertComposeService,
-  pickFreePort,
-  usedHostPorts,
-} from './lib/compose-yaml.mjs';
+import { composeHasService, insertComposeService, pickFreePort, usedHostPorts } from './lib/compose-yaml.mjs';
 import { appendPortsTableRow } from './lib/docinsert.mjs';
 import { appendEnvSection } from './lib/envfile.mjs';
 import { exists, isDir, readText, writeNew, writeText } from './lib/io.mjs';
@@ -24,22 +19,22 @@ import { appRemoteFiles } from './tpl/app-remote.mjs';
 import { appSpaFiles } from './tpl/app-spa.mjs';
 
 const HELP = helpText({
-  usage: 'usage: pnpm gen:app <tên> [--remote] [--port N] [--root <dir>] [--json] [--help]',
+  usage: 'usage: pnpm gen:app <name> [--remote] [--port N] [--root <dir>] [--json] [--help]',
   summary:
-    'Sinh app FE mới: SPA Vite TS + @wakii/ui-kit (Layout kit + dark toggle, pattern app/admin).' +
-    ' --remote → MF remote Rspack (pattern app/remotes/tasks) + compose static + gateway /remotes/<name>/ + .env.',
+    'Generate a new FE app: a Vite TS SPA + @wakii/ui-kit (Layout kit + dark toggle, the app/admin pattern).' +
+    ' --remote generates an MF Rspack remote (the app/remotes/tasks pattern) + compose static entry + gateway /remotes/<name>/ + .env wiring.',
   flags: [
-    '<tên>           kebab-case, vd reports (bắt buộc, positional đầu)',
-    '--remote        sinh MF remote tại app/remotes/<tên> (mặc định: SPA tại app/<tên>, dev-only)',
-    '--port N        port. SPA dev: trống kế tiếp 5174+. Remote: trống kế tiếp 4003+ trong compose',
+    '<name>          kebab-case, e.g. reports (required, first positional)',
+    '--remote        generate an MF remote at app/remotes/<name> (default: SPA at app/<name>, dev-only)',
+    '--port N        port. SPA dev: next free 5174+. Remote: next free 4003+ in compose',
     '--root <dir>    repo root (default: cwd)',
-    '--json          output JSON {created, modified, next_steps} — contract cho AI',
-    '--help          trang này',
+    '--json          output JSON {created, removed, modified, next_steps} — AI contract',
+    '--help          this page',
   ],
   examples: ['pnpm gen:app reports', 'pnpm gen:app invoices --remote', 'pnpm gen:app dashboard --remote --port 4010'],
   refs: [
     'platform/conventions/05-ports.md (FE remote 40xx) · 08-gateway-and-remotes.md (remote registry + map)',
-    'docs/adr/0002 (MF) · docs/adr/0009 (ui-kit) — READ-LOCKED pins: nâng cấp react/rspack phải re-spike',
+    'docs/adr/0002 (MF) · docs/adr/0009 (ui-kit) — READ-LOCKED pins: react/rspack upgrades require a re-spike',
   ],
 });
 
@@ -47,11 +42,11 @@ export function parseAndValidate(argv) {
   const { flags, positionals } = parseArgs(argv);
   const name = positionals[0];
   if (!name || flags.help) return { help: true };
-  requireValidName(name, 'tên app');
-  if (name.startsWith('remote-')) throw new Error(`tên app không nên bắt đầu "remote-" — compose service tự thêm tiền tố remote-`);
+  requireValidName(name, 'app name');
+  if (name.startsWith('remote-')) throw new Error('app names must not start with "remote-" — compose adds the remote- prefix itself');
   const port = flags.port == null ? null : Number(flags.port);
   if (flags.port != null && (!Number.isInteger(port) || port <= 1024 || port >= 65536)) {
-    throw new Error(`--port không hợp lệ: ${flags.port}`);
+    throw new Error(`--port is invalid: ${flags.port}`);
   }
   return {
     help: false,
@@ -63,9 +58,9 @@ export function parseAndValidate(argv) {
   };
 }
 
-/** Port dev SPA — quét scripts.dev `--port N` của app/* có sẵn. */
+/** SPA dev ports — scans the `scripts.dev --port N` of existing app/* packages. */
 export function usedSpaDevPorts(root) {
-  const ports = new Set([5173]); // 5173 = admin đang giữ
+  const ports = new Set([5173]); // 5173 = admin already owns it
   const appsDir = path.join(root, 'app');
   if (!isDir(appsDir)) return ports;
   for (const d of fs.readdirSync(appsDir)) {
@@ -76,7 +71,7 @@ export function usedSpaDevPorts(root) {
       const m = dev.match(/--port (\d+)/);
       if (m) ports.add(Number(m[1]));
     } catch {
-      // package.json lạ — bỏ qua, không chặn generator
+      // odd package.json — skip, never block the generator
     }
   }
   return ports;
@@ -92,7 +87,7 @@ export function runGenApp(opts) {
   const portsDocPath = path.join(root, 'platform/conventions/05-ports.md');
 
   const dir = remote ? path.join(root, 'app/remotes', name) : path.join(root, 'app', name);
-  if (isDir(dir)) throw new Error(`${path.relative(root, dir)} đã tồn tại — idempotent-guard`);
+  if (isDir(dir)) throw new Error(`${path.relative(root, dir)} already exists — idempotent-guard`);
 
   const ctx = { name, camel: camel(name), pascal: pascal(name), scream: screaming(name), port: opts.port ?? 0, date: new Date().toISOString().slice(0, 10) };
   let files = remote ? appRemoteFiles(ctx) : appSpaFiles(ctx);
@@ -104,48 +99,46 @@ export function runGenApp(opts) {
 
   if (remote) {
     for (const p of [composePath, nginxPath, envPath]) {
-      if (!exists(p)) throw new Error(`không phải repo boilerplate — thiếu ${path.relative(root, p)} (chạy từ repo root hoặc --root)`);
+      if (!exists(p)) throw new Error(`not the boilerplate repo — missing ${path.relative(root, p)} (run from the repo root or pass --root)`);
     }
     const composeText = readText(composePath);
     const svcName = `remote-${name}`;
-    if (composeHasService(composeText, svcName)) throw new Error(`compose đã có service "${svcName}"`);
+    if (composeHasService(composeText, svcName)) throw new Error(`compose already has service "${svcName}"`);
     const used = usedHostPorts(composeText);
     if (ctx.port === 0) ctx.port = pickFreePort(used, 4003, 4199);
-    else if (used.has(ctx.port)) throw new Error(`port ${ctx.port} đã dùng trong compose — chọn port trống (conventions/05)`);
-    files = appRemoteFiles(ctx); // sinh lại với port đã biết (templates dùng port trong nội dung)
+    else if (used.has(ctx.port)) throw new Error(`port ${ctx.port} is already used in compose — pick a free one (conventions/05)`);
+    files = appRemoteFiles(ctx); // regenerate with the resolved port (templates embed it)
 
-    newCompose = insertComposeService(
-      composeText,
-      svcName,
-      {
-        build: {
-          context: '..',
-          dockerfile: `app/remotes/${name}/Dockerfile`,
-        },
-        ports: ['${REMOTE_' + ctx.scream + '_PORT:-' + ctx.port + '}:' + ctx.port],
-        healthcheck: {
-          test: ['CMD', 'wget', '-qO-', `http://127.0.0.1:${ctx.port}/remoteEntry.js`],
-          interval: '5s',
-          timeout: '3s',
-          retries: 12,
-        },
-      },
-      ` gen:app --remote ${ctx.date} — MF remote static (conventions/05+08; pattern remote-tasks)`,
-    );
-    // KHÔNG thêm gateway depends_on — parity remote-tasks/remote-activity (static FE,
-    // gateway 502 đến khi tồn tại, conventions/08; healthcheck chỉ cho `compose ps`).
+    // house-style block (the remote-tasks pattern) — text splice, lossless round-trip
+    const remoteBlock =
+      `  # gen:app --remote ${ctx.date} — MF remote static (conventions/05+08; remote-tasks pattern)
+  ${svcName}:
+    build:
+      context: .. # repo root — Dockerfile needs app/shared + workspace lockfile
+      dockerfile: app/remotes/${name}/Dockerfile
+    ports:
+      - "\${REMOTE_${ctx.scream}_PORT:-${ctx.port}}:${ctx.port}" # container port fixed at ${ctx.port} (conventions/05)
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:${ctx.port}/remoteEntry.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+`;
+    newCompose = insertComposeService(composeText, svcName, remoteBlock);
+    // NO gateway depends_on entry — parity with remote-tasks/remote-activity (static FE;
+    // the gateway 502s until it exists, conventions/08; the healthcheck serves `compose ps`).
 
     const nginxText = readText(nginxPath);
     newNginx = insertRemoteMapLine(nginxText, name, ctx.port);
     if (!newNginx) {
-      throw new Error(`nginx.conf không có anchor map $remote_up — thêm dòng map /remotes/${name}/ tay theo conventions/08`);
+      throw new Error(`nginx.conf has no $remote_up map anchor — add the /remotes/${name}/ map line manually per conventions/08`);
     }
 
     envRes = appendEnvSection(envPath, {
       header: `gen: remote ${name}`,
       vars: [
-        { key: `REMOTE_${ctx.scream}_PORT`, value: String(ctx.port), comment: `port side HOST — container cố định ${ctx.port} (conventions/05)` },
-        { key: `REMOTE_${ctx.scream}_URL`, value: `http://remote-${name}:${ctx.port}`, comment: 'URL trong mạng compose (shell MF registry — conventions/08)' },
+        { key: `REMOTE_${ctx.scream}_PORT`, value: String(ctx.port), comment: `host-side port — container fixed at ${ctx.port} (conventions/05)` },
+        { key: `REMOTE_${ctx.scream}_URL`, value: `http://remote-${name}:${ctx.port}`, comment: 'URL inside the compose network (shell MF registry — conventions/08)' },
       ],
     });
     if (exists(portsDocPath)) {
@@ -161,7 +154,7 @@ export function runGenApp(opts) {
     files = appSpaFiles(ctx);
   }
 
-  // --- GHI ---
+  // --- WRITE ---
   for (const [rel, content] of Object.entries(files)) {
     res.createdFile(path.relative(root, writeNew(path.join(dir, rel), content)));
   }
@@ -170,28 +163,28 @@ export function runGenApp(opts) {
     res.modifiedFile('platform/docker-compose.yml');
     writeText(nginxPath, newNginx.text);
     res.modifiedFile('platform/gateway/nginx/nginx.conf');
-    if (newNginx.created) res.next('review: nginx.conf vừa tạo marker GEN:remotes trong map $remote_up — các lần gen sau tự chèn trong vùng đó');
+    if (newNginx.created) res.next('review: nginx.conf got the GEN:remotes markers inside the $remote_up map — later gen runs insert inside that region');
     if (envRes.added.length > 0) res.modifiedFile('platform/.env.example');
     if (newPortsDoc != null) {
       writeText(portsDocPath, newPortsDoc);
       res.modifiedFile('platform/conventions/05-ports.md');
     } else {
-      res.next(`edit: platform/conventions/05-ports.md — thêm dòng remote ${name} = ${ctx.port} vào bảng (anchor cũ không tìm thấy)`);
+      res.next(`edit: platform/conventions/05-ports.md — add the remote ${name} = ${ctx.port} row (old anchor not found)`);
     }
     res.next(
-      'run: pnpm install  # cập nhật pnpm-lock.yaml importer app/remotes/' + name + ' — Dockerfile frozen-lockfile cần',
+      'run: pnpm install  # refresh pnpm-lock.yaml with the app/remotes/' + name + ' importer — the Dockerfile frozen-lockfile needs it',
       `verify: pnpm --filter @wakii/remote-${name} test && pnpm --filter @wakii/remote-${name} typecheck`,
-      `verify: pnpm --filter @wakii/remote-${name} build  # rspack build PASS (2 entry: index + standalone)`,
-      `edit: app/shell — thêm slot remote mới: Route path "/${name}" + RemoteSlot name="${name}" exposedModule="./${ctx.pascal}Page" + NavBar item (registry conventions/08; shell READ-LOCKED phần MF bootstrap — chỉ sửa slot/routes)`,
-      `edit: platform/.env.example CORS_DEV_ORIGIN — thêm http://localhost:${ctx.port} nếu FE dev gọi API trực tiếp (conventions/07)`,
-      'note: Dockerfile app/remotes/' + name + ' COPY đủ importers — khi repo thêm package mới phải bổ sung tay',
+      `verify: pnpm --filter @wakii/remote-${name} build  # rspack build PASS (2 entries: index + standalone)`,
+      `edit: app/shell — add the remote slot: Route path "/${name}" + RemoteSlot name="${name}" exposedModule="./${ctx.pascal}Page" + NavBar item (registry conventions/08; the shell MF bootstrap is READ-LOCKED — only touch slots/routes)`,
+      `edit: platform/.env.example CORS_DEV_ORIGIN — add http://localhost:${ctx.port} if the FE dev calls APIs directly (conventions/07)`,
+      'note: the Dockerfile at app/remotes/' + name + ' COPYs every importer — extend it manually when the repo gains new packages',
     );
   } else {
     res.next(
-      `run: pnpm install  # workspace deps mới (workspace:* + catalog:)`,
+      'run: pnpm install  # new workspace deps (workspace:* + catalog:)',
       `verify: pnpm --filter ${name} test && pnpm --filter ${name} typecheck`,
       `verify: pnpm --filter ${name} dev  # http://localhost:${ctx.port} — dark toggle + Layout kit`,
-      `add: trang mới bằng pnpm gen:feature <tên> --app ${name} (tự chèn route tại marker GEN:routes)`,
+      'add: new pages with pnpm gen:feature <name> --app ' + name + ' (inserts the route at the GEN:routes marker)',
     );
   }
   return res;

@@ -1,6 +1,6 @@
-// io.mjs — file helpers cho generators: đọc/ghi có guard, chèn giữa marker.
-// Tất cả ghi file qua writeIfAbsent/writeNew — KHÔNG bao giờ đè file có sẵn
-// (idempotent-guard: tồn tại → lỗi rõ, người chạy quyết định).
+// io.mjs — file helpers for generators: guarded read/write, marker-scoped insertion.
+// All new files go through writeNew — NEVER overwrite an existing file
+// (idempotent-guard: already exists → clear error, the caller decides).
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -16,27 +16,23 @@ export function readText(p) {
   return fs.readFileSync(p, 'utf8');
 }
 
-/** Ghi ĐÈ có chủ đích — CHỈ cho hàm chèn vào file có sẵn (compose/nginx/env). */
+/** Deliberate overwrite — ONLY for functions editing existing infra files (compose/nginx/env). */
 export function writeText(p, content) {
   fs.writeFileSync(p, content);
   return p;
 }
 
-export function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
-
-/** Ghi file MỚI — tồn tại sẵn thì throw (idempotent-guard mission: "tồn tại → lỗi rõ"). */
+/** Write a NEW file — throws if it already exists (idempotent-guard). */
 export function writeNew(file, content) {
   if (fs.existsSync(file)) {
-    throw new Error(`đã tồn tại, không đè: ${file} (xoá tay nếu muốn sinh lại)`);
+    throw new Error(`already exists, refusing to overwrite: ${file} (delete manually to regenerate)`);
   }
   ensureDir(path.dirname(file));
   fs.writeFileSync(file, content);
   return file;
 }
 
-/** Ghi nhiều file {relPath: content} dưới rootDir. Trả danh sách path đã ghi. */
+/** Write multiple files {relPath: content} under rootDir. Returns the list of written paths. */
 export function writeTree(rootDir, files) {
   const written = [];
   for (const [rel, content] of Object.entries(files)) {
@@ -45,9 +41,20 @@ export function writeTree(rootDir, files) {
   return written;
 }
 
+/** Remove a directory tree (used by remove:service). Missing path → no-op, returns false. */
+export function removeTree(dir) {
+  if (!fs.existsSync(dir)) return false;
+  fs.rmSync(dir, { recursive: true, force: true });
+  return true;
+}
+
+export function ensureDir(p) {
+  fs.mkdirSync(p, { recursive: true });
+}
+
 /**
- * Chèn `block` NGAY TRƯỚC dòng `anchor` (khớp literal, giữ indent của anchor).
- * Không tìm thấy anchor → null (caller quyết định lỗi hay fallback).
+ * Insert `block` IMMEDIATELY BEFORE the line containing `anchor` (literal match).
+ * Anchor not found → null (caller decides error vs fallback).
  */
 export function insertBefore(text, anchor, block) {
   const idx = text.indexOf(anchor);
@@ -55,28 +62,38 @@ export function insertBefore(text, anchor, block) {
   return text.slice(0, idx) + block + text.slice(idx);
 }
 
-/** Chèn `block` NGAY SAU dòng `anchor` (khớp literal). Không thấy → null. */
-export function insertAfter(text, anchor, block) {
-  const idx = text.indexOf(anchor);
-  if (idx === -1) return null;
-  return text.slice(0, idx + anchor.length) + block + text.slice(idx + anchor.length);
-}
-
 /**
- * Chèn content GIỮA cặp marker `open`/`close` (append vào cuối vùng).
- * Marker chưa tồn tại → tạo cặp mới tại `anchor` (dùng insertBefore semantics).
- * Trả { text, created: boolean } — null nếu không tìm thấy điểm chèn.
+ * Insert `content` BETWEEN the marker pair `open`/`close` (appended at the end of
+ * the region). Markers missing yet → create the pair at `anchor` (insertBefore).
+ * Returns { text, created: boolean } — null if no insertion point was found.
  */
 export function insertIntoMarkers(text, { open, close, anchor, content }) {
   if (text.includes(open)) {
     if (!text.includes(close)) {
-      throw new Error(`thấy marker mở "${open}" nhưng thiếu marker đóng "${close}" — sửa conf thủ công rồi chạy lại`);
+      throw new Error(`found open marker "${open}" but the close marker "${close}" is missing — fix the file manually, then rerun`);
     }
-    // append vào cuối vùng marker (trước close)
     const closeIdx = text.indexOf(close);
     return { text: text.slice(0, closeIdx) + content + text.slice(closeIdx), created: false };
   }
   const block = `${open}\n${content}${close}\n`;
   const next = insertBefore(text, anchor, block);
   return next === null ? null : { text: next, created: true };
+}
+
+/**
+ * Remove content BETWEEN markers that matches `pattern` (regex) — used by
+ * remove:service to strip one service's block out of the GEN region.
+ * Returns { text, removed: boolean }. Markers absent → { text unchanged, removed: false }.
+ */
+export function removeFromMarkers(text, { open, close, pattern }) {
+  if (!text.includes(open)) return { text, removed: false };
+  const openIdx = text.indexOf(open);
+  const closeIdx = text.indexOf(close, openIdx);
+  if (closeIdx === -1) {
+    throw new Error(`found open marker "${open}" but the close marker "${close}" is missing — fix the file manually, then rerun`);
+  }
+  const region = text.slice(openIdx, closeIdx);
+  const cleaned = region.replace(pattern, '');
+  if (cleaned === region) return { text, removed: false };
+  return { text: text.slice(0, openIdx) + cleaned + text.slice(closeIdx), removed: true };
 }

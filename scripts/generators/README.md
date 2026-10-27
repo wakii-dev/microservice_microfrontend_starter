@@ -1,50 +1,64 @@
-# generators — `pnpm gen:service | gen:app | gen:feature`
+# generators — `pnpm gen:service | gen:app | gen:feature | remove:service`
 
-Sinh khung ĐÚNG conventions (platform/conventions/01–09) cho AI & người. 1 lệnh = service/app/feature mới + mọi chỗ chèn kèm (compose · gateway nginx · .env.example · pnpm-workspace · bảng port · contracts stub · CI workflow).
+Generate boilerplate-compliant scaffolds (platform/conventions/01–09) for AI and humans. One command = a new service/app/feature PLUS every surrounding wiring (compose · gateway nginx · .env.example · pnpm-workspace · port table · contract stub · CI workflow · postgres init script · stack manifest).
 
 ## Output contract (AI-first)
 
-`--json` → `{created: string[], modified: string[], next_steps: string[]}` — `next_steps` là directives AI thực hiện được (verb-first + path + hành động). Mặc định text: mỗi dòng `created:/modified:/next:`. Lỗi → stderr `error: ...` (hoặc `{"error":{"message}}` khi --json), exit 1. Idempotent-guard: thứ tồn tại → lỗi, KHÔNG bao giờ đè.
+`--json` → `{created: string[], removed: string[], modified: string[], next_steps: string[]}` — `next_steps` holds AI-actionable directives (verb-first + path + action). Default text mode: one `created:/removed:/modified:/next:` line per item. Errors → stderr `error: ...` (or `{"error":{"message}}` with --json), exit 1. Idempotent-guard: existing artifacts → error, never overwritten (remove:* is idempotent in the opposite direction: missing pieces are skipped).
 
-## Lệnh
+## Commands
 
 ```bash
-pnpm gen:service <tên> [--lang ts|go|spring] [--port N] [--db]   # services/<tên>/ + chèn infra
-pnpm gen:app <tên> [--remote] [--port N]                         # app/<tên> SPA | app/remotes/<tên> MF remote
-pnpm gen:feature <tên> --app <app>                               # Page + api + test + route trong app có sẵn
+pnpm gen:service <name> [--lang ts|go|spring] [--port N] [--db shared|dedicated|none]
+pnpm gen:app <name> [--remote] [--port N]
+pnpm gen:feature <name> --app <app>
+pnpm remove:service <name>
 ```
 
-| Generator | Sinh files | Chèn vào |
+| Generator | Generates | Wires |
 |---|---|---|
-| `gen:service` (ts mặc định) | `services/<tên>/` Fastify TS: app.ts (envelope 04 + CORS 07), routes/health (02 naked+mirror), routes/items (SAMPLE), env fail-fast 06, logger 03, auth JWT (08 rule 4), Dockerfile 01, test, README; go = chi; spring = Boot 3 | compose (yaml pkg), nginx (`# GEN:services` marker), .env.example, pnpm-workspace (ts), conventions/05 bảng port, `contracts/openapi/<tên>.yaml` stub (spectral-pass), `.github/workflows/services-<tên>.yml` |
-| `gen:app` | SPA: Vite + ui-kit Layout + dark toggle (pattern app/admin). `--remote`: MF remote 2-entry + rspack + nginx.conf + Dockerfile (pattern remotes/tasks) | `--remote`: compose `remote-<tên>` (port trống 4003+), nginx map `$remote_up` (`# GEN:remotes`), .env `REMOTE_*`, conventions/05 |
-| `gen:feature` | `src/pages/<Pascal>Page.tsx` (Card+Table+Alert), `src/api/<tên>.ts` (decode envelope 04), smoke test, FEATURE.md | Route vào `src/App.tsx` (marker `GEN:routes` → fallback trước catch-all `path="*"`) hoặc exposes vào `rspack.config.mjs` của remote; không chắc anchor → next_steps hướng dẫn tay |
+| `gen:service` (ts default) | `services/<name>/` Fastify TS with REAL CRUD on the default `items` resource: paginated list (`?limit/&offset`, tasks pattern) + get + create + patch + delete, pg repo (schema-qualified table `<service>_items`), repo interface for test fakes, health naked+mirror (02), envelope (04), CORS (07), JWT verify (08), Dockerfile (01), tests, README. go = chi skeleton; spring = Boot 3 skeleton | compose (yaml pkg), nginx (`# GEN:services` markers), .env.example, pnpm-workspace (ts), conventions/05 table, `contracts/openapi/<name>.yaml` (real CRUD paths, spectral-pass), CI workflow, postgres init script `02-<name>.sh`, stack manifest entry |
+| `gen:app` | SPA: Vite + ui-kit Layout + dark toggle (the app/admin pattern). `--remote`: 2-entry MF remote + rspack + nginx.conf + Dockerfile (the remotes/tasks pattern) | `--remote`: compose `remote-<name>` (next free port 4003+), nginx `$remote_up` map (`# GEN:remotes`), .env `REMOTE_*`, conventions/05 |
+| `gen:feature` | `src/pages/<Pascal>Page.tsx` (Card+Table+Alert), `src/api/<name>.ts` (decodes envelope 04), smoke test, FEATURE.md | Route into `src/App.tsx` (`GEN:routes` marker → fallback before the catch-all `path="*"`) or the exposes entry of a remote's `rspack.config.mjs`; uncertain anchor → files only + next_steps manual instructions |
+| `remove:service` | — (inverse of gen:service) | removes the service dir + every generated wiring listed above; protected default services are refused; idempotent |
 
-Chọn port: quét compose (host+container) — service BE 3002+ · FE remote 4003+ · SPA dev 5174+. `--port` override (bị chiếm → lỗi).
+## Database choice (`--db`)
 
-## Dev generator
+| Mode | Postgres layout | Wiring |
+|---|---|---|
+| `shared` (default in interactive TTY; bare `--db`) | one postgres DB, own SCHEMA `<service>` + LOGIN role (schema-per-service, the 01-init.sh pattern incl. default privileges) | `DATABASE_URL` role-based; `<NAME>_DB_PASSWORD` env; init `02-<name>.sh` creates schema + role + table |
+| `dedicated` | own DATABASE + role | `DATABASE_URL` built from `POSTGRES_<NAME>_DB/_USER` + `<NAME>_DB_PASSWORD`; all three passed into the postgres container; init `02-<name>.sh` creates DATABASE + role + table |
+| `none` | no database yet | in-memory repo keeps the service runnable; readyz stays honest (no fake 200) |
+
+Interactive TTY runs prompt for the mode; AI/non-TTY runs must pass the flag (no flag = `none`). The init scripts run on a FRESH postgres volume (docker-entrypoint-initdb.d, `02-` sorts after `01-`); on an existing volume apply them manually (the command is in each script header). The generated TS service is runnable right after gen: unit tests use an in-memory repo fake; `docker compose up postgres <name>` on a fresh volume gives you a working CRUD API end to end.
+
+Port picking: scans compose (host+container) — BE services 3002+ · FE remotes 4003+ · SPA dev 5174+ (admin owns 5173). `--port` overrides (occupied → error).
+
+## Developing the generators
 
 ```bash
-node --test scripts/generators/lib/insert.test.mjs   # unit test hàm chèn (node:test, 0 deps — chỉ nhận ĐƯỜNG DẪN FILE, dir arg không chạy trên node 24)
-node scripts/generators/gen-service.mjs --help       # usage từng generator
+node --test scripts/generators/lib/insert.test.mjs   # unit tests for the insert/remove primitives (node:test, 0 deps; explicit FILE path — a dir arg does not scan on node 24)
+node scripts/generators/gen-service.mjs --help       # usage of each generator
 ```
 
-Test generator THẬT phải trong fixture `/tmp` (KHÔNG chạy generator lên repo này):
+Test the generators for real inside a /tmp fixture (NEVER run them against this repo):
 
 ```bash
-mkdir -p /tmp/fx/platform/gateway/nginx /tmp/fx/contracts/openapi /tmp/fx/platform/conventions
+mkdir -p /tmp/fx/platform/gateway/nginx /tmp/fx/contracts/openapi /tmp/fx/platform/conventions /tmp/fx/services/go-svc
 cp platform/docker-compose.yml platform/.env.example /tmp/fx/platform/
 cp platform/gateway/nginx/nginx.conf /tmp/fx/platform/gateway/nginx/
 cp pnpm-workspace.yaml /tmp/fx/ && cp platform/conventions/05-ports.md /tmp/fx/platform/conventions/ && cp .spectral.yaml /tmp/fx/
-node scripts/generators/gen-service.mjs demo-svc --root /tmp/fx --json
+cp services/go-svc/go.mod /tmp/fx/services/go-svc/
+node scripts/generators/gen-service.mjs demo-svc --db shared --root /tmp/fx --json
 docker compose -f /tmp/fx/platform/docker-compose.yml --env-file /tmp/fx/platform/.env.example config -q
 pnpm exec spectral lint --ruleset /tmp/fx/.spectral.yaml /tmp/fx/contracts/openapi/demo-svc.yaml
+node scripts/generators/remove-service.mjs demo-svc --root /tmp/fx --json   # then diff /tmp/fx vs the copies → must be clean
 ```
 
-## Chi tiết kỹ thuật
+## Technical notes
 
-- **Chèn compose** bằng pkg `yaml` Document API (comment/formatting giữ nguyên, `lineWidth: 0` — không reflow dòng dài có sẵn). KHÔNG regex tay.
-- **Chèn nginx** bằng marker `# >>> GEN:services|remotes` quanh anchor ổn định của conf (lần chạy đầu TẠO marker; lần sau chèn trong vùng).
-- **Chèn `.env.example`** append section cuối (review dễ thấy); key có sẵn → bỏ qua.
-- Scope files generator được phép ĐỘNG: chỉ THÊM files mới + chèn vào 5 file infra ở trên. App/service có sẵn KHÔNG bị sửa (trừ route/expose khi gen:feature — đúng anchor mới chèn).
-- Port/MF pins READ-LOCKED (conventions/05, mfToolkit): template KHÔNG tự nâng version — nâng cấp = re-spike.
+- compose insertion/removal uses the `yaml` package Document API (comments/formatting preserved, `lineWidth: 0` — no reflow of existing long lines). NO hand-rolled regex on the compose.
+- nginx insertion uses the `# >>> GEN:services|remotes` marker comments around stable anchors of the conf (first run CREATES the markers; later runs insert inside the region); removal operates strictly inside the markers.
+- `.env.example`: sections append at EOF (easy to review); existing keys are never overwritten; removal drops the generated section + stray keys only.
+- The generators only ADD new files + edit the infra files listed above. Existing apps/services are never touched (except route/expose insertion by gen:feature — only at an exact anchor).
+- Ports/MF pins are READ-LOCKED (conventions/05, mfToolkit): templates never bump versions — upgrades require a re-spike.

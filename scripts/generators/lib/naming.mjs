@@ -1,9 +1,10 @@
-// naming.mjs — validate + biến đổi tên cho scripts/generators.
-// Tên kebab-case (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`) — dùng làm: thư mục service/app,
-// key compose, remote MF name, prefix API /api/<name>. RESERVED = các thành phần
-// đã tồn tại của boilerplate (platform/conventions/05-ports.md) — sinh trùng = đè nhau.
+// naming.mjs — name validation + transformations for scripts/generators.
+// Names are kebab-case (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`) and are used as: service/app
+// directory, compose key, MF remote name, API prefix /api/<name>. RESERVED = names
+// already owned by the boilerplate (platform/conventions/05-ports.md) — generating a
+// duplicate would overwrite existing components.
 
-/** Tên đã bị services/app có sẵn chiếm — generator từ chối để tránh đè. */
+/** Names already taken by existing services/apps — the generator refuses them. */
 export const RESERVED_NAMES = new Set([
   'postgres',
   'kafka',
@@ -29,18 +30,18 @@ export function isValidName(name) {
   return typeof name === 'string' && /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(name);
 }
 
-/** Validate tên kebab — throw với message rõ (CLI in thẳng stderr). */
-export function requireValidName(name, kind = 'tên') {
+/** Validate a kebab name — throws with a clear message (CLI prints it to stderr). */
+export function requireValidName(name, kind = 'name') {
   if (!isValidName(name)) {
     throw new Error(
-      `${kind} không hợp lệ: "${name}" — phải kebab-case ([a-z0-9-], bắt đầu bằng chữ), vd: notification-svc`,
+      `${kind} is invalid: "${name}" — must be kebab-case ([a-z0-9-], starts with a letter), e.g. notification-svc`,
     );
   }
   if (RESERVED_NAMES.has(name)) {
-    throw new Error(`${kind} "${name}" trùng thành phần có sẵn của boilerplate — chọn tên khác`);
+    throw new Error(`${kind} "${name}" collides with an existing boilerplate component — pick another name`);
   }
   if (name.length > 40) {
-    throw new Error(`${kind} quá dài (>${40} ký tự): "${name}"`);
+    throw new Error(`${kind} is too long (>${40} chars): "${name}"`);
   }
   return name;
 }
@@ -50,17 +51,17 @@ export function screaming(name) {
   return name.replace(/-/g, '_').toUpperCase();
 }
 
-/** notification-svc → notification_svc (tên DB role/username — pattern node_svc). */
+/** notification-svc → notification_svc (snake_case). */
 export function snake(name) {
   return name.replace(/-/g, '_').toLowerCase();
 }
 
-/** DB role: name có đuôi svc → nguyên snake (node-svc→node_svc); không → thêm _svc (billing→billing_svc). */
+/** DB role: name ending in svc keeps its snake form (node-svc→node_svc); otherwise append _svc (billing→billing_svc). */
 export function dbRole(name) {
   return name.endsWith('svc') ? snake(name) : `${snake(name)}_svc`;
 }
 
-/** notification-svc → NotificationSvc (tên class/component/Page). */
+/** notification-svc → NotificationSvc (class/component/Page name). */
 export function pascal(name) {
   return name
     .split('-')
@@ -68,13 +69,13 @@ export function pascal(name) {
     .join('');
 }
 
-/** notification-svc → notificationSvc (tên biến camelCase). */
+/** notification-svc → notificationSvc (camelCase variable name). */
 export function camel(name) {
   const p = pascal(name);
   return p.charAt(0).toLowerCase() + p.slice(1);
 }
 
-/** Parse `--flag value` / `--flag=value` khỏi argv. Trả { flags, positionals }. */
+/** Parse `--flag value` / `--flag=value` out of argv. Returns { flags, positionals }. */
 export function parseArgs(argv) {
   const flags = {};
   const positionals = [];

@@ -128,6 +128,7 @@ async function main(): Promise<void> {
       selection,
       dest,
       templateRoot: DEFAULT_TEMPLATE_ROOT,
+      lockfileSync: true, // FE deps → registry: tái sinh lockfile (test tắt flag này)
       log: (message) => {
         s.message(message);
       },

@@ -6,7 +6,7 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { scaffold } from './scaffold.js';
+import { scaffold, unfreezeDockerfiles } from './scaffold.js';
 import type { StackSelection } from './options.js';
 
 const COMPOSE = `services:
@@ -272,5 +272,126 @@ describe('scaffold — README sinh', () => {
     await scaffold({ selection: selection({ services: ['postgres', 'gateway', 'node-svc'] }), dest, templateRoot: templateRoot });
     expect(existsSync(join(dest, 'app', 'create-wakii-app'))).toBe(false);
     expect(existsSync(join(dest, 'app', 'spike'))).toBe(false);
+  });
+});
+describe('scaffold — FE registry deps (ui-kit npm; shared GIỮ workspace)', () => {
+  /** Fixture mở rộng: FE shell (package.json workspace:* + Dockerfile COPY +
+   *  rspack include pattern) + app/ui-kit + app/shared + lock/workspace. */
+  async function seedFeFixture(): Promise<void> {
+    await mkdir(join(templateRoot, 'app', 'shell'), { recursive: true });
+    await mkdir(join(templateRoot, 'app', 'ui-kit', 'src'), { recursive: true });
+    await mkdir(join(templateRoot, 'app', 'shared', 'src'), { recursive: true });
+    await mkdir(join(templateRoot, 'app', 'spike', 'host'), { recursive: true });
+    await writeFile(
+      join(templateRoot, 'app', 'shell', 'package.json'),
+      JSON.stringify(
+        {
+          name: '@wakii/shell',
+          dependencies: { '@wakii/fe-shared': 'workspace:*', '@wakii/ui-kit': 'workspace:*', react: '19.3.0' },
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+    await writeFile(
+      join(templateRoot, 'app', 'shell', 'Dockerfile'),
+      'FROM node:22-alpine\nCOPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./\nCOPY app/shared/package.json app/shared/\nCOPY app/ui-kit/package.json app/ui-kit/\nRUN pnpm install --frozen-lockfile --filter @wakii/shell...\nCOPY app/shared app/shared\nCOPY app/ui-kit app/ui-kit\nCOPY app/shell app/shell\n',
+    );
+    // pattern literal trong source rspack: /[\\/]app[\\/](shared|ui-kit)[\\/]src/
+    await writeFile(
+      join(templateRoot, 'app', 'shell', 'rspack.config.mjs'),
+      "export default { module: { rules: [{ test: /\\.tsx?$/, loader: 'swc-loader', include: [path.resolve(rootDir, 'src'), /[\\\\/]app[\\\\/](shared|ui-kit)[\\\\/]src/] }] } };\n",
+    );
+    await writeFile(join(templateRoot, 'app', 'ui-kit', 'package.json'), JSON.stringify({ name: '@wakii/ui-kit', version: '0.7.1' }) + '\n');
+    await writeFile(join(templateRoot, 'app', 'ui-kit', 'src', 'index.ts'), 'export const x = 1;\n');
+    await writeFile(join(templateRoot, 'app', 'shared', 'package.json'), JSON.stringify({ name: '@wakii/fe-shared', version: '0.1.0' }) + '\n');
+    await writeFile(join(templateRoot, 'app', 'shared', 'src', 'index.ts'), 'export const y = 1;\n');
+    await writeFile(join(templateRoot, 'app', 'spike', 'host', 'package.json'), '{}\n');
+    await writeFile(
+      join(templateRoot, 'pnpm-workspace.yaml'),
+      'packages:\n  - "app/*"\n  # Spike MF/Rspack (SF-1)\n  - "app/spike/*"\n',
+    );
+    await writeFile(
+      join(templateRoot, 'pnpm-lock.yaml'),
+      [
+        "lockfileVersion: '9.0'",
+        'importers:',
+        '  .:',
+        '    dependencies: {}',
+        '  app/shell:',
+        '    dependencies:',
+        "      '@wakii/fe-shared':",
+        '        specifier: workspace:*',
+        '        version: link:../shared',
+        "      '@wakii/ui-kit':",
+        '        specifier: workspace:*',
+        '        version: link:../ui-kit',
+        '  app/shared:',
+        '    dependencies: {}',
+        '  app/ui-kit:',
+        '    dependencies: {}',
+        '  app/spike/host:',
+        '    dependencies: {}',
+        '',
+        'packages: {}',
+        '',
+      ].join('\n'),
+    );
+  }
+
+  it('prune app/ui-kit + rewrite workspace:* → latest; app/shared GIỮ NGUYÊN', async () => {
+    await seedFeFixture();
+    await scaffold({ selection: selection({}), dest, templateRoot, lockfileSync: false });
+
+    // source: ui-kit biến mất — shared GIỮ (điều chỉnh coordinator 2026-10-27)
+    expect(existsSync(join(dest, 'app', 'ui-kit'))).toBe(false);
+    expect(existsSync(join(dest, 'app', 'shared', 'src', 'index.ts'))).toBe(true);
+    expect(existsSync(join(dest, 'app', 'spike'))).toBe(false); // ALWAYS prune như cũ
+
+    // shell package.json: ui-kit → latest; fe-shared giữ workspace:*; react không đụng
+    const shell = JSON.parse(await readFile(join(dest, 'app', 'shell', 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(shell.dependencies['@wakii/ui-kit']).toBe('latest');
+    expect(shell.dependencies['@wakii/fe-shared']).toBe('workspace:*');
+    expect(shell.dependencies['react']).toBe('19.3.0');
+
+    // Dockerfile: đủ 2 dạng COPY app/ui-kit bị xoá, COPY app/shared giữ
+    const dockerfile = await readFile(join(dest, 'app', 'shell', 'Dockerfile'), 'utf8');
+    expect(dockerfile).not.toContain('app/ui-kit');
+    expect(dockerfile).toContain('COPY app/shared/package.json app/shared/');
+    expect(dockerfile).toContain('COPY app/shared app/shared');
+
+    // lock: importer app/ui-kit strip — app/shared + shell còn
+    const lock = await readFile(join(dest, 'pnpm-lock.yaml'), 'utf8');
+    expect(lock).not.toContain('  app/ui-kit:');
+    expect(lock).toContain('  app/shared:');
+    expect(lock).toContain('  app/shell:');
+
+    // rspack include: pattern thu về shared (ui-kit biến mất khỏi pattern)
+    const config = await readFile(join(dest, 'app', 'shell', 'rspack.config.mjs'), 'utf8');
+    expect(config).toContain('[\\\\/]app[\\\\/]shared[\\\\/]src/');
+    expect(config).not.toContain('ui-kit');
+
+    // workspace yaml: glob app/* giữ (shared vẫn thuộc workspace)
+    const ws = await readFile(join(dest, 'pnpm-workspace.yaml'), 'utf8');
+    expect(ws).toContain('- "app/*"');
+
+    // README sinh mục Packages đúng semantics mới
+    const readme = await readFile(join(dest, 'README.md'), 'utf8');
+    expect(readme).toContain('## Packages');
+    expect(readme).toContain('**`@wakii/ui-kit`** từ npm registry');
+    expect(readme).toContain('nâng cấp bằng `pnpm update @wakii/ui-kit`');
+    expect(readme).toContain('@wakii/fe-shared` vẫn consumed qua source `app/shared`');
+  });
+
+  it('unfreezeDockerfiles — fallback bỏ cờ --frozen-lockfile (khi không có pnpm)', async () => {
+    await seedFeFixture();
+    await scaffold({ selection: selection({}), dest, templateRoot, lockfileSync: false });
+    expect(await readFile(join(dest, 'app', 'shell', 'Dockerfile'), 'utf8')).toContain('--frozen-lockfile');
+    expect(await unfreezeDockerfiles(dest)).toBe(1);
+    const dockerfile = await readFile(join(dest, 'app', 'shell', 'Dockerfile'), 'utf8');
+    expect(dockerfile).not.toContain('--frozen-lockfile');
+    expect(dockerfile).toContain('pnpm install --filter @wakii/shell...');
   });
 });

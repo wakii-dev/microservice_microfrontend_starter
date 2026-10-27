@@ -1,29 +1,29 @@
 ---
 name: wakii-debug-kafka
-description: Use khi debug Kafka trên boilerplate wakii — consumer không nhận event, assignment/feed rỗng, DLQ có event, saga "Gán thất bại" lạ, "kafka không chạy", lỗi topic. Gồm topic-trước-consumer, DLQ, smoke saga. KHÔNG dùng khi thêm consumer mới từ đầu (skill add-service + conventions/09), hay sửa contract event (skill sync-contracts).
+description: Use when debugging Kafka on the wakii boilerplate — consumer not receiving events, empty assignment/feed, events sitting in the DLQ, odd "Assignment failed" saga, "kafka not working", topic errors. Covers topic-before-consumer, DLQ, smoke saga. Do NOT use for adding a new consumer from scratch (skill add-service + conventions/09) or changing the event contract (skill sync-contracts).
 ---
 
-# wakii-debug-kafka — topic trước consumer · DLQ · smoke saga
+# wakii-debug-kafka — topic before consumer · DLQ · smoke saga
 
 ## Overview
 
-Directives chẩn đoán Kafka cho stack wakii: node-svc outbox → relay → topic `task-events` → go-svc consumer idempotent (retry ×3 → `task-events.dlq`); saga assign `fail@demo.local` → compensation `assignment_failed`. Nguồn sự thật: `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md`.
+Kafka diagnosis directives for the wakii stack: node-svc outbox → relay → topic `task-events` → idempotent go-svc consumer (retry ×3 → `task-events.dlq`); saga assigns `fail@demo.local` → compensation `assignment_failed`. Sources of truth: `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md`.
 
-## Chẩn đoán theo triệu chứng
+## Diagnosis by symptom
 
-- IF consumer group `Stable` nhưng 0 fetch/0 commit, feed/assignment rỗng VĨNH VIỄN (không crash) THEN race join-group-trước-topic → `docker compose --env-file platform/.env down -v`; tạo topic `task-events` + `task-events.dlq` TRƯỚC (`kafka-init` one-shot + `EnsureTopics` go-svc) → up lại → tạo task → event phải về trong vài giây, KHÔNG cần restart service.
-- IF DLQ có event THEN consumer đã retry ×3 fail — đọc payload trong DLQ (`kafka-console-consumer --topic task-events.dlq --from-beginning`) → fix nguyên nhân + reprocess; KHÔNG xoá DLQ.
-- IF event nằm trong topic mà feed trống THEN check offset/group: `kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group <group>` — LAG lớn = consumer kẹt; nhóm không tồn tại = sai group id.
-- IF event KHÔNG có trong topic THEN lỗi phía outbox/relay node-svc — check bảng outbox (`status` chưa relay?) trước khi đổ lỗi Kafka.
-- IF demo saga THEN assign task cho `fail@demo.local` → go consumer fail ×3 → `assignment_failed` → event vào DLQ; badge "Gán thất bại" hiện ở UI.
+- IF the consumer group is `Stable` but with 0 fetch/0 commit and feed/assignment stays empty FOREVER (no crash) THEN join-group-before-topic race → `docker compose --env-file platform/.env down -v`; create topics `task-events` + `task-events.dlq` FIRST (`kafka-init` one-shot + go-svc `EnsureTopics`) → up again → create a task → the event must arrive within seconds, NO service restart needed.
+- IF the DLQ has events THEN the consumer failed ×3 retries — read the payloads (`kafka-console-consumer --topic task-events.dlq --from-beginning`) → fix the root cause + reprocess; NEVER delete the DLQ.
+- IF events are in the topic but the feed is empty THEN check offsets/group: `kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group <group>` — large LAG = consumer stuck; missing group = wrong group id.
+- IF events are NOT in the topic THEN the fault is upstream in the node-svc outbox/relay — check the outbox table (`status` still pending relay?) before blaming Kafka.
+- IF demoing the saga THEN assign a task to `fail@demo.local` → go consumer fails ×3 → `assignment_failed` → event lands in the DLQ; the "Assignment failed" badge shows in the UI.
 
-## Verify cuối
+## Final verify
 
-- THEN `bash scripts/smoke/e2e.sh` PASS (happy qua Kafka + saga → DLQ assert) — KHÔNG test tay lẻ rồi kết luận xong.
-- IF đổi liên quan retry/idempotency THEN publish golden fixture từ `contracts/events/fixtures/` ×2 — tổng không đổi lần 2 (idempotency chứng minh được).
+- THEN `bash scripts/smoke/e2e.sh` PASS (happy path through Kafka + saga → DLQ asserts) — never conclude from ad-hoc manual tests alone.
+- IF retry/idempotency was touched THEN publish a golden fixture from `contracts/events/fixtures/` twice — the total must not change on the second publish (provable idempotency).
 
-## Bẫy
+## Traps
 
-- Kafka KHÔNG có data volume — `down` là mất topic; luôn tạo topic tường minh sau down (`kafka-init` lo khi compose up).
-- Consumer KHÔNG subscribe trước topic (lazy-connect + topic trước boot — conventions/09).
-- Dedupe bằng `envelope_id`, KHÔNG taskId (taskId đè lên nhau khi re-assign).
+- Kafka has NO data volume — `down` loses topics; always create topics explicitly after down (`kafka-init` handles it on compose up).
+- Consumers must NOT subscribe before the topic exists (lazy-connect + topic before boot — conventions/09).
+- Dedupe by `envelope_id`, NOT taskId (taskIds collide on re-assign).

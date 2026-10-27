@@ -1,83 +1,83 @@
-# Knowledge base — gotchas + where-is-what (cho AI agents)
+# Knowledge base — gotchas + where-is-what (for AI agents)
 
-Directives if-then. Mỗi gotcha = sự cố đã xảy ra thật trên repo này. IF vấp triệu chứng THEN làm đúng directive — KHÔNG điều tra lại từ đầu. Bản tóm tắt 1 dòng mỗi bẫy: [AGENTS.md §6](../../AGENTS.md).
+If-then directives. Every gotcha here is an incident that actually happened on this repo. IF you hit a symptom THEN follow the directive — do NOT re-investigate from scratch. One-line summary per trap: [AGENTS.md §6](../../AGENTS.md).
 
-## Recipes (viết UI)
+## Recipes (writing UI)
 
-- IF viết UI THEN [recipes.md](recipes.md) (20 recipes copy-chạy được) + Phần II [AGENTS.md](../../AGENTS.md) (quy tắc bắt buộc + anti-patterns).
-- IF cần đối chiếu visual THEN `pnpm --filter ui-kit storybook` → http://localhost:6006.
-- IF customize component THEN mọi component nhận `classNames` slots + `style` (ghi chú "Customize (từ 0.7)" — Phần II AGENTS.md).
+- IF writing UI THEN [recipes.md](recipes.md) (20 copy-paste recipes) + Part II of [AGENTS.md](../../AGENTS.md) (mandatory rules + anti-patterns).
+- IF you need visual truth THEN `pnpm --filter ui-kit storybook` → http://localhost:6006.
+- IF customizing a component THEN every component accepts `classNames` slots + `style` (see "Customize (from 0.7)" — Part II of AGENTS.md).
 
 ## Gotchas
 
 ### registry-propagation
-- IF `npx`/`pnpm add` thấy version cũ hoặc 404 ngay sau publish THEN registry + CDN cần 2–5 phút propagate → verify `npm view <pkg> versions` + dist-tags, đợi. KHÔNG publish lại vì tưởng hỏng.
-- IF publish xong phát hiện thiếu file THEN KHÔNG publish đè cùng version (version đã chiếm là vĩnh viễn) → fix + bump version mới.
+- IF `npx`/`pnpm add` shows a stale version or 404 right after publish THEN the registry + CDN need 2–5 minutes to propagate → verify `npm view <pkg> versions` + dist-tags, wait. Do NOT re-publish thinking it failed.
+- IF a missing file is discovered after publishing THEN never overwrite the same version (a taken version is taken forever) → fix + bump to a new version.
 
 ### kafka-topic-before-consumer
-- IF consumer group `Stable` nhưng 0 fetch/0 commit, assignment/feed rỗng vĩnh viễn (KHÔNG crash) THEN consumer join trước khi topic auto-create → `docker compose down -v`; tạo topic `task-events` + `task-events.dlq` TRƯỚC khi boot (`kafka-init` compose one-shot + `EnsureTopics` go-svc).
-- IF DLQ publish fail "Unknown Topic" THEN cùng nguyên nhân — topic `.dlq` cũng phải tồn tại trước.
+- IF the consumer group is `Stable` but with 0 fetch/0 commit and assignment/feed stays empty forever (NO crash) THEN the consumer joined before the topic auto-created → `docker compose down -v`; create topics `task-events` + `task-events.dlq` BEFORE booting (`kafka-init` compose one-shot + go-svc `EnsureTopics`).
+- IF DLQ publish fails with "Unknown Topic" THEN same root cause — the `.dlq` topic must also exist first.
 
 ### pipe-swallows-exit-code
-- IF verify qua `cmd | tail` / `| head` THEN `$?` là của lệnh CUỐI — PASS ảo → kết luận PASS chỉ từ exit code thật (chạy không pipe; `${pipestatus[1]}` zsh / `${PIPESTATUS[0]}` bash) hoặc `pnpm verify:quick --json`.
+- IF verifying through `cmd | tail` / `| head` THEN `$?` belongs to the LAST command — phantom PASS → conclude PASS only from the real exit code (run without a pipe; `${pipestatus[1]}` zsh / `${PIPESTATUS[0]}` bash) or `pnpm verify:quick --json`.
 
 ### tarball-publish
-- IF publish script copy tay (`cp` theo basename) THEN tarball mất file (CSS tokens, docs/assets, bit +x) — chỉ lộ ở consumer, không lộ trong repo → TRƯỚC mọi publish: `npm pack` + `tar -tzf` soi đủ file; publish script phải có guard file sống còn.
+- IF the publish script copies files by hand (`cp` by basename) THEN the tarball loses files (CSS tokens, docs/assets, the `+x` bit) — visible only to consumers, never in the repo → BEFORE every publish: `npm pack` + `tar -tzf` to inspect the contents; the publish script must keep its survival-file guard.
 
 ### port-conflict
-- IF `EADDRINUSE` hoặc browser thấy bản UI cũ lạ ở một port THEN dev server cũ còn treo (session trước chết không cleanup) → `lsof -iTCP:<port> -sTCP:LISTEN` + kill PID.
-- IF xong mission THEN tắt sạch server mình đã mở.
+- IF `EADDRINUSE`, or the browser shows a bizarre stale UI on a port THEN an old dev server is still hanging (a previous session died without cleanup) → `lsof -iTCP:<port> -sTCP:LISTEN` + kill the PID.
+- IF the mission is done THEN shut down every server you started.
 
 ### docker-parallel-build
-- IF 2 docker build chạy song song trên cùng engine THEN quá tải → treo/sập giữa build → build tuần tự; IF engine đã sập THEN restart Docker Desktop sạch + `docker builder prune` + build lại.
+- IF 2 docker builds run in parallel on one engine THEN it overloads → hangs/crashes mid-build → build sequentially; IF the engine already crashed THEN restart Docker Desktop cleanly + `docker builder prune` + rebuild.
 
 ### branch-slug
-- IF push bị chặn `branch … vi phạm rule wakii-dev/…` THEN slug sai regex `^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$` (có `.`/`_`/chữ hoa) → `git branch -m <tên-đúng>` NGAY lúc tạo nhánh — đừng đợi push mới phát hiện.
+- IF push is rejected with `branch … violates rule wakii-dev/…` THEN the slug breaks the regex `^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$` (contains `.`/`_`/uppercase) → `git branch -m <correct-name>` the moment you create the branch — do not wait for push to find out.
 
 ### manager-head-badge
-- IF `app/ui-kit/.storybook/manager-head.html` dirty mà không ai sửa THEN `scripts/stamp-build.cjs` tự ghi build badge (version + sha + giờ) mỗi lần `storybook dev`/`build` → KHÔNG commit file này; lỡ vào commit thì revert phần badge về giá trị cũ.
+- IF `app/ui-kit/.storybook/manager-head.html` turns dirty with nobody touching it THEN `scripts/stamp-build.cjs` rewrites the build badge (version + sha + time) on every `storybook dev`/`build` → do NOT commit this file; if it slipped into a commit, revert the badge part to its previous value.
 
 ### vitest-tz
-- IF test ranh giới ngày/month đỏ local mà xanh CI (hoặc ngược lại) THEN TZ máy lệch làm mép ngày trôi → TZ pin trong `vitest.config.ts` (`test.env`) là bắt buộc, KHÔNG bỏ; test thời gian inject `now`, không đọc clock thật.
+- IF date/month boundary tests are red locally but green in CI (or vice versa) THEN the machine TZ shifts the day boundary → the TZ pin in `vitest.config.ts` (`test.env`) is mandatory, do NOT remove it; time tests inject `now`, never read the real clock.
 
 ### standalone-lockfile
-- IF cài node-svc/auth-svc bằng lệnh từ workspace root THEN thiếu deps / lockfile service bị ghi đè → `cd services/<svc> && pnpm install --frozen-lockfile --ignore-workspace` (chạy TRONG thư mục service).
+- IF node-svc/auth-svc are installed from the workspace root THEN deps go missing / the service lockfile gets overwritten → `cd services/<svc> && pnpm install --frozen-lockfile --ignore-workspace` (run INSIDE the service directory).
 
 ### pgdata-volume
-- IF boot thiếu user saga-seed / role `auth_svc` / schema `auth` THEN volume cũ không có seed mới (init script chỉ chạy trên volume mới) → `docker compose --env-file platform/.env down -v` 1 lần rồi up lại; `.env` bản cũ bổ sung `AUTH_SVC_DB_PASSWORD` từ `.env.example`.
-- IF worktree khác đang chạy stack THEN `down -v` giết stack của nó luôn (compose project dùng chung) → `docker ps` TRƯỚC khi down.
+- IF boot lacks the saga-seed user / `auth_svc` role / `auth` schema THEN the old volume never got the new seeds (init scripts only run on a fresh volume) → `docker compose --env-file platform/.env down -v` once, then up again; add `AUTH_SVC_DB_PASSWORD` to old `.env` from `.env.example`.
+- IF another worktree is running its stack THEN `down -v` kills that one too (the compose project is shared) → `docker ps` BEFORE downing.
 
 ### assignment-failed-reset
-- IF re-assign task mà badge "Gán thất bại" không biến mất THEN status là system-owned, re-assign không tự reset → PATCH tường minh `{assigneeId, status: "todo"}` (writable: `todo/in_progress/done`).
+- IF re-assigning a task does not clear the "Assignment failed" badge THEN the status is system-owned and re-assign alone never resets it → PATCH explicitly `{assigneeId, status: "todo"}` (writable: `todo/in_progress/done`).
 
 ### network-and-env
-- IF inter-service gọi `localhost` THEN chạy được native nhưng chết trong compose → luôn dùng tên compose `http://node-svc:3001`; browser/FE chỉ chạm gateway :8080.
-- IF `.env` xuất hiện trong `git status` THEN KHÔNG commit — mẫu cấu hình: `platform/.env.example`.
+- IF inter-service calls use `localhost` THEN they work natively but die inside compose → always use compose names `http://node-svc:3001`; browsers/FE only touch the gateway :8080.
+- IF `.env` shows up in `git status` THEN do NOT commit it — config template: `platform/.env.example`.
 
 ### port-4-places
-- IF đổi port THEN cùng MỘT commit sửa đủ 4 chỗ: `platform/conventions/05-ports.md` + `.env.example` + `docker-compose.yml` + README. Thiếu 1 chỗ = review fail.
+- IF changing a port THEN all 4 places in ONE commit: `platform/conventions/05-ports.md` + `.env.example` + `docker-compose.yml` + README. Missing one = review fail.
 
 ### react-query-mf-singleton
-- IF remote (in-shell) tự tạo QueryClient THEN cache tách khỏi host — tạo task mà activity feed không thấy → QueryClient DUY NHẤT ở host (`app/shell/src/App.tsx`, module-level); remotes dùng chung qua MF; rspack share `@tanstack/react-query` ĐỐI XỨNG shell↔remote (`app/remotes/tasks/rspack.config.mjs`).
+- IF a remote (in-shell) creates its own QueryClient THEN its cache splits from the host — creating a task while the activity feed never sees it → ONE QueryClient at the host (`app/shell/src/App.tsx`, module-level); remotes share it via MF; rspack shares `@tanstack/react-query` SYMMETRICALLY shell↔remote (`app/remotes/tasks/rspack.config.mjs`).
 
-## Where-is-what — việc X → file Y
+## Where-is-what — task X → file Y
 
-| Khi cần… | Đọc / sửa |
+| When you need… | Read / edit |
 |---|---|
-| Sửa API/contract (endpoint, field, schema, event) | `contracts/openapi/*.yaml` · `contracts/db/tasks-schema.sql` · `contracts/events/task-events.md` (+ fixtures golden) — skill `sync-contracts`; codegen `pnpm --filter node-svc generate:types`; go snapshot `internal/api/openapi/` bit-identical (drift-guard) |
-| Sinh code mới (service / app / feature) | `pnpm gen:service` · `gen:app` · `gen:feature` (`--json` → `{created, modified, next_steps}`) — code tại `scripts/generators/`; agent `service-dev` (BE) / `ui-dev` (FE) |
-| Thêm service mới (thủ tục đầy đủ) | skill `add-service` (`.claude/skills/`) — 4 SF + gates; conventions 01–09 |
-| Verify / gate trước merge | `pnpm verify:quick` (`--json` → `[{step,status,duration}]` + exit code) — agent `gate-keeper`; checklist PR: docs/WORKFLOW.md §2 |
-| Đụng Kafka / outbox / saga / DLQ | skill `wakii-debug-kafka` + `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md`; agent `e2e-runner` khi cần chạy stack |
-| Publish package npm | skill `wakii-publish` + agent `release-manager` + docs/WORKFLOW.md §4 + `app/ui-kit/RELEASE.md` |
-| Feature → PR (vòng đời có gate) | skill `wakii-ship-feature` + docs/WORKFLOW.md §2 |
-| FE / Module Federation / design system | `docs/adr/0002` + `docs/adr/0009` + `app/ui-kit/README.md` + `app/shared/README.md`; recipes ở [recipes.md](recipes.md); **read-locked** `app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts` — cấm sửa ngoài epic; nâng cấp react/rspack/MF → re-spike qua `app/spike` |
-| Tokens / theme / màu | `app/ui-kit` (tokens + `UiKitProvider` + `themes/dark.css`) — rules tokens-only ở Phần II AGENTS.md |
-| Team workflow / multi-session / epic-story | docs/WORKFLOW.md §1 + §6 · `docs/wakii-playbook.md` (4 archetype chia SF) · board `docs/team/TEAM.md` |
-| Chạy demo / e2e / debug stack | `run.compose` trong `orca.yaml` · `scripts/smoke/e2e.sh` · `docs/walkthrough.md` |
-| Scaffold project mới từ boilerplate | `bash scripts/scaffold/scaffold.sh <tên>` · package `create-wakii-stack` (npx) |
-| Mở PR / merge / branch / commit | `docs/git-flow.md` + template `.github/pull_request_template.md` |
+| API/contract change (endpoint, field, schema, event) | `contracts/openapi/*.yaml` · `contracts/db/tasks-schema.sql` · `contracts/events/task-events.md` (+ golden fixtures) — skill `sync-contracts`; codegen `pnpm --filter node-svc generate:types`; go snapshot `internal/api/openapi/` must stay bit-identical (drift-guard) |
+| New code (service / app / feature) | `pnpm gen:service` · `gen:app` · `gen:feature` (`--json` → `{created, modified, next_steps}`) — code at `scripts/generators/`; agents `service-dev` (BE) / `ui-dev` (FE) |
+| A brand-new service (full procedure) | skill `add-service` (`.claude/skills/`) — 4 SF + gates; conventions 01–09 |
+| Verify / gate before merge | `pnpm verify:quick` (`--json` → `[{step,status,duration}]` + exit code) — agent `gate-keeper`; PR checklist: docs/WORKFLOW.md §2 |
+| Kafka / outbox / saga / DLQ | skill `wakii-debug-kafka` + `platform/conventions/09` + `docs/adr/0008` + `contracts/events/task-events.md`; agent `e2e-runner` when a live stack is needed |
+| Publishing an npm package | skill `wakii-publish` + agent `release-manager` + docs/WORKFLOW.md §4 + `app/ui-kit/RELEASE.md` |
+| Feature → PR (gated lifecycle) | skill `wakii-ship-feature` + docs/WORKFLOW.md §2 |
+| FE / Module Federation / design system | `docs/adr/0002` + `docs/adr/0009` + `app/ui-kit/README.md` + `app/shared/README.md`; recipes at [recipes.md](recipes.md); **read-locked** `app/shared/src/{api-client,token-storage,error-envelope,mf-bootstrap}.ts` — no edits outside an approved epic; react/rspack/MF upgrades → re-spike via `app/spike` |
+| Tokens / theme / color | `app/ui-kit` (tokens + `UiKitProvider` + `themes/dark.css`) — tokens-only rules in AGENTS.md Part II |
+| Team workflow / multi-session / epic-story | docs/WORKFLOW.md §1 + §6 · `docs/wakii-playbook.md` (4 SF-splitting archetypes) · board `docs/team/TEAM.md` |
+| Demo / e2e / stack debugging | `run.compose` in `orca.yaml` · `scripts/smoke/e2e.sh` · `docs/walkthrough.md` |
+| Scaffold a new project from the boilerplate | `bash scripts/scaffold/scaffold.sh <name>` · package `create-wakii-stack` (npx) |
+| PR / merge / branch / commit | `docs/git-flow.md` + template `.github/pull_request_template.md` |
 | Ports / config / healthcheck / logging / CORS / Dockerfile | `platform/conventions/01–09` (05 = ports) |
-| Vì sao kiến trúc vậy | `docs/adr/0001–0010` |
-| Agents + skills AI | `.claude/agents/` (fe-dev · be-dev · e2e-runner · contracts-keeper · service-dev · ui-dev · gate-keeper · release-manager) · `.claude/skills/` (add-service · sync-contracts · wakii-ship-feature · wakii-publish · wakii-debug-kafka) |
-| Onboard người mới / chạy lần đầu | `docs/walkthrough.md` + `docs/toolchain.md` |
+| Why the architecture is this way | `docs/adr/0001–0010` |
+| AI agents + skills | `.claude/agents/` (fe-dev · be-dev · e2e-runner · contracts-keeper · service-dev · ui-dev · gate-keeper · release-manager) · `.claude/skills/` (add-service · sync-contracts · wakii-ship-feature · wakii-publish · wakii-debug-kafka · use-ui-kit) |
+| Onboarding a new human / first run | `docs/walkthrough.md` + `docs/toolchain.md` |

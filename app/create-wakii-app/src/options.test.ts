@@ -14,10 +14,10 @@ describe('parseArgs — preset', () => {
     if (r.ok) expect(r.options.preset).toBeUndefined();
   });
 
-  it('--preset xyz → lỗi rõ liệt kê 4 preset', () => {
+  it('--preset xyz → lỗi rõ liệt kê 5 preset', () => {
     const r = parseArgs(['--preset', 'xyz']);
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.message).toContain('--preset chỉ nhận: demo | minimal | product | admin');
+    if (!r.ok) expect(r.message).toContain('--preset chỉ nhận: demo | minimal | product | admin | landing');
     expect(parseArgs(['--preset']).ok).toBe(false);
   });
 });
@@ -121,6 +121,39 @@ describe('resolveOptions', () => {
   it('preset khác demo + --lang js → lỗi "chỉ hỗ trợ TypeScript"', () => {
     expect(() => resolveOptions({ lang: 'js', preset: 'admin', extras: [], yes: true, skipInstall: false })).toThrow(
       /chỉ hỗ trợ TypeScript/,
+    );
+  });
+});
+
+describe('resolveOptions — preset landing', () => {
+  it('--preset landing parse + resolve như non-demo: router true (bỏ qua --no-router)', () => {
+    expect(parseArgs(['--preset=landing'])).toMatchObject({ ok: true, options: { preset: 'landing' } });
+    expect(resolveOptions({ lang: 'ts', preset: 'landing', extras: [], yes: true, skipInstall: false })).toMatchObject({
+      preset: 'landing',
+      router: true,
+      lang: 'ts',
+    });
+    expect(resolveOptions({ lang: 'ts', preset: 'landing', router: false, extras: [], yes: true, skipInstall: false })).toMatchObject({
+      preset: 'landing',
+      router: true,
+    });
+  });
+
+  it('landing + --extras → lỗi "extras chỉ dành cho preset demo"', () => {
+    expect(() => resolveOptions({ lang: 'ts', preset: 'landing', extras: ['chart'], yes: true, skipInstall: false })).toThrow(
+      /extras chỉ dành cho preset demo/,
+    );
+  });
+
+  it('landing + --lang js → lỗi "chỉ hỗ trợ TypeScript"', () => {
+    expect(() => resolveOptions({ lang: 'js', preset: 'landing', extras: [], yes: true, skipInstall: false })).toThrow(
+      /chỉ hỗ trợ TypeScript/,
+    );
+  });
+
+  it('landing + --variant next → lỗi "variant chỉ dành cho preset demo"', () => {
+    expect(() => resolveOptions({ lang: 'ts', preset: 'landing', extras: [], yes: true, skipInstall: false, variant: 'next' })).toThrow(
+      /variant next chỉ dành cho preset demo/,
     );
   });
 });

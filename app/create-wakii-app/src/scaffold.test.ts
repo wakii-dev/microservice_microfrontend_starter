@@ -54,6 +54,14 @@ async function makeTemplates(): Promise<string> {
   await writeFile(join(t, 'product-ts', 'src', 'main.tsx'), "// product main {{appName}}");
   await writeFile(join(t, 'product-ts', 'src', 'routes', 'home.tsx'), '// product home {{appName}}');
   await writeFile(join(t, 'product-ts', 'src', 'features', 'tasks', 'index.ts'), "// tasks index {{appName}}");
+  // preset landing-ts (1 trang motion showcase — KHÔNG router trong deps)
+  await mkdir(join(t, 'landing-ts', 'src'), { recursive: true });
+  await writeFile(
+    join(t, 'landing-ts', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '^19', '@wakii/ui-kit': '^0.6.4' } }),
+  );
+  await writeFile(join(t, 'landing-ts', 'src', 'main.tsx'), "// landing main {{appName}}");
+  await writeFile(join(t, 'landing-ts', 'src', 'App.tsx'), 'export function App() { return <h1>landing {{appName}}</h1>; }');
   // overlay admin — đè lên product-ts (mirror cấu trúc dest 1:1)
   await mkdir(join(t, 'template-feats', 'admin', 'src', 'routes'), { recursive: true });
   await writeFile(join(t, 'template-feats', 'admin', 'src', 'routes', 'home.tsx'), '// ADMIN home {{appName}}');
@@ -220,5 +228,24 @@ describe('scaffold — presets (minimal/product/admin)', () => {
     const t = await makeTemplates();
     await rm(join(t, 'minimal-ts'), { recursive: true, force: true });
     await expect(run({ preset: 'minimal', router: true }, t)).rejects.toThrow('Không thấy template base');
+  });
+
+  it('preset landing → base landing-ts, 1 trang KHÔNG router (không overlay, không merge deps)', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'lg', preset: 'landing', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'main.tsx'), 'utf8')).toContain('landing main lg');
+    // App.tsx giữ nguyên trang landing — overlay router (template-feats) KHÔNG đè
+    expect(await readFile(join(dest, 'src', 'App.tsx'), 'utf8')).toContain('landing lg');
+    // không react-router trong deps (trang đơn) và không merge deps thêm
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['react-router']).toBeUndefined();
+    expect(log).not.toHaveBeenCalledWith(expect.stringContaining('Merge deps'));
+  });
+
+  it('preset landing thiếu template → throw message rõ', async () => {
+    const t = await makeTemplates();
+    await rm(join(t, 'landing-ts'), { recursive: true, force: true });
+    await expect(run({ preset: 'landing', router: true }, t)).rejects.toThrow('Không thấy template base');
   });
 });

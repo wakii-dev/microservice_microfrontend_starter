@@ -12,6 +12,7 @@
   },
   "scripts": {
     "lint:contracts": "spectral lint contracts/openapi/*.yaml",
+    "verify:quick": "bash scripts/verify-quick.sh",
     "prepare": "test -e .git && husky || true"
   },
   "devDependencies": {

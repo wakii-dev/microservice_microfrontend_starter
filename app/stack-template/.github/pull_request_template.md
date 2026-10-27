@@ -1,26 +1,35 @@
-<!-- Đủ mục dưới đây — PR thiếu evidence = review chậm. Chi tiết flow: docs/git-flow.md -->
+<!-- Template cho AI mở PR — điền đủ, tick = ĐÃ CHẠY THẬT (không tick hộ).
+     PR thiếu evidence = review chậm. Flow: docs/WORKFLOW.md · nhánh/merge: docs/git-flow.md -->
 
 ## What & Why
 
-<!-- Làm gì + vì sao. Đụng story/epic thì link Linear (FI-xx / VU-xx). -->
+<!-- 1-3 dòng: làm gì + vì sao. Đụng story/epic → link Linear (FI-xx / VU-xx / SF-xx). -->
 
-## Thay đổi
+## Scope (path-group)
 
-- <!-- bullet ngắn theo nhóm: code / contracts / CI / docs -->
+<!-- Nhóm file đổi. 1 PR = 1 path-group, không trộn drive-by edit. -->
+- `app/…`: 
+- `services/…`: 
+- `docs/…`: 
 
-## Cách verify (bắt buộc)
+## Verify evidence (bắt buộc — paste output THẬT, không tự bịa PASS)
 
-<!-- Lệnh đã chạy + kết quả. Ví dụ:
-- `pnpm --filter shell test` → 43/43; `pnpm --filter @wakii/ui-kit build-storybook` → PASS
-- `bash scripts/smoke/e2e.sh` → PASS 8/8 (compose 10 services)
-- Local repro bug trước fix → EXIT=1, sau fix → EXIT=0
--->
+- `pnpm verify:quick` → paste SUMMARY hoặc JSON:
+- Tests: `<lệnh>` → `<số pass/fail>`
+- Build (nếu đụng FE): `<lệnh>` → PASS
 
-## Checklist
+## Checklist AI
 
-- [ ] CI xanh trên PR (kể cả `convergence`)
-- [ ] Không đụng READ-LOCKED (`app/shared/src/*.ts` + `mfToolkit`) ngoài epic đã duyệt
+- [ ] `pnpm verify:quick` PASS (output paste ở trên)
+- [ ] Tests vùng đụng PASS (ghi số test)
+- [ ] Scope đúng path-group khai ở trên — không file thừa
+- [ ] Conventional commit (`<type>(<scope>): <mô tả>`) + branch slug đúng `wakii-dev/<loại>-<slug>` (slug `[a-z0-9-]*`, không chấm/không hoa)
+- [ ] Bugfix → regression test chặn tái phát (fail trước fix, pass sau fix)
+- [ ] Đổi UI → ảnh browser thật (light + dark) đính kèm
 - [ ] Đụng contract → sync đủ bề mặt (node codegen / go snapshot bit-identical / fixtures 2 đầu)
-- [ ] Không đụng `frontend/` paths cũ (đã rename `app/` từ 2026-10-17 — refs `frontend/` = bug)
-- [ ] Descriptor sync (CLAUDE.md / orca.yaml / agents) nếu đổi cấu trúc, port, lệnh
-- [ ] Docs/evidence cập nhật (walkthrough, ADR nếu đổi kiến trúc, screenshot nếu đổi UI)
+- [ ] Không đụng READ-LOCKED (`app/shared/src/*.ts` + `mfToolkit`) ngoài epic đã duyệt
+- [ ] CI xanh trên PR khi Actions bật (`convergence` chạy mọi push)
+
+## Next steps cho reviewer
+
+<!-- Việc reviewer cần chạy/thêm, nếu có. Không có thì ghi "không". -->

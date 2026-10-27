@@ -68,3 +68,34 @@ nhiệm — KHÔNG có lớp CI phía sau cho đến khi billing được khôi 
 - [ ] Không đụng READ-LOCKED (`app/shared/src/*.ts` logic + `mfToolkit`) nếu chưa có epic duyệt
 - [ ] Đụng contract → sync đủ bề mặt (xem agent `contracts-keeper`)
 - [ ] Descriptor đồng bộ (CLAUDE.md / orca.yaml / agents) nếu đổi cấu trúc, port, lệnh
+
+## Luồng AI-team (coordinator + worker lanes — mô hình docs/WORKFLOW.md §1)
+
+Khác với luồng nhánh thường ở trên, khi chạy theo mô hình team AI (1 coordinator + N worker
+lanes song song):
+
+1. **Mỗi lane một nhánh riêng** `__STACK_ORG__/<loại>-<slug>` cắt từ `origin/main` mới nhất, làm
+   trong worktree riêng — không 2 lane chung nhánh/worktree.
+2. **PR NHỎ theo path-group**: 1 PR = 1 nhóm file không chồng lấn với lane khác. PR đụng file
+   lane khác sở hữu → dừng, phối qua `docs/team/inbox/`, không tự sửa.
+3. **Merge SQUASH cho PR lane** (`gh pr merge --squash`): mission nhỏ nhiều PR → giữ main
+   tuyến tính 1 commit/PR. (Luồng nhánh thường — feature/fix lớn — vẫn merge `--no-ff` như
+   mục PR ở trên.)
+4. **Commit trong lane**: chỉ file lane sở hữu (`git add <path cụ thể>`); message conventional
+   như thường — squash giữ lại tiêu đề PR làm commit message, nên đặt tiêu đề PR đúng
+   `<type>(<scope>): <mô tả>`.
+5. **Gate trước PR là của coordinator** (độc lập trên diff thật: `pnpm verify:quick` + tests +
+   build + browser khi đụng UI) — report của worker là đầu vào, không phải kết luận.
+
+## Versioning & release (package npm)
+
+Áp dụng `@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack` (semver):
+
+| Quy tắc | Chi tiết |
+|---|---|
+| Bump + CHANGELOG cùng PR | tăng `version` + thêm mục `CHANGELOG.md` trong cùng PR chứa thay đổi — không bump tay lẻ |
+| BREAKING → major | đổi exports/barrel/entry (vd gỡ component khỏi barrel) = major + ghi migration trong CHANGELOG |
+| Publish chỉ từ `main` mới nhất | `git fetch` + pull TRƯỚC khi publish; cắt nhánh stale để publish = đè version người khác (bài học rogue publish 0.6.3/0.6.4) |
+| Lockstep — 1 luồng publish tại 1 thời điểm | coordinator sở hữu publish; version xung đột → dồn về 1 bản chuẩn, không double-publish |
+| Sau publish: chờ + verify registry | registry lan 2–5 phút → `npm view <pkg> versions` / `dist-tags` / `npx` thử (knowledge.md #1) — đừng publish lại vì tưởng 404 |
+| Checklist chi tiết | ui-kit: `app/ui-kit/RELEASE.md` (2 registry, token, dry-run `npm pack` bắt bug tarball) · create-*: `scripts/publish-npm.sh` (tự build + guard file sống còn) |

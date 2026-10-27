@@ -4,10 +4,12 @@
 // experience3d — lazy chunk tách khỏi main bundle; three là peer shell đã cài;
 // jsdom/thiếu WebGL → fallback blob gradient, reduced-motion → kit tự 1 frame
 // tĩnh). Tokens-only; MotionConfig reducedMotion="user" ở HomePage.
+// Redesign shell-kit (2026-10-27): TiltCard compose từ Card + Statistic kit —
+// motion tilt/glare GIỮ (đã duyệt, kit không có tilt primitive).
 import { lazy, Suspense, useRef } from 'react';
 import { Link } from 'react-router';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { Button, Icon, Tag } from '@wakii/ui-kit';
+import { Button, Card, Icon, Statistic, Tag } from '@wakii/ui-kit';
 
 const HEADLINE = ['Ship', 'full-stack,', 'not', 'tooling'];
 
@@ -42,7 +44,9 @@ function Scene3DBackground() {
   );
 }
 
-/** Thẻ nghiêng 3D theo con trỏ — showcase "kit card" mini (stats + code). */
+/** Thẻ nghiêng 3D theo con trỏ — showcase "kit card" mini (stats + code).
+ * ref đo rect đặt trên wrapper TĨNH (không xoay) — getBoundingClientRect của
+ * element đang tilt biến thiên theo góc, wrapper cho số đo ổn định hơn. */
 function TiltCard() {
   const ref = useRef<HTMLDivElement>(null);
   const rotateXRaw = useMotionValue(0);
@@ -55,6 +59,7 @@ function TiltCard() {
 
   return (
     <div
+      ref={ref}
       className="relative w-full max-w-md [perspective:900px]"
       onPointerMove={(event) => {
         const rect = ref.current?.getBoundingClientRect();
@@ -69,34 +74,37 @@ function TiltCard() {
         rotateYRaw.set(0);
       }}
     >
-      <motion.div
-        ref={ref}
-        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-        className="relative overflow-hidden rounded-xl border border-line bg-s1 p-6 text-left shadow-[var(--shadow-pop)]"
-      >
-        <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glareBackground }} />
-        <div className="relative flex items-center justify-between">
-          <span className="flex items-center gap-2 text-label font-medium text-ink2">
-            <span aria-hidden="true" className="grid size-6 place-items-center rounded-md bg-accent/15 text-accent">
-              <Icon name="menu-bars" size={12} />
-            </span>
-            @wakii/ui-kit
-          </span>
-          <Tag>v0.5.0</Tag>
-        </div>
-        <div className="relative mt-5 grid grid-cols-2 gap-4">
-          <div className="rounded-lg border border-line bg-s2 p-3">
-            <div className="text-meta text-ink3">Components</div>
-            <div className="text-h1 font-bold text-ink">90+</div>
+      <motion.div style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}>
+        <Card className="text-left">
+          <div className="relative">
+            <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glareBackground }} />
+            <div className="relative flex items-center justify-between">
+              <span className="flex items-center gap-2 text-label font-medium text-ink2">
+                <span aria-hidden="true" className="grid size-6 place-items-center rounded-md bg-accent/15 text-accent">
+                  <Icon name="menu-bars" size={12} />
+                </span>
+                @wakii/ui-kit
+              </span>
+              <Tag>v0.5.0</Tag>
+            </div>
+            <div className="relative mt-5 grid grid-cols-2 gap-4">
+              <Statistic
+                title="Components"
+                value={90}
+                suffix="+"
+                className="rounded-lg border border-line bg-s1 p-3"
+              />
+              <Statistic
+                title="Tests pass"
+                value={1235}
+                className="rounded-lg border border-line bg-s1 p-3"
+              />
+            </div>
+            <pre className="relative m-0 mt-4 overflow-x-auto rounded-lg border border-line bg-s3 p-3 font-mono text-meta text-ink2">
+              <code>{`import { Button } from '@wakii/ui-kit';`}</code>
+            </pre>
           </div>
-          <div className="rounded-lg border border-line bg-s2 p-3">
-            <div className="text-meta text-ink3">Tests pass</div>
-            <div className="text-h1 font-bold text-ink">1235</div>
-          </div>
-        </div>
-        <pre className="relative m-0 mt-4 overflow-x-auto rounded-lg border border-line bg-s3 p-3 font-mono text-meta text-ink2">
-          <code>{`import { Button } from '@wakii/ui-kit';`}</code>
-        </pre>
+        </Card>
       </motion.div>
     </div>
   );
@@ -113,7 +121,9 @@ export function Hero() {
         <Tag icon={<Icon name="check-circle" size={12} />}>Boilerplate — MF host + 2 remotes + 3 BE services</Tag>
       </motion.div>
 
-      {/* headline reveal từng từ — aria-label ở h1, spans aria-hidden cho SR đọc liền */}
+      {/* headline reveal từng từ — aria-label ở h1, spans aria-hidden cho SR đọc liền.
+       * h1 tay (không Title kit): Typography.Title không forward aria-label → mất
+       * accessible name của heading chính (span con đều aria-hidden). */}
       <h1 className="m-0 max-w-3xl text-[44px] font-bold leading-tight tracking-[-0.02em] text-ink" aria-label="Ship full-stack, not tooling">
         {HEADLINE.map((word, i) => (
           <motion.span

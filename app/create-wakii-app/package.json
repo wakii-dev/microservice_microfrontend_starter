@@ -1,6 +1,6 @@
 {
   "name": "create-wakii-app",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "CLI scaffold app React + @wakii/ui-kit — pnpm create wakii-app my-app (spec: /tmp/starter-spec.md → docs khi publish)",

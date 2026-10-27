@@ -1,7 +1,6 @@
-// kanban/utils — helpers thuần (test được không DOM): nhóm cột · sort · hit-test
-// điểm thả card. assignment_failed là status HỆ THỐNG (PATCH cấm) — card hiển thị
-// ở ĐẦU cột 'Cần làm' (workflow: task bị saga trả về = quay về cần làm) với badge
-// failed + KHÔNG kéo (không bao giờ gọi PATCH).
+// kanban/utils — helpers thuần (test được không DOM): nhóm cột · sort · initials
+// assignee cho Avatar card. Redesign kit (2026-10-27): drag do KanbanBoard của
+// kit đảm nhiệm (native HTML5 DnD + keyboard) — hit-test pickColumn cũ đã bỏ.
 import type { Task, TaskStatus } from '../../api';
 
 export const BOARD_COLUMNS: ReadonlyArray<{ status: TaskStatus; label: string }> = [
@@ -31,20 +30,11 @@ export function sortTasks(tasks: readonly Task[], sort: BoardSort): Task[] {
   });
 }
 
-/**
- * Hit-test điểm thả (toạ độ viewport — framer `info.point` cùng hệ với
- * getBoundingClientRect) vào các cột. Trúng cột nào trả status đó; không trúng
- * → null (card snap về chỗ cũ, không mutation).
- */
-export function pickColumn(
-  point: { x: number; y: number },
-  rects: Record<string, DOMRect | null | undefined>,
-): TaskStatus | null {
-  for (const [status, rect] of Object.entries(rects)) {
-    if (!rect) continue;
-    if (point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom) {
-      return status as TaskStatus;
-    }
-  }
-  return null;
+/** Initials 2 chữ cho Avatar assignee — rút từ đầu id (uuid không có tên thật);
+ * null/'' → null (card render "Chưa gán"). */
+export function assigneeInitials(assigneeId: string | null | undefined): string | null {
+  if (!assigneeId) return null;
+  const cleaned = assigneeId.replace(/[^a-z0-9]/gi, '');
+  if (cleaned.length === 0) return null;
+  return cleaned.slice(0, 2).toUpperCase();
 }

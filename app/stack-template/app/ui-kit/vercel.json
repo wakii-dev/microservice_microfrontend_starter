@@ -1,6 +1,0 @@
-{
-  "framework": null,
-  "outputDirectory": "storybook-static",
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter ui-kit build-storybook"
-}

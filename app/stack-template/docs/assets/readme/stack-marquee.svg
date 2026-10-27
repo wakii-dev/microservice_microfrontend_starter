@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="64" viewBox="0 0 960 64" role="img" aria-label="Stack marquee — React 19, Tailwind v4, Rspack, Module Federation, Fastify, Spring Boot 3, Go, PostgreSQL, Kafka, nginx, framer-motion scrolling endlessly">
+  <title>Stack — React 19 · Tailwind v4 · Rspack · MF · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx</title>
+  <desc>A single line of stack names scrolls continuously to the left and loops seamlessly; two identical tracks are duplicated so the seam is invisible.</desc>
+  <defs>
+    <clipPath id="mqClip"><rect x="1.5" y="1.5" width="957" height="61" rx="12"/></clipPath>
+    <linearGradient id="fadeL" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#12161f" stop-opacity="1"/>
+      <stop offset="1" stop-color="#12161f" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fadeR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#12161f" stop-opacity="1"/>
+      <stop offset="1" stop-color="#12161f" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="1.5" y="1.5" width="957" height="61" rx="12" fill="#12161f" stroke="#2a3040" stroke-width="1.5"/>
+
+  <g clip-path="url(#mqClip)">
+    <!-- 2 track giống hệt nhau, dịch −1100 = chiều rộng 1 track → loop kín -->
+    <g>
+      <animateTransform attributeName="transform" attributeType="XML" type="translate" from="0 0" to="-1100 0" dur="18s" repeatCount="indefinite"/>
+      <text x="24" y="39" textLength="1100" lengthAdjust="spacing" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" fill="#9aa4b8">React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion ·&#160;</text>
+      <text x="1124" y="39" textLength="1100" lengthAdjust="spacing" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="14" fill="#9aa4b8">React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion ·&#160;</text>
+    </g>
+    <!-- dot accent chạy ngược chiều làm điểm nhấn -->
+    <circle cy="32" r="2.5" fill="#1677ff">
+      <animate attributeName="cx" values="0;960" dur="7s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;0;0.9;0.9;0" keyTimes="0;0.06;0.15;0.9;1" dur="7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <rect x="1.5" y="1.5" width="72" height="61" rx="12" fill="url(#fadeL)"/>
+  <rect x="886.5" y="1.5" width="72" height="61" rx="12" fill="url(#fadeR)"/>
+</svg>

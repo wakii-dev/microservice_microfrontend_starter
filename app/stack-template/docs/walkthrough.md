@@ -95,10 +95,11 @@ Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08
 Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo light **antd-look** (decision 2026-10-17 — spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`): nền canvas `#f5f5f5`, khối trắng `#ffffff`, 1 accent `#1677ff`, badge pill chấm-màu; dark (palette direction B cũ) là theme phụ qua `UiKitProvider` (`data-bp-theme`).
 
 1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → thấy **dashboard chào** với quick links Tasks/Activity + box **TÀI KHOẢN DEMO** (`alice@demo.local / demo-password`, `fail@demo.local`). Login → nav phải hiện user chip (avatar + email) + nút **Đăng xuất**.
-2. Nav → **Tasks** (item nav active gạch accent): form **Tạo task** (Tiêu đề + Mô tả) → task mới xuất hiện đầu danh sách, heading **"Danh sách (x/total)"** cập nhật. Thử tiếp:
-   - **Sửa inline**: nút *Sửa* trên card → input inline tiêu đề/mô tả → *Lưu* (PATCH thật) / *Huỷ*.
-   - **Đổi status**: select trên card (`Cần làm` / `Đang làm` / `Xong`) — lúc PATCH đang bay item hiện spinner + select khoá (per-item busy).
-   - **Lọc**: chip `Tất cả` / `Cần làm` / `Đang làm` / `Xong` → danh sách + "x/total" lọc theo `?status=`.
+2. Nav → **Tasks** (active pill accent) — **Kanban board 3 cột** (Cần làm / Đang làm / Xong) + toolbar (search debounce · sort mới/cũ nhất · **＋ Thêm** mở Modal tạo) + progress bar n/N xong. Thử tiếp:
+   - **Kéo card sang cột khác** → đổi status (framer-motion drag; fallback combobox status trên card cho bàn phím).
+   - **Sửa**: nút *Sửa* trên card → Modal sửa (tên/mô tả) → *Lưu* (PATCH thật).
+   - **Đổi status không kéo**: combobox trên card (`Cần làm` / `Đang làm` / `Xong`).
+   - **Search server-side**: ô tìm kiếm lọc qua `?q=` (ILIKE node-svc) — task chưa tải cũng tìm thấy; sort mới/cũ nhất.
    - **Tải thêm**: nếu total > số đã tải, nút *Tải thêm* cuối danh sách nạp trang kế (limit/offset thật), "x/total" tăng dần tới đủ.
    - **Xoá**: nút *Xoá* → xác nhận inline ("Xoá task này?" → *Xác nhận xoá* / *Huỷ*) — xoá thật qua DELETE.
    - Mỗi card hiển thị assignee (UUID rút gọn monospace, hover thấy đủ), "Chưa gán" nếu trống, + createdAt vi-VN.
@@ -168,6 +169,15 @@ cd my-project
 pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.md
 # rồi lặp lại mục 2-4 trong project mới
 ```
+
+Cấu trúc output theo cơ chế scaffold:
+
+- **`npm create wakii-stack`** (CLI chính thức, engine prune): `app/ui-kit` **không còn**
+  trong project sinh ra — FE apps cài `@wakii/ui-kit` từ npm registry (dist-tag `latest`,
+  lockfile ghim bản cụ thể ngay lúc scaffold; nâng cấp = `pnpm update @wakii/ui-kit`).
+  `app/shared` (fe-shared) vẫn kèm, consumed-qua-source. Chi tiết: [ADR-0010](adr/0010-stack-fe-npm-deps.md).
+- **`scripts/scaffold/scaffold.sh`** (copy repo sống cho dev nội bộ — lệnh trên): vẫn kèm
+  cả `app/shared` + `app/ui-kit` qua source.
 
 Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playbook.md](wakii-playbook.md) — decision tree story/single/fix + 4 archetype chia SF + gates.
 

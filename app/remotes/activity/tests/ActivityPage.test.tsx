@@ -94,14 +94,16 @@ describe('ActivityPage', () => {
     expect(list.querySelector('.bp-badge')).toBeNull();
   });
 
-  it('render stats tiles — GIỮ NGUYÊN bộ aria-label contract', async () => {
+  it('render stats tiles — GIỮ NGUYÊN bộ aria-label contract (CountUp kit animate → chờ textContent đích)', async () => {
     render(<ActivityPage />, { wrapper: createWrapper() });
     expect(screen.getByLabelText('Thống kê tasks')).toBeInTheDocument();
-    expect(await screen.findByLabelText('Tổng số task')).toHaveTextContent('7');
-    expect(screen.getByLabelText('Task Cần làm')).toHaveTextContent('3');
-    expect(screen.getByLabelText('Task Đang làm')).toHaveTextContent('2');
-    expect(screen.getByLabelText('Task Xong')).toHaveTextContent('2');
-    expect(screen.getByLabelText('Sự kiện 24h qua')).toHaveTextContent('4');
+    await screen.findByLabelText('Tổng số task');
+    // CountUp kit rAF 0.5s (redesign compose-từ-kit) — đếm 0 → giá trị đích
+    await waitFor(() => expect(screen.getByLabelText('Tổng số task')).toHaveTextContent('7'), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByLabelText('Task Cần làm')).toHaveTextContent('3'), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByLabelText('Task Đang làm')).toHaveTextContent('2'), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByLabelText('Task Xong')).toHaveTextContent('2'), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByLabelText('Sự kiện 24h qua')).toHaveTextContent('4'), { timeout: 3000 });
   });
 
   it('stats fail → banner riêng, feed VẪN render (Promise.allSettled)', async () => {

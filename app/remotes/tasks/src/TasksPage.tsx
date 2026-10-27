@@ -1,7 +1,7 @@
-// TasksPage — KANBAN BOARD compact pro (redesign 2026-10-25, user chê list cũ):
-// toolbar (search debounce + sort + "＋ Thêm" modal) · progress n/N xong ·
-// 3 cột writable + slim "Gán thất bại" · drag card đổi status (pickColumn
-// hit-test) với fallback StatusSelect bàn phím.
+// TasksPage — KANBAN BOARD compose từ ui-kit (redesign 2026-10-27): board =
+// KanbanBoard kit (drag native + keyboard DnD), toolbar = Input.Search +
+// Segmented + Button + Progress, form = Modal + useForm + zod, toast tạo/xoá =
+// message kit, search-empty = EmptyState kit, "Tải thêm" = Button kit.
 //
 // SEMANTICS GIỮ NGUYÊN từ list cũ (F2/F3 — tests là contract):
 // - Mutations cập nhật IN-PLACE qua setQueryData (KHÔNG refetch full) — draft
@@ -13,9 +13,8 @@
 // mới (pagination reset, không nối trang chéo key — chuẩn useInfiniteQuery);
 // mutations patch đúng key đang active qua tasksKey.
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { MotionConfig } from 'motion/react';
 import { useMemo, useState } from 'react';
-import { Alert, Skeleton, useDebounce } from '@wakii/ui-kit';
+import { Alert, Button, EmptyState, message, Skeleton, useDebounce } from '@wakii/ui-kit';
 import {
   ApiError,
   CreateTaskInput,
@@ -106,6 +105,7 @@ export function TasksPage() {
     mutationFn: (input: CreateTaskInput) => createTask(input),
     onSuccess: (created) => {
       setError(null);
+      message.success(`Đã tạo task "${created.title}"`);
       patchList((pages) => {
         pages[0]!.total += 1;
         pages[0]!.items.unshift(created);
@@ -156,6 +156,7 @@ export function TasksPage() {
     onSettled: () => setBusyId(null),
     onSuccess: (_, removed) => {
       setError(null);
+      message.success(`Đã xoá task "${removed.title}"`);
       patchList((pages) => {
         for (const p of pages) {
           const idx = p.items.findIndex((t) => t.id === removed.id);
@@ -197,98 +198,87 @@ export function TasksPage() {
   const searchActive = search !== '';
 
   return (
-    // reducedMotion="user" — tôn trọng prefers-reduced-motion toàn cây
-    <MotionConfig reducedMotion="user">
+    <>
       <section className="flex flex-col gap-4 text-ink" aria-label="Quản lý tasks">
-        <h1 className="m-0 text-h1">Tasks</h1>
+      <h1 className="m-0 text-h1">Tasks</h1>
 
-        {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
-          <Alert type="error" message={error ?? describeError(listQuery.error)} />
-        )}
+      {(error ?? (listQuery.error ? describeError(listQuery.error) : null)) !== null && (
+        <Alert type="error" message={error ?? describeError(listQuery.error)} />
+      )}
 
-        <Toolbar
-          query={query}
-          onQueryChange={setQuery}
-          sort={sort}
-          onSortChange={setSort}
-          done={doneCount}
-          total={tasks.length}
-          onCreate={() => setModal({ mode: 'create' })}
-        />
-
-        {/* Skeleton 3 cột khi load đầu */}
-        {loading ? (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3" aria-busy="true" role="status" aria-label="Đang tải tasks">
-            {[0, 1, 2].map((col) => (
-              <div key={col} className="flex flex-col gap-2 rounded-xl border border-line bg-s2/50 p-2.5">
-                <Skeleton variant="row" count={2} />
-              </div>
-            ))}
-          </div>
-        ) : searchActive && tasks.length === 0 && !listQuery.error ? (
-          /* Empty state search — tách khỏi empty cột ("Kéo card vào đây" là board
-           * trống thật; đây là search không khớp) + nút xoá search nhanh. */
-          <div
-            data-testid="search-empty"
-            className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line bg-s2/50 px-4 py-10 text-center"
-          >
-            <p className="m-0 text-body text-ink2">Không có task khớp '{search}'</p>
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              className="cursor-pointer rounded-lg border border-line bg-s1 px-3 py-1.5 text-label text-ink2 transition-colors hover:bg-s3 hover:text-ink"
-            >
-              Xoá tìm kiếm
-            </button>
-          </div>
-        ) : (
-          <>
-            <KanbanBoard
-              tasks={tasks}
-              sort={sort}
-              busyId={busyId}
-              onStatusChange={(task, status) => void statusMutation.mutateAsync({ task, status }).catch(() => undefined)}
-              onEdit={(task) => setModal({ mode: 'edit', task })}
-              onDelete={(task) => void deleteMutation.mutateAsync(task).catch(() => undefined)}
-            />
-            {Boolean(listQuery.hasNextPage) && (
-              <button
-                type="button"
-                disabled={loadingMore}
-                onClick={() => void listQuery.fetchNextPage()}
-                className="self-center cursor-pointer rounded-lg border border-line bg-s1 px-4 py-1.5 text-label text-ink2 transition-colors hover:bg-s3 hover:text-ink disabled:cursor-wait disabled:opacity-60"
-              >
-                {loadingMore ? 'Đang tải thêm…' : 'Tải thêm'}
-              </button>
-            )}
-          </>
-        )}
-      </section>
-
-      <TaskModal
-        open={modal !== null}
-        mode={modal?.mode ?? 'create'}
-        initial={
-          modal?.mode === 'edit' && modal.task
-            ? { title: modal.task.title, description: modal.task.description ?? '' }
-            : { title: '', description: '' }
-        }
-        submitting={createMutation.isPending || saveMutation.isPending}
-        onClose={() => setModal(null)}
-        onSubmit={async (values) => {
-          if (modal?.mode === 'edit' && modal.task) {
-            const task = modal.task;
-            // chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1)
-            const patch: { title?: string; description?: string } = {};
-            if (values.title !== task.title) patch.title = values.title;
-            if ((task.description ?? '') !== values.description) patch.description = values.description;
-            if (Object.keys(patch).length === 0) return true;
-            return handleSave(task, patch);
-          }
-          return handleCreate({ title: values.title, description: values.description || undefined });
-        }}
+      <Toolbar
+        query={query}
+        onQueryChange={setQuery}
+        sort={sort}
+        onSortChange={setSort}
+        done={doneCount}
+        total={tasks.length}
+        onCreate={() => setModal({ mode: 'create' })}
       />
-    </MotionConfig>
+
+      {/* Skeleton 3 cột khi load đầu */}
+      {loading ? (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3" aria-busy="true" role="status" aria-label="Đang tải tasks">
+          {[0, 1, 2].map((col) => (
+            <div key={col} className="flex flex-col gap-2 rounded-xl border border-line bg-s2/50 p-2.5">
+              <Skeleton variant="row" count={2} />
+            </div>
+          ))}
+        </div>
+      ) : searchActive && tasks.length === 0 && !listQuery.error ? (
+        /* Empty state search — tách khỏi empty cột ("Kéo thẻ vào đây" là board
+         * trống thật; đây là search không khớp) + nút xoá search nhanh (EmptyState kit). */
+        <div data-testid="search-empty" className="rounded-xl border border-dashed border-line bg-s2/50 px-4 py-6">
+          <EmptyState
+            title={`Không có task khớp '${search}'`}
+            action={
+              <Button onClick={() => setQuery('')}>Xoá tìm kiếm</Button>
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <KanbanBoard
+            tasks={tasks}
+            sort={sort}
+            busyId={busyId}
+            onStatusChange={(task, status) => void statusMutation.mutateAsync({ task, status }).catch(() => undefined)}
+            onEdit={(task) => setModal({ mode: 'edit', task })}
+            onDelete={(task) => void deleteMutation.mutateAsync(task).catch(() => undefined)}
+          />
+          {Boolean(listQuery.hasNextPage) && (
+            <Button className="self-center" disabled={loadingMore} onClick={() => void listQuery.fetchNextPage()}>
+              {loadingMore ? 'Đang tải thêm…' : 'Tải thêm'}
+            </Button>
+          )}
+        </>
+      )}
+    </section>
+
+    <TaskModal
+      open={modal !== null}
+      mode={modal?.mode ?? 'create'}
+      initial={
+        modal?.mode === 'edit' && modal.task
+          ? { title: modal.task.title, description: modal.task.description ?? '' }
+          : { title: '', description: '' }
+      }
+      submitting={createMutation.isPending || saveMutation.isPending}
+      onClose={() => setModal(null)}
+      onSubmit={async (values) => {
+        if (modal?.mode === 'edit' && modal.task) {
+          const task = modal.task;
+          // chỉ gửi field THAY ĐỔI (UpdateTaskRequest minProperties 1)
+          const patch: { title?: string; description?: string } = {};
+          if (values.title !== task.title) patch.title = values.title;
+          if ((task.description ?? '') !== values.description) patch.description = values.description;
+          if (Object.keys(patch).length === 0) return true;
+          return handleSave(task, patch);
+        }
+        return handleCreate({ title: values.title, description: values.description || undefined });
+      }}
+    />
+    </>
   );
 }
 

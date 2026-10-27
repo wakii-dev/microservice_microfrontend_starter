@@ -1,7 +1,8 @@
-// Toolbar — search theo tiêu đề (useDebounce 200ms — lọc client-side các card
-// đã tải) + Segmented sort (mới nhất/cũ nhất) + nút "＋ Thêm" mở modal tạo +
-// progress "n/N xong" (bar accent; n = done / tổng card).
-import { Input, Segmented } from '@wakii/ui-kit';
+// Toolbar — 100% compose từ kit (redesign 2026-10-27): Input.Search (type=search
+// → role searchbox, debounce ở page) · Segmented sort · Button "Thêm" (thay
+// button tay) · Progress kit (thay progressbar tay — valuenow là % chuẩn WAI;
+// text "n/N xong" render cạnh giữ contract đọc).
+import { Button, Input, Progress, Segmented } from '@wakii/ui-kit';
 import type { BoardSort } from './utils';
 
 export interface ToolbarProps {
@@ -19,10 +20,11 @@ export function Toolbar({ query, onQueryChange, sort, onSortChange, done, total,
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-s1 p-3">
       <div className="flex flex-wrap items-center gap-3">
-        <Input
+        <Input.Search
           type="search"
           aria-label="Tìm kiếm task"
           placeholder="Tìm theo tiêu đề…"
+          allowClear
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           className="min-w-0 flex-[1_1_180px]"
@@ -36,33 +38,15 @@ export function Toolbar({ query, onQueryChange, sort, onSortChange, done, total,
             { label: 'Cũ nhất', value: 'oldest' },
           ]}
         />
-        <button
-          type="button"
-          onClick={onCreate}
-          className="ml-auto inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border-none bg-accent px-3.5 text-body font-medium text-white transition-[filter] hover:brightness-110 active:brightness-95"
-        >
-          <span aria-hidden="true" className="text-h3 leading-none">
-            ＋
-          </span>
+        <Button type="primary" icon={<span aria-hidden="true">＋</span>} onClick={onCreate} className="ml-auto">
           Thêm
-        </button>
+        </Button>
       </div>
 
-      {/* Progress tổng — bar n/N xong */}
+      {/* Progress tổng — valuenow = % chuẩn WAI (kit Progress không nhận raw n/N);
+       * text "n/N xong" là contract đọc của user — render cạnh bar. */}
       <div className="flex items-center gap-3">
-        <div
-          role="progressbar"
-          aria-label="Tiến độ hoàn thành"
-          aria-valuemin={0}
-          aria-valuemax={total}
-          aria-valuenow={done}
-          className="h-2 min-w-0 flex-1 overflow-hidden rounded-pill bg-s3"
-        >
-          <div
-            className="h-full rounded-pill bg-st-done transition-[width] duration-500 ease-[var(--ease-smooth)]"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
+        <Progress percent={pct} showInfo={false} className="min-w-0 flex-1" />
         <span className="whitespace-nowrap text-meta tabular-nums text-ink2">
           {done}/{total} xong
         </span>

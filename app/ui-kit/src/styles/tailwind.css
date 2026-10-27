@@ -67,6 +67,18 @@
   --animate-press: bp-press var(--motion-instant) var(--ease-toggle);
 }
 
+/* Radius rounded-lg/xl (462 chỗ dùng) — map Tailwind default sang token --r-lg/--r-xl.
+ * Block @theme RIÊNG, CỐ Ý KHÔNG inline: block inline làm Tailwind nhét thẳng giá trị
+ * vào utility (.rounded-lg{border-radius:var(--r-lg)}) và không emit --radius-lg ra
+ * dist (đã chạy thử — chỉ --radius-lg emit, --radius-xl mất); block thường → utility
+ * tham chiếu var(--radius-lg) + dist có --radius-lg:var(--r-lg) → override runtime
+ * --r-lg/--r-xl (UiKitProvider radiusLg/radiusXl) ăn toàn bộ chỗ dùng rounded-lg/xl.
+ * 0-break: giá trị token TRÙNG default Tailwind (8px/12px), không component đổi hình. */
+@theme {
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+}
+
 @keyframes bp-press {
   0% { transform: scale(1); }
   50% { transform: scale(0.97); }

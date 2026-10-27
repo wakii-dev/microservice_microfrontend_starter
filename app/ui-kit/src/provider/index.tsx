@@ -4,15 +4,43 @@
 //   cha tự nhiên; scaffold project mới đổi brand 1 dòng)
 // - theme OBJECT (batch F 2026-10-18) → runtime token overrides: set cặp --var/value
 //   tương ứng trên wrapping div (canvas/s1/s2/s3/accent/accentHi/ink/ink2/ink3/line/
-//   done/doing/fail → --c-canvas/--c-s1/…/--st-fail). Con cháu subtree ăn theo cascade —
-//   CÙNG cơ chế với dark theme (attr + CSS vars, KHÔNG React context — tokens = nguồn).
-//   Không truyền theme → không style attr, behavior cũ giữ nguyên.
+//   done/doing/fail → --c-canvas/--c-s1/…/--st-fail; radiusLg/radiusXl/radiusPill/font
+//   → --r-lg/--r-xl/--r-pill/--f — theming 0-break 2026-10-27). Con cháu subtree ăn
+//   theo cascade — CÙNG cơ chế với dark theme (attr + CSS vars, KHÔNG React context —
+//   tokens = nguồn). Không truyền theme → không style attr, behavior cũ giữ nguyên.
 import type { ReactNode } from 'react';
 
-/** Runtime-overridable token keys → CSS var names (map đủ bộ màu chính). */
+/**
+ * Runtime-overridable token keys → CSS var names.
+ *
+ * - Màu: canvas/s1/s2/s3 (bề mặt), accent/accentHi (brand), ink/ink2/ink3 (mực),
+ *   line (viền), done/doing/fail (trạng thái) → --c-canvas/--c-s1/…/--st-fail.
+ * - Radius (theming 0-break 2026-10-27): radiusLg/radiusXl/radiusPill → --r-lg/--r-xl/
+ *   --r-pill. --r-lg/--r-xl map Tailwind rounded-lg/xl (giá trị default TRÙNG Tailwind
+ *   8px/12px — 0-break) qua @theme --radius-lg/xl → override 1 var ăn toàn bộ chỗ dùng
+ *   rounded-lg/xl (462 chỗ) mà không sửa component nào.
+ * - Font: font → --f — font stack toàn subtree (Tailwind --font-sans map sẵn var này);
+ *   brand font project scaffolded đổi 1 dòng.
+ */
 export type ThemeTokens = Partial<
   Record<
-    'canvas' | 's1' | 's2' | 's3' | 'accent' | 'accentHi' | 'ink' | 'ink2' | 'ink3' | 'line' | 'done' | 'doing' | 'fail',
+    | 'canvas'
+    | 's1'
+    | 's2'
+    | 's3'
+    | 'accent'
+    | 'accentHi'
+    | 'ink'
+    | 'ink2'
+    | 'ink3'
+    | 'line'
+    | 'done'
+    | 'doing'
+    | 'fail'
+    | 'radiusLg'
+    | 'radiusXl'
+    | 'radiusPill'
+    | 'font',
     string
   >
 >;
@@ -31,6 +59,10 @@ const TOKEN_VAR: Record<keyof ThemeTokens, `--${string}`> = {
   done: '--st-done',
   doing: '--st-doing',
   fail: '--st-fail',
+  radiusLg: '--r-lg',
+  radiusXl: '--r-xl',
+  radiusPill: '--r-pill',
+  font: '--f',
 };
 
 export interface UiKitProviderProps {

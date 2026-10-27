@@ -4,6 +4,13 @@
 
 http:
   middlewares:
+    # Parity client_max_body_size 2m (nginx) — upload qua gateway giới hạn 2MB
+    body-limit-2m:
+      buffering:
+        maxRequestBodyBytes: 2097152
+    # X-Request-Id parity: Traefik core không sinh id. Upgrade path: pilot plugin
+    # RequestID (github.com/pitpik/traefik-plugin-requestid) rồi gắn vào routers.
+    # Hiện tại: client gửi X-Request-Id sẽ được pass-through mặc định (đủ trace 1 chiều).
     # Parity "JWT presence" của nginx: hỏi auth-presence (mini nginx trả 200 nếu
     # có Authorization, 401 + error envelope nếu thiếu). Đường nâng cấp thật:
     # trỏ address về auth-svc /verify — revoke được token tại cửa.
@@ -22,17 +29,17 @@ http:
     api-tasks:
       rule: "PathPrefix(`/api/tasks`)"
       service: node-svc
-      middlewares: [jwt-presence]
+      middlewares: [body-limit-2m, jwt-presence]
       priority: 100
     api-users:
       rule: "PathPrefix(`/api/users`)"
       service: spring-svc
-      middlewares: [jwt-presence]
+      middlewares: [body-limit-2m, jwt-presence]
       priority: 100
     api-activity:
       rule: "PathPrefix(`/api/activity`)"
       service: go-svc
-      middlewares: [jwt-presence]
+      middlewares: [body-limit-2m, jwt-presence]
       priority: 100
     api-auth:
       rule: "PathPrefix(`/api/auth`)"
@@ -41,12 +48,12 @@ http:
     remotes-tasks:
       rule: "PathPrefix(`/remotes/tasks`)"
       service: remote-tasks
-      middlewares: [strip-remotes-tasks]
+      middlewares: [body-limit-2m, strip-remotes-tasks]
       priority: 50
     remotes-activity:
       rule: "PathPrefix(`/remotes/activity`)"
       service: remote-activity
-      middlewares: [strip-remotes-activity]
+      middlewares: [body-limit-2m, strip-remotes-activity]
       priority: 50
     shell:
       rule: "PathPrefix(`/`)"

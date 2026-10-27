@@ -1,6 +1,6 @@
 # Fresh-clone walkthrough — từ clone đến demo chạy được
 
-Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 10 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
+Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 11 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
 
 ## 0. Toolchain cần có
 
@@ -44,7 +44,7 @@ for topic in task-events task-events.dlq; do
   docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
     --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
 done
-docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (10 services, kafka lazy-connect)
+docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (11 services, kafka lazy-connect)
 bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 15 bước, 3 luồng:
                                     #   happy     : login→task→feed QUA KAFKA (outbox → topic → go consumer)
                                     #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 204)
@@ -56,7 +56,7 @@ bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. P
 ### Đường B — Native (không Docker — từng service một)
 
 ```bash
-# 4 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
+# 5 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
 cd services/auth-svc && JWT_SECRET=<dev-secret> PORT=8090 \
   DATABASE_URL="postgres://auth_svc:<pw>@localhost:5432/boilerplate" \
   USERS_FIXTURE_PATH=$(pwd)/../../contracts/auth/users.json \
@@ -75,6 +75,9 @@ cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
   DATABASE_URL="postgres://go_svc:<pw>@localhost:5432/boilerplate" \
   DATABASE_READONLY_URL="postgres://<owner-user>:<owner-pw>@localhost:5432/boilerplate" \
   SPRING_SVC_URL=http://localhost:8081 go run ./cmd/server
+
+cd services/dotnet-svc/src/DotnetSvc && JWT_SECRET=<dev-secret> DOTNET_SVC_PORT=8083 \
+  DATABASE_URL="postgres://dotnet_svc:<pw>@localhost:5432/boilerplate" dotnet run   # needs .NET SDK 8 (unlike the other 4 services)
 
 # FE (3 terminal):
 cd app/shell   && pnpm dev   # :3000
@@ -187,7 +190,7 @@ Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playb
 |----------|---------|-----------|
 | `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
 | `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
-| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 10 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
+| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 11 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
 
 ## 7. Hành trình team — app-fit 4 apps + tài liệu nội bộ (2026-10-18)
 

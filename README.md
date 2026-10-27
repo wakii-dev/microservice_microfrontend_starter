@@ -11,7 +11,7 @@ Rules as **directives** ([AGENTS.md](AGENTS.md)) · contracts **machine-checkabl
 Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của repo này** — chạy bằng
 `docker compose up`, không mock, không screenshot từ dự án khác.
 
-**90+** components · **1328** tests · **3** npm packages · **10** services
+**90+** components · **1328** tests · **3** npm packages · **11** services
 
 [![npm @wakii/ui-kit](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit&color=cb3837)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![npm create-wakii-app](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app&color=cb3837)](https://www.npmjs.com/package/create-wakii-app)
@@ -119,7 +119,7 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 |---|---|
 | **Experience** | shell (landing 3D + nav) · remotes (kanban drag · feed realtime) · admin showcase |
 | **Edge** | nginx gateway — routing · JWT presence · `/remotes/*` registry |
-| **Services** | node-svc :3001 · spring-svc :8081 · go-svc :8082 · auth-svc :8090 |
+| **Services** | node-svc :3001 · spring-svc :8081 · go-svc :8082 · dotnet-svc :8083 · auth-svc :8090 |
 | **Infra** | postgres :5432 (schema-per-svc) · kafka :9092 (KRaft + kafka-init) |
 
 ## Repo map
@@ -127,7 +127,7 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 ```
 contracts/    source of truth — openapi (spectral CI) · canonical DDL · token contract
 platform/     compose + kafka-init · postgres init · gateway · 9 conventions
-services/     node · spring · go · auth — README standalone từng service
+services/     node · spring · go · dotnet · auth — README standalone từng service
 app/
   ui-kit/     @wakii/ui-kit — components · hooks · tokens · Storybook
   shared/     fe-shared — api client · token storage · MF bootstrap

@@ -193,7 +193,7 @@ export function renderReadme(manifest: StackManifest, selection: StackSelection)
 
 Mở **${gatewayUrl}** (gateway) — entry duy nhất: \`/\` là FE shell, \`/api/*\` là các service.
 
-- Chưa có tài khoản? auth-svc KHÔNG seed user — dùng tab **Đăng ký** trước, rồi Đăng nhập.
+- Tài khoản demo seeded sẵn: **alice@demo.local / demo-password** (roles admin) · \`fail@demo.local\` — user fixture saga (gán task cho user này xem saga). Hoặc tab **Đăng ký** tạo tài khoản riêng.
 - KHÔNG mở port FE trực tiếp (vd \`:3000\`): đó là static server, mọi \`POST /api/*\` trả **405**.
 
 `

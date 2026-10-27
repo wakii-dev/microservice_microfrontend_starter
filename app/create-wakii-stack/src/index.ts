@@ -33,7 +33,7 @@ function printNextSteps(selection: StackSelection, gatewayUrl: string | undefine
   p.log.info('Next steps:');
   for (const step of steps) p.log.step(`  ${step}`);
   const entry = gatewayUrl ?? 'http://localhost:8080';
-  p.log.info(`Mở ${entry} (gateway — entry duy nhất: / là FE shell, /api/* là services). Đăng ký tài khoản trước khi login (auth-svc không seed user).`);
+  p.log.info(`Mở ${entry} (gateway — entry duy nhất: / là FE shell, /api/* là services). Login alice@demo.local / demo-password (seeded) — hoặc tab Đăng ký.`);
   p.log.warn('Port FE trực tiếp (vd :3000) chỉ là static server — login ở đó báo HTTP 405.');
   p.log.info('FE-only SPA ngoài stack? pnpm create wakii-app');
 }

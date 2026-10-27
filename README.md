@@ -4,7 +4,9 @@
 
 # microservice_microfrontend_starter
 
-### Microservice + micro-frontend starter — full-stack, one command.
+### AI-native full-stack starter cho vibe coding — agent clone repo là làm được.
+
+Rules thành **directives** ([AGENTS.md](AGENTS.md)) · contracts **machine-checkable** (spectral + drift-guard) · verify 1 lệnh (`pnpm verify:quick`) · generators (`gen:service` / `gen:app` / `gen:feature`) · team workflow **N-lane** có watchdog.
 
 Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của repo này** — chạy bằng
 `docker compose up`, không mock, không screenshot từ dự án khác.
@@ -16,6 +18,17 @@ Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của rep
 [![npm create-wakii-stack](https://img.shields.io/npm/v/create-wakii-stack?logo=npm&label=create-wakii-stack&color=cb3837)](https://www.npmjs.com/package/create-wakii-stack)
 [![Storybook](https://img.shields.io/badge/Storybook-870%2B%20stories-ff4785?logo=storybook&logoColor=white)](https://storybook-static-khaki-two.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## 🤖 Agent vào repo biết ngay
+
+| Agent cần | Mở / chạy | Machine contract |
+|---|---|---|
+| **Rules** — làm gì, cấm gì | [AGENTS.md](AGENTS.md) → [CLAUDE.md](CLAUDE.md) | directives if-then; branch + commit regex enforce bằng husky |
+| **Knowledge** — bẫy + map việc→file | [docs/ai/knowledge.md](docs/ai/knowledge.md) · [docs/ai/recipes.md](docs/ai/recipes.md) | gotchas IF/THEN; 20 recipes copy-chạy được |
+| **Workflow** — feature → PR | [docs/WORKFLOW.md](docs/WORKFLOW.md) + skill `wakii-ship-feature` | vòng đời có gate; checklist PR 5 dòng |
+| **Generators** — sinh service / app / feature | `pnpm gen:service` · `gen:app` · `gen:feature` | `--json` → `{created[], modified[], next_steps[]}` — next_steps = directive AI chạy tiếp |
+| **Verify** — 1 lệnh trước mọi PASS | `pnpm verify:quick` | `--json` → `[{step, status, duration}]` + exit code |
+| **Team** — N lane song song | [docs/team/TEAM.md](docs/team/TEAM.md) · `bash scripts/team/lanes-status.sh` | 1 coordinator gate độc lập — N worker worktree riêng |
 
 <img src="docs/assets/readme/stack-marquee.svg" alt="Stack chạy ngang vô hạn — React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion" width="920" />
 

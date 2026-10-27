@@ -19,7 +19,7 @@ IF new to the repo THEN read in this order; IF the task is docs-only THEN skip 4
 ## 1. Git directives
 
 - IF creating a branch THEN the name must match `^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$` — slug: lowercase + `-` only; no `.`, `_`, uppercase. pre-push rejects otherwise.
-- IF `main` needs a change THEN open a PR, merge `--no-ff`. NEVER push straight to main. Details: [docs/git-flow.md](docs/git-flow.md).
+- IF `main` needs a change THEN open a PR; the lead merges **squash** (one commit per PR on main). NEVER push straight to main. Details: [docs/git-flow.md](docs/git-flow.md).
 - IF committing THEN the message is `<type>(<scope>): <description>`, type ∈ `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`.
 - IF type = `fix` THEN the body records root cause + evidence.
 - IF pushing THEN wait for the pre-push FE checks (minutes, per changed path vs `origin/main`) — do NOT kill mid-run.

@@ -1,6 +1,79 @@
-# AGENTS.md — design system `@wakii/ui-kit` cho AI agents
+# AGENTS.md — entry point cho AI agents (Claude / Codex / Cursor / …)
 
-Tài liệu này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipes code đầy đủ:
+Repo: boilerplate nội bộ copy-able — mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task-management chạy qua nginx gateway **:8080**. File này để agent clone repo là biết **đọc gì, theo rule gì, ở đâu tìm tri thức** — không phải mò.
+
+## 1. Đọc theo thứ tự
+
+| # | File | Đọc khi nào |
+|---|---|---|
+| 1 | **AGENTS.md** (file này) | Luôn — rules vận hành + Phần II ui-kit khi viết UI |
+| 2 | [CLAUDE.md](CLAUDE.md) | Bản đồ repo + lệnh hằng ngày + gotchas ngắn |
+| 3 | [docs/walkthrough.md](docs/walkthrough.md) | Lần đầu onboard / chạy demo |
+| 4 | [platform/conventions/01–09](platform/conventions/README.md) | TRƯỚC khi code bất kỳ service nào — bắt buộc |
+| 5 | [docs/adr/0001–0010](docs/adr/README.md) | Khi thắc mắc "vì sao kiến trúc vậy" |
+| 6 | [docs/ai/knowledge.md](docs/ai/knowledge.md) | Gotchas chi tiết (triệu chứng → xử lý) + where-is-what |
+| 7 | [docs/ai/recipes.md](docs/ai/recipes.md) | Khi viết UI — 20 recipes `@wakii/ui-kit` |
+
+## 2. Git rules (enforce bởi `.husky/` — GitHub Actions đang DISABLE, hook là gate chính)
+
+- **Branch**: `wakii-dev/<story|sf|fix|docs|chore|feat>-<slug>` — slug `[a-z0-9][a-z0-9-]*` (lowercase + dấu gạch, **không dấu chấm, không chữ hoa**). Hook chặn ngay lúc push, muộn — đặt tên đúng từ đầu.
+- **KHÔNG push thẳng `main`** — mọi thay đổi vào main qua PR, merge `--no-ff`. Chi tiết: [docs/git-flow.md](docs/git-flow.md).
+- **Commit message**: `<type>(<scope>): <mô tả>` với type `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`; commit `fix` ghi root cause + evidence.
+- **pre-push chạy FE checks** (typecheck/test/build) cho package có file đổi so với `origin/main` — **chậm, vài phút là bình thường, đừng hủy giữa chừng**. Đổi docs-only vẫn phải qua branch rule.
+
+## 3. Multi-session / worktree (bài học trả giá: nhiều lần PR đè nhau)
+
+- **Mỗi mission MỘT worktree riêng**: `git fetch origin && git worktree add /tmp/wt-<tên> -b wakii-dev/<loại>-<slug> origin/main`. KHÔNG checkout/đổi nhánh trên worktree chung khi người khác đang chạy.
+- **TRƯỚC mọi việc**: `git fetch origin` + xem PR vừa merge (`git log --oneline -5 origin/main`) — cắt nhánh từ main cũ = conflict hoặc đè lên PR người khác.
+- **Commit CHỈ file của mình** (`git add <đường-dẫn-cụ-thể>`, không `git add -A`) — worktree có thể đang giữ WIP của session khác.
+- Xong mission: verify → báo cáo → **DỪNG và đóng session**. Session treo ngầm từng tự mở terminal + push PR ngoài ý muốn.
+
+## 4. Lệnh verify nhanh
+
+- `pnpm verify:quick` — lệnh chuẩn 1 phát. *(Đang được thêm bởi lane song song; nếu commit bạn đứng chưa có script này, dùng bảng dưới.)*
+- FE: `pnpm --filter shell test && pnpm --filter shell typecheck` · `pnpm --filter ui-kit test` · `pnpm --filter remote-tasks test` · `pnpm --filter remote-activity test`
+- node-svc / auth-svc: `pnpm --filter node-svc test` · `pnpm --filter auth-svc test` — cài deps bằng `pnpm install --frozen-lockfile --ignore-workspace` **chạy trong thư mục service** (standalone lockfile)
+- go / spring: `cd services/go-svc && go test ./...` · `cd services/spring-svc && ./mvnw test`
+- Contracts: `pnpm lint:contracts` · e2e full: `bash scripts/smoke/e2e.sh`
+- ⚠️ **Pipe nuốt exit-code**: `cmd | tail -20` → `$?` là của `tail`, không phải `cmd`. Kiểm exit status thật (chạy không pipe hoặc soi `PIPESTATUS`) trước khi kết luận PASS.
+
+## 5. Chạy demo + bản đồ port
+
+| Thành phần | Port |
+|---|---|
+| **nginx gateway** | **8080** — cổng duy nhất browser/FE chạm vào |
+| shell (MF host) | 3000 · remote tasks 4001 · remote activity 4002 |
+| node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-svc 8090 | postgres 5432 |
+
+Nguồn sự thật: [platform/conventions/05-ports.md](platform/conventions/05-ports.md) — sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
+
+- **Đường A (compose — khuyến nghị)**: lệnh đầy đủ trong `run.compose` của [orca.yaml](orca.yaml). Điểm chết: **tạo topic `task-events` + `task-events.dlq` TRƯỚC khi boot services**. Verify: `bash scripts/smoke/e2e.sh` → mở http://localhost:8080.
+- **Đường B (native)**: [docs/walkthrough.md](docs/walkthrough.md).
+- **Login seeded**: `alice@demo.local` / `demo-password` (admin — fixture đầy đủ: [contracts/auth/users.json](contracts/auth/users.json)).
+- **Saga demo**: assign task cho `fail@demo.local` → badge "Gán thất bại" + event rơi vào `task-events.dlq`.
+- **Storybook**: `pnpm --filter ui-kit storybook` → http://localhost:6006.
+
+## 6. Bẫy đã biết (tóm tắt — triệu chứng + cách xử lý đầy đủ: [docs/ai/knowledge.md](docs/ai/knowledge.md))
+
+1. npm registry propagate chậm 2–5 phút sau publish — verify từ registry thật (`npm view`), đừng tin cache local.
+2. Kafka topic phải tồn tại TRƯỚC consumer boot (`kafka-init` + `EnsureTopics`) — ngược lại assignment rỗng vĩnh viễn, không hề crash.
+3. Pipe `| tail` / `| head` nuốt exit-code → PASS ảo.
+4. Publish tarball copy tay hay mất file — luôn `npm pack --dry-run` + soi nội dung tarball trước khi publish.
+5. Port conflict do dev server cũ còn treo — `lsof -iTCP:<port> -sTCP:LISTEN` rồi kill PID.
+6. Docker engine quá tải / sập giữa build khi 2 build chạy song song — build tuần tự.
+7. Branch slug sai pattern (dấu chấm, chữ hoa) — chỉ phát hiện lúc push.
+8. `app/ui-kit/.storybook/manager-head.html` tự dirty sau mỗi lần dev/build (badge do `scripts/stamp-build.cjs` ghi) — **đừng commit nó**.
+9. Vitest ranh giới ngày: TZ pin trong `vitest.config.ts` (`test.env`) — đừng bỏ.
+
+## 7. Viết UI?
+
+Đọc **Phần II** cuối file này (quy tắc BẮT BUỘC + anti-patterns + bản đồ feature → component) + [docs/ai/recipes.md](docs/ai/recipes.md), đối chiếu visual với Storybook :6006. ui-kit consumed qua source — sửa là thấy ngay, không phải build.
+
+---
+
+# Phần II — Design system `@wakii/ui-kit` (quick reference cho AI)
+
+Phần này cho AI agent đọc TRƯỚC khi viết UI dùng ui-kit. Recipes code đầy đủ:
 [docs/ai/recipes.md](docs/ai/recipes.md). API sống: Storybook :6006. Đổi behavior:
 [app/ui-kit/CHANGELOG.md](app/ui-kit/CHANGELOG.md).
 

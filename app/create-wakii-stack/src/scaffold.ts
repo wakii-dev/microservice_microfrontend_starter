@@ -6,6 +6,7 @@
 // envKeys — cuối cùng sinh README.md (services + up + smoke + ports).
 // Toàn bộ thao tác compose/gateway/env là TEXT theo cấu trúc thụt dòng —
 // không YAML parser (0 deps).
+import { spawnSync } from 'node:child_process';
 import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -30,6 +31,10 @@ export interface StackScaffoldInput {
   dest: string;
   /** Ghi đè nguồn template + manifest (test trỏ fixture). */
   templateRoot?: string;
+  /** Đồng bộ pnpm-lock.yaml sau khi rewrite FE deps sang registry (pnpm install
+   *  --lockfile-only trong dest; không có pnpm → bỏ --frozen-lockfile Dockerfile).
+   *  Mặc định FALSE (test KHÔNG network/spawn) — CLI bật true. */
+  lockfileSync?: boolean;
   log?: (message: string) => void;
 }
 
@@ -43,7 +48,10 @@ const STACK_ORG = 'wakii';
 async function copyTree(srcDir: string, destDir: string, opts: { stackName: string; files: string[] }): Promise<void> {
   await mkdir(destDir, { recursive: true });
   for (const entry of await readdir(srcDir, { withFileTypes: true })) {
-    if (entry.name === '.DS_Store') continue;
+    // node_modules: dev-machine artifact lọt vào snapshot qua workspace root install
+    // (app/* glob bắt cả stack-template) — KHÔNG phải template; symlink trỏ dir làm
+    // readFile EISDIR (bắt khi smoke 2026-10-27)
+    if (entry.name === '.DS_Store' || entry.name === 'node_modules' || entry.isSymbolicLink()) continue;
     const srcPath = join(srcDir, entry.name);
     const destPath = join(destDir, entry.name);
     if (entry.isDirectory()) {
@@ -211,11 +219,16 @@ ${access}## Run
 \`\`\`bash
 cd ${selection.appName}
 cp platform/.env.example platform/.env   # điền secret trước khi up
-docker compose --env-file platform/.env up -d
+docker compose -f platform/docker-compose.yml --env-file platform/.env up -d
 \`\`\`
 
 ${manifest.smoke ? `## Smoke\n\n\`\`\`bash\n${manifest.smoke}\n\`\`\`\n` : ''}
 ${ports ? `## Ports\n\n${ports}\n` : ''}
+## Packages
+
+- FE apps cài **\`@wakii/ui-kit\`** từ npm registry (dist-tag \`latest\` — source không kèm trong stack; nâng cấp bằng \`pnpm update @wakii/ui-kit\`).
+- \`@wakii/fe-shared\` vẫn consumed qua source \`app/shared\` (workspace — không qua npm).
+
 Need a FE app (SPA) outside this stack? \`pnpm create wakii-app\`.
 `;
 }
@@ -229,6 +242,130 @@ async function collectByName(root: string, name: string, out: string[] = []): Pr
     else if (entry.name === name) out.push(p);
   }
   return out;
+}
+
+/**
+ * FE deps chuyển sang npm registry khi scaffold (Hybrid C — mọi thứ ở ENGINE
+ * runtime, template snapshot giữ nguyên). `app/ui-kit` bị prune khỏi source →
+ * FE apps cài từ registry. Giá trị = dist-tag `latest` (coordinator 2026-10-27):
+ * cài bản mới nhất trên npm tại thời điểm scaffold — lockfile ghim version đó,
+ * nâng cấp trong repo sinh ra bằng `pnpm update @wakii/ui-kit`.
+ * `@wakii/fe-shared` CỐ Ý KHÔNG nằm đây — `app/shared` giữ nguyên trong scaffold
+ * (consumed qua source, workspace:*) theo điều chỉnh coordinator 2026-10-27.
+ */
+const REGISTRY_DEPS: Record<string, string> = { '@wakii/ui-kit': 'latest' };
+
+/**
+ * Rewrite `"@wakii/ui-kit": "workspace:*"` → giá trị registry trong package.json
+ * các FE app (mọi dir con trực tiếp của `app/` + `app/remotes/<name>` — dep khai
+ * ở ROOT package, import subpath `@wakii/ui-kit/carousel` không cần key riêng).
+ * Chỉ đụng key có giá trị đúng `workspace:*` — khai khác (file:/...) giữ nguyên.
+ * Trả số package.json đã sửa.
+ */
+export async function rewriteRegistryDeps(dest: string, log?: (message: string) => void): Promise<number> {
+  const appDir = join(dest, 'app');
+  if (!existsSync(appDir)) return 0;
+  const candidates: string[] = [];
+  for (const entry of await readdir(appDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name === 'remotes') {
+      for (const remote of await readdir(join(appDir, 'remotes'), { withFileTypes: true })) {
+        if (remote.isDirectory()) candidates.push(join(appDir, 'remotes', remote.name));
+      }
+    } else {
+      candidates.push(join(appDir, entry.name));
+    }
+  }
+
+  let changed = 0;
+  for (const dir of candidates) {
+    const pkgPath = join(dir, 'package.json');
+    if (!existsSync(pkgPath)) continue;
+    const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as Record<string, Record<string, string>>;
+    let touched = false;
+    for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+      const deps = pkg[section];
+      if (!deps) continue;
+      for (const [name, range] of Object.entries(REGISTRY_DEPS)) {
+        if (deps[name] === 'workspace:*') {
+          deps[name] = range;
+          touched = true;
+        }
+      }
+    }
+    if (touched) {
+      await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+      changed += 1;
+      log?.(`Registry deps: ${pkgPath.slice(dest.length + 1)} (workspace:* → latest)`);
+    }
+  }
+  return changed;
+}
+
+/**
+ * rspack swc-loader include liệt kê source FE qua regex
+ * `/[\\/]app[\\/](shared|ui-kit)[\\/]src/` — sau khi prune app/ui-kit, source đó
+ * không còn → thu pattern về shared (đơn giản hoá theo brief: "làm nếu đơn giản" —
+ * text replace literal, không eval). Đơn vị chỉ chạy khi app/ui-kit bị prune.
+ */
+export async function rewriteRspackIncludes(dest: string, log?: (message: string) => void): Promise<number> {
+  const SEARCH = '/[\\\\/]app[\\\\/](shared|ui-kit)[\\\\/]src/';
+  const REPLACE = '/[\\\\/]app[\\\\/]shared[\\\\/]src/';
+  const appDir = join(dest, 'app');
+  if (!existsSync(appDir)) return 0;
+  let files = 0;
+  for (const config of await collectByName(appDir, 'rspack.config.mjs')) {
+    const src = await readFile(config, 'utf8');
+    if (!src.includes(SEARCH)) continue;
+    await writeFile(config, src.replaceAll(SEARCH, REPLACE));
+    files += 1;
+  }
+  if (files > 0) log?.(`Rewrite ${files} rspack include (bỏ pattern ui-kit source)`);
+  return files;
+}
+
+/**
+ * Đồng bộ pnpm-lock.yaml sau khi rewrite deps — nếu không, `docker build` gãy ở
+ * `pnpm install --frozen-lockfile` (lock còn specifier workspace:* / version link).
+ * Ưu tiên `pnpm install --lockfile-only` trong dest (resolution-only, KHÔNG tạo
+ * node_modules, KHÔNG chạy scripts); pnpm không có/fail → fallback xoá cờ
+ * --frozen-lockfile khỏi Dockerfile (container tự resolve range mới khi build).
+ */
+export type LockfileSyncMode = 'pnpm' | 'unfrozen' | 'skipped';
+
+export async function syncLockfile(dest: string, log?: (message: string) => void): Promise<LockfileSyncMode> {
+  if (!existsSync(join(dest, 'pnpm-lock.yaml'))) return 'skipped';
+  const probe = spawnSync('pnpm', ['--version'], { cwd: dest, encoding: 'utf8', timeout: 15_000 });
+  if (probe.status === 0) {
+    const install = spawnSync('pnpm', ['install', '--lockfile-only', '--ignore-scripts'], {
+      cwd: dest,
+      encoding: 'utf8',
+      timeout: 180_000,
+    });
+    if (install.status === 0) {
+      log?.('Lockfile tái sinh (pnpm install --lockfile-only) — frozen-lockfile giữ nguyên');
+      return 'pnpm';
+    }
+    log?.(`pnpm install --lockfile-only thất bại — fallback bỏ --frozen-lockfile`);
+  } else {
+    log?.('pnpm không có trên PATH — fallback bỏ --frozen-lockfile');
+  }
+  await unfreezeDockerfiles(dest);
+  log?.('Đã bỏ --frozen-lockfile khỏi Dockerfile (lock cũ không khớp range registry mới)');
+  return 'unfrozen';
+}
+
+/** Xoá cờ --frozen-lockfile khỏi mọi Dockerfile trong dest. Test riêng vì nhánh
+ *  còn lại của syncLockfile cần pnpm thật (chỉ chạy trong smoke). */
+export async function unfreezeDockerfiles(dest: string): Promise<number> {
+  let files = 0;
+  for (const dockerfile of await collectByName(dest, 'Dockerfile')) {
+    const src = await readFile(dockerfile, 'utf8');
+    if (!src.includes('--frozen-lockfile')) continue;
+    await writeFile(dockerfile, src.replaceAll(' --frozen-lockfile', ''));
+    files += 1;
+  }
+  return files;
 }
 
 /**
@@ -303,6 +440,11 @@ export async function pruneWorkspaceRefs(
       log?.(`Pruned ${globs} pnpm-workspace glob`);
     }
   }
+
+  // 4. rspack swc-loader include pattern — app/ui-kit prune → thu về shared
+  if (prunedPaths.includes('app/ui-kit')) {
+    await rewriteRspackIncludes(dest, log);
+  }
 }
 
 /** Scaffold 1 stack: full-copy → render → prune theo manifest → README. */
@@ -323,8 +465,10 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
 
   // 0. LUÔN xoá tooling meta của hệ sinh thái Wakii — snapshot cả repo nhưng
   // các package này không thuộc stack được sinh ra (CLI scaffolders + templates
-  // nguồn + spike thử nghiệm).
-  const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike'];
+  // nguồn + spike thử nghiệm) + app/ui-kit: FE cài từ npm registry thay nhúng
+  // source (2026-10-27 — rewriteRegistryDeps đổi workspace:* → latest).
+  // LƯU Ý: app/shared KHÔNG prune — fe-shared consumed qua source (workspace:*).
+  const ALWAYS_PRUNE = ['app/create-wakii-app', 'app/create-wakii-stack', 'app/starter-templates', 'app/stack-template', 'app/spike', 'app/ui-kit'];
   const prunedPaths: string[] = [];
   for (const relPath of ALWAYS_PRUNE) {
     const target = join(dest, relPath);
@@ -380,9 +524,18 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   }
 
   // 4b. dọn references workspace (Dockerfile COPY / pnpm-lock importers /
-  // pnpm-workspace globs) của mọi dir đã prune — docker build from-scratch gãy
-  // nếu thiếu (bắt trên stack Desktop 0.1.4)
+  // pnpm-workspace globs / rspack include pattern) của mọi dir đã prune —
+  // docker build from-scratch gãy nếu thiếu (bắt trên stack Desktop 0.1.4)
   await pruneWorkspaceRefs(dest, prunedPaths, log);
+
+  // 4c. FE deps → npm registry (app/ui-kit đã prune ở bước 0): rewrite
+  // workspace:* → latest rồi đồng bộ lockfile (pnpm lockfile-only; không có
+  // pnpm → unfreeze Dockerfile). @wakii/fe-shared giữ workspace — app/shared
+  // ở lại source (điều chỉnh coordinator 2026-10-27).
+  const registryRewritten = await rewriteRegistryDeps(dest, log);
+  if (registryRewritten > 0 && input.lockfileSync) {
+    await syncLockfile(dest, log);
+  }
 
   // 5. README sinh ở đỉnh dest
   await writeFile(join(dest, 'README.md'), renderReadme(manifest, selection));

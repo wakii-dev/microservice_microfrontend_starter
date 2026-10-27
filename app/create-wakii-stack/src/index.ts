@@ -27,7 +27,7 @@ function printNextSteps(selection: StackSelection, gatewayUrl: string | undefine
   const steps = [
     `cd ${selection.appName}`,
     'cp platform/.env.example platform/.env   # điền secret trước khi up',
-    'docker compose --env-file platform/.env up -d',
+    'docker compose -f platform/docker-compose.yml --env-file platform/.env up -d',
   ];
   if (!selection.skipInstall) steps.push('# FE apps: pnpm install trong từng app muốn chạy build cục bộ');
   p.log.info('Next steps:');
@@ -128,6 +128,7 @@ async function main(): Promise<void> {
       selection,
       dest,
       templateRoot: DEFAULT_TEMPLATE_ROOT,
+      lockfileSync: true, // FE deps → registry: tái sinh lockfile (test tắt flag này)
       log: (message) => {
         s.message(message);
       },

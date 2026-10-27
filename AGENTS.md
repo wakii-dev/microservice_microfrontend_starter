@@ -1,43 +1,62 @@
-# AGENTS.md — entry point cho AI agents (Claude / Codex / Cursor / …)
+# AGENTS.md — rules cho AI agents (Claude / Codex / Cursor / …)
 
-Repo: boilerplate nội bộ copy-able — mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task-management chạy qua nginx gateway **:8080**. File này để agent clone repo là biết **đọc gì, theo rule gì, ở đâu tìm tri thức** — không phải mò.
+Repo: mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack); browser chỉ chạm gateway :8080. File này = **directives if-then** — áp dụng nguyên văn; IF case không có rule THEN đi theo §0; IF rule xung đột brief THEN hỏi lead, KHÔNG tự sửa rule.
 
-## 1. Đọc theo thứ tự
+## 0. Reading order
 
-| # | File | Đọc khi nào |
+IF mới đến repo THEN đọc theo thứ tự; IF task là docs-only THEN bỏ 4–5:
+
+| # | Đọc | Điều kiện |
 |---|---|---|
-| 1 | **AGENTS.md** (file này) | Luôn — rules vận hành + Phần II ui-kit khi viết UI |
-| 2 | [CLAUDE.md](CLAUDE.md) | Bản đồ repo + lệnh hằng ngày + gotchas ngắn |
-| 3 | [docs/walkthrough.md](docs/walkthrough.md) | Lần đầu onboard / chạy demo |
-| 4 | [platform/conventions/01–09](platform/conventions/README.md) | TRƯỚC khi code bất kỳ service nào — bắt buộc |
-| 5 | [docs/adr/0001–0010](docs/adr/README.md) | Khi thắc mắc "vì sao kiến trúc vậy" |
-| 6 | [docs/ai/knowledge.md](docs/ai/knowledge.md) | Gotchas chi tiết (triệu chứng → xử lý) + where-is-what |
-| 7 | [docs/ai/recipes.md](docs/ai/recipes.md) | Khi viết UI — 20 recipes `@wakii/ui-kit` |
+| 1 | AGENTS.md (file này) | luôn |
+| 2 | [CLAUDE.md](CLAUDE.md) | luôn — bản đồ repo + lệnh |
+| 3 | [docs/walkthrough.md](docs/walkthrough.md) | IF cần chạy demo lần đầu |
+| 4 | [platform/conventions/01–09](platform/conventions/README.md) | IF code service — bắt buộc |
+| 5 | [docs/adr/0001–0010](docs/adr/README.md) | IF cần lý do kiến trúc |
+| 6 | [docs/ai/knowledge.md](docs/ai/knowledge.md) | IF vấp bẫy / cần map việc→file |
+| 7 | [docs/ai/recipes.md](docs/ai/recipes.md) | IF viết UI |
 
-## 2. Git rules (enforce bởi `.husky/` — GitHub Actions đang DISABLE, hook là gate chính)
+## 1. Git directives
 
-- **Branch**: `wakii-dev/<story|sf|fix|docs|chore|feat>-<slug>` — slug `[a-z0-9][a-z0-9-]*` (lowercase + dấu gạch, **không dấu chấm, không chữ hoa**). Hook chặn ngay lúc push, muộn — đặt tên đúng từ đầu.
-- **KHÔNG push thẳng `main`** — mọi thay đổi vào main qua PR, merge `--no-ff`. Chi tiết: [docs/git-flow.md](docs/git-flow.md).
-- **Commit message**: `<type>(<scope>): <mô tả>` với type `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`; commit `fix` ghi root cause + evidence.
-- **pre-push chạy FE checks** (typecheck/test/build) cho package có file đổi so với `origin/main` — **chậm, vài phút là bình thường, đừng hủy giữa chừng**. Đổi docs-only vẫn phải qua branch rule.
+- IF tạo branch THEN name match `^wakii-dev/(story|sf|fix|docs|chore|feat)-[a-z0-9][a-z0-9-]*$` — slug chỉ lowercase + `-`; cấm `.`, `_`, chữ hoa. pre-push chặn nếu sai.
+- IF cần thay đổi main THEN mở PR, merge `--no-ff`. NEVER push thẳng main. Chi tiết: [docs/git-flow.md](docs/git-flow.md).
+- IF commit THEN message `<type>(<scope>): <mô tả>`, type ∈ `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`.
+- IF type = `fix` THEN body ghi root cause + evidence.
+- IF push THEN chờ pre-push FE checks (vài phút, theo path đổi so với `origin/main`) — KHÔNG kill giữa chừng.
 
-## 3. Multi-session / worktree (bài học trả giá: nhiều lần PR đè nhau)
+## 2. Multi-session directives
 
-- **Mỗi mission MỘT worktree riêng**: `git fetch origin && git worktree add /tmp/wt-<tên> -b wakii-dev/<loại>-<slug> origin/main`. KHÔNG checkout/đổi nhánh trên worktree chung khi người khác đang chạy.
-- **TRƯỚC mọi việc**: `git fetch origin` + xem PR vừa merge (`git log --oneline -5 origin/main`) — cắt nhánh từ main cũ = conflict hoặc đè lên PR người khác.
-- **Commit CHỈ file của mình** (`git add <đường-dẫn-cụ-thể>`, không `git add -A`) — worktree có thể đang giữ WIP của session khác.
-- Xong mission: verify → báo cáo → **DỪNG và đóng session**. Session treo ngầm từng tự mở terminal + push PR ngoài ý muốn.
+- IF bắt đầu mission THEN `git fetch origin && git worktree add /tmp/wt-<tên> -b wakii-dev/<loại>-<slug> origin/main`. KHÔNG dùng worktree chung.
+- IF worktree chung đang có session khác chạy THEN KHÔNG checkout/switch branch trên đó.
+- IF bắt đầu việc THEN `git fetch origin && git log --oneline -5 origin/main` — nhánh cắt từ main cũ = conflict / đè PR người khác.
+- IF stage THEN `git add <đường-dẫn-cụ-thể>`; cấm `git add -A` (tree có thể chứa WIP session khác).
+- IF xong mission THEN verify → report → stop → đóng session (session treo ngầm = rủi ro push vô ý).
 
-## 4. Lệnh verify nhanh
+## 3. Verify directives
 
-- `pnpm verify:quick` — lệnh chuẩn 1 phát. *(Đang được thêm bởi lane song song; nếu commit bạn đứng chưa có script này, dùng bảng dưới.)*
-- FE: `pnpm --filter shell test && pnpm --filter shell typecheck` · `pnpm --filter ui-kit test` · `pnpm --filter remote-tasks test` · `pnpm --filter remote-activity test`
-- node-svc / auth-svc: `pnpm --filter node-svc test` · `pnpm --filter auth-svc test` — cài deps bằng `pnpm install --frozen-lockfile --ignore-workspace` **chạy trong thư mục service** (standalone lockfile)
-- go / spring: `cd services/go-svc && go test ./...` · `cd services/spring-svc && ./mvnw test`
-- Contracts: `pnpm lint:contracts` · e2e full: `bash scripts/smoke/e2e.sh`
-- ⚠️ **Pipe nuốt exit-code**: `cmd | tail -20` → `$?` là của `tail`, không phải `cmd`. Kiểm exit status thật (chạy không pipe hoặc soi `PIPESTATUS`) trước khi kết luận PASS.
+- IF đổi code THEN `pnpm verify:quick` — script tự chọn bước theo path đổi; exit code 0 = PASS. (Đang land bởi lane verify — nếu chưa có ở commit đang đứng, dùng bảng dưới.)
+- IF program/agent cần đọc kết quả THEN `pnpm verify:quick --json` → `[{step, status, duration}]` + exit code. **JSON là contract chính**; output text mặc định chỉ để người đọc, không parse.
+- IF verify qua pipe (`cmd | tail`) THEN `$?` là của lệnh CUỐI — kết luận PASS chỉ từ exit code thật hoặc `--json`.
+- IF cài node-svc / auth-svc THEN `cd services/<svc> && pnpm install --frozen-lockfile --ignore-workspace` (standalone lockfile).
 
-## 5. Chạy demo + bản đồ port
+IF verify:quick chưa có THEN chạy từng package:
+
+| Package | Lệnh |
+|---|---|
+| shell | `pnpm --filter shell test && pnpm --filter shell typecheck` |
+| ui-kit | `pnpm --filter ui-kit test` |
+| remote-tasks / remote-activity | `pnpm --filter remote-tasks test` · `pnpm --filter remote-activity test` |
+| node-svc / auth-svc | `pnpm --filter node-svc test` · `pnpm --filter auth-svc test` |
+| go-svc / spring-svc | `cd services/go-svc && go test ./...` · `cd services/spring-svc && ./mvnw test` |
+| contracts | `pnpm lint:contracts` |
+| e2e full | `bash scripts/smoke/e2e.sh` |
+
+## 4. Generator directives
+
+- IF cần sinh service / app / feature mới THEN `pnpm gen:service` · `pnpm gen:app` · `pnpm gen:feature` (đang land bởi lane generators — code tại `scripts/generators/`).
+- IF program cần kết quả THEN thêm `--json` → `{"created": [<files>], "modified": [<files>], "next_steps": [<directives>]}`. `next_steps` = directives AI thực hiện tiếp (path + action) — KHÔNG phải hướng dẫn cho người đọc.
+
+## 5. Demo + ports
 
 | Thành phần | Port |
 |---|---|
@@ -45,29 +64,27 @@ Repo: boilerplate nội bộ copy-able — mixed-stack services (Node/Spring/Go)
 | shell (MF host) | 3000 · remote tasks 4001 · remote activity 4002 |
 | node-svc 3001 · spring-svc 8081 · go-svc 8082 · auth-svc 8090 | postgres 5432 |
 
-Nguồn sự thật: [platform/conventions/05-ports.md](platform/conventions/05-ports.md) — sửa port = 4 chỗ cùng commit (conventions/05 + .env.example + compose + README).
+- IF sửa port THEN sửa đủ 4 chỗ cùng commit: conventions/05 + `.env.example` + compose + README (nguồn sự thật: [platform/conventions/05-ports.md](platform/conventions/05-ports.md)).
+- IF chạy demo THEN dùng `run.compose` trong [orca.yaml](orca.yaml) — tạo topic `task-events` + `task-events.dlq` TRƯỚC khi boot services; verify `bash scripts/smoke/e2e.sh`; mở http://localhost:8080. IF không dùng compose THEN [docs/walkthrough.md](docs/walkthrough.md).
+- IF login demo THEN `alice@demo.local` / `demo-password` (fixture: [contracts/auth/users.json](contracts/auth/users.json)).
+- IF demo saga THEN assign task cho `fail@demo.local` → badge "Gán thất bại" + event vào `task-events.dlq`.
+- IF cần visual truth THEN `pnpm --filter ui-kit storybook` → http://localhost:6006.
 
-- **Đường A (compose — khuyến nghị)**: lệnh đầy đủ trong `run.compose` của [orca.yaml](orca.yaml). Điểm chết: **tạo topic `task-events` + `task-events.dlq` TRƯỚC khi boot services**. Verify: `bash scripts/smoke/e2e.sh` → mở http://localhost:8080.
-- **Đường B (native)**: [docs/walkthrough.md](docs/walkthrough.md).
-- **Login seeded**: `alice@demo.local` / `demo-password` (admin — fixture đầy đủ: [contracts/auth/users.json](contracts/auth/users.json)).
-- **Saga demo**: assign task cho `fail@demo.local` → badge "Gán thất bại" + event rơi vào `task-events.dlq`.
-- **Storybook**: `pnpm --filter ui-kit storybook` → http://localhost:6006.
+## 6. Traps — IF … THEN … (chi tiết: [docs/ai/knowledge.md](docs/ai/knowledge.md))
 
-## 6. Bẫy đã biết (tóm tắt — triệu chứng + cách xử lý đầy đủ: [docs/ai/knowledge.md](docs/ai/knowledge.md))
+- IF npx/pnpm thấy bản cũ ngay sau publish THEN registry cần 2–5 phút propagate — verify `npm view <pkg>`, KHÔNG publish lại.
+- IF consumer Kafka boot trước topic THEN assignment rỗng vĩnh viễn (không crash) — tạo topic trước (`kafka-init` + `EnsureTopics`).
+- IF verify bằng `| tail`/`| head` THEN exit code bị nuốt — PASS ảo.
+- IF publish tarball copy tay THEN mất file — `npm pack` + soi nội dung tarball trước khi publish.
+- IF `EADDRINUSE` / UI cũ lạ THEN dev server cũ còn treo — `lsof -iTCP:<port> -sTCP:LISTEN` + kill PID.
+- IF 2 docker build song song THEN engine quá tải/sập giữa build — build tuần tự.
+- IF đặt branch slug có `.`/chữ hoa THEN chỉ bị chặn lúc push — sửa bằng `git branch -m` ngay.
+- IF `app/ui-kit/.storybook/manager-head.html` dirty THEN badge tự sinh (`scripts/stamp-build.cjs`) — KHÔNG commit.
+- IF test ngày/month đỏ đẹp bất thường THEN TZ pin trong `vitest.config.ts` (`test.env`) bị bỏ/thiếu — giữ pin.
 
-1. npm registry propagate chậm 2–5 phút sau publish — verify từ registry thật (`npm view`), đừng tin cache local.
-2. Kafka topic phải tồn tại TRƯỚC consumer boot (`kafka-init` + `EnsureTopics`) — ngược lại assignment rỗng vĩnh viễn, không hề crash.
-3. Pipe `| tail` / `| head` nuốt exit-code → PASS ảo.
-4. Publish tarball copy tay hay mất file — luôn `npm pack --dry-run` + soi nội dung tarball trước khi publish.
-5. Port conflict do dev server cũ còn treo — `lsof -iTCP:<port> -sTCP:LISTEN` rồi kill PID.
-6. Docker engine quá tải / sập giữa build khi 2 build chạy song song — build tuần tự.
-7. Branch slug sai pattern (dấu chấm, chữ hoa) — chỉ phát hiện lúc push.
-8. `app/ui-kit/.storybook/manager-head.html` tự dirty sau mỗi lần dev/build (badge do `scripts/stamp-build.cjs` ghi) — **đừng commit nó**.
-9. Vitest ranh giới ngày: TZ pin trong `vitest.config.ts` (`test.env`) — đừng bỏ.
+## 7. UI
 
-## 7. Viết UI?
-
-Đọc **Phần II** cuối file này (quy tắc BẮT BUỘC + anti-patterns + bản đồ feature → component) + [docs/ai/recipes.md](docs/ai/recipes.md), đối chiếu visual với Storybook :6006. ui-kit consumed qua source — sửa là thấy ngay, không phải build.
+IF viết UI THEN đọc Phần II (cuối file này) + [docs/ai/recipes.md](docs/ai/recipes.md); đối chiếu Storybook :6006. ui-kit consumed qua source — sửa là thấy ngay.
 
 ---
 

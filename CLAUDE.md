@@ -2,6 +2,10 @@
 
 Boilerplate nội bộ copy-able (epic FI-62): mixed-stack services (Node/Spring/Go) + Module Federation FE (Rspack), demo e2e task management qua nginx gateway. Bản đồ structured cho agent parse: [orca.yaml](orca.yaml). Cho người mới: [docs/walkthrough.md](docs/walkthrough.md).
 
+> New agent here (Claude/Codex/Cursor): read [AGENTS.md](AGENTS.md) first — reading order + git/multi-session rules + quick verify.
+> Knowledge base (detailed gotchas + where-is-what): [docs/ai/knowledge.md](docs/ai/knowledge.md).
+> UI recipes: [docs/ai/recipes.md](docs/ai/recipes.md); the ui-kit quick reference lives in Part II of AGENTS.md.
+
 ## Nguyên tắc vàng (vi phạm = review fail)
 
 1. **Contracts là source of truth** — sửa spec/DDL/event contract TRƯỚC, code theo sau (`contracts/`).

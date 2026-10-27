@@ -41,6 +41,9 @@ importers:
       husky:
         specifier: ^9.1.0
         version: 9.1.7
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
 
   app/admin:
     dependencies:

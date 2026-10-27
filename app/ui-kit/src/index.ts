@@ -18,7 +18,7 @@ export { Alert, type AlertProps, type AlertType , type AlertClassNames } from '.
 export { Anchor, type AnchorProps, type AnchorLinkItem, type AnchorGetContainer , type AnchorClassNames } from './ui/anchor/index.js';
 export { Modal, type ModalProps , type ModalClassNames } from './ui/modal/index.js';
 export { message, type MessageType , type MessageClassNames } from './ui/message/index.js';
-export { UiKitProvider, type UiKitProviderProps } from './provider/index.js';
+export { UiKitProvider, type UiKitProviderProps, type ThemeTokens, type ThemeModes } from './provider/index.js';
 export { Typography, Title, Text, Paragraph, type TitleProps, type TextProps, type ParagraphProps, type TextType , type TitleClassNames , type TextClassNames , type ParagraphClassNames } from './ui/typography/index.js';
 export { Divider, type DividerProps , type DividerClassNames } from './ui/divider/index.js';
 export { Flex, type FlexProps, type FlexGap , type FlexClassNames } from './ui/flex/index.js';
@@ -127,6 +127,9 @@ export { useMeasure, type ElementSize } from './hooks/useMeasure.js';
 export { useOnlineStatus } from './hooks/useOnlineStatus.js';
 export { useFullscreen, type UseFullscreenReturn } from './hooks/useFullscreen.js';
 export { useTitle } from './hooks/useTitle.js';
+
+// ── Theming (theming 2, 2026-10-27): palette chart public theo scope theme ──
+export { useChartPalette, type ChartPalette, type UseChartPaletteReturn } from './hooks/useChartPalette.js';
 
 // ── Navigation mới (batch ② 2026-10-17) ──
 export { Menu, type MenuProps, type MenuItemData, MenuCompactContext, findPath } from './ui/menu/index.js';

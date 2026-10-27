@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from '../ui/badge/index';
 import { Button } from '../ui/button/index';
@@ -115,3 +116,42 @@ function RadiusProbe({ label }: { label: string }) {
     </div>
   );
 }
+
+// Host scope mô phỏng app ngoài: toggle attr data-bp-theme trên tổ tiên —
+// provider per-mode tự theo (mount read + MutationObserver), 0 prop mode.
+function PerModeDemo() {
+  const [dark, setDark] = useState(false);
+  return (
+    <div
+      data-bp-theme={dark ? 'dark' : undefined}
+      className="rounded-xl border border-line p-4"
+      style={{ background: 'var(--c-canvas)' }}
+    >
+      <div style={{ display: 'grid', gap: 12 }}>
+        <Button className="w-fit" onClick={() => setDark((d) => !d)}>
+          Toggle host theme — currently {dark ? 'dark' : 'light'}
+        </Button>
+        <UiKitProvider
+          theme={{
+            light: { accent: '#7c3aed', accentHi: '#a78bfa' },
+            dark: { accent: '#22d3ee', accentHi: '#67e8f9' },
+          }}
+        >
+          <DemoContent />
+          <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--ink2)' }}>
+            The provider reads the nearest ancestor data-bp-theme (at mount + via
+            MutationObserver) and applies the matching token set: purple brand in light,
+            cyan brand in dark. Keys left unset fall through the cascade — dark.css owns
+            the surfaces in dark mode, :root defaults in light.
+          </p>
+        </UiKitProvider>
+      </div>
+    </div>
+  );
+}
+
+export const PerModeTheme: Story = {
+  name: 'PerModeTheme — different brand per light/dark (provider follows the host theme attr)',
+  args: { children: 'x' },
+  render: () => <PerModeDemo />,
+};

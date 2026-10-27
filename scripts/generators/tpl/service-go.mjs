@@ -1,0 +1,416 @@
+// service-go.mjs — template Go chi service (gen-service --lang go).
+// KHUNG tối giản theo conventions: 01 Dockerfile (distroless nonroot — KHÔNG
+// healthcheck compose, gateway depends service_started — conventions/02 rule 3),
+// 02 health naked+mirror, 03 slog JSON, 04 error envelope, 05 PORT env,
+// 06 fail-fast, 07 CORS dev-profile, 08 prefix /api/<name> + JWT verify.
+// ctx: { name, pascal, camel, scream, port, db, goModule }.
+
+function dockerfile(ctx) {
+  return (
+    `# ` +
+    ctx.name +
+    ` — build theo platform/conventions/01-dockerfile-pattern.md (Go).
+# Runtime distroless: KHÔNG shell/wget → compose KHÔNG khai healthcheck
+# (conventions/02 rule 3 — readiness chứng minh bằng boot-smoke/e2e poll).
+
+FROM golang:1.24-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/` +
+    ctx.name +
+    ` ./cmd/server
+
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
+COPY --from=build /out/` +
+    ctx.name +
+    ` /` +
+    ctx.name +
+    `
+EXPOSE ` +
+    ctx.port +
+    `
+ENTRYPOINT ["/` +
+    ctx.name +
+    `"]
+`
+  );
+}
+
+function goMod(ctx) {
+  return (
+    `module ` +
+    ctx.goModule +
+    `/services/` +
+    ctx.name +
+    `
+
+go 1.24
+
+require (
+	github.com/go-chi/chi/v5 v5.3.2
+	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/rs/cors v1.11.1
+` +
+    (ctx.db ? `\tgithub.com/jackc/pgx/v5 v5.7.5\n` : '') +
+    `)
+`
+  );
+}
+
+function mainGo(ctx) {
+  const dbParts = ctx.db
+    ? {
+        import: `\t"github.com/jackc/pgx/v5/pgxpool"\n`,
+        cfg: `\tdbURL    string // DATABASE_URL — bắt buộc khi service có DB (conventions/06)\n`,
+        load: `\tc.dbURL = must(env, "DATABASE_URL", &missing)\n`,
+        ready: `// readyz kiểm THẬT: SELECT 1 qua pool (conventions/02 rule 2).
+var pool *pgxpool.Pool
+
+func readyz(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if err := pool.Ping(ctx); err != nil {
+			writeErr(w, http.StatusServiceUnavailable, "", "DEPENDENCY_DOWN", "not ready: "+err.Error())
+			return
+		}
+		writeOK(w)
+	}
+}
+
+`,
+        boot: `	// DB pool — readyz dùng ping thật (conventions/02 rule 2)
+	poolCtx, poolCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer poolCancel()
+	pool, err = pgxpool.New(poolCtx, cfg.dbURL)
+	if err != nil {
+		log.Error("db pool open failed", "err", err.Error())
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+`,
+        route: `\t\trr.Get("/readyz", readyz(pool))\n`,
+      }
+    : {
+        import: ``,
+        cfg: ``,
+        load: ``,
+        ready: ``,
+        boot: ``,
+        route: `\t\trr.Get("/readyz", readyzDefault)\n`,
+      };
+
+  return (
+    `// ` +
+    ctx.name +
+    ` — sinh bởi scripts/generators gen-service (--lang go).
+// Conventions: platform/conventions/ — 02 health naked+mirror, 03 slog JSON,
+// 04 error envelope, 05 PORT env, 06 env fail-fast, 07 CORS dev-profile,
+// 08 prefix /api/<name> + service TỰ verify JWT.
+// SAMPLE /items là khung — thay bằng domain thật (contract-first:
+// contracts/openapi/` +
+    ctx.name +
+    `.yaml).
+package main
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	jwtlib "github.com/golang-jwt/jwt/v5"
+	"github.com/rs/cors"
+` +
+    dbParts.import +
+    `)
+
+const serviceName = "` +
+    ctx.name +
+    `"
+
+// config — 100% env-var (conventions/06), fail-fast khi thiếu bắt buộc.
+type config struct {
+	port        string
+	jwtSecret   string
+	corsOrigins []string
+	logLevel    slog.Level
+` +
+    dbParts.cfg +
+    `}
+
+func loadConfig(env func(string) string) (config, error) {
+	var missing []string
+	must := func(key string) string {
+		v := env(key)
+		if strings.TrimSpace(v) == "" {
+			missing = append(missing, key)
+		}
+		return v
+	}
+	cfg := config{port: env("PORT"), jwtSecret: must("JWT_SECRET")}
+	if cfg.port == "" {
+		cfg.port = "` +
+    ctx.port +
+    `" // conventions/05
+	}
+	if v := env("CORS_DEV_ORIGIN"); v != "" {
+		for _, o := range strings.Split(v, ",") {
+			if t := strings.TrimSpace(o); t != "" {
+				cfg.corsOrigins = append(cfg.corsOrigins, t)
+			}
+		}
+	}
+	switch env("LOG_LEVEL") {
+	case "debug":
+		cfg.logLevel = slog.LevelDebug
+	case "warn":
+		cfg.logLevel = slog.LevelWarn
+	case "error":
+		cfg.logLevel = slog.LevelError
+	default:
+		cfg.logLevel = slog.LevelInfo
+	}
+` +
+    dbParts.load +
+    `	if len(missing) > 0 {
+		return cfg, fmt.Errorf("missing required env vars: %s (platform/.env.example)", strings.Join(missing, ", "))
+	}
+	return cfg, nil
+}
+
+// ---- error envelope (conventions/04) ----
+
+type apiError struct {
+	Code      string ` + "`json:\"code\"`" + `
+	Message   string ` + "`json:\"message\"`" + `
+	RequestID string ` + "`json:\"requestId\"`" + `
+	Details   any    ` + "`json:\"details\"`" + `
+}
+
+type errorEnvelope struct {
+	Error apiError ` + "`json:\"error\"`" + `
+}
+
+func writeErr(w http.ResponseWriter, status int, reqID, code, msg string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(errorEnvelope{Error: apiError{Code: code, Message: msg, RequestID: reqID, Details: nil}})
+}
+
+func writeOK(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"}) // shape CỐ ĐỊNH — conventions/02
+}
+
+// ---- health (conventions/02) ----
+
+func healthz(w http.ResponseWriter, _ *http.Request) { writeOK(w) }
+
+func readyzDefault(w http.ResponseWriter, _ *http.Request) {
+	// chưa có dep thật — khi thêm DB/API: kiểm dep THẬT tại đây (rule 2).
+	writeOK(w)
+}
+
+` +
+    dbParts.ready +
+    `// ---- JWT guard (conventions/08 rule 4 — service tự verify) ----
+
+func jwtGuard(secret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			h := r.Header.Get("Authorization")
+			token := strings.TrimPrefix(h, "Bearer ")
+			if token == "" || token == h {
+				writeErr(w, http.StatusUnauthorized, r.Header.Get("X-Request-Id"), "UNAUTHORIZED", "Missing Authorization header")
+				return
+			}
+			if _, err := jwtlib.Parse(token, func(t *jwtlib.Token) (any, error) {
+				return []byte(secret), nil
+			}, jwtlib.WithValidMethods([]string{"HS256"})); err != nil {
+				writeErr(w, http.StatusUnauthorized, r.Header.Get("X-Request-Id"), "UNAUTHORIZED", "Invalid or expired token")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// ---- SAMPLE items (thay bằng domain thật) ----
+
+type item struct {
+	ID        string ` + "`json:\"id\"`" + `
+	Name      string ` + "`json:\"name\"`" + `
+	CreatedAt string ` + "`json:\"createdAt\"`" + `
+}
+
+var itemsStore = struct {
+	sync.Mutex
+	m map[string]item
+}{m: map[string]item{}}
+
+func newID() string {
+	b := make([]byte, 16)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("%s-%s-%s-%s-%s", hex.EncodeToString(b[0:4]), hex.EncodeToString(b[4:6]), hex.EncodeToString(b[6:8]), hex.EncodeToString(b[8:10]), hex.EncodeToString(b[10:16]))
+}
+
+func listItems(w http.ResponseWriter, r *http.Request) {
+	itemsStore.Lock()
+	defer itemsStore.Unlock()
+	all := make([]item, 0, len(itemsStore.m))
+	for _, it := range itemsStore.m {
+		all = append(all, it)
+	}
+	_ = json.NewEncoder(w).Encode(map[string]any{"items": all, "total": len(all)})
+}
+
+func createItem(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		Name string ` + "`json:\"name\"`" + `
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || strings.TrimSpace(body.Name) == "" {
+		writeErr(w, http.StatusBadRequest, r.Header.Get("X-Request-Id"), "VALIDATION_ERROR", "name bắt buộc")
+		return
+	}
+	it := item{ID: newID(), Name: body.Name, CreatedAt: time.Now().UTC().Format(time.RFC3339)}
+	itemsStore.Lock()
+	itemsStore.m[it.ID] = it
+	itemsStore.Unlock()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(it)
+}
+
+// ---- request log 1 dòng (conventions/03) ----
+
+func requestLog(log *slog.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+			next.ServeHTTP(w, r)
+			log.Info("request", "method", r.Method, "path", r.URL.Path, "duration_ms", time.Since(start).Milliseconds(), "requestId", r.Header.Get("X-Request-Id"))
+		})
+	}
+}
+
+func main() {
+	cfg, err := loadConfig(os.Getenv)
+	if err != nil {
+		// Fail-fast (conventions/06 rule 6) — không fallback im lặng.
+		fmt.Fprintln(os.Stderr, "config error:", err)
+		os.Exit(1)
+	}
+	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.logLevel})).With("service", serviceName)
+
+` +
+    dbParts.boot +
+    `	r := chi.NewRouter()
+	r.Use(requestLog(log))
+
+	// Health naked (compose/boot-smoke — gateway KHÔNG route path này)
+	r.Get("/healthz", healthz)
+	r.Get("/readyz", readyzDefault)
+
+	// Business routes dưới prefix /api/<name> (conventions/08 — pass-through)
+	r.Route("/api/` +
+    ctx.name +
+    `", func(rr chi.Router) {
+		rr.Get("/healthz", healthz) // mirror — conventions/02 rule 6
+` +
+    dbParts.route +
+    `		rr.Group(func(rg chi.Router) {
+			rg.Use(jwtGuard(cfg.jwtSecret))
+			rg.Get("/items", listItems)
+			rg.Post("/items", createItem)
+		})
+	})
+
+	// CORS dev-profile (conventions/07) — CORS_DEV_ORIGIN rỗng (compose) = không origin nào
+	handler := cors.New(cors.Options{
+		AllowedOrigins: cfg.corsOrigins,
+		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedHeaders: []string{"Authorization", "Content-Type", "X-Request-Id"},
+	}).Handler(r)
+
+	srv := &http.Server{Addr: ":" + cfg.port, Handler: handler, ReadHeaderTimeout: 5 * time.Second}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	go func() {
+		log.Info("listening", "port", cfg.port)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error("server failed", "err", err.Error())
+			os.Exit(1)
+		}
+	}()
+	<-ctx.Done()
+	log.Info("shutting down")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_ = srv.Shutdown(shutdownCtx)
+}
+`
+  );
+}
+
+function readmeMd(ctx) {
+  return (
+    `# ` +
+    ctx.pascal +
+    ` (` +
+    ctx.name +
+    `) — Go
+
+Sinh bởi \`scripts/generators/gen-service.mjs\` (--lang go) — khung theo conventions, impl domain là việc tiếp theo.
+
+| Hạng mục | Giá trị |
+|---|---|
+| Port | ` +
+    ctx.port +
+    ` (env \`PORT\` — conventions/05) |
+| Health | \`/healthz\` + \`/readyz\` naked + mirror \`/api/` +
+    ctx.name +
+    `/*\` (conventions/02) |
+| Compose | KHÔNG healthcheck — distroless không có shell/wget (rule 3); gateway depends \`service_started\` |
+| Contract | \`contracts/openapi/` +
+    ctx.name +
+    `.yaml\` (stub — sửa TRƯỚC khi impl) |
+
+## Việc tiếp theo (AI directives)
+
+1. \`cd services/` +
+    ctx.name +
+    ` && go mod tidy\` — sinh go.sum.
+2. \`go build ./... && go test ./...\` — khung chưa có test: thêm \`main_test.go\` (httptest health + envelope).
+3. Sửa \`contracts/openapi/` +
+    ctx.name +
+    `.yaml\` thay SAMPLE \`items\` → \`pnpm lint:contracts\` → impl route thật.
+4. \`readyz\`: khi thêm DB → ping thật (pattern \`readyz\` trong main.go).
+`
+  );
+}
+
+/** Trả { relPath: content } — toàn bộ file của service Go. */
+export function serviceGoFiles(ctx) {
+  return {
+    'go.mod': goMod(ctx),
+    'cmd/server/main.go': mainGo(ctx),
+    Dockerfile: dockerfile(ctx),
+    '.dockerignore': 'bin/\n',
+    'README.md': readmeMd(ctx),
+  };
+}

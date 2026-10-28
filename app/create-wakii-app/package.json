@@ -1,6 +1,6 @@
 {
   "name": "create-wakii-app",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "private": true,
   "type": "module",
   "description": "Scaffold React apps on the Wakii design system — 5 presets (demo · minimal · product · admin · landing) × 3 frameworks (Vite · Next.js · Astro), TanStack Query + zod + MSW architecture included",

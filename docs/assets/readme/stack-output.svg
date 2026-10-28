@@ -55,11 +55,11 @@
   <!-- ══ Panel 2: real output tree ══ -->
   <rect class="card" x="370" y="20" width="270" height="180" rx="10"/>
   <text x="386" y="40" class="m" font-size="11">output — my-stack/ (real)</text>
-  <g font-size="11.5" font-family="ui-monospace,Menlo,monospace">
-    <text class="fade f1" x="386" y="64"><tspan class="a">app/</tspan> <tspan class="m">shell · remotes · admin · shared</tspan></text>
-    <text class="fade f2" x="386" y="86"><tspan class="a">services/</tspan> <tspan class="m">node · spring · go · dotnet · auth</tspan></text>
-    <text class="fade f3" x="386" y="108"><tspan class="a">platform/</tspan> <tspan class="m">compose · gateway · kafka-init</tspan></text>
-    <text class="fade f4" x="386" y="130"><tspan class="a">contracts/</tspan> <tspan class="m">openapi · events · db</tspan></text>
+  <g font-size="10.8" font-family="ui-monospace,Menlo,monospace">
+    <text class="fade f1" x="386" y="64"><tspan class="a">app/</tspan> <tspan class="m">shell·remotes·admin·shared</tspan></text>
+    <text class="fade f2" x="386" y="86"><tspan class="a">services/</tspan> <tspan class="m">node·spring·go·dotnet·auth</tspan></text>
+    <text class="fade f3" x="386" y="108"><tspan class="a">platform/</tspan> <tspan class="m">compose·gateway·kafka-init</tspan></text>
+    <text class="fade f4" x="386" y="130"><tspan class="a">contracts/</tspan> <tspan class="m">openapi·events·db</tspan></text>
     <text class="fade f5" x="386" y="152"><tspan class="a">AGENTS.md</tspan> <tspan class="m">· WORKFLOW · generators</tspan></text>
     <text class="fade f6 g" x="386" y="174">.gitignore · lockfile (frozen ✓)</text>
   </g>

@@ -4,13 +4,15 @@
 
 **Goal:** Close the 5 MUI-parity gaps in `@wakii/ui-kit` (Textarea autoSize, ButtonGroup, ImageList standard+masonry, standalone Portal, Progress type=circle) and ship as 0.8.0.
 
-**Architecture:** All additive — 2 props widened on existing components, 3 new component dirs. Each task = TDD (failing behavioral tests → implement → green) + story matrix + barrel export, one atomic commit. Docs/version chores land last. Workers share one worktree (`/Users/hoivu/orca/workspaces/architecture-overview/uikit-mui-parity`, branch `wakii-dev/feat-uikit-mui-parity`) — commits serialize; max 2 workers in flight.
+**Architecture:** All additive — 2 props widened on existing components, 3 new component dirs. Each task = TDD (failing behavioral tests → implement → green) + story matrix + barrel export, one atomic commit. Docs/version chores land last. Workers share one worktree (`/Users/hoivu/orca/workspaces/architecture-overview/uikit-mui-parity`, branch `wakii-dev/feat-uikit-mui-parity`).
 
-**Tech Stack:** React 19 + TypeScript, Tailwind v4 tokens (no hex — CSS vars only), classnames (`cx`), vitest + @testing-library/react, Storybook (`@storybook/react-vite`, `satisfies Meta` WITHOUT `component:` for render-only stories).
+**Tech Stack:** React 19 + TypeScript, Tailwind v4 tokens (no hex — CSS vars only), classnames (`cx` in button dir, `classNames` elsewhere), vitest + @testing-library/react (jsdom 27 — note `svg.className` is `SVGAnimatedString`, use `getAttribute('class')`), Storybook (`@storybook/react-vite`).
 
-**Linear Issue:** VU-65 · **Spec:** `docs/superpowers/specs/2026-10-29-uikit-mui-parity-design.md`
+**Linear Issue:** VU-65 · **Spec:** `docs/superpowers/specs/2026-10-29-uikit-mui-parity-design.md` (naming note: spec's `ImageItem` ≡ plan's `ImageListItem`; spec's `--img-row-h` idea realized as the `rowHeight` px prop)
 
-**Repo rules that bind every task (AGENTS.md Part II):** tokens-only colors · focus `focus-visible:ring-2 focus-visible:ring-accent/40` · control heights h-8/9/10 · radius `rounded-lg` controls / `rounded-xl` cards · motion 150–200ms + `motion-reduce` · icons only via `<Icon>` · a11y minimums (aria-label on icon-only, role=group/menu, aria-current) · every story file ≥1 `export const` · comments in English.
+**Repo rules that bind every task (AGENTS.md Part II):** tokens-only colors · focus `focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:outline-none` on every focusable · control heights h-8/9/10 · radius `rounded-lg` controls / `rounded-xl` cards · motion 150–200ms + `motion-reduce` · icons only via `<Icon>` · a11y minimums · every story file ≥1 `export const` · story meta WITHOUT `component:` for render-only stories (TS2322 trap — do NOT copy `button.stories.tsx`'s `component:` meta for components with required props) · comments in English.
+
+**⚠ Barrel protocol (shared worktree, parallel workers):** Tasks 1/2/3/5 each add lines to `app/ui-kit/src/index.ts`. To avoid one worker's commit swallowing another's uncommitted barrel line: (a) edit the barrel ONLY via exact-string insertion (Edit tool) at that task's own anchor — NEVER a full-file Write; (b) make the barrel edit the LAST step immediately before that task's commit; (c) `git add app/ui-kit/src/index.ts app/ui-kit/src/ui/<dir>/` together in the same commit. Task 6's full typecheck is the backstop that verifies every new export resolves.
 
 **Test command (per package):** `pnpm --filter ui-kit test` · typecheck `pnpm --filter ui-kit typecheck` · from worktree root: `bash scripts/verify-quick.sh --json`.
 
@@ -24,12 +26,18 @@
 - Test: `app/ui-kit/src/ui/input/input.test.tsx` (new describe blocks)
 - Modify: `app/ui-kit/src/ui/input/input.stories.tsx`, `app/ui-kit/src/index.ts`
 
-- [ ] **Step 1: Write the failing tests** — append to `input.test.tsx`:
+**Measure strategy (antd rc-textarea pattern):** a shared `measure()` runs (a) in a `useLayoutEffect` on EVERY render — covers controlled usage (parent re-renders on value change) — and (b) synchronously inside an internal `onChange` wrapper — covers uncontrolled usage where typing alone never re-renders. Both paths call the same pure math.
+
+- [ ] **Step 1: Write the failing tests** — in `input.test.tsx`, extend the TOP import block (only `fireEvent` may need adding; `vi` is already imported):
+
+```tsx
+import { computeAutoSizeHeight, resolveAutoSize } from './autosize.js';
+```
+
+Append:
 
 ```tsx
 // --- autoSize (pure math) ---
-import { computeAutoSizeHeight, resolveAutoSize } from './autosize.js';
-
 describe('resolveAutoSize', () => {
   it('true → {minRows: 2} (unbounded)', () => {
     expect(resolveAutoSize(true)).toEqual({ minRows: 2 });
@@ -42,7 +50,6 @@ describe('resolveAutoSize', () => {
 describe('computeAutoSizeHeight', () => {
   const base = { lineHeight: 22, paddingY: 24, scrollHeight: 0 };
   it('grows to natural rows (ceil), respects minRows floor', () => {
-    // content = 200 - 24 = 176 → 8 rows → minRows 3 no-op
     expect(computeAutoSizeHeight({ ...base, scrollHeight: 200, minRows: 3 }))
       .toEqual({ height: 8 * 22 + 24, overflowY: 'hidden' });
   });
@@ -50,7 +57,6 @@ describe('computeAutoSizeHeight', () => {
     expect(computeAutoSizeHeight({ ...base, scrollHeight: 10, minRows: 3 }).height).toBe(3 * 22 + 24);
   });
   it('clamps at maxRows + overflowY auto', () => {
-    // content 476 → 22 rows > maxRows 4
     expect(computeAutoSizeHeight({ ...base, scrollHeight: 500, maxRows: 4 }))
       .toEqual({ height: 4 * 22 + 24, overflowY: 'auto' });
   });
@@ -60,25 +66,76 @@ describe('computeAutoSizeHeight', () => {
 });
 
 // --- autoSize (DOM wiring) ---
+/** Stateful harness — controlled Textarea like a real form. */
+function TextareaHarness(props: { autoSize?: boolean | { minRows?: number; maxRows?: number }; maxRowsCase?: boolean }) {
+  const [value, setValue] = useState('');
+  return (
+    <Textarea
+      autoSize={props.autoSize}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      maxLength={props.maxRowsCase ? 400 : undefined}
+      showCount={props.maxRowsCase}
+    />
+  );
+}
+
+function stubMetrics(ta: HTMLTextAreaElement, scrollHeight: number) {
+  Object.defineProperty(ta, 'scrollHeight', { configurable: true, get: () => scrollHeight });
+  return vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+    lineHeight: '22px', paddingTop: '12px', paddingBottom: '12px',
+  } as CSSStyleDeclaration);
+}
+
 describe('Textarea autoSize', () => {
-  it('typing grows the box; clamped box switches overflow-y', () => {
-    const { container } = render(<Textarea autoSize={{ minRows: 2, maxRows: 4 }} value="" onChange={() => {}} />);
+  it('controlled: typing grows to clamp then shrinks to floor', () => {
+    const { container } = render(<TextareaHarness autoSize={{ minRows: 2, maxRows: 4 }} />);
     const ta = container.querySelector('textarea') as HTMLTextAreaElement;
-    // jsdom: no layout — stub metrics on the live element, then re-type to trigger the effect
     let scroll = 500;
-    Object.defineProperty(ta, 'scrollHeight', { configurable: true, get: () => scroll });
-    const csSpy = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+    Object.defineProperty(ta, 'scrollHeight', { configurable: true, get: () => scroll }); // mutable getter
+    const cs = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       lineHeight: '22px', paddingTop: '12px', paddingBottom: '12px',
     } as CSSStyleDeclaration);
-    fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } });
-    expect(ta.style.height).toBe(`${4 * 22 + 24}px`);   // clamped at maxRows 4
+    scroll = 500;
+    fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } }); // state → rerender → effect
+    expect(ta.style.height).toBe(`${4 * 22 + 24}px`); // clamped at maxRows 4
     expect(ta.style.overflowY).toBe('auto');
-    scroll = 46;                                          // shrink content
+    scroll = 46;
     fireEvent.change(ta, { target: { value: 'ab' } });
-    expect(ta.style.height).toBe(`${2 * 22 + 24}px`);   // floor minRows 2
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`); // floor minRows 2
     expect(ta.style.overflowY).toBe('hidden');
-    csSpy.mockRestore();
+    cs.mockRestore();
   });
+
+  it('uncontrolled: onChange path measures without any re-render', () => {
+    const { container } = render(<Textarea autoSize={{ minRows: 2, maxRows: 4 }} defaultValue="" />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 500);
+    fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } }); // no state anywhere
+    expect(ta.style.height).toBe(`${4 * 22 + 24}px`);
+    cs.mockRestore();
+  });
+
+  it('autoSize wins over the rows attribute', () => {
+    const { container } = render(<Textarea autoSize rows={5} defaultValue="x" />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 46);
+    fireEvent.change(ta, { target: { value: 'x' } });
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`); // minRows 2, rows={5} ignored
+    cs.mockRestore();
+  });
+
+  it('coexists with showCount + maxLength', () => {
+    const { container } = render(<TextareaHarness autoSize maxRowsCase />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 68);
+    fireEvent.change(ta, { target: { value: 'abc' } });
+    // scroll 68 → content 44 → 2 rows → minRows 2 → 2*22+24 = 68px
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`);
+    expect(screen.getByText('3 / 400')).toBeInTheDocument();
+    cs.mockRestore();
+  });
+
   it('no autoSize → height untouched (default path identical)', () => {
     const { container } = render(<Textarea value="x" onChange={() => {}} rows={3} />);
     const ta = container.querySelector('textarea') as HTMLTextAreaElement;
@@ -88,7 +145,7 @@ describe('Textarea autoSize', () => {
 });
 ```
 
-Add `fireEvent` + `vi` to the existing vitest import line if missing.
+(Note: `useState` must join the react import at top. For the showCount test, the expected count string follows the EXISTING showCount test in `input.test.tsx` — check whether it renders `3 / 400` or `3/400` and match it.)
 
 - [ ] **Step 2: Run to verify RED**
 
@@ -130,18 +187,18 @@ export function computeAutoSizeHeight(args: {
 Wire into `Textarea` in `index.tsx`:
 
 ```tsx
-// new imports
-import { useLayoutEffect, useRef } from 'react'; // merge with existing react imports
+// new imports (merge into existing react import: useLayoutEffect, useRef, useCallback)
 import { computeAutoSizeHeight, resolveAutoSize, type AutoSize } from './autosize.js';
 
 // TextareaProps: add
   /** antd autoSize — true = grow unbounded from 2 rows; {minRows,maxRows} clamps. */
   autoSize?: AutoSize;
 
-// inside Textarea(): after destructuring props add
+// inside Textarea(): after destructuring props, add (destructure onChange too)
   const taRef = useRef<HTMLTextAreaElement>(null);
   const auto = autoSize ? resolveAutoSize(autoSize) : null;
-  useLayoutEffect(() => {
+
+  const measure = useCallback(() => {
     const el = taRef.current;
     if (!el || !auto) return;
     const cs = window.getComputedStyle(el);
@@ -157,14 +214,21 @@ import { computeAutoSizeHeight, resolveAutoSize, type AutoSize } from './autosiz
     });
     el.style.height = `${height}px`;
     el.style.overflowY = overflowY;
-  }); // run every render — value changes must re-measure (cheap, antd-equivalent)
+  }, [auto?.minRows, auto?.maxRows]);
+
+  useLayoutEffect(measure); // every render — controlled value changes re-render → re-measure
+
+  function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    onChange?.(e);
+    if (auto) measure(); // uncontrolled typing never re-renders — measure now (antd rc-textarea pattern)
+  }
 ```
 
-Attach `ref={taRef}` to the `<textarea>` element and add `autoSize` to the destructure. When `autoSize` is set, drop the `py-2` fixed feel is UNCHANGED — do not touch existing classes (default path identical).
+On the `<textarea>` JSX element: put `ref={taRef}` AFTER the `{...rest}` spread (React 19 passes a consumer `ref` through props — spreading after would clobber ours), pass `onChange={auto ? handleChange : onChange}`, and keep `value`/`defaultValue` logic as-is. Leave `py-2` and ALL existing classes untouched — the default path (no autoSize) must stay byte-identical: no ref side effects fire because `measure()` returns early when `auto` is null.
 
 - [ ] **Step 4: Run to verify GREEN** — `pnpm --filter ui-kit test -- src/ui/input/input.test.tsx` → PASS (new + all existing Textarea tests).
 
-- [ ] **Step 5: Stories** — append to `input.stories.tsx` (match its existing title/meta):
+- [ ] **Step 5: Stories** — append to `input.stories.tsx` (match its existing title/meta; meta WITHOUT `component:` if that's the file's current pattern):
 
 ```tsx
 export const TextareaAutoSize: Story = {
@@ -177,15 +241,15 @@ export const TextareaAutoSizeClamp: Story = {
 };
 ```
 
-with a small local demo component (uncontrolled + onChange state) defined above the stories: boolean mode → `autoSize`, clamp mode → `autoSize={{ minRows: 2, maxRows: 5 }} maxLength={200} showCount`. Type a paragraph to watch it grow; at maxRows it scrolls.
+with a small local uncontrolled demo above the stories: boolean mode → `autoSize` + internal `useState`; clamp mode → `autoSize={{ minRows: 2, maxRows: 5 }} maxLength={200} showCount`. Type a paragraph to watch it grow; at maxRows it scrolls.
 
-- [ ] **Step 6: Barrel** — `src/index.ts` input line: add `type AutoSize` to the type export list from `'./ui/input/index.js'` (re-export it there first: `export type { AutoSize } from './autosize.js';`).
+- [ ] **Step 6: Barrel** (per protocol: last step, Edit-tool insertion) — in `ui/input/index.tsx` add `export type { AutoSize } from './autosize.js';` then in `src/index.ts` extend the input export line's type list with `type AutoSize`.
 
 - [ ] **Step 7: Commit**
 
 ```bash
 git add app/ui-kit/src/ui/input/ app/ui-kit/src/index.ts
-git commit -m "feat(ui-kit): Textarea autoSize — antd-parity JS measure, row clamp (VU-65)"
+git commit -m "feat(ui-kit): Textarea autoSize — antd-parity measure, row clamp (VU-65)"
 ```
 
 ---
@@ -197,10 +261,12 @@ git commit -m "feat(ui-kit): Textarea autoSize — antd-parity JS measure, row c
 - Modify: `app/ui-kit/src/ui/button/index.tsx` (context consume), `app/ui-kit/src/index.ts`
 - Test: `app/ui-kit/src/ui/button/group.test.tsx` · Stories: `app/ui-kit/src/ui/button/group.stories.tsx`
 
+**Assertion note:** the joined chrome lives on the GROUP div as Tailwind arbitrary-variant selectors (`[&>button:…]`) — those classes apply to child buttons via generated CSS but NEVER appear in a child's own `className` string. Assert them on the group div; assert only context-inherited classes (h-8/h-9/h-10, bg-accent) on the children. Visual chrome is verified in Storybook (Rule 0), not className strings.
+
 - [ ] **Step 1: Failing tests** — `group.test.tsx`:
 
 ```tsx
-// ButtonGroup — joined chrome, size/type context inheritance, a11y group semantics.
+// ButtonGroup — joined chrome selectors, size/type context inheritance, a11y group semantics.
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Button } from './index.js';
@@ -214,15 +280,25 @@ describe('ButtonGroup', () => {
     expect(screen.getByRole('group', { name: 'Actions' })).toBeInTheDocument();
   });
 
-  it('joined chrome — first/middle/last corner classes', () => {
+  it('joined chrome — seam + corner selectors on the group div', () => {
     const { container } = render(
       <ButtonGroup ariaLabel="x"><Button>A</Button><Button>B</Button><Button>C</Button></ButtonGroup>,
     );
-    const btns = container.querySelectorAll('button');
-    expect(btns[0].className).not.toContain('rounded-l-none'); // first keeps left radius
-    expect(btns[1].className).toContain('rounded-l-none');
-    expect(btns[1].className).toContain('rounded-r-none');
-    expect(btns[2].className).not.toContain('rounded-r-none'); // last keeps right radius
+    const group = container.firstElementChild as HTMLElement;
+    expect(group.className).toContain('[&>button:not(:first-child)]:-ml-px');
+    expect(group.className).toContain('[&>button:not(:first-child)]:rounded-l-none');
+    expect(group.className).toContain('[&>button:not(:last-child)]:rounded-r-none');
+    expect(group.querySelectorAll('button')).toHaveLength(3);
+  });
+
+  it('vertical — flex-col + block-axis selectors', () => {
+    const { container } = render(
+      <ButtonGroup ariaLabel="x" orientation="vertical"><Button>A</Button><Button>B</Button></ButtonGroup>,
+    );
+    const group = container.firstElementChild as HTMLElement;
+    expect(group.className).toContain('flex-col');
+    expect(group.className).toContain('[&>button:not(:first-child)]:-mt-px');
+    expect(group.className).toContain('[&>button:not(:last-child)]:rounded-b-none');
   });
 
   it('size context — child without explicit size inherits group size', () => {
@@ -238,11 +314,6 @@ describe('ButtonGroup', () => {
   it('type context — group primary cascades', () => {
     const { container } = render(<ButtonGroup ariaLabel="x" type="primary"><Button>A</Button></ButtonGroup>);
     expect(container.querySelector('button')!.className).toContain('bg-accent');
-  });
-
-  it('vertical orientation switches axis classes', () => {
-    const { container } = render(<ButtonGroup ariaLabel="x" orientation="vertical"><Button>A</Button></ButtonGroup>);
-    expect(container.firstElementChild!.className).toContain('flex-col');
   });
 });
 ```
@@ -288,10 +359,9 @@ export interface ButtonGroupProps {
 }
 
 const JOINS = {
-  horizontal:
-    '[&>button:not(:first-child)]:-ml-px [&>button:not(:first-child)]:rounded-l-none [&>button:not(:last-child)]:rounded-r-none',
+  horizontal: 'flex-row [&>button:not(:first-child)]:-ml-px [&>button:not(:first-child)]:rounded-l-none [&>button:not(:last-child)]:rounded-r-none',
   vertical:
-    '[&>button:not(:first-child)]:-mt-px [&>button:not(:first-child)]:rounded-t-none [&>button:not(:last-child)]:rounded-b-none',
+    'flex-col [&>button:not(:first-child)]:-mt-px [&>button:not(:first-child)]:rounded-t-none [&>button:not(:last-child)]:rounded-b-none',
 } as const;
 
 export function ButtonGroup(props: ButtonGroupProps) {
@@ -309,13 +379,13 @@ export function ButtonGroup(props: ButtonGroupProps) {
 }
 ```
 
-In `button/index.tsx`: import `useButtonGroup` from `./group-context.js`; change defaults to `size = props.size ?? group?.size ?? 'middle'` and `type = props.type ?? group?.type ?? 'default'` where `const group = useButtonGroup();` is the first line of the component. Default path (no group) unchanged.
+In `button/index.tsx`: import `useButtonGroup` from `./group-context.js`; first line of the component: `const group = useButtonGroup();` — change defaults to `type = props.type ?? group?.type ?? 'default'` and `size = props.size ?? group?.size ?? 'middle'` (destructure without defaults, then resolve). Default path (no group ancestor) is byte-identical: the context defaults to `{}`.
 
 - [ ] **Step 4: Run GREEN** — all `group.test.tsx` + existing `button` tests PASS.
 
-- [ ] **Step 5: Stories** — `group.stories.tsx`, title matches sibling Button story category (check `button.stories.tsx` `title:` and use the same prefix, e.g. `General/ButtonGroup`): `Basic` (3 buttons default), `Sizes` (s/m/l groups), `Vertical`, `PrimaryGroup` (type=primary + one danger), `WithIcons` (`<Icon name="check" />` + label).
+- [ ] **Step 5: Stories** — `group.stories.tsx`, title `Primitives/ButtonGroup` (sibling `Primitives/Button`). Meta WITHOUT `component:` — `ButtonGroupProps.ariaLabel` is required, so `component: ButtonGroup` + render-only stories hits the TS2322 trap (the `progress.stories` pattern, NOT the `button.stories` one). Stories: `Basic` (3 buttons default), `Sizes` (s/m/l groups), `Vertical`, `PrimaryGroup` (type=primary + one danger), `WithIcons` (`<Icon name="check" size={14} />` + label).
 
-- [ ] **Step 6: Barrel** — add `export { ButtonGroup, type ButtonGroupProps } from './ui/button/group.js';` next to the Button export.
+- [ ] **Step 6: Barrel** (per protocol) — add next to the Button export: `export { ButtonGroup, type ButtonGroupProps } from './ui/button/group.js';`
 
 - [ ] **Step 7: Commit**
 
@@ -335,7 +405,7 @@ git commit -m "feat(ui-kit): ButtonGroup — joined chrome + size/type context (
 - [ ] **Step 1: Failing tests** — `portal.test.tsx`:
 
 ```tsx
-// Portal — default body mount, custom container, function container, inline fallback.
+// Portal — default body mount, custom container, function container, null → inline.
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Portal } from './index.js';
@@ -343,9 +413,11 @@ import { Portal } from './index.js';
 afterEach(cleanup);
 
 describe('Portal', () => {
-  it('children land in document.body by default', () => {
+  it('children land DIRECTLY in document.body by default', () => {
     render(<Portal><p data-testid="p">hi</p></Portal>);
-    expect(document.body.querySelector('[data-testid="p"]')).not.toBeNull();
+    const p = document.body.querySelector('[data-testid="p"]')!;
+    expect(p).not.toBeNull();
+    expect(p.parentElement).toBe(document.body); // not inside RTL's render container
   });
 
   it('custom container honored', () => {
@@ -364,7 +436,9 @@ describe('Portal', () => {
   });
 
   it('null container → inline (no portal)', () => {
-    const { container } = render(<Portal container={null as unknown as HTMLElement}><em data-testid="i">z</em></Portal>);
+    const { container } = render(
+      <Portal container={null}><em data-testid="i">z</em></Portal>,
+    );
     expect(container.querySelector('[data-testid="i"]')).not.toBeNull();
   });
 });
@@ -372,11 +446,11 @@ describe('Portal', () => {
 
 - [ ] **Step 2: Run RED** — FAIL (module missing).
 
-- [ ] **Step 3: Implement** — `index.tsx`:
+- [ ] **Step 3: Implement** — `index.tsx`. Resolution order matters: `undefined` → body, `null` → inline (`??` would swallow null into body — use an explicit `=== undefined` check):
 
 ```tsx
-// Portal — pure createPortal primitive. Container resolves: fn → result, undefined → body,
-// null/no-document → inline render (SSR-safe). Modal/Drawer keep their own portals (no retrofit).
+// Portal — pure createPortal primitive. container: fn → its result; undefined → document.body;
+// null (or no document) → render inline (SSR-safe). Modal/Drawer keep their own portals (no retrofit).
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -391,7 +465,13 @@ export function Portal(props: PortalProps) {
   const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
     const resolved =
-      typeof container === 'function' ? container() : container ?? (typeof document !== 'undefined' ? document.body : null);
+      typeof container === 'function'
+        ? container()
+        : container === undefined
+          ? typeof document !== 'undefined'
+            ? document.body
+            : null
+          : container; // null stays null → inline
     setTarget(resolved);
   }, [container]);
   if (target === null) return <>{children}</>;
@@ -401,9 +481,9 @@ export function Portal(props: PortalProps) {
 
 - [ ] **Step 4: Run GREEN.**
 
-- [ ] **Step 5: Stories** — `portal.stories.tsx`, title `Utils/Portal` (match neighbor category): `BodyPortal` (box + caption explaining DOM placement), `CustomContainer` (portal into an adjacent bordered panel). Assert-by-eye story; keep ≥1 export.
+- [ ] **Step 5: Stories** — `portal.stories.tsx`, title `Primitives/Portal`: `BodyPortal` (box + caption explaining DOM placement), `CustomContainer` (portal into an adjacent bordered panel). Meta WITHOUT `component:`. Keep ≥1 export.
 
-- [ ] **Step 6: Barrel** — `export { Portal, type PortalProps } from './ui/portal/index.js';`
+- [ ] **Step 6: Barrel** (per protocol) — `export { Portal, type PortalProps } from './ui/portal/index.js';`
 
 - [ ] **Step 7: Commit**
 
@@ -418,7 +498,8 @@ git commit -m "feat(ui-kit): Portal — standalone createPortal primitive (VU-65
 
 **Files:**
 - Modify: `app/ui-kit/src/ui/progress/index.tsx`, `progress.test.tsx`, `progress.stories.tsx`
-- Modify: `app/ui-kit/src/index.ts` only if `ProgressProps` type export needs widening (it already exports the type — no barrel change expected)
+
+**jsdom note:** `svg.className` is an `SVGAnimatedString` (not a string) — assert classes via `svg.getAttribute('class')` or `classList.contains`. `style.stroke` with `var(…)` values round-trips fine (verified cssstyle 5.3.7).
 
 - [ ] **Step 1: Failing tests** — append to `progress.test.tsx`:
 
@@ -437,8 +518,7 @@ describe('Progress circle', () => {
 
   it('100% → done stroke', () => {
     const { container } = render(<Progress type="circle" percent={100} />);
-    const arc = container.querySelectorAll('circle')[1];
-    expect((arc as SVGElement).style.stroke).toBe('var(--st-done)');
+    expect((container.querySelectorAll('circle')[1] as SVGElement).style.stroke).toBe('var(--st-done)');
   });
 
   it('exception → fail stroke', () => {
@@ -446,10 +526,10 @@ describe('Progress circle', () => {
     expect((container.querySelectorAll('circle')[1] as SVGElement).style.stroke).toBe('var(--st-fail)');
   });
 
-  it('indeterminate → spin class, no aria-valuenow', () => {
+  it('indeterminate → spin class (via getAttribute), no aria-valuenow', () => {
     const { container } = render(<Progress type="circle" indeterminate />);
     const svg = container.querySelector('svg')!;
-    expect(svg.className).toContain('animate-spin');
+    expect(svg.getAttribute('class')).toContain('animate-spin');
     expect(svg).not.toHaveAttribute('aria-valuenow');
   });
 
@@ -523,7 +603,7 @@ Keep the whole existing line branch untouched below. Update the file header comm
 
 - [ ] **Step 4: Run GREEN** — whole `progress.test.tsx` (old + new) PASS.
 
-- [ ] **Step 5: Stories** — add `Circle`, `CircleStatuses` (normal/success/exception), `CircleIndeterminate`, `CircleSizes` (24/40/64), `CircleNoInfo` to `progress.stories.tsx`; update its header comment.
+- [ ] **Step 5: Stories** — add `Circle`, `CircleStatuses` (normal/success/exception), `CircleIndeterminate`, `CircleSizes` (24/40/64), `CircleNoInfo` to `progress.stories.tsx`; update its header comment ("circle is backlog" → shipped).
 
 - [ ] **Step 6: Commit**
 
@@ -544,7 +624,7 @@ git commit -m "feat(ui-kit): Progress type=circle — SVG dash arc, indeterminat
 
 ```tsx
 // ImageList — standard grid vs masonry columns, captions, keyboard activation.
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ImageList } from './index.js';
 
@@ -560,6 +640,7 @@ describe('ImageList', () => {
   it('standard — grid template with cols + rowHeight images', () => {
     const { container } = render(<ImageList items={items} cols={3} gap={8} />);
     const root = container.firstElementChild as HTMLElement;
+    expect(root.className).toContain('grid');
     expect(root.style.gridTemplateColumns).toBe('repeat(3, minmax(0, 1fr))');
     expect(container.querySelectorAll('figure')).toHaveLength(3);
     expect((container.querySelector('img') as HTMLImageElement).style.height).toBe('160px');
@@ -595,16 +676,17 @@ describe('ImageList', () => {
 });
 ```
 
-Add the `fireEvent`, `screen` imports to the import line if missing (render/cleanup already there).
+(Add `screen` to the testing-library import for the last test.)
 
 - [ ] **Step 2: Run RED** — FAIL.
 
-- [ ] **Step 3: Implement** — `index.tsx`:
+- [ ] **Step 3: Implement** — `index.tsx`. Focusable tiles MUST carry the standard focus ring (rule 4) — added conditionally with `onItemClick`:
 
 ```tsx
 // ImageList — MUI-parity gallery. standard = fixed-rowHeight CSS grid (crops, tidy);
 // masonry = CSS columns (MUI-identical mechanics; visual order runs top-to-bottom per
-// column — documented caveat). Tiles are keyboard-activatable when onItemClick is set.
+// column — documented caveat; gap applies horizontally via column-gap, vertical rhythm
+// is a fixed mb-2). Tiles are keyboard-activatable when onItemClick is set.
 import classNames from 'classnames';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -624,7 +706,7 @@ export interface ImageListClassNames {
 export interface ImageListProps {
   items: ImageListItem[];
   cols?: number;
-  /** px gap both axes (grid gap / column gap). */
+  /** px gap — grid gap (standard) / column-gap (masonry; vertical rhythm stays mb-2). */
   gap?: number;
   variant?: 'standard' | 'masonry';
   /** Fixed tile image height (standard variant only; masonry keeps natural height). */
@@ -669,7 +751,12 @@ export function ImageList(props: ImageListProps) {
                 : undefined
             }
             onClick={onItemClick ? () => onItemClick(i) : undefined}
-            className={classNames('m-0', variant === 'masonry' && 'mb-2 break-inside-avoid', slots?.item)}
+            className={classNames(
+              'm-0',
+              variant === 'masonry' && 'mb-2 break-inside-avoid',
+              onItemClick && 'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+              slots?.item,
+            )}
           >
             <img
               src={item.src}
@@ -691,9 +778,9 @@ export function ImageList(props: ImageListProps) {
 
 - [ ] **Step 4: Run GREEN.**
 
-- [ ] **Step 5: Stories** — `image-list.stories.tsx`, title matching the Data Display category siblings (check e.g. `galleria.stories.tsx` / `card.stories.tsx` `title:` for the exact prefix). Stories: `Standard` (6 picsum items, cols 3), `Masonry` (8 mixed-ratio items, cols 3), `WithCaptions`, `MasonryTwoCols`. Meta WITHOUT `component:` (render-only, the `image.stories` pattern).
+- [ ] **Step 5: Stories** — `image-list.stories.tsx`, title `Data Display/ImageList`. Stories: `Standard` (6 picsum items, cols 3), `Masonry` (8 mixed-ratio items, cols 3), `WithCaptions`, `MasonryTwoCols`. Meta WITHOUT `component:` (render-only, the `image.stories` pattern).
 
-- [ ] **Step 6: Barrel** — `export { ImageList, type ImageListProps, type ImageListItem, type ImageListClassNames } from './ui/image-list/index.js';`
+- [ ] **Step 6: Barrel** (per protocol) — `export { ImageList, type ImageListProps, type ImageListItem, type ImageListClassNames } from './ui/image-list/index.js';`
 
 - [ ] **Step 7: Commit**
 
@@ -711,11 +798,11 @@ git commit -m "feat(ui-kit): ImageList — standard grid + CSS-columns masonry (
 
 - [ ] **Step 1: AGENTS.md Part II** — add rows (match table style verbatim):
   - "General — P0/P1 parity additions" table: `| ButtonGroup | Attached row/column of Buttons sharing size/type — combined actions, pagination clusters | size (context cascades to children) | joined chrome (-ml-px seam, outer corners keep rounded-lg) · orientation vertical · role=group + ariaLabel REQUIRED |` and `| Portal | Pure createPortal primitive for custom overlays — mount anywhere outside the React tree | container (element | () => element; undefined = body, null = inline) | wrap custom popovers/toasts · Modal/Drawer keep internal portals (no retrofit) |`
-  - Data Display table (after List): `| ImageList | Photo gallery grid — standard (fixed rowHeight, cropped) or masonry (CSS columns, natural heights) | variant masonry + cols (column-count; visual order top-to-bottom per column) | items + caption → figcaption · onItemClick → keyboard-activatable figure tiles · renderItem full tile control |`
-  - Feedback table Progress row: update "Most valuable prop" cell to `percent (+ type line/circle, size px)` and note indeterminate circle spin.
-  - Forms table: no Textarea row exists — leave (recipes cover it).
-- [ ] **Step 2: recipes.md** — add two recipes at the end (number continues the sequence): autoSize textarea in a validated form (`Field` + `Textarea autoSize={{minRows:3,maxRows:8}} showCount maxLength`), and a masonry gallery page (`ImageList variant="masonry"` + `Lightbox`-less click handler + empty state).
-- [ ] **Step 3: CHANGELOG** — new `## 0.8.0` section atop: 5 bullets (one per feature, English, component + one-line usage).
+  - Data Display table (after List): `| ImageList | Photo gallery grid — standard (fixed rowHeight, cropped) or masonry (CSS columns, natural heights) | variant masonry + cols (column-count; visual order top-to-bottom per column) | items + caption → figcaption · onItemClick → keyboard-activatable figure tiles (focus ring built in) · renderItem full tile control |`
+  - Feedback table Progress row: update "Most valuable prop" cell to `percent (+ type line/circle, size px)` and mention indeterminate circle spin.
+  - Forms table: ADD a Textarea row (autoSize is otherwise invisible to the AI quick reference): `| Textarea (multi-line) | Long text — notes, descriptions | autoSize (boolean = unbounded from 2 rows; {minRows,maxRows} clamps via JS measure) | inside Field + showCount/maxLength · coexists with invalid |`
+- [ ] **Step 2: recipes.md** — add two recipes at the end (number continues the sequence): autoSize textarea in a validated form (`Field` + `Textarea autoSize={{minRows:3,maxRows:8}} showCount maxLength`), and a masonry gallery page (`ImageList variant="masonry"` + click handler + empty state).
+- [ ] **Step 3: CHANGELOG** — match the file's EXISTING bracketed Keep-a-Changelog style: new `## [0.8.0] — 2026-10-29 (MUI-parity components)` section atop with `### Added` + 5 English bullets (one per feature). The file currently tops out at `[0.6.0]` while package.json is 0.7.2 — add a one-line catch-up `## [0.7.0] – [0.7.2]` entry summarizing slots-DOM 113/113 + fixes (one line, no detail) so 0.8.0 doesn't stack on a gap.
 - [ ] **Step 4: version** — `app/ui-kit/package.json` `0.7.2` → `0.8.0`.
 - [ ] **Step 5: Full verify**
 
@@ -736,9 +823,9 @@ git commit -m "docs(ui-kit): 0.8.0 — MUI-parity docs, recipes, changelog (VU-6
 ## Verification (Rule 0 — browser, after Task 6)
 
 1. `pnpm --filter ui-kit storybook` → http://localhost:6006
-2. ZCode opens the browser, walks EVERY new story group (Textarea autoSize ×2, ButtonGroup ×5, Portal ×2, Progress circle ×5, ImageList ×4), screenshots before/after per group, checks dark mode on one story per component (`data-bp-theme=dark` toggle), verifies keyboard Enter on an ImageList tile and tab-order through a ButtonGroup.
+2. ZCode opens the browser, walks EVERY new story group (Textarea autoSize ×2, ButtonGroup ×5, Portal ×2, Progress circle ×5, ImageList ×4), screenshots before/after per group, checks dark mode on one story per component (`data-bp-theme=dark` toggle), verifies keyboard Enter on an ImageList tile and tab-order through a ButtonGroup, and confirms the ButtonGroup joined chrome visually (selector classes can't be asserted via className).
 3. `manager-head.html` turns dirty from the badge stamp → do NOT commit it (AGENTS.md trap).
 
 ## Out of scope (follow-up missions)
 
-npm publish 0.8.0 + starter-template `^0.7.x` pin bump + create-wakii-stack patch (0.x caret lesson) · Portal retrofit into Modal/Drawer/Tooltip/Message · quilted/woven ImageList variants · responsive `cols` breakpoints.
+npm publish 0.8.0 + starter-template `^0.7.x` pin bump + create-wakii-stack patch (0.x caret lesson) · Portal retrofit into Modal/Drawer/Tooltip/Message · quilted/woven ImageList variants · responsive `cols` breakpoints · masonry vertical rhythm as a token.

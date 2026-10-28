@@ -10,6 +10,7 @@ system with 90+ components, hooks, dark theme and motion. Scaffolded by
 ```bash
 pnpm install
 pnpm dev      # http://localhost:5173
+pnpm test     # vitest — demo App (shell + dark toggle đổi data-bp-theme)
 ```
 
 The demo page dogfoods the kit: `Button` · `Tag` · `Alert` · `Table` · `Statistic`

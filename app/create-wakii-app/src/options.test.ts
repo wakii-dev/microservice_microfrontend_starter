@@ -92,10 +92,11 @@ describe('resolveOptions', () => {
       preset: 'demo',
       variant: 'vite',
       skipInstall: false,
+      dryRun: false,
     });
     // extras kéo theo router; tắt router tường minh + extras → lỗi rõ
     expect(resolveOptions({ appName: 'x', lang: 'js', router: true, extras: ['chart'], yes: false, skipInstall: true })).toEqual({
-      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', variant: 'vite', skipInstall: true,
+      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', variant: 'vite', skipInstall: true, dryRun: false,
     });
     expect(() => resolveOptions({ lang: 'ts', router: false, extras: ['chart'], yes: true, skipInstall: false })).toThrow(/mâu thuẫn/);
   });
@@ -118,10 +119,21 @@ describe('resolveOptions', () => {
     );
   });
 
-  it('preset khác demo + --lang js → lỗi "chỉ hỗ trợ TypeScript"', () => {
+  it('preset product/admin + --lang js → lỗi "chỉ hỗ trợ TypeScript" (minimal/landing có bản js riêng)', () => {
+    expect(() => resolveOptions({ lang: 'js', preset: 'product', extras: [], yes: true, skipInstall: false })).toThrow(
+      /chỉ hỗ trợ TypeScript/,
+    );
     expect(() => resolveOptions({ lang: 'js', preset: 'admin', extras: [], yes: true, skipInstall: false })).toThrow(
       /chỉ hỗ trợ TypeScript/,
     );
+  });
+
+  it('preset minimal + --lang js → OK (bản minimal-js), router vẫn true', () => {
+    expect(resolveOptions({ lang: 'js', preset: 'minimal', extras: [], yes: true, skipInstall: false })).toMatchObject({
+      preset: 'minimal',
+      lang: 'js',
+      router: true,
+    });
   });
 });
 
@@ -145,10 +157,12 @@ describe('resolveOptions — preset landing', () => {
     );
   });
 
-  it('landing + --lang js → lỗi "chỉ hỗ trợ TypeScript"', () => {
-    expect(() => resolveOptions({ lang: 'js', preset: 'landing', extras: [], yes: true, skipInstall: false })).toThrow(
-      /chỉ hỗ trợ TypeScript/,
-    );
+  it('landing + --lang js → OK (bản landing-js), router vẫn true', () => {
+    expect(resolveOptions({ lang: 'js', preset: 'landing', extras: [], yes: true, skipInstall: false })).toMatchObject({
+      preset: 'landing',
+      lang: 'js',
+      router: true,
+    });
   });
 
   it('landing + --variant next → lỗi "variant chỉ dành cho preset demo"', () => {
@@ -171,5 +185,14 @@ describe('resolveOptions — variant framework', () => {
     expect(() => resolveOptions({ lang: 'ts', extras: [], yes: false, skipInstall: false, variant: 'astro', preset: 'product' })).toThrow(/chỉ dành cho preset demo/);
     expect(() => resolveOptions({ lang: 'js', extras: [], yes: false, skipInstall: false, variant: 'astro' })).toThrow(/chỉ hỗ trợ TypeScript/);
     expect(() => resolveOptions({ lang: 'ts', extras: ['chart'], yes: false, skipInstall: false, variant: 'astro' })).toThrow(/chỉ dành cho variant vite/);
+  });
+});
+
+describe('dry-run', () => {
+  it('--dry-run parse + default false', () => {
+    const r = parseArgs(['--dry-run']);
+    if (r.ok) expect(r.options.dryRun).toBe(true);
+    expect(resolveOptions({ lang: 'ts', extras: [], yes: true, skipInstall: false, dryRun: true }).dryRun).toBe(true);
+    expect(resolveOptions({ lang: 'ts', extras: [], yes: true, skipInstall: false }).dryRun).toBe(false);
   });
 });

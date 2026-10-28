@@ -20,6 +20,8 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   /** Body JSON — object thường, tự stringify ở đây. */
   body?: unknown;
+  /** Query params — nối sau path (?empty=1…). Object rỗng/undefined → không query. */
+  query?: Record<string, string>;
 }
 
 /** Envelope lỗi backend { message } — convention chung (platform/conventions/04). */
@@ -28,10 +30,11 @@ interface ErrorEnvelope {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body } = options;
+  const { method = 'GET', body, query } = options;
   // Không có VITE_API_URL → relative trên origin hiện tại. Resolve tường minh
   // (thay vì fetch('/…')) vì fetch cần URL absolute ở môi trường test node/jsdom.
   const base = env.VITE_API_URL ?? window.location.origin;
+  const search = query && Object.keys(query).length > 0 ? `?${new URLSearchParams(query).toString()}` : '';
 
   // Timeout bằng Promise.race (KHÔNG AbortSignal qua fetch): AbortSignal của
   // realm jsdom bị fetch gốc (undici) từ chối trong test — race chạy đúng ở cả
@@ -47,7 +50,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   let response: Response;
   try {
     response = await Promise.race([
-      fetch(`${base}${path}`, {
+      fetch(`${base}${path}${search}`, {
         method,
         headers: { 'content-type': 'application/json' },
         body: body === undefined ? undefined : JSON.stringify(body),

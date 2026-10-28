@@ -6,7 +6,7 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Extra, Preset, ScaffoldPlan } from './options.js';
+import type { Extra, Lang, Preset, ScaffoldPlan } from './options.js';
 
 /** Nguồn template mặc định — 2 layout: repo (src|dist → app/starter-templates)
  * và npm package (dist → <pkg>/starter-templates, publish script bundle vào).
@@ -45,6 +45,8 @@ export interface ScaffoldInput {
   plan: ScaffoldPlan;
   /** Thư mục đích (PHẢI chưa tồn tại hoặc rỗng — caller kiểm). */
   dest: string;
+  /** true: mọi ghi file bị bỏ qua — chỉ tính files[] cho log/dry-run. */
+  dryRun?: boolean;
   /** Ghi đè nguồn template (mặc định DEFAULT_TEMPLATES_ROOT — test trỏ fixture). */
   templatesRoot?: string;
   /** Bước chạy — CLI in qua @clack, test đếm assert. */
@@ -61,10 +63,10 @@ function renameForJs(path: string): string {
   return path.replace(/\.tsx$/, '.jsx').replace(/\.ts$/, '.js');
 }
 
-async function copyTree(srcDir: string, destDir: string, opts: { appName: string; renameExt: boolean; files: string[] }): Promise<void> {
-  await mkdir(destDir, { recursive: true });
+async function copyTree(srcDir: string, destDir: string, opts: { appName: string; renameExt: boolean; files: string[]; dryRun?: boolean }): Promise<void> {
+  if (!opts.dryRun) await mkdir(destDir, { recursive: true });
   for (const entry of await readdir(srcDir, { withFileTypes: true })) {
-    if (entry.name === '.DS_Store') continue; // rác macOS — spec bỏ
+    if (entry.name === '.DS_Store' || entry.name === '_deps.json') continue; // rác macOS — spec bỏ; _deps.json khai báo deps của overlay
     const srcPath = join(srcDir, entry.name);
     const outName = opts.renameExt ? renameForJs(entry.name) : entry.name;
     const destPath = join(destDir, outName);
@@ -72,6 +74,8 @@ async function copyTree(srcDir: string, destDir: string, opts: { appName: string
       await copyTree(srcPath, destPath, opts);
       continue;
     }
+    opts.files.push(destPath);
+    if (opts.dryRun) continue; // dry-run: chỉ liệt kê, không ghi
     const buffer = await readFile(srcPath);
     if (buffer.includes(0)) {
       // binary — copy nguyên bản, KHÔNG render (spec)
@@ -80,8 +84,18 @@ async function copyTree(srcDir: string, destDir: string, opts: { appName: string
       const text = buffer.toString('utf8').replaceAll('{{appName}}', opts.appName);
       await writeFile(destPath, text);
     }
-    opts.files.push(destPath);
   }
+}
+
+/** Merge một bảng deps bất kỳ (overlay _deps.json) vào package.json đích. */
+async function mergeDepsInto(dest: string, deps: Record<string, string>, log?: (m: string) => void): Promise<void> {
+  const pkgPath = join(dest, 'package.json');
+  if (!existsSync(pkgPath)) return; // dry-run: đích chưa có package.json — bỏ qua an toàn
+  const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { dependencies?: Record<string, string> };
+  pkg.dependencies ??= {};
+  for (const [name, range] of Object.entries(deps)) pkg.dependencies[name] ??= range;
+  await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+  log?.('Ghi package.json deps overlay');
 }
 
 /** Đọc package.json đích → thêm deps router/extras → ghi lại (2-space + \n cuối).
@@ -111,18 +125,22 @@ async function mergeDeps(dest: string, plan: ScaffoldPlan, log?: (message: strin
 
 /** Scaffold 1 app: base copy → render → overlays (admin/router/extras) →
  * render markers extras trong App.tsx router → merge deps vào package.json.
- * Preset khác demo: base là <preset>-ts (template đóng gói sẵn router/query),
- * admin đè thêm overlay template-feats/admin; mergeDeps chỉ chạy cho demo
- * (non-demo template đã liệt kê đủ deps trong package.json của nó). */
+ * Preset khác demo: base là template đóng gói sẵn router/query — chọn theo
+ * lang qua presetBase (minimal/landing có bản -js riêng; product/admin chỉ
+ * ts, options.ts đã chặn trước), admin đè thêm overlay template-feats/admin;
+ * mergeDeps chỉ chạy cho demo (non-demo template đã liệt kê đủ deps trong
+ * package.json của nó). */
 export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
-  const { plan, dest, log } = input;
+  const { plan, dest, log, dryRun } = input;
   const templatesRoot = input.templatesRoot ?? DEFAULT_TEMPLATES_ROOT;
-  // admin = product-ts + overlay (không có template admin-ts riêng)
-  const presetBase: Record<Exclude<Preset, 'demo'>, string> = {
-    minimal: 'minimal-ts',
-    product: 'product-ts',
-    admin: 'product-ts',
-    landing: 'landing-ts',
+  // admin = product-ts + overlay (không có template admin-ts riêng).
+  // minimal/landing có bản -js chuyển thể tay (type-free) — chọn theo lang;
+  // product/admin chỉ có bản TS (resolveOptions chặn lang js trước khi tới đây).
+  const presetBase: Record<Exclude<Preset, 'demo'>, (lang: Lang) => string> = {
+    minimal: (lang) => (lang === 'js' ? 'minimal-js' : 'minimal-ts'),
+    product: () => 'product-ts',
+    admin: () => 'product-ts',
+    landing: (lang) => (lang === 'js' ? 'landing-js' : 'landing-ts'),
   };
   const variant = plan.variant ?? 'vite';
   const demoBase: Record<'vite' | 'next' | 'astro', string> = {
@@ -130,7 +148,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     next: 'next-ts',
     astro: 'astro-ts',
   };
-  const baseName = plan.preset === 'demo' ? demoBase[variant] : presetBase[plan.preset];
+  const baseName = plan.preset === 'demo' ? demoBase[variant] : presetBase[plan.preset](plan.lang);
   const baseDir = join(templatesRoot, baseName);
   if (!existsSync(baseDir)) {
     throw new Error(`Không thấy template base: ${baseDir} (cần ${baseName} trong starter-templates)`);
@@ -141,14 +159,22 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
 
   const files: string[] = [];
   log?.(`Copy base template (${baseName})`);
-  await copyTree(baseDir, dest, { appName: plan.appName, renameExt: false, files });
+  await copyTree(baseDir, dest, { appName: plan.appName, renameExt: false, files, dryRun });
 
   const featsDir = join(templatesRoot, 'template-feats');
   if (plan.preset === 'admin') {
     const adminDir = join(featsDir, 'admin');
     if (!existsSync(adminDir)) throw new Error(`Không thấy overlay admin: ${adminDir}`);
     log?.('Apply overlay: admin (layout + dashboard + auth)');
-    await copyTree(adminDir, dest, { appName: plan.appName, renameExt: false, files });
+    await copyTree(adminDir, dest, { appName: plan.appName, renameExt: false, files, dryRun });
+    // Overlay được khai báo deps riêng (_deps.json) — merge vào package.json đích,
+    // vd admin cần chart.js cho dashboard. Cơ chế chung cho mọi overlay tương lai.
+    const adminDepsPath = join(adminDir, '_deps.json');
+    if (existsSync(adminDepsPath) && !dryRun) {
+      const deps = JSON.parse(await readFile(adminDepsPath, 'utf8')) as Record<string, string>;
+      for (const [name, range] of Object.entries(deps)) log?.(`Merge overlay dep: ${name}@${range}`);
+      await mergeDepsInto(dest, deps, log);
+    }
   }
 
   if (plan.router && isViteDemo) {
@@ -164,6 +190,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
       appName: plan.appName,
       renameExt: plan.lang === 'js' && !useJsVariant,
       files,
+      dryRun,
     });
   }
 
@@ -177,15 +204,16 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
       appName: plan.appName,
       renameExt: plan.lang === 'js' && !useJsVariant,
       files,
+      dryRun,
     });
   }
 
-  if (plan.router && isViteDemo) {
+  if (plan.router && isViteDemo && !dryRun) {
     log?.('Render extras markers trong App');
     await renderExtraMarkers(dest, plan, plan.lang === 'js');
   }
 
-  await mergeDeps(dest, plan, log);
+  if (!dryRun) await mergeDeps(dest, plan, log);
   return { files: files.map((f) => f.slice(dest.length + 1)) };
 }
 

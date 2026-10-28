@@ -12,6 +12,7 @@ pnpm install
 pnpm dev      # http://localhost:5173
 pnpm build    # production build → dist/
 pnpm preview  # xem build prod
+pnpm test     # vitest — demo App (shell + dark toggle đổi data-bp-theme)
 ```
 
 ## Có gì trong hộp

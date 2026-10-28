@@ -33,10 +33,14 @@ MSW — bỏ dynamic import trong `src/main.tsx` để tắt) hoặc dùng build
   8s, error envelope `{message}`) + `shared/api/query-keys.ts` (factory keys
   TanStack Query) + `app/query-client.ts` (instance dùng chung).
 - **Feature mẫu `features/tasks/`**: schema zod → api (parse response) → hooks
-  (list + toggle optimistic, form) → ui (Table + Tag + Field/Input) → containers
-  (nối data) → `index.ts` (cổng public). 3 test mẫu: api (msw node + zod parse),
-  hooks (renderHook + wrapper QueryClient), ui (RTL props cứng).
-- **Mock**: MSW browser worker chỉ chạy dev — handlers CRUD giả trong `src/mocks/`.
+  (list + toggle optimistic, form) → ui (Table + Tag + Field/Input, EmptyState
+  khi rỗng, Alert lỗi + Thử lại) → containers (nối data) → `index.ts` (cổng
+  public). Test mẫu: api (msw node + zod parse), hooks (renderHook + wrapper
+  QueryClient), ui (RTL props cứng), container (integration qua MSW).
+- **Mock**: MSW browser worker chỉ chạy dev — handlers CRUD giả trong `src/mocks/`
+  (CRUD + POST trùng tiêu đề → 409). 2 flag demo trên URL để rehearse UI trạng
+  thái đặc biệt: `http://localhost:5173/?empty=1` (list rỗng → EmptyState),
+  `/?boom=1` (GET lỗi 500 → Alert + nút Thử lại — bỏ flag rồi bấm là dữ liệu về).
 - **Luật kiến trúc**: [AGENTS.md](AGENTS.md) — bảng import allowed/blocked,
   quy ước đặt tên (XxxContainer ↔ Xxx, useXxx, xxx-api.ts, schema.ts), recipe
   "thêm feature mới" 5 bước. Enforce bằng `pnpm lint`.

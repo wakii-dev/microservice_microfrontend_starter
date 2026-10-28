@@ -15,7 +15,8 @@ Usage: pnpm create wakii-app [appName] [flags]
 Flags:
   --preset <tên>      demo | minimal | product | admin | landing (default: demo)
   --variant <tên>     vite | next | astro — framework của preset demo (default: vite)
-  --lang ts|js        Ngôn ngữ (default: ts — preset khác demo chỉ hỗ trợ ts)
+  --lang ts|js        Ngôn ngữ (default: ts — product/admin chỉ hỗ trợ ts;
+                      minimal/landing có bản js riêng)
   --router/--no-router  react-router v7, preset demo (default: có)
   --extras <list>     Extras phẩy ngăn cách: chart,carousel,schedule,editor —
                       chỉ dành cho preset demo
@@ -36,6 +37,7 @@ Ví dụ:
   pnpm create wakii-app my-app --preset product
   pnpm create wakii-app admin-app --preset admin --yes
   pnpm create wakii-app landing-app --preset landing --yes
+  pnpm create wakii-app my-app --preset minimal --lang js
   pnpm create wakii-app my-app --variant next
   pnpm create wakii-app my-app --lang ts --router --extras chart,carousel
 `;
@@ -46,6 +48,15 @@ const PRESET_PROMPTS: Record<Preset, string> = {
   product: 'product — chuẩn cấu trúc + TanStack Query + zod + MSW + feature mẫu',
   admin: 'admin — product + layout admin (Sidebar + dashboard + login)',
   landing: 'landing — 1 trang landing motion showcase (Reveal/Parallax/CountUp/FAQ), không router',
+};
+
+/** Hint một dòng cho prompt chọn preset — người mới hiểu ngay từng loại để làm gì. */
+const PRESET_HINTS: Record<Preset, string> = {
+  demo: 'Showcase kit — đủ 90+ components + extras chart/carousel/…',
+  minimal: 'Trang trắng + cấu trúc chuẩn — tự thêm data layer',
+  product: 'App thật: TanStack Query + zod + MSW + containers/ui/hooks/api',
+  admin: 'Product + Sidebar/Menu + dashboard + login',
+  landing: 'Landing motion 1 trang — nhẹ nhất',
 };
 
 const VARIANT_PROMPTS: Record<Variant, string> = {
@@ -60,6 +71,13 @@ function printNextSteps(plan: ScaffoldPlan): void {
   steps.push('pnpm dev');
   p.log.info('Next steps:');
   for (const step of steps) p.log.step(`  ${step}`);
+}
+
+// Node guard — engines khai báo >=22 nhưng cảnh báo THẬT lúc chạy (node 18 sẽ
+// lỗi mơ hồ ở install vì lockfile v9). Không chặn — chỉ in rõ.
+const [nodeMajor] = process.versions.node.split('.').map(Number);
+if (nodeMajor < 22) {
+  p.log.warn(`Node ${process.versions.node} — template cần Node >= 22 (lockfile pnpm 9). Nên nâng node trước khi install.`);
 }
 
 async function main(): Promise<void> {
@@ -91,7 +109,7 @@ async function main(): Promise<void> {
     const preset = await p.select<Preset>({
       message: 'Chọn preset?',
       initialValue: 'demo',
-      options: PRESETS.map((value) => ({ value, label: PRESET_PROMPTS[value] })),
+      options: PRESETS.map((value) => ({ value, label: PRESET_PROMPTS[value], hint: PRESET_HINTS[value] })),
     });
     if (p.isCancel(preset)) {
       p.cancel('Huỷ — không scaffold gì.');
@@ -166,11 +184,18 @@ async function main(): Promise<void> {
     const result = await scaffold({
       plan: finalPlan,
       dest,
+      dryRun: finalPlan.dryRun,
       log: (message) => {
         s.message(message);
       },
     });
-    s.stop(`Xong — ${result.files.length} file ghi vào ${dest}`);
+    if (finalPlan.dryRun) {
+      s.stop(`Dry-run — ${result.files.length} file SẼ được tạo (chưa ghi gì)`);
+      for (const f of result.files.slice(0, 30)) p.log.step(`  ${f}`);
+      if (result.files.length > 30) p.log.step(`  … và ${result.files.length - 30} file khác`);
+    } else {
+      s.stop(`Xong — ${result.files.length} file ghi vào ${dest}`);
+    }
   } catch (err) {
     s.stop('Scaffold lỗi');
     p.log.error(err instanceof Error ? err.message : String(err));

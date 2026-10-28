@@ -29,6 +29,10 @@ describe('tasksApi', () => {
     expect(created.status).toBe('todo');
   });
 
+  it('create TRÙNG tiêu đề → 409 với message nghiệp vụ từ envelope', async () => {
+    await expect(tasksApi.create({ title: 'Đọc AGENTS.md' })).rejects.toThrow('đã tồn tại');
+  });
+
   it('toggleStatus → PATCH đổi status theo chu kỳ', async () => {
     const tasks = await tasksApi.list();
     const doing = tasks.find((t) => t.status === 'doing')!;

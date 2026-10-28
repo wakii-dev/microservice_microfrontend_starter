@@ -96,7 +96,6 @@ describe('Textarea autoSize', () => {
     const cs = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
       lineHeight: '22px', paddingTop: '12px', paddingBottom: '12px',
     } as CSSStyleDeclaration);
-    scroll = 500;
     fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } }); // state → rerender → effect
     expect(ta.style.height).toBe(`${4 * 22 + 24}px`); // clamped at maxRows 4
     expect(ta.style.overflowY).toBe('auto');
@@ -132,7 +131,7 @@ describe('Textarea autoSize', () => {
     fireEvent.change(ta, { target: { value: 'abc' } });
     // scroll 68 → content 44 → 2 rows → minRows 2 → 2*22+24 = 68px
     expect(ta.style.height).toBe(`${2 * 22 + 24}px`);
-    expect(screen.getByText('3 / 400')).toBeInTheDocument();
+    expect(screen.getByText('3/400')).toBeInTheDocument();
     cs.mockRestore();
   });
 
@@ -145,7 +144,7 @@ describe('Textarea autoSize', () => {
 });
 ```
 
-(Note: `useState` must join the react import at top. For the showCount test, the expected count string follows the EXISTING showCount test in `input.test.tsx` — check whether it renders `3 / 400` or `3/400` and match it.)
+(Note: `useState` must join the react import at top of the TEST file. The count format is `3/400` — verified: `input/index.tsx` renders `{count}/{maxLength}` and existing tests assert `getByText('3/10')`.)
 
 - [ ] **Step 2: Run to verify RED**
 
@@ -187,7 +186,8 @@ export function computeAutoSizeHeight(args: {
 Wire into `Textarea` in `index.tsx`:
 
 ```tsx
-// new imports (merge into existing react import: useLayoutEffect, useRef, useCallback)
+// new imports — the existing react import in input/index.tsx is TYPE-only, so add a separate VALUE import:
+import { useLayoutEffect, useRef, useCallback } from 'react';
 import { computeAutoSizeHeight, resolveAutoSize, type AutoSize } from './autosize.js';
 
 // TextareaProps: add
@@ -802,7 +802,7 @@ git commit -m "feat(ui-kit): ImageList — standard grid + CSS-columns masonry (
   - Feedback table Progress row: update "Most valuable prop" cell to `percent (+ type line/circle, size px)` and mention indeterminate circle spin.
   - Forms table: ADD a Textarea row (autoSize is otherwise invisible to the AI quick reference): `| Textarea (multi-line) | Long text — notes, descriptions | autoSize (boolean = unbounded from 2 rows; {minRows,maxRows} clamps via JS measure) | inside Field + showCount/maxLength · coexists with invalid |`
 - [ ] **Step 2: recipes.md** — add two recipes at the end (number continues the sequence): autoSize textarea in a validated form (`Field` + `Textarea autoSize={{minRows:3,maxRows:8}} showCount maxLength`), and a masonry gallery page (`ImageList variant="masonry"` + click handler + empty state).
-- [ ] **Step 3: CHANGELOG** — match the file's EXISTING bracketed Keep-a-Changelog style: new `## [0.8.0] — 2026-10-29 (MUI-parity components)` section atop with `### Added` + 5 English bullets (one per feature). The file currently tops out at `[0.6.0]` while package.json is 0.7.2 — add a one-line catch-up `## [0.7.0] – [0.7.2]` entry summarizing slots-DOM 113/113 + fixes (one line, no detail) so 0.8.0 doesn't stack on a gap.
+- [ ] **Step 3: CHANGELOG** — match the file's EXISTING bracketed Keep-a-Changelog style (newest block is `[0.6.3] / [0.6.4]`, and that block lists versions oldest-first — follow the file's actual layout for where `## [0.8.0] — 2026-10-29 (MUI-parity components)` goes) with `### Added` + 5 English bullets (one per feature). The file has NO 0.7.x entries while package.json is 0.7.2 — add a one-line catch-up `## [0.7.0] – [0.7.2]` entry summarizing slots-DOM 113/113 + fixes so 0.8.0 doesn't stack on a gap.
 - [ ] **Step 4: version** — `app/ui-kit/package.json` `0.7.2` → `0.8.0`.
 - [ ] **Step 5: Full verify**
 

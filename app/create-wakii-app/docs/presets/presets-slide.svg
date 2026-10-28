@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-label="create-wakii-app — 5 presets autoplay carousel: demo, minimal, product, admin, landing">
+  <desc>Carousel SVG (SMIL, autoplay 4s/slide, loop): 5 khung preset — mỗi khung có tên, mô tả, lệnh và wireframe schematic mô phỏng trang thật. Mô phỏng Carousel component của @wakii/ui-kit (indicators + autoplay + loop).</desc>
+  <defs>
+    <linearGradient id="heroG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5e6ad2" stop-opacity="0.35"/><stop offset="1" stop-color="#141516" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="accentFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5e6ad2"/><stop offset="1" stop-color="#828fff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- nền -->
+  <rect width="960" height="430" fill="#010102"/>
+  <g font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+
+  <!-- ================= SLIDE 1 · demo ================= -->
+  <g>
+    <animate attributeName="opacity" values="1;1;0;0;0;0;0;0;0;0;1" keyTimes="0;0.16;0.2;0.36;0.4;0.56;0.6;0.76;0.8;0.96;1" dur="20s" repeatCount="indefinite"/>
+    <text x="48" y="64" fill="#f7f8f8" font-size="34" font-weight="700">demo</text>
+    <text x="48" y="92" fill="#8a8f98" font-size="14">Showcase đầy đủ 90+ components · extras chart/carousel/schedule/editor · dark toggle</text>
+    <rect x="620" y="120" width="300" height="34" rx="17" fill="#141516" stroke="#5e6ad2" stroke-width="1.2"/>
+    <text x="640" y="142" fill="#828fff" font-size="14" font-family="ui-monospace,Menlo,monospace">npm create wakii-app my-app</text>
+    <!-- wireframe: hero blob + KPI + sections -->
+    <rect x="48" y="120" width="540" height="150" rx="12" fill="url(#heroG)" stroke="#23252a"/>
+    <circle cx="520" cy="150" r="46" fill="#5e6ad2" opacity="0.25"/>
+    <rect x="72" y="146" width="120" height="12" rx="6" fill="#3a3d45"/>
+    <rect x="72" y="172" width="260" height="16" rx="8" fill="#f7f8f8" opacity="0.9"/>
+    <rect x="72" y="198" width="200" height="10" rx="5" fill="#565b66"/>
+    <rect x="72" y="224" width="90" height="26" rx="7" fill="#5e6ad2"/>
+    <rect x="170" y="224" width="70" height="26" rx="7" fill="#1c1e22" stroke="#2f333b"/>
+    <g>
+      <rect x="48" y="286" width="172" height="64" rx="10" fill="#0f1011" stroke="#23252a"/>
+      <rect x="64" y="306" width="60" height="8" rx="4" fill="#565b66"/><rect x="64" y="324" width="88" height="12" rx="6" fill="#f7f8f8"/>
+      <rect x="232" y="286" width="172" height="64" rx="10" fill="#0f1011" stroke="#23252a"/>
+      <rect x="248" y="306" width="60" height="8" rx="4" fill="#565b66"/><rect x="248" y="324" width="88" height="12" rx="6" fill="#f7f8f8"/>
+      <rect x="416" y="286" width="172" height="64" rx="10" fill="#0f1011" stroke="#23252a"/>
+      <rect x="432" y="306" width="60" height="8" rx="4" fill="#565b66"/><rect x="432" y="324" width="88" height="12" rx="6" fill="#f7f8f8"/>
+      <rect x="600" y="286" width="312" height="64" rx="10" fill="#0f1011" stroke="#23252a"/>
+      <rect x="616" y="302" width="70" height="9" rx="4" fill="#565b66"/>
+      <rect x="616" y="320" width="280" height="8" rx="4" fill="#26282d"/><rect x="616" y="332" width="240" height="8" rx="4" fill="#26282d"/>
+    </g>
+  </g>
+
+  <!-- ================= SLIDE 2 · minimal ================= -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;1;1;0;0;0;0;0;0;0" keyTimes="0;0.16;0.2;0.36;0.4;0.56;0.6;0.76;0.8;0.96;1" dur="20s" repeatCount="indefinite"/>
+    <text x="48" y="64" fill="#f7f8f8" font-size="34" font-weight="700">minimal</text>
+    <text x="48" y="92" fill="#8a8f98" font-size="14">Trang trắng · cấu trúc chuẩn · env zod · alias @/ · tự thêm data layer</text>
+    <rect x="620" y="120" width="340" height="34" rx="17" fill="#141516" stroke="#5e6ad2" stroke-width="1.2"/>
+    <text x="640" y="142" fill="#828fff" font-size="13.5" font-family="ui-monospace,Menlo,monospace">… my-app --preset minimal</text>
+    <rect x="48" y="120" width="540" height="230" rx="12" fill="#0d0e10" stroke="#23252a"/>
+    <rect x="76" y="150" width="16" height="16" rx="4" fill="#5e6ad2"/>
+    <path d="M79 154l3.2 8.4 3-5.6 3 5.6 3.2-8.4" stroke="#ffffff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="100" y="154" width="60" height="9" rx="4" fill="#8a8f98"/>
+    <circle cx="556" cy="158" r="9" fill="none" stroke="#3a3d45" stroke-width="1.6"/>
+    <rect x="76" y="210" width="240" height="18" rx="9" fill="#f7f8f8" opacity="0.92"/>
+    <rect x="76" y="242" width="320" height="10" rx="5" fill="#4a4f58"/>
+    <rect x="76" y="260" width="270" height="10" rx="5" fill="#33363d"/>
+    <text x="76" y="322" fill="#3f434b" font-size="12">src/app · src/routes · src/shared · env.ts (zod) · vitest smoke</text>
+  </g>
+
+  <!-- ================= SLIDE 3 · product ================= -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0;1;1;0;0;0;0;0" keyTimes="0;0.16;0.2;0.36;0.4;0.56;0.6;0.76;0.8;0.96;1" dur="20s" repeatCount="indefinite"/>
+    <text x="48" y="64" fill="#f7f8f8" font-size="34" font-weight="700">product</text>
+    <text x="48" y="92" fill="#8a8f98" font-size="14">TanStack Query + zod + MSW · containers/ui/hooks/api · ESLint boundary · 13 tests</text>
+    <rect x="620" y="120" width="340" height="34" rx="17" fill="#141516" stroke="#5e6ad2" stroke-width="1.2"/>
+    <text x="640" y="142" fill="#828fff" font-size="13.5" font-family="ui-monospace,Menlo,monospace">… my-app --preset product</text>
+    <rect x="48" y="120" width="540" height="230" rx="12" fill="#0d0e10" stroke="#23252a"/>
+    <rect x="48" y="120" width="540" height="34" rx="12" fill="#0f1011"/>
+    <rect x="64" y="131" width="14" height="12" rx="3" fill="#5e6ad2"/><rect x="86" y="133" width="44" height="8" rx="4" fill="#8a8f98"/>
+    <rect x="300" y="133" width="30" height="8" rx="4" fill="#4a4f58"/><rect x="338" y="133" width="38" height="8" rx="4" fill="#4a4f58"/>
+    <rect x="64" y="172" width="150" height="12" rx="6" fill="#f7f8f8" opacity="0.9"/>
+    <!-- table rows -->
+    <rect x="64" y="200" width="508" height="30" rx="6" fill="#131417"/>
+    <rect x="78" y="212" width="90" height="7" rx="3.5" fill="#565b66"/>
+    <rect x="240" y="212" width="50" height="7" rx="3.5" fill="#3f434b"/>
+    <rect x="420" y="208" width="46" height="14" rx="7" fill="#1d2b1f" stroke="#2c4a2f"/>
+    <rect x="64" y="238" width="508" height="30" rx="6" fill="#0f1011"/>
+    <rect x="78" y="250" width="120" height="7" rx="3.5" fill="#565b66"/>
+    <rect x="240" y="250" width="44" height="7" rx="3.5" fill="#3f434b"/>
+    <rect x="420" y="246" width="66" height="14" rx="7" fill="#2b2416" stroke="#4d3d1c"/>
+    <rect x="64" y="276" width="508" height="30" rx="6" fill="#0f1011"/>
+    <rect x="78" y="288" width="76" height="7" rx="3.5" fill="#565b66"/>
+    <rect x="240" y="288" width="56" height="7" rx="3.5" fill="#3f434b"/>
+    <rect x="420" y="284" width="56" height="14" rx="7" fill="#1d2b1f" stroke="#2c4a2f"/>
+    <text x="64" y="334" fill="#3f434b" font-size="12">features/tasks → containers · ui · hooks · api · schema — mock API trả data thật</text>
+  </g>
+
+  <!-- ================= SLIDE 4 · admin ================= -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;1;1;0;0;0" keyTimes="0;0.16;0.2;0.36;0.4;0.56;0.6;0.76;0.8;0.96;1" dur="20s" repeatCount="indefinite"/>
+    <text x="48" y="64" fill="#f7f8f8" font-size="34" font-weight="700">admin</text>
+    <text x="48" y="92" fill="#8a8f98" font-size="14">Product + Sidebar/Menu layout · dashboard KPI + Chart thật · auth login</text>
+    <rect x="620" y="120" width="340" height="34" rx="17" fill="#141516" stroke="#5e6ad2" stroke-width="1.2"/>
+    <text x="640" y="142" fill="#828fff" font-size="13.5" font-family="ui-monospace,Menlo,monospace">… my-app --preset admin</text>
+    <rect x="48" y="120" width="540" height="230" rx="12" fill="#0d0e10" stroke="#23252a"/>
+    <!-- sidebar -->
+    <rect x="48" y="120" width="118" height="230" rx="12" fill="#0f1011"/>
+    <rect x="62" y="140" width="12" height="12" rx="3" fill="#5e6ad2"/>
+    <rect x="62" y="168" width="70" height="8" rx="4" fill="#4a4f58"/>
+    <rect x="62" y="190" width="54" height="8" rx="4" fill="#33363d"/>
+    <rect x="62" y="212" width="62" height="8" rx="4" fill="#33363d"/>
+    <rect x="62" y="234" width="46" height="8" rx="4" fill="#33363d"/>
+    <!-- KPI cards -->
+    <rect x="182" y="136" width="122" height="52" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <rect x="196" y="150" width="46" height="7" rx="3.5" fill="#4a4f58"/><rect x="196" y="164" width="70" height="10" rx="5" fill="#f7f8f8"/>
+    <rect x="316" y="136" width="122" height="52" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <rect x="330" y="150" width="46" height="7" rx="3.5" fill="#4a4f58"/><rect x="330" y="164" width="64" height="10" rx="5" fill="#f7f8f8"/>
+    <rect x="450" y="136" width="122" height="52" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <rect x="464" y="150" width="46" height="7" rx="3.5" fill="#4a4f58"/><rect x="464" y="164" width="56" height="10" rx="5" fill="#f7f8f8"/>
+    <!-- bar chart card -->
+    <rect x="182" y="200" width="390" height="132" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <rect x="198" y="216" width="90" height="8" rx="4" fill="#565b66"/>
+    <rect x="240" y="250" width="34" height="64" rx="4" fill="url(#accentFade)"/>
+    <rect x="288" y="270" width="34" height="44" rx="4" fill="#5e6ad2" opacity="0.55"/>
+    <rect x="336" y="234" width="34" height="80" rx="4" fill="url(#accentFade)"/>
+    <rect x="384" y="258" width="34" height="56" rx="4" fill="#5e6ad2" opacity="0.55"/>
+    <rect x="432" y="244" width="34" height="70" rx="4" fill="url(#accentFade)"/>
+    <rect x="480" y="278" width="34" height="36" rx="4" fill="#5e6ad2" opacity="0.55"/>
+  </g>
+
+  <!-- ================= SLIDE 5 · landing ================= -->
+  <g opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0;0;0;0;0;1;1;0;0;0" keyTimes="0;0.16;0.2;0.36;0.4;0.56;0.6;0.76;0.8;0.96;1" dur="20s" repeatCount="indefinite"/>
+    <text x="48" y="64" fill="#f7f8f8" font-size="34" font-weight="700">landing</text>
+    <text x="48" y="92" fill="#8a8f98" font-size="14">Motion 1 trang — Parallax + Reveal + CountUp + FAQ · gzip ~94KB</text>
+    <rect x="620" y="120" width="340" height="34" rx="17" fill="#141516" stroke="#5e6ad2" stroke-width="1.2"/>
+    <text x="640" y="142" fill="#828fff" font-size="13.5" font-family="ui-monospace,Menlo,monospace">… my-app --preset landing</text>
+    <rect x="48" y="120" width="540" height="110" rx="12" fill="url(#heroG)" stroke="#23252a"/>
+    <circle cx="540" cy="150" r="40" fill="#828fff" opacity="0.22"/>
+    <rect x="72" y="146" width="300" height="18" rx="9" fill="#f7f8f8" opacity="0.94"/>
+    <rect x="72" y="174" width="220" height="10" rx="5" fill="#565b66"/>
+    <rect x="72" y="196" width="96" height="24" rx="7" fill="#5e6ad2"/>
+    <!-- motion sections -->
+    <rect x="48" y="244" width="170" height="58" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <circle cx="72" cy="266" r="8" fill="#5e6ad2" opacity="0.5"/><rect x="88" y="262" width="80" height="7" rx="3.5" fill="#565b66"/><rect x="66" y="284" width="110" height="7" rx="3.5" fill="#33363d"/>
+    <rect x="232" y="244" width="170" height="58" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <circle cx="256" cy="266" r="8" fill="#f2c94c" opacity="0.5"/><rect x="272" y="262" width="80" height="7" rx="3.5" fill="#565b66"/><rect x="250" y="284" width="110" height="7" rx="3.5" fill="#33363d"/>
+    <rect x="416" y="244" width="156" height="58" rx="9" fill="#0f1011" stroke="#23252a"/>
+    <rect x="430" y="256" width="90" height="7" rx="3.5" fill="#565b66"/><rect x="430" y="272" width="120" height="6" rx="3" fill="#33363d"/><rect x="430" y="284" width="100" height="6" rx="3" fill="#26282d"/>
+    <!-- KPI counter -->
+    <rect x="588" y="244" width="0" height="0" fill="none"/>
+    <text x="596" y="270" fill="#f7f8f8" font-size="26" font-weight="700">90+</text>
+    <text x="596" y="290" fill="#565b66" font-size="11">components — CountUp</text>
+  </g>
+
+  <!-- ================= chrome: title + indicators ================= -->
+  <text x="48" y="34" fill="#f7f8f8" font-size="15" font-weight="600" opacity="0.85">npm create wakii-app — 5 presets · autoplay</text>
+  <rect x="742" y="22" width="170" height="20" rx="10" fill="none" stroke="#2b2d33"/>
+  <circle cx="756" cy="32" r="4" fill="#5e6ad2"><animate attributeName="fill" values="#5e6ad2;#3a3d45;#3a3d45;#3a3d45;#3a3d45;#5e6ad2" dur="20s" repeatCount="indefinite"/></circle>
+  <circle cx="790" cy="32" r="4" fill="#3a3d45"><animate attributeName="fill" values="#3a3d45;#5e6ad2;#3a3d45;#3a3d45;#3a3d45;#3a3d45" dur="20s" repeatCount="indefinite" begin="4s"/></circle>
+  <circle cx="824" cy="32" r="4" fill="#3a3d45"><animate attributeName="fill" values="#3a3d45;#3a3d45;#5e6ad2;#3a3d45;#3a3d45;#3a3d45" dur="20s" repeatCount="indefinite" begin="8s"/></circle>
+  <circle cx="858" cy="32" r="4" fill="#3a3d45"><animate attributeName="fill" values="#3a3d45;#3a3d45;#3a3d45;#5e6ad2;#3a3d45;#3a3d45" dur="20s" repeatCount="indefinite" begin="12s"/></circle>
+  <circle cx="892" cy="32" r="4" fill="#3a3d45"><animate attributeName="fill" values="#3a3d45;#3a3d45;#3a3d45;#3a3d45;#5e6ad2;#3a3d45" dur="20s" repeatCount="indefinite" begin="16s"/></circle>
+  <!-- progress bar autoplay -->
+  <rect x="48" y="404" width="864" height="3" rx="1.5" fill="#1b1d21"/>
+  <rect x="48" y="404" width="0" height="3" rx="1.5" fill="#5e6ad2">
+    <animate attributeName="width" values="0;864" dur="20s" repeatCount="indefinite"/>
+  </rect>
+  </g>
+</svg>

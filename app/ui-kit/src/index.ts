@@ -12,6 +12,7 @@ export { EmptyState, type EmptyStateProps, type EmptyStateClassNames } from './u
 export { Skeleton, type SkeletonProps , type SkeletonClassNames } from './ui/skeleton/index.js';
 export { Spinner, type SpinnerProps, type SpinnerClassNames } from './ui/spinner/index.js';
 export { Button, type ButtonProps, type ButtonType, type ButtonClassNames } from './ui/button/index.js';
+export { ButtonGroup, type ButtonGroupProps } from './ui/button/group.js';
 export { Input, Textarea, type InputProps, type InputClassNames, type TextareaProps, type TextareaClassNames } from './ui/input/index.js';
 export { Tag, type TagProps, type TagClassNames, type CheckableTagProps, type CheckableTagClassNames } from './ui/tag/index.js';
 export { Alert, type AlertProps, type AlertType , type AlertClassNames } from './ui/alert/index.js';

@@ -27,6 +27,9 @@ export interface CliOptions {
   preset?: Preset;
   /** undefined = chưa chỉ định (prompt khi demo); default 'vite'. Chỉ áp preset demo. */
   variant?: Variant;
+  /** --as-remote: base = remote-ts (rspack + MF expose ./<Name>Page) — preset/
+   * variant/router/extras machinery does not apply; the remote is a single-page island. */
+  asRemote?: boolean;
   yes: boolean;
   skipInstall: boolean;
   /** --dry-run: scaffold tính toán + log danh sách file, KHÔNG ghi đĩa. */
@@ -47,8 +50,25 @@ export interface ScaffoldPlan {
   extras: Extra[];
   preset: Preset;
   variant: Variant;
+  /** --as-remote: base remote-ts, no overlays, no deps merge. */
+  asRemote: boolean;
   skipInstall: boolean;
   dryRun: boolean;
+}
+
+/** Derive the MF container name from appName — rspack emits it into generated code,
+ * so it MUST be a valid JS identifier (package names allow dashes; identifiers don't).
+ * Split on non-alphanumerics → PascalCase; leading digits stripped; empty → 'Remote'.
+ * 'remote-check' → 'RemoteCheck' · 'my_app 2' → 'MyApp2' · '3app' → 'App'. */
+export function toRemoteName(appName: string): string {
+  const pascal = appName
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1))
+    .join('')
+    .replace(/^[0-9]+/, '');
+  if (!pascal) return 'Remote';
+  return pascal[0].toUpperCase() + pascal.slice(1);
 }
 
 function parseExtrasList(raw: string): { ok: true; extras: Extra[] } | { ok: false; message: string } {
@@ -82,6 +102,8 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       options.router = true;
     } else if (arg === '--no-router') {
       options.router = false;
+    } else if (arg === '--as-remote') {
+      options.asRemote = true;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else if (arg === '--preset') {
@@ -159,6 +181,34 @@ export function parseArgs(argv: readonly string[]): ParseResult {
 export function resolveOptions(options: CliOptions): ScaffoldPlan {
   const preset = options.preset ?? 'demo';
   const variant = options.variant ?? 'vite';
+  // --as-remote: base remote-ts (rspack + MF expose) — preset/variant/router/extras
+  // machinery does not apply; reject conflicting flags with a clear message instead
+  // of silently ignoring them. Router is NOT applied (the remote is a single page).
+  if (options.asRemote) {
+    if (preset !== 'demo') {
+      throw new Error(`--as-remote cannot be combined with --preset (remote-ts is a self-contained template — preset '${preset}' does not apply) — drop --preset`);
+    }
+    if (options.variant !== undefined && options.variant !== 'vite') {
+      throw new Error(`--as-remote cannot be combined with --variant ${options.variant} (variant only applies to the demo preset) — drop --variant`);
+    }
+    if (options.lang === 'js') {
+      throw new Error('--as-remote currently supports TypeScript only — drop --lang js');
+    }
+    if (options.extras.length > 0) {
+      throw new Error('--as-remote cannot be combined with --extras (the remote template exposes a single page) — drop --extras');
+    }
+    return {
+      appName: options.appName ?? 'my-wakii-app',
+      lang: 'ts',
+      router: false,
+      extras: [],
+      preset: 'demo',
+      variant: 'vite',
+      asRemote: true,
+      skipInstall: options.skipInstall,
+      dryRun: options.dryRun ?? false,
+    };
+  }
   if (options.extras.length > 0 && options.router === false) {
     throw new Error('--no-router mâu thuẫn với --extras (demo subpath cần route để mở) — bỏ --no-router hoặc bỏ extras');
   }
@@ -186,6 +236,7 @@ export function resolveOptions(options: CliOptions): ScaffoldPlan {
     extras: options.extras,
     preset,
     variant,
+    asRemote: false,
     skipInstall: options.skipInstall,
     dryRun: options.dryRun ?? false,
   };

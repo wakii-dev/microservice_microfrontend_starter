@@ -1,0 +1,21 @@
+/* Tailwind v4 entry — same pattern as the other create-wakii-app templates: theme +
+ * utilities come from @wakii/ui-kit/styles/tailwind.css. Do NOT add a second
+ * `@import "tailwindcss"` (double preflight/theme visually shifts everything).
+ * Import order mirrors the stack: tokens → dark theme → base reset → tailwind.
+ *
+ * ⚠️ @source MUST point through explicit node_modules paths: a differently-written
+ * relative path into the package (e.g. '../../node_modules/@wakii/ui-kit/src') gets
+ * resolved through the pnpm symlink and IGNORED (only explicit node_modules paths are
+ * scanned). Without the lines below, utilities used inside kit components are never
+ * generated → broken layouts.
+ */
+@import '@wakii/ui-kit/styles/tokens.css';
+@import '@wakii/ui-kit/styles/themes/dark.css';
+@import '@wakii/ui-kit/styles/base.css';
+@import '@wakii/ui-kit/styles/tailwind.css';
+
+@source './';
+@source '../node_modules/@wakii/ui-kit/src';
+/* The npm package also ships compiled components — scan dist too, or utilities the
+ * kit uses internally are missing → broken layouts. */
+@source '../node_modules/@wakii/ui-kit/dist';

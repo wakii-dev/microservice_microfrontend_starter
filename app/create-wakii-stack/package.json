@@ -1,6 +1,6 @@
 {
   "name": "create-wakii-stack",
-  "version": "0.2.11",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "CLI scaffold full-stack (FE+BE) dùng @wakii/ui-kit — full-copy + prune theo manifest (spec Hybrid C)",

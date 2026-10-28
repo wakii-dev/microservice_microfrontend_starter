@@ -16,6 +16,7 @@
 | Internal tool / dashboard | `… my-app --preset admin` |
 | Landing page | `… my-app --preset landing` |
 | Next.js / Astro | add `--variant next` / `--variant astro` |
+| MF remote for a Wakii stack | `… my-remote --as-remote` — rspack + Module Federation expose |
 
 [![npm](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app)](https://www.npmjs.com/package/create-wakii-app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
@@ -61,6 +62,7 @@ pnpm create wakii-app my-app --preset product --yes                  # + TanStac
 pnpm create wakii-app my-app --preset admin --yes                    # + admin layout (dashboard + login)
 pnpm create wakii-app landing-app --preset landing --yes             # single-page motion landing
 pnpm create wakii-app ~/code/my-app --lang js --skip-install         # path + JavaScript (demo preset only)
+pnpm create wakii-app my-remote --as-remote --yes                    # standalone MF remote (rspack)
 ```
 
 ## Flags
@@ -73,6 +75,7 @@ pnpm create wakii-app ~/code/my-app --lang js --skip-install         # path + Ja
 | `--lang ts\|js` | TypeScript / JavaScript (also accepts `--lang=js`). Non-demo presets are TS-only (clear error otherwise) | `ts` |
 | `--router` / `--no-router` | react-router v7 — a **demo × vite** choice (prompted when missing — unless `--yes`); non-demo templates manage their own routing (landing: single page, no router) | on |
 | `--extras <list>` | demo subpaths: `chart · carousel · schedule · editor` (also accepts `--extras=a`). Extras **imply the router** (each demo subpath is its own route). Non-demo presets → "extras are demo-only" error | none |
+| `--as-remote` | scaffold a **standalone Module Federation remote** (`remote-ts` base): Rspack + MF expose `./<Name>Page` (`remoteEntry.js`), standalone debug page on port 4101, demo Table page with local state — ready to plug into a Wakii stack (gateway route + shell registry; see the generated README). Ignores preset/variant/router/extras — conflicts with `--preset`/`--variant` ≠ vite/`--lang js`/`--extras` produce a clear error. The MF container name is an identifier derived from the app name (`my-remote` → `MyRemote`) | off |
 | `--yes` | skip prompts, take all defaults | — |
 | `--skip-install` | omit `pnpm install` from the next steps | — |
 | `-h`, `--help` | print usage | — |
@@ -92,7 +95,7 @@ Router (on by default, react-router v7): a `/` demo route plus `/about` introduc
 ## Architecture (repo)
 
 - `src/options.ts` — hand-rolled flag parser (zero parser dependencies) + defaults + validation (`--no-router` × `--extras`, non-demo × `--extras`/`--lang js`, variant ≠ vite × non-demo/extras/js throw)
-- `src/scaffold.ts` — maps preset → base template (`demo` → `vite-ts|vite-js` per `--variant`, or `next-ts`/`astro-ts`; `minimal` → `minimal-ts`, `product` → `product-ts`, `admin` → `product-ts` **+ `template-feats/admin` overlay on top**, `landing` → `landing-ts`) → recursive copy → renders the `{{appName}}` placeholder (binaries skipped) → applies overlays → merges dependencies into package.json (router dep only for `demo` — the other templates list their own deps)
+- `src/scaffold.ts` — maps preset → base template (`demo` → `vite-ts|vite-js` per `--variant`, or `next-ts`/`astro-ts`; `minimal` → `minimal-ts`, `product` → `product-ts`, `admin` → `product-ts` **+ `template-feats/admin` overlay on top**, `landing` → `landing-ts`, `--as-remote` → `remote-ts` with no overlays and no deps merge) → recursive copy → renders the `{{appName}}` placeholder plus `{{remoteName}}` (the identifier-safe MF container name derived from the app name — rendered in content **and** file names; binaries skipped) → applies overlays → merges dependencies into package.json (router dep only for `demo` — the other templates list their own deps)
 - `src/index.ts` — the `@clack/prompts` flow + logging + next steps (UI wiring only; preset is asked first, variant prompt is demo-only, router/extras prompts are demo × vite only)
 
 Template sources: `app/starter-templates/{vite-ts,vite-js,minimal-ts,product-ts,next-ts,astro-ts,landing-ts}` + `template-feats/{router,extras,admin}` (owned by separate workers). JS-variant overlays must be type-free (the engine only renames `.tsx→.jsx`); if an overlay ships its own `vite-js/` directory, that directory is used as-is. Non-demo presets are TS-only.

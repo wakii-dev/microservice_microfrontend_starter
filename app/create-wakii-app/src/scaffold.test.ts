@@ -78,6 +78,19 @@ async function makeTemplates(): Promise<string> {
   );
   await writeFile(join(t, 'landing-js', 'src', 'main.jsx'), "// landing-js main {{appName}}");
   await writeFile(join(t, 'landing-js', 'src', 'App.jsx'), 'export function App() { return <h1>landing-js {{appName}}</h1>; }');
+  // remote-ts (--as-remote): MF remote — {{remoteName}} render ở CẢ content và TÊN
+  // FILE (file page expose đặt tên theo component; MF name/expose trong rspack config).
+  await mkdir(join(t, 'remote-ts', 'src'), { recursive: true });
+  await writeFile(
+    join(t, 'remote-ts', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '19.3.0', '@tanstack/react-query': '^5.90.0' } }),
+  );
+  await writeFile(
+    join(t, 'remote-ts', 'rspack.config.mjs'),
+    "name: '{{remoteName}}',\nexposes: { './{{remoteName}}Page': './src/{{remoteName}}Page.tsx' },\npublicPath: '/remotes/{{appName}}/',",
+  );
+  await writeFile(join(t, 'remote-ts', 'src', 'index.tsx'), '// anchor {{appName}}');
+  await writeFile(join(t, 'remote-ts', 'src', '{{remoteName}}Page.tsx'), 'export function {{remoteName}}Page() { return null; } // {{appName}}');
   // overlay admin — đè lên product-ts (mirror cấu trúc dest 1:1) + khai báo deps
   // riêng qua _deps.json (engine merge vào package.json đích, KHÔNG copy ra output)
   await mkdir(join(t, 'template-feats', 'admin', 'src', 'routes'), { recursive: true });
@@ -107,6 +120,7 @@ async function run(planOverrides: Partial<ScaffoldInput['plan']>, templatesRoot:
     extras: [] as never[],
     preset: 'demo' as const,
     variant: 'vite' as const,
+    asRemote: false,
     skipInstall: false,
     dryRun: false,
     ...planOverrides,
@@ -316,10 +330,46 @@ describe('scaffold — preset JS variants (minimal-js/landing-js)', () => {
 describe('scaffold — dry-run', () => {
   it('dryRun: liệt kê files nhưng KHÔNG ghi đĩa', async () => {
     const templatesRoot = await makeTemplates();
-    const result = await scaffold({ plan: { appName: 'x', lang: 'ts', router: true, extras: [], preset: 'demo', variant: 'vite', skipInstall: true, dryRun: true }, dest, templatesRoot, dryRun: true });
+    const result = await scaffold({ plan: { appName: 'x', lang: 'ts', router: true, extras: [], preset: 'demo', variant: 'vite', asRemote: false, skipInstall: true, dryRun: true }, dest, templatesRoot, dryRun: true });
     expect(result.files.length).toBeGreaterThan(0);
     // dry-run không mkdir không ghi — dest phải KHÔNG tồn tại
     const { existsSync } = await import('node:fs');
     expect(existsSync(dest)).toBe(false);
+  });
+});
+
+describe('scaffold — as-remote (remote-ts)', () => {
+  it('base remote-ts: {{remoteName}} render ở content VÀ tên file; KHÔNG overlay dù router=true; deps nguyên vẹn', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'remote-check', asRemote: true, router: true }, templatesRoot);
+
+    // tên file render — {{remoteName}}Page.tsx → RemoteCheckPage.tsx
+    expect(existsSync(join(dest, 'src', 'RemoteCheckPage.tsx'))).toBe(true);
+    expect(existsSync(join(dest, 'src', '{{remoteName}}Page.tsx'))).toBe(false);
+
+    // MF name + expose render trong rspack config; {{appName}} vẫn render
+    const cfg = await readFile(join(dest, 'rspack.config.mjs'), 'utf8');
+    expect(cfg).toContain("name: 'RemoteCheck'");
+    expect(cfg).toContain("'./RemoteCheckPage'");
+    expect(cfg).toContain('/remotes/remote-check/');
+    const page = await readFile(join(dest, 'src', 'RemoteCheckPage.tsx'), 'utf8');
+    expect(page).toContain('function RemoteCheckPage');
+    expect(page).toContain('// remote-check');
+
+    // package.json: name render, deps giữ nguyên (không merge router/overlay)
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.name).toBe('remote-check');
+    expect(pkg.dependencies['react-router']).toBeUndefined();
+    expect(pkg.dependencies['react']).toBe('19.3.0');
+
+    // overlay demo không dính dù router=true
+    expect(existsSync(join(dest, 'src', 'App.tsx'))).toBe(false);
+    expect(log).toHaveBeenCalledWith('Copy base template (remote-ts)');
+  });
+
+  it('as-remote thiếu template remote-ts → throw "Không thấy template base"', async () => {
+    const t = await makeTemplates();
+    await rm(join(t, 'remote-ts'), { recursive: true, force: true });
+    await expect(run({ asRemote: true }, t)).rejects.toThrow('Không thấy template base');
   });
 });

@@ -22,6 +22,7 @@ import {
   appendImport,
   appendPortsTableRow,
   insertAppRoute,
+  insertNavItem,
   insertRspackExpose,
   removeAppRoute,
   removePortsTableRow,
@@ -428,6 +429,22 @@ export function AppRoutes() {
     assert.ok(!out.includes('SummaryPage'));
     assert.ok(out.includes('TasksPage'));
     assert.equal(removeRspackExpose(cfg, './Ghost'), cfg);
+  });
+
+  it('insertNavItem — inserts before the closing bracket with the last item indent; duplicate → throw', () => {
+    const nav = `const NAV_ITEMS = [
+  { to: '/', label: 'Home' },
+  { to: '/tasks', label: 'Tasks' },
+] as const;
+`;
+    const out = insertNavItem(nav, { to: '/hello-r5', label: 'Hello R5' });
+    assert.match(out, / \{ to: '\/tasks', label: 'Tasks' \},\n {2}\{ to: '\/hello-r5', label: 'Hello R5' \},\n\] as const;/);
+    assert.throws(() => insertNavItem(out, { to: '/hello-r5', label: 'Dup' }), /idempotent-guard/);
+  });
+
+  it('insertNavItem — empty array gets the first item; missing anchor → null', () => {
+    assert.match(insertNavItem('const NAV_ITEMS = [] as const;\n', { to: '/x', label: 'X' }), /const NAV_ITEMS = \[\n {2}\{ to: '\/x', label: 'X' \},\n\] as const;/);
+    assert.equal(insertNavItem('export const menu = []; // no NAV_ITEMS anchor', { to: '/x', label: 'X' }), null);
   });
 });
 

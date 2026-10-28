@@ -2,7 +2,7 @@
 
 > Story FI-76 · Epic spec rev 3: `docs/superpowers/specs/2026-10-13-kafka-outbox-saga.md`
 > Context pack: `docs/superpowers/contexts/sf-2.md` · conventions/09 · ADR-0008
-> Branch: `__STACK_ORG__/sf-2-node-outbox` (fork từ dest @8d04e6d) · 1 commit / task · KHÔNG merge dest
+> Branch: `wakii-dev/sf-2-node-outbox` (fork từ dest @8d04e6d) · 1 commit / task · KHÔNG merge dest
 > Baseline probe (đã đọc): `repo.ts:38-45` interface CRUD thuần · `repo.drizzle.ts` không `.transaction()` ·
 > `schema-diff.test.ts:146` normalizer throw ở DDL chưa handle (chỉ CREATE SCHEMA/TABLE/INDEX — ALTER
 > CONSTRAINT phải mở rộng normalizer, phát hiện mới ngoài context pack).

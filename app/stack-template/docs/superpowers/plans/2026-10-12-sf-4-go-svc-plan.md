@@ -1,5 +1,5 @@
 # Plan: SF-4 go-svc — activity API (Go 1.24 + chi)
-Date: 2026-10-12 | Linear: FI-72 | Worktree: sf-4-go-svc (branch `__STACK_ORG__/sf-4-go-svc`)
+Date: 2026-10-12 | Linear: FI-72 | Worktree: sf-4-go-svc (branch `wakii-dev/sf-4-go-svc`)
 Spec: epic `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` rev 3 §SF-4 + context pack `docs/superpowers/contexts/sf-4.md`
 > Rev 2 — sau plan-critic (FIX-P0-FIRST): P0-1 boot-smoke apply canonical DDL bằng role node_svc + negative readyz check; P0-2 compose pre-seed DATABASE_URL sai credentials (platform defect SF-1 — FLAG, không tự sửa; CI dùng override file do SF-4 sở hữu). P1: DAG edge T5←T4; swagger docs auth-exempt + curl boot-smoke; schemathesis kèm JWT (login auth-mock); CI build-test từ T1 (compile feedback sớm); go.sum strategy.
 

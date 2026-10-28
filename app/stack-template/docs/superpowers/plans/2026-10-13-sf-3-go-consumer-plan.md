@@ -1,7 +1,7 @@
 # SF-3 Plan — go-svc Consumer + Saga + thanh lý ingest (FI-80)
 
 > Story FI-76 · spec slice: `docs/superpowers/contexts/sf-3.md` · epic spec rev 3: `docs/superpowers/specs/2026-10-13-kafka-outbox-saga.md`
-> Worktree: `sf-3-go-consumer` (nhánh `__STACK_ORG__/sf-3-go-consumer` fork từ dest @8d04e6d — SF-1 đã merge)
+> Worktree: `sf-3-go-consumer` (nhánh `wakii-dev/sf-3-go-consumer` fork từ dest @8d04e6d — SF-1 đã merge)
 > Ràng buộc: dev machine KHÔNG Go/Docker — build/test/kafka verify QUA CI. KHÔNG sửa compose/.env.example/contracts-events/conventions-09/users.json/tasks-schema/tasks.yaml/node/spring. KHÔNG franz-go (segmentio theo spec).
 
 ## Tasks (11)

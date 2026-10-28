@@ -1,7 +1,7 @@
 # Plan — SF-3 spring-svc — user API (FI-71)
 
 > Story FI-62 · spec slice: `docs/superpowers/specs/2026-10-12-sf-3-spring-svc-design.md` · impact: `2026-10-12-sf-3-spring-svc-impact.md` · context: `docs/superpowers/contexts/sf-3.md`
-> Worktree: `__STACK_ORG__/sf-3-spring-svc` (fork từ dest `__STACK_ORG__/story-fi62-micro-boilerplate`) — KHÔNG merge dest, coordinator merge.
+> Worktree: `wakii-dev/sf-3-spring-svc` (fork từ dest `wakii-dev/story-fi62-micro-boilerplate`) — KHÔNG merge dest, coordinator merge.
 > Tier: Full (9 tasks) · Verify: CI-only (dev machine không Docker/JDK) · Commit: atomic per task, `feat(sf-3): …`
 > Ghi chú verify: Exit "green (CI)" của T1-T8 là **back-verified ở run đầu của T9** (workflow tồn tại từ T9) — không watch-CI per-task ở T1-T8. README T8 thêm ADR: mirror /api/users/healthz là pattern conventions/02 (như auth-mock), probe dùng naked.
 
@@ -19,7 +19,7 @@
 
 ## Verification (exit criteria — checklist ACCEPTANCE sf-3.md)
 
-1. CI xanh (build-test + docker-build + boot-smoke + drift-guard) — runs trên `__STACK_ORG__/sf-3-spring-svc`.
+1. CI xanh (build-test + docker-build + boot-smoke + drift-guard) — runs trên `wakii-dev/sf-3-spring-svc`.
 2. Từng dòng ACCEPTANCE `docs/superpowers/contexts/sf-3.md` kiểm riêng (Phase 5 verifier).
 3. Rule 0: swagger UI + web port — browser verify khi khả thi; không khả thi (no Docker/JDK local) → CI curl evidence + khai báo trung thực trong evidence + nhờ user nhìn thêm.
 4. Code-reviewer độc lập APPROVED (rolling theo nhóm task 1-3 / 4-7 / 8-9; comment Linear VERDICT + CHECKLIST-4Q).

@@ -3,7 +3,7 @@
 > Story: VU-53 (epic In Progress) · tạo 2026-10-13 · pipeline: story-workflow CREATE
 > Rev 2 — sau spec-critic (GO): sửa 3 P1 (contract api-mở-rộng SF-3, assignee UUID rút gọn không resolve tên, cssFilename fact /assets/ sai) + 6 P2 (primitive props API trong hand-off, spike R2 exit criteria, quán từ SF-4/SF-2, aria-list exhaustive, env.d.ts defensive, phase-2 visual transient expected)
 > Rev 3 — sau plan-critic (GO): P1 phân rã tasks SF-2 (7→9) + SF-4 (6→9); P2 spike R2 chạy sớm sau jsx-runtime config, tests primitives ở shell/tests (fe-shared không vitest — tránh đụng lockfile), phase-gate security owner rõ, SF-3/4 rebase note (packs)
-> Repo: `__STACK_ORG__/architecture-overview` (đã chạy được: 10 services compose + e2e smoke 2 chiều PASS)
+> Repo: `wakii-dev/architecture-overview` (đã chạy được: 10 services compose + e2e smoke 2 chiều PASS)
 > Input user: "design lại UI/UX" · Creativity: BALANCED (spec = khung cứng; chi tiết chưa ghi agent tự quyết theo conventions, quyết định lớn flag trong notes)
 
 ## IDEA-BRIEF (8 chiều)

@@ -22,7 +22,7 @@
 - [x] T8 — `RemoteSlot.tsx`: Suspense fallback = `Skeleton` primitive (bỏ `<p>Đang tải…</p>` — không test assert chuỗi này); error fallback visual giữ text "Không tải được phần …" + nút "Thử lại"
 - [x] T9 — Verify: `pnpm test` + `pnpm typecheck` shell xanh (a11y 3 case nguyên vẹn); browser verify 3 tầng (DOM eval / VISUAL so `b-reference.png` / FLOW login→nav active→dashboard→remote-fallback qua SHELL_PORT=3100, remote-down simulate port chết — KHÔNG kill container docker chung) + screenshots evidence
 - [x] T10 — Code-reviewer độc lập trên diff SF → verdict post Linear VU-55 (VERDICT + CHECKLIST-4Q); CHANGES-REQUESTED → fix → re-review tới APPROVED
-- [x] T11 — Evidence `evidence/sf-2-ui-redesign-shell/test-run.txt` (HEAD hash + `tdd:` line) + plan tick + commit atomic + push `__STACK_ORG__/sf-2-ui-redesign-shell` + `story-verify sf-2` sạch (B4 merge/B5 Done là phần coordinator) — KHÔNG set Done
+- [x] T11 — Evidence `evidence/sf-2-ui-redesign-shell/test-run.txt` (HEAD hash + `tdd:` line) + plan tick + commit atomic + push `wakii-dev/sf-2-ui-redesign-shell` + `story-verify sf-2` sạch (B4 merge/B5 Done là phần coordinator) — KHÔNG set Done
 
 ## Exit criteria (ACCEPTANCE pack)
 

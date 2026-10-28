@@ -1,7 +1,7 @@
 # SF-1 Plan — Kafka foundation + async contracts (FI-77)
 
 > Story FI-76 · spec slice: `docs/superpowers/contexts/sf-1.md` · epic spec rev 3: `docs/superpowers/specs/2026-10-13-kafka-outbox-saga.md`
-> Worktree: `sf-1-kafka-foundation` (nhánh `__STACK_ORG__/sf-1-kafka-foundation` fork từ `__STACK_ORG__/story-fi76-kafka-outbox-saga`)
+> Worktree: `sf-1-kafka-foundation` (nhánh `wakii-dev/sf-1-kafka-foundation` fork từ `wakii-dev/story-fi76-kafka-outbox-saga`)
 > Ràng buộc: dev machine KHÔNG Docker — mọi verify compose/kafka qua CI. Compose sửa ĐÚNG 1 commit duy nhất.
 
 ## Tasks (10)

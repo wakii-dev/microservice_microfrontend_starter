@@ -20,7 +20,7 @@ quy tắc vận hành agent: [AGENTS.md](../AGENTS.md) · gotchas: [docs/ai/know
 Rules ngang mọi luồng:
 
 - if tạo nhánh → `git fetch origin && git checkout -b wakii-dev/<loại>-<slug> origin/main` · slug `[a-z0-9-]*` (không chấm, không hoa).
-- if commit → `<type>(<scope>): <mô tả>` · type ∈ `feat|fix|refactor|docs|test|chore|merge|…`.
+- if commit → `<type>(<scope>): <mô tả>` · type ∈ `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert` (khớp AGENTS.md §1).
 - if đưa vào `main` → qua PR, không push thẳng.
 - if báo PASS → đã chạy lệnh thật + kiểm exit code (không tin `cmd | tail` — nuốt exit-code).
 
@@ -88,7 +88,13 @@ report -> reproduce (bằng chứng thật: lệnh/log/screenshot — không fix
 
 ## 4. Luồng publish npm
 
-Áp dụng `@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack` — mỗi package có `app/<pkg>/scripts/publish-npm.sh`; ui-kit có checklist đầy đủ ở [RELEASE.md](../app/ui-kit/RELEASE.md).
+> **LƯU Ý TRƯỚC KHI ĐỌC (R5 onboarding 2026-10-28):** publish là việc của **REPO UPSTREAM** — repo thật
+> chứa `app/ui-kit/` + `app/<pkg>/scripts/publish-npm.sh` + `RELEASE.md`. Project sinh ra bởi
+> `create-wakii-stack` **KHÔNG chứa package nào publishable** (mọi `package.json` đều `private:true`,
+> không có `app/ui-kit`) → **bỏ qua mục này** trừ khi bạn fork về đúng upstream flow. Ai duy trì upstream:
+> làm theo flow dưới đây.
+
+Áp dụng `@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack` — mỗi package có `app/<pkg>/scripts/publish-npm.sh`; ui-kit có checklist đầy đủ ở [RELEASE.md](../app/ui-kit/RELEASE.md). Ngoài ra upstream có `.github/workflows/publish-uikit.yml` (push nhánh `release/ui-kit` hoặc workflow_dispatch — cần secret `NPM_TOKEN`).
 
 ```
 code merged main + tests xanh -> git fetch + pull (publish CHỈ từ main mới nhất)

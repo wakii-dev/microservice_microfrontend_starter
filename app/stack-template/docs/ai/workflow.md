@@ -9,7 +9,7 @@ lệnh chạy được, output parse được.
 ```
 1. recon      : đọc code/spec thật ở vùng sẽ sửa (grep + Read) — KHÔNG phán đoán từ tên file
 2. if đổi API : contract-first (mục dưới) — TRƯỚC khi impl
-3. nhánh      : git fetch origin && git checkout -b __STACK_ORG__/<loại>-<slug> origin/main
+3. nhánh      : git fetch origin && git checkout -b wakii-dev/<loại>-<slug> origin/main
 4. làm NHỎ    : một mảnh logic một commit; if thấy việc ngoài scope -> ghi vào report, KHÔNG làm
 5. verify:quick: pnpm verify:quick  (theo phạm vi diff; --json để parse: [{step,status,duration}])
 6. tests      : chạy đủ suite vùng đụng — lệnh theo bảng ở cuối file này
@@ -22,6 +22,8 @@ Rules:
 - if báo PASS → đã chạy lệnh thật, đã nhìn exit code. KHÔNG tin `cmd | tail` — `$?` là của `tail`
   (3 lần trả giá thật: typecheck tưởng PASS → conflict marker lọt main → #133). Công thức an toàn:
   `pnpm --filter <pkg> typecheck 2>&1 | grep -c 'error TS'` (số 0 = pass) hoặc chạy không pipe.
+- if làm việc trong project vừa scaffold (create-wakii-stack) → `git init && git add -A && git commit -m "init"` TRƯỚC —
+  verify:quick cần git; `.gitignore` đã sinh sẵn trong scaffold (node_modules/.env bị ignore) nên `git add -A` an toàn.
 - if verify:quick FAIL → đọc 30 dòng cuối log (script in sẵn ở stderr), fix, chạy lại. KHÔNG commit lên cây đỏ.
 - if dùng worktree chung → check `git status` từng file TRƯỚC khi đụng; WIP người khác không đụng, không commit (`git add <path cụ thể>`, không `git add -A`).
 - if đổi behavior đáng kể theo story workflow → chụp evidence vào `docs/superpowers/evidence/`.
@@ -65,7 +67,7 @@ Template đầy đủ tự áp khi `gh pr create`: `.github/pull_request_templat
 | Đổi port | sửa 4 chỗ CÙNG commit: `platform/conventions/05-ports.md` + `.env.example` + compose + README |
 | Đổi API/contract | skill `sync-contracts` — flow contract-first ở trên |
 | Story/epic mới | skill `story-workflow` + [docs/wakii-playbook.md](../wakii-playbook.md) (chọn archetype chia SF) |
-| Publish package npm | `bash app/<pkg>/scripts/publish-npm.sh` — luồng đầy đủ WORKFLOW.md §4; ui-kit: [app/ui-kit/RELEASE.md](../../app/ui-kit/RELEASE.md) |
+| Publish package npm | UPSTREAM repo thôi — scaffold không chứa publishable packages (private:true). Upstream: `bash app/<pkg>/scripts/publish-npm.sh` — luồng đầy đủ WORKFLOW.md §4; ui-kit: [app/ui-kit/RELEASE.md](../../app/ui-kit/RELEASE.md) |
 | Scaffold project mới | `bash scripts/scaffold/scaffold.sh <tên-mới>` |
 | Chạy demo full stack | `run.compose` trong [orca.yaml](../../orca.yaml) → login `alice@demo.local` / `demo-password` |
 | Verify nhanh theo diff | `pnpm verify:quick` (text) · `pnpm verify:quick --json` (contract: `[{step,status,duration}]` + exit code) |

@@ -1,7 +1,7 @@
 # Plan — SF-5 ui-redesign: Convergence — browser walkthrough + docs + security (VU-58)
 
 > Story VU-53 · spec: `docs/superpowers/specs/2026-10-14-sf-5-ui-redesign.md` · slice canonical: `docs/superpowers/contexts/ui-redesign/sf-5.md`
-> Worktree: `sf-5-ui-redesign-conv` (nhánh `__STACK_ORG__/sf-5-ui-redesign-conv`, base = đích `__STACK_ORG__/story-vu53-ui-redesign` @1a6a7aa — SF-1+2+3+4 đã merge) · Tier: **Full** (convergence — nhiều lớp verify)
+> Worktree: `sf-5-ui-redesign-conv` (nhánh `wakii-dev/sf-5-ui-redesign-conv`, base = đích `wakii-dev/story-vu53-ui-redesign` @1a6a7aa — SF-1+2+3+4 đã merge) · Tier: **Full** (convergence — nhiều lớp verify)
 > Commit: atomic per task, `docs(sf-5): …` / `test(sf-5): …`. KHÔNG merge, KHÔNG đụng `frontend/** services/** scripts/** platform/**` (READ-ONLY — bug = report coordinator).
 
 ## Phase 0 — Impact analysis (SF-scoped; epic đã có P0 10 chiều)
@@ -28,7 +28,7 @@
 - [x] T6 — Security pass: scan diff toàn story (secrets pattern, .env không track, exec-bit mới, asset ngoài/CSP untouched) + scaffold sanity verify-only (output có `frontend/shared/src/{styles,ui}` + build shell OK + xoá) → kết quả vào evidence
 - [x] T7 — `docs/superpowers/improvements-log.md`: patterns hội tụ của SF-5
 - [x] T8 — Code-reviewer độc lập (cyan) trên diff SF (docs/evidence) → APPROVED + CHECKLIST-4Q post VU-58; CHANGES-REQUESTED → fix → re-review
-- [x] T9 — Commit cuối + push `-u origin __STACK_ORG__/sf-5-ui-redesign-conv` + `~/.claude/bin/story-verify sf-5` (B1/B2/B2b/B3 sạch; B4 pending merge = đúng story-hub) + worktree comment hướng dẫn walkthrough human gate + audit log VU-58. KHÔNG set Done Linear.
+- [x] T9 — Commit cuối + push `-u origin wakii-dev/sf-5-ui-redesign-conv` + `~/.claude/bin/story-verify sf-5` (B1/B2/B2b/B3 sạch; B4 pending merge = đúng story-hub) + worktree comment hướng dẫn walkthrough human gate + audit log VU-58. KHÔNG set Done Linear.
 
 ## Exit criteria
 

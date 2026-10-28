@@ -7,9 +7,9 @@ mọi thay đổi đi qua PR để có evidence + review trail (CI chạy trên 
 
 | Loại | Tên | Từ | Vào |
 |---|---|---|---|
-| Story (epic/SF) | `__STACK_ORG__/story-<slug>` hoặc `__STACK_ORG__/sf-N-<slug>` | `main` | PR → `main` |
-| Fix | `__STACK_ORG__/fix-<slug>` | `main` | PR → `main` |
-| Docs/chore nhỏ | `__STACK_ORG__/docs-<slug>` / `__STACK_ORG__/chore-<slug>` | `main` | PR → `main` |
+| Story (epic/SF) | `wakii-dev/story-<slug>` hoặc `wakii-dev/sf-N-<slug>` | `main` | PR → `main` |
+| Fix | `wakii-dev/fix-<slug>` | `main` | PR → `main` |
+| Docs/chore nhỏ | `wakii-dev/docs-<slug>` / `wakii-dev/chore-<slug>` | `main` | PR → `main` |
 
 Quy tắc:
 
@@ -40,8 +40,8 @@ Quy tắc:
 ⚠️ 2026-10-17: GitHub Actions DISABLE (billing) → **hooks là lớp chính**. `.husky/pre-push`
 chặn push vi phạm 2 rule sau + chạy FE checks (typecheck/vitest/build) cho package bị đổi:
 
-1. **Branch name**: `__STACK_ORG__/<story|sf|fix|docs|chore|feat>-<slug-kebab>`
-   (vd `__STACK_ORG__/fix-gosvc-recent-events`, `__STACK_ORG__/sf-5-ui-redesign-conv`)
+1. **Branch name**: `wakii-dev/<story|sf|fix|docs|chore|feat>-<slug-kebab>`
+   (vd `wakii-dev/fix-gosvc-recent-events`, `wakii-dev/sf-5-ui-redesign-conv`)
 2. **Commit message**: `<type>(<scope>): <mô tả>` với type ∈
    `feat|fix|refactor|docs|test|chore|style|perf|build|ci|revert`
    (merge commits "Merge pull request #N" được ngoại lệ)
@@ -74,7 +74,7 @@ nhiệm — KHÔNG có lớp CI phía sau cho đến khi billing được khôi 
 Khác với luồng nhánh thường ở trên, khi chạy theo mô hình team AI (1 coordinator + N worker
 lanes song song):
 
-1. **Mỗi lane một nhánh riêng** `__STACK_ORG__/<loại>-<slug>` cắt từ `origin/main` mới nhất, làm
+1. **Mỗi lane một nhánh riêng** `wakii-dev/<loại>-<slug>` cắt từ `origin/main` mới nhất, làm
    trong worktree riêng — không 2 lane chung nhánh/worktree.
 2. **PR NHỎ theo path-group**: 1 PR = 1 nhóm file không chồng lấn với lane khác. PR đụng file
    lane khác sở hữu → dừng, phối qua `docs/team/inbox/`, không tự sửa.

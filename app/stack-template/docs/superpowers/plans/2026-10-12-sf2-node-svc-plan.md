@@ -1,6 +1,6 @@
 # Plan — SF-2 node-svc task API (FI-70)
 
-> Spec: `docs/superpowers/specs/2026-10-12-sf2-node-svc-spec.md` · Epic: FI-62 · Worktree `__STACK_ORG__/sf-2-node-svc`
+> Spec: `docs/superpowers/specs/2026-10-12-sf2-node-svc-spec.md` · Epic: FI-62 · Worktree `wakii-dev/sf-2-node-svc`
 > Mỗi task = 1 atomic commit. Tests chạy native (Node 24 local, engines >=22; docker verify qua CI).
 
 - [x] Task 1 — Scaffold services/node-svc: `package.json` (fastify 5, @fastify/cors, @fastify/swagger, @fastify/swagger-ui, drizzle-orm, pg, pino, jsonwebtoken, http-jwt ?= jsonwebtoken; dev: typescript, tsx, vitest, drizzle-kit, openapi-typescript, @types/*), `tsconfig.json` (NodeNext, strict), `.dockerignore`, `src/env.ts` (fail-fast env parse: PORT, DATABASE_URL, JWT_SECRET, SPRING_SVC_URL, GO_SVC_URL, CORS_DEV_ORIGIN, LOG_LEVEL). `pnpm install` cập nhật lockfile workspace (commit cả root lockfile).

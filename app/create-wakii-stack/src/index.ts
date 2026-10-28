@@ -26,6 +26,8 @@ Rules tầng 1: ≥1 BE tự kèm postgres+kafka+gateway+auth-svc; ≥1 FE tự 
 function printNextSteps(selection: StackSelection, gatewayUrl: string | undefined): void {
   const steps = [
     `cd ${selection.appName}`,
+    // .gitignore được sinh sẵn (renderGitignore) — add -A không kéo node_modules
+    'git init && git add -A && git commit -m "init"   # verify:quick + husky cần git',
     'cp platform/.env.example platform/.env   # điền secret trước khi up',
     'docker compose -f platform/docker-compose.yml --env-file platform/.env up -d',
   ];

@@ -50,8 +50,10 @@ async function copyTree(srcDir: string, destDir: string, opts: { stackName: stri
   for (const entry of await readdir(srcDir, { withFileTypes: true })) {
     // node_modules: dev-machine artifact lọt vào snapshot qua workspace root install
     // (app/* glob bắt cả stack-template) — KHÔNG phải template; symlink trỏ dir làm
-    // readFile EISDIR (bắt khi smoke 2026-10-27)
-    if (entry.name === '.DS_Store' || entry.name === 'node_modules' || entry.isSymbolicLink()) continue;
+    // readFile EISDIR (bắt khi smoke 2026-10-27); `.git` FILE/DIR — git worktree
+    // link (`gitdir: …` file 72 byte) lọt template (rsync --exclude='.git/' chỉ
+    // khớp DIR) → scaffold resolve nhầm repo máy gốc (R5-fix 2026-10-28)
+    if (entry.name === '.DS_Store' || entry.name === 'node_modules' || entry.name === '.git' || entry.isSymbolicLink()) continue;
     const srcPath = join(srcDir, entry.name);
     const destPath = join(destDir, entry.name);
     if (entry.isDirectory()) {
@@ -173,6 +175,31 @@ export function pruneEnv(text: string, keys: string[]): string {
     })
     .join('\n')
     .replace(/\n{3,}/g, '\n\n');
+}
+
+/**
+ * .gitignore sinh ở đỉnh dest — scaffold phải git-ready ngay (R5 onboarding
+ * 2026-10-28: verify:quick exit 2 "phải chạy bên trong git repo", và git add -A
+ * không .gitignore kéo cả node_modules vào staging). CLI next-steps bước 2 là
+ * `git init && git add -A && git commit -m "init"` — chỉ an toàn khi file này có sẵn.
+ */
+export function renderGitignore(): string {
+  return `# deps / build artifacts
+node_modules/
+dist/
+coverage/
+storybook-static/
+
+# env — secret không commit (conventions/06: chỉ .env.example)
+.env
+.env.local
+.env.*.local
+
+# OS / editor / misc
+.DS_Store
+*.log
+.vercel
+`;
 }
 
 /** README.md sinh ở đỉnh dest — services chọn + up + smoke + ports.
@@ -541,8 +568,10 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
     await syncLockfile(dest, log);
   }
 
-  // 5. README sinh ở đỉnh dest
+  // 5. README + .gitignore sinh ở đỉnh dest (.gitignore — git-ready scaffold,
+  // xem renderGitignore; CLI next-steps sẽ hướng dẫn git init ngay sau scaffold)
   await writeFile(join(dest, 'README.md'), renderReadme(manifest, selection));
+  await writeFile(join(dest, '.gitignore'), renderGitignore());
 
   // 6. Phục hồi bit executable — npm tarball (publish bundle) làm MẤT +x mọi
   // file (postgres 01-init.sh "bad interpreter", spring mvnw exit 126 — bắt
@@ -550,7 +579,7 @@ export async function scaffold(input: StackScaffoldInput): Promise<StackScaffold
   const execFixed = await fixExecutableBits(dest);
   if (execFixed > 0) log?.(`chmod +x: ${execFixed} script`);
 
-  return { files: [...files.map((f) => f.slice(dest.length + 1)), 'README.md'], prunedServices: pruned };
+  return { files: [...files.map((f) => f.slice(dest.length + 1)), 'README.md', '.gitignore'], prunedServices: pruned };
 }
 
 /** chmod 0o755 mọi *.sh, mvnw, gradlew trong dest (đệ quy). Trả số file sửa. */

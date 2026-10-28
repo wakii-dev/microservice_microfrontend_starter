@@ -1,7 +1,7 @@
 # Plan — SF-3 ui-redesign: TasksPage redesign + UX gaps (VU-56)
 
 > Story VU-53 · spec: `docs/superpowers/specs/2026-10-14-sf-3-ui-redesign.md` · slice canonical: `docs/superpowers/contexts/ui-redesign/sf-3.md`
-> Worktree: `sf-3-ui-redesign-tasks` (nhánh `__STACK_ORG__/sf-3-ui-redesign-tasks`, base = đích `__STACK_ORG__/story-vu53-ui-redesign` @492d072 — SF-1 đã merge) · Tier: Full · TDD: RED→GREEN per task
+> Worktree: `sf-3-ui-redesign-tasks` (nhánh `wakii-dev/sf-3-ui-redesign-tasks`, base = đích `wakii-dev/story-vu53-ui-redesign` @492d072 — SF-1 đã merge) · Tier: Full · TDD: RED→GREEN per task
 > Commit: atomic per task, `feat(sf-3): …` / `test(sf-3): …`. KHÔNG merge, KHÔNG đụng shell/** + activity/** + shared/**.
 
 ## Phase 0 — Impact analysis (SF-scoped; epic đã có P0 10 chiều, đây là phần bám code thật của slice)
@@ -27,7 +27,7 @@
 - [x] T5 — Full verify package: `pnpm test` + `pnpm typecheck` + `pnpm build` tasks — 3 lệnh xanh; ghi `docs/superpowers/evidence/sf-3-ui-redesign-tasks/test-run.txt` (HEAD hash + tdd line)
 - [x] T6 — Rule 0 browser verify 3 tầng: DOM eval + screenshot so direction + flow login→CRUD→filter→load-more→saga 4b badge→logout trên dev stack isolate (:3100 shell + :4101 tasks dev, backend compose) + standalone :4101
 - [x] T7 — Code-reviewer độc lập (cyan) trên diff SF → verdict APPROVED + CHECKLIST-4Q post lên VU-56; CHANGES-REQUESTED → fix → re-review
-- [x] T8 — Commit cuối: evidence hash sync (HEAD~1) + improvements-log + plan tick; push `-u origin __STACK_ORG__/sf-3-ui-redesign-tasks`; chạy `~/.claude/bin/story-verify sf-3` — B1/B2/B2b/B3 phải PASS (B4 pending merge là trạng thái đúng của story-hub — coordinator merge)
+- [x] T8 — Commit cuối: evidence hash sync (HEAD~1) + improvements-log + plan tick; push `-u origin wakii-dev/sf-3-ui-redesign-tasks`; chạy `~/.claude/bin/story-verify sf-3` — B1/B2/B2b/B3 phải PASS (B4 pending merge là trạng thái đúng của story-hub — coordinator merge)
 
 ## Exit criteria
 

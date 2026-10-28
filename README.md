@@ -36,6 +36,28 @@ Everything in the screenshots below is **this repo's real output** — booted wi
 
 ---
 
+## Showcase
+
+**What you get** — a task-management platform that actually runs: React Module-Federation UI over
+five backend services (Node · Spring · Go · .NET · auth) behind one nginx gateway, Kafka events, a
+compensating saga, 1328 green tests — all real output of this repo, booted with `docker compose up`.
+
+| Landing | Kanban | Activity (realtime) |
+|:---:|:---:|:---:|
+| <img src="docs/assets/readme/landing.png" alt="Landing page — 3D hero + bento grid" width="290" /> | <img src="docs/assets/readme/kanban.png" alt="Kanban board — drag a card to change status" width="290" /> | <img src="docs/assets/readme/activity.png" alt="Activity feed — Kafka events in realtime" width="290" /> |
+
+**Who is this for** — AI-native vibe coding (agents clone the repo and get to work) and teams
+that want a verified full-stack base instead of assembling one from blog posts.
+
+**Try it**
+
+```bash
+npm create wakii-app@latest my-app      # ① FE starter
+npm create wakii-stack@latest my-stack  # ② full platform — FE + services + gateway + postgres + kafka
+```
+
+③ design system alone: `pnpm add @wakii/ui-kit` · live [Storybook](https://storybook-static-khaki-two.vercel.app)
+
 ## Real output, not promises
 
 <img src="docs/assets/readme/landing.png" alt="Landing showcase — 3D hero + bento + marquee, real output from the repo stack" width="920" />

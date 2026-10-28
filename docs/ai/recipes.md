@@ -1568,7 +1568,7 @@ Ma trận import đầy đủ xem `AGENTS.md` trong scaffold.
 ---
 
 
-## 19. AutoSizeTextarea — Textarea autoSize trong form zod
+## 21. AutoSizeTextarea — Textarea autoSize trong form zod
 
 Long-form fields (notes, descriptions) grow with content instead of scrolling a fixed box. Combine with `showCount`/`maxLength` and zod validation — measure runs on every value change (controlled) AND on every keystroke (uncontrolled).
 
@@ -1607,7 +1607,7 @@ export function TaskNotesForm({ initial }: { initial?: { title: string; notes: s
 - `autoSize` (boolean) = grow unbounded from 2 rows; `{minRows, maxRows}` clamps then scrolls.
 - `rows` prop is ignored when `autoSize` is on; without `autoSize` the default path is unchanged.
 
-## 20. GalleryMasonry — ImageList masonry + click select
+## 22. GalleryMasonry — ImageList masonry + click select
 
 Gallery with mixed-ratio photos: `variant="masonry"` lays out via CSS columns (MUI-identical — visual order runs top-to-bottom per column, fine for unordered galleries). Tiles become keyboard-activatable buttons when `onItemClick` is set.
 

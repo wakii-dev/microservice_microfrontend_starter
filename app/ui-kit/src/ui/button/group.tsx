@@ -29,7 +29,7 @@ export function ButtonGroup(props: ButtonGroupProps) {
     <div
       role="group"
       aria-label={ariaLabel}
-      className={cx('inline-flex [&>button:focus-visible]:z-10', JOINS[orientation], className)}
+      className={cx('inline-flex [&>button:focus-visible]:z-[var(--z-stacked)]', JOINS[orientation], className)}
     >
       <ButtonGroupContext.Provider value={ctx}>{children}</ButtonGroupContext.Provider>
     </div>

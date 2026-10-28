@@ -1568,6 +1568,74 @@ Ma trận import đầy đủ xem `AGENTS.md` trong scaffold.
 ---
 
 
+## 19. AutoSizeTextarea — Textarea autoSize trong form zod
+
+Long-form fields (notes, descriptions) grow with content instead of scrolling a fixed box. Combine with `showCount`/`maxLength` and zod validation — measure runs on every value change (controlled) AND on every keystroke (uncontrolled).
+
+```tsx
+import { Button } from '@wakii/ui-kit';
+import { Field, Input, Textarea, useForm } from '@wakii/ui-kit';
+import { z } from 'zod';
+
+const schema = z.object({
+  title: z.string().min(3, 'Ít nhất 3 ký tự'),
+  notes: z.string().max(400, 'Tối đa 400 ký tự'),
+});
+
+export function TaskNotesForm({ initial }: { initial?: { title: string; notes: string } }) {
+  const { register, handleSubmit, errors } = useForm({ schema, mode: 'onSubmit' });
+  return (
+    <form onSubmit={handleSubmit((v) => console.log(v))} className="max-w-md space-y-4">
+      <Field label="Title" error={errors.title}>
+        <Input {...register('title')} defaultValue={initial?.title} />
+      </Field>
+      <Field label="Notes" error={errors.notes}>
+        <Textarea
+          {...register('notes')}
+          defaultValue={initial?.notes}
+          autoSize={{ minRows: 3, maxRows: 8 }}
+          showCount
+          maxLength={400}
+        />
+      </Field>
+      <Button type="primary" htmlType="submit">Save</Button>
+    </form>
+  );
+}
+```
+
+- `autoSize` (boolean) = grow unbounded from 2 rows; `{minRows, maxRows}` clamps then scrolls.
+- `rows` prop is ignored when `autoSize` is on; without `autoSize` the default path is unchanged.
+
+## 20. GalleryMasonry — ImageList masonry + click select
+
+Gallery with mixed-ratio photos: `variant="masonry"` lays out via CSS columns (MUI-identical — visual order runs top-to-bottom per column, fine for unordered galleries). Tiles become keyboard-activatable buttons when `onItemClick` is set.
+
+```tsx
+import { EmptyState, ImageList, type ImageListItem } from '@wakii/ui-kit';
+
+const items: ImageListItem[] = photos.map((p) => ({ src: p.url, alt: p.name, caption: p.place }));
+
+export function PhotoGallery({ photos, onOpen }: { photos: Photo[]; onOpen: (i: number) => void }) {
+  if (photos.length === 0) return <EmptyState title="Chưa có ảnh" />;
+  return (
+    <ImageList
+      items={items}
+      variant="masonry"
+      cols={3}
+      gap={8}
+      onItemClick={onOpen} // Tab + Enter/Space also fire this
+    />
+  );
+}
+```
+
+- `variant="standard"` (default) = tidy grid with fixed `rowHeight` crop; masonry keeps natural heights.
+- `gap` is the column gap; vertical rhythm is fixed `mb-2`.
+- Custom tile? `renderItem={(item, i) => …}` takes over completely.
+
+---
+
 ## Bảng "khi nào dùng" — nhóm Primitives + Navigation
 
 | Component | Khi nào dùng | Đừng dùng khi |

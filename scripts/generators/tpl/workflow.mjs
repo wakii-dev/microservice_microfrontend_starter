@@ -189,21 +189,33 @@ jobs:
         run: docker build -t ${name}:ci services/${name}
 
   boot-smoke:
-    name: boot-smoke (${name} — host-side polling, distroless has no wget)
+    name: boot-smoke (${name}` +
+    (ctx.db ? ' + postgres' : '') +
+    ` — host-side polling, distroless has no wget)
     runs-on: ubuntu-latest
     env:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
       POSTGRES_PASSWORD: ci-postgres-password-not-real
-    steps:
+` +
+    (ctx.db
+      ? `      ${ctx.scream}_DB_PASSWORD: ci-password-not-real
+` + (ctx.db === 'dedicated' ? `      POSTGRES_${ctx.scream}_DB: ${ctx.snake}\n      POSTGRES_${ctx.scream}_USER: ${ctx.dbRole}\n` : '') +
+        ``
+      : '') +
+    `    steps:
       - uses: actions/checkout@v4
-      - name: Boot ${name} (compose — env from .env.example)
+      - name: Boot ${ctx.db ? 'postgres + ' : ''}${name} (compose — env from .env.example)
         run: |
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build ${name}
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build ` +
+    (ctx.db ? 'postgres ' : '') +
+    `${name}
       - name: Smoke — poll healthz/readyz from the host (published port)
         run: |
           ok=0
           for i in $(seq 1 60); do
-            curl -sf http://localhost:${ctx.port}/readyz >/dev/null && ok=1 && break
+            curl -sf http://localhost:` +
+    ctx.port +
+    `/readyz >/dev/null && ok=1 && break
             sleep 2
           done
           if [ "$ok" != "1" ]; then
@@ -211,10 +223,39 @@ jobs:
             docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs ${name}
             exit 1
           fi
-          curl -sf http://localhost:${ctx.port}/healthz | grep -q '"status":"ok"'
-      - name: Smoke — 401 without token
+          curl -sf http://localhost:` +
+    ctx.port +
+    `/healthz | grep -q '"status":"ok"'
+      - name: Smoke — items CRUD via self-signed JWT
         run: |
-          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:${ctx.port}/api/${name}/items)
+          TOKEN=$(node -e '
+            const c = require("crypto");
+            const b = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const h = b({ alg: "HS256", typ: "JWT" });
+            const now = Math.floor(Date.now() / 1000);
+            const p = b({ sub: "11111111-1111-4111-8111-111111111111", email: "alice@demo.local", roles: ["admin"], iat: now, exp: now + 3600 });
+            const s = c.createHmac("sha256", process.env.JWT_SECRET).update(h + "." + p).digest("base64url");
+            console.log(h + "." + p + "." + s);')
+          BASE=http://localhost:` +
+    ctx.port +
+    `/api/${name}
+          CODE=$(curl -s -o /tmp/item.json -w '%{http_code}' -X POST "$BASE/items" \\
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \\
+            -d '{"name":"boot-smoke item"}')
+          echo "create → $CODE"
+          [ "$CODE" = "201" ] || (cat /tmp/item.json && exit 1)
+          ITEM_ID=$(node -e 'console.log(require("/tmp/item.json").id)')
+          curl -sf "$BASE/items?limit=5" -H "Authorization: Bearer $TOKEN" | grep -q 'boot-smoke item'
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X PATCH "$BASE/items/$ITEM_ID" \\
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"name":"patched"}')
+          [ "$CODE" = "200" ] || (echo "patch → $CODE (expected 200)" && exit 1)
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/items/$ITEM_ID" -H "Authorization: Bearer $TOKEN")
+          [ "$CODE" = "204" ] || (echo "delete → $CODE (expected 204)" && exit 1)
+      - name: Smoke — 401 without token (the service blocks, not the gateway)
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:` +
+    ctx.port +
+    `/api/${name}/items)
           [ "$CODE" = "401" ] || (echo "no-token → $CODE (expected 401)" && exit 1)
 `
   );
@@ -231,6 +272,7 @@ on:
     paths:
       - "services/${name}/**"
       - "platform/docker-compose.yml"
+      - "platform/postgres/init/02-${name}.sh"
       - "contracts/openapi/${name}.yaml"
       - ".github/workflows/services-${name}.yml"
   pull_request:
@@ -244,7 +286,7 @@ permissions:
 
 jobs:
   build-test:
-    name: build + test (${name})
+    name: build + test (${name}${ctx.db ? ' — H2, no postgres needed' : ''})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -262,32 +304,75 @@ jobs:
         run: docker build -t ${name}:ci services/${name}
 
   boot-smoke:
-    name: boot-smoke (${name} — healthz/readyz 200)
+    name: boot-smoke (${name}` +
+    (ctx.db ? ' + postgres' : '') +
+    ` — healthz/readyz 200 + CRUD smoke)
     runs-on: ubuntu-latest
     env:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
       POSTGRES_PASSWORD: ci-postgres-password-not-real
-    steps:
+` +
+    (ctx.db
+      ? `      ${ctx.scream}_DB_PASSWORD: ci-password-not-real
+` + (ctx.db === 'dedicated' ? `      POSTGRES_${ctx.scream}_DB: ${ctx.snake}\n      POSTGRES_${ctx.scream}_USER: ${ctx.dbRole}\n` : '') +
+        ``
+      : '') +
+    `    steps:
       - uses: actions/checkout@v4
-      - name: Boot ${name} (compose — env from .env.example)
+      - name: Boot ${ctx.db ? 'postgres + ' : ''}${name} (compose — env from .env.example; Flyway applies V1${ctx.db ? '' : ' — n/a, no db'})
         run: |
-          docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build ${name}
+          docker compose -f platform/docker-compose.yml --env-file platform/.env.example up -d --build ` +
+    (ctx.db ? 'postgres ' : '') +
+    `${name}
       - name: Smoke — healthz/readyz 200
         run: |
           ok=0
           for i in $(seq 1 90); do
-            curl -sf http://localhost:${ctx.port}/readyz >/dev/null && ok=1 && break
+            curl -sf http://localhost:` +
+    ctx.port +
+    `/readyz >/dev/null && ok=1 && break
             sleep 2
           done
           if [ "$ok" != "1" ]; then
             echo "::error::readyz not 200 within 180s — ${name} logs:"
-            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs ${name}
+            docker compose -f platform/docker-compose.yml --env-file platform/.env.example logs ${name} ` +
+    (ctx.db ? 'postgres' : '') +
+    `
             exit 1
           fi
-          curl -sf http://localhost:${ctx.port}/healthz | grep -q '"status":"ok"'
-      - name: Smoke — 401 without token
+          curl -sf http://localhost:` +
+    ctx.port +
+    `/healthz | grep -q '"status":"ok"'
+      - name: Smoke — items CRUD via self-signed JWT
         run: |
-          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:${ctx.port}/api/${name}/items)
+          TOKEN=$(node -e '
+            const c = require("crypto");
+            const b = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const h = b({ alg: "HS256", typ: "JWT" });
+            const now = Math.floor(Date.now() / 1000);
+            const p = b({ sub: "11111111-1111-4111-8111-111111111111", email: "alice@demo.local", roles: ["admin"], iat: now, exp: now + 3600 });
+            const s = c.createHmac("sha256", process.env.JWT_SECRET).update(h + "." + p).digest("base64url");
+            console.log(h + "." + p + "." + s);')
+          BASE=http://localhost:` +
+    ctx.port +
+    `/api/${name}
+          CODE=$(curl -s -o /tmp/item.json -w '%{http_code}' -X POST "$BASE/items" \\
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \\
+            -d '{"name":"boot-smoke item"}')
+          echo "create → $CODE"
+          [ "$CODE" = "201" ] || (cat /tmp/item.json && exit 1)
+          ITEM_ID=$(node -e 'console.log(require("/tmp/item.json").id)')
+          curl -sf "$BASE/items?limit=5" -H "Authorization: Bearer $TOKEN" | grep -q 'boot-smoke item'
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X PATCH "$BASE/items/$ITEM_ID" \\
+            -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"name":"patched"}')
+          [ "$CODE" = "200" ] || (echo "patch → $CODE (expected 200)" && exit 1)
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/items/$ITEM_ID" -H "Authorization: Bearer $TOKEN")
+          [ "$CODE" = "204" ] || (echo "delete → $CODE (expected 204)" && exit 1)
+      - name: Smoke — 401 without token (the service blocks, not the gateway)
+        run: |
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:` +
+    ctx.port +
+    `/api/${name}/items)
           [ "$CODE" = "401" ] || (echo "no-token → $CODE (expected 401)" && exit 1)
 `
   );

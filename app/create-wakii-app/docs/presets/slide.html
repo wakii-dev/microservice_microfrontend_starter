@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#010102; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; padding:28px 32px; }
+  h1 { color:#f7f8f8; font-size:26px; font-weight:700; margin-bottom:6px; }
+  h1 span { color:#5e6ad2; }
+  p.sub { color:#8a8f98; font-size:13px; margin-bottom:22px; }
+  .row { display:flex; gap:18px; }
+  .card { flex:1; }
+  .card .shot { width:100%; border-radius:10px; border:1px solid #23252a; display:block; }
+  .card .name { color:#f7f8f8; font-size:14px; font-weight:600; margin:10px 0 3px; }
+  .card .desc { color:#8a8f98; font-size:11.5px; line-height:1.45; }
+  .card .cmd { color:#828fff; font-size:11px; margin-top:5px; font-family:ui-monospace,Menlo,monospace; }
+</style></head><body>
+  <h1>5 presets · one command — <span>npm create wakii-app</span></h1>
+  <p class="sub">Scaffold → install → run. Same design system, same dark mode, zero cleanup.</p>
+  <div class="row">
+    <div class="card"><img class="shot" src="demo.png"/><div class="name">demo</div><div class="desc">Showcase đầy đủ 90+ components + extras (chart/carousel/schedule/editor)</div><div class="cmd">--preset demo</div></div>
+    <div class="card"><img class="shot" src="minimal.png"/><div class="name">minimal</div><div class="desc">Trang trắng, cấu trúc chuẩn, env zod — tự thêm data layer</div><div class="cmd">--preset minimal</div></div>
+    <div class="card"><img class="shot" src="product.png"/><div class="name">product</div><div class="desc">TanStack Query + zod + MSW, containers/ui/hooks/api, boundary lint</div><div class="cmd">--preset product</div></div>
+    <div class="card"><img class="shot" src="admin.png"/><div class="name">admin</div><div class="desc">Product + Sidebar layout, dashboard KPI + Chart, auth login</div><div class="cmd">--preset admin</div></div>
+    <div class="card"><img class="shot" src="landing.png"/><div class="name">landing</div><div class="desc">Motion 1 trang: Parallax + Reveal + CountUp + FAQ</div><div class="cmd">--preset landing</div></div>
+  </div>
+</body></html>

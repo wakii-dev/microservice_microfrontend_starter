@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/wakii-dev/microservice_microfrontend_starter/main/app/ui-kit/docs/assets/hero.svg" alt="@wakii/ui-kit — the design system every preset ships with" width="640" />
+<img src="docs/presets/presets-slide.svg" alt="5 presets autoplay carousel — demo · minimal · product · admin · landing (mô phỏng Carousel của ui-kit, thuần SVG/SMIL)" width="880" />
 
 </div>
 

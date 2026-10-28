@@ -184,6 +184,10 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 - Dark-mode audited across every component (light antd default + dark direction-B)
 - `prefers-reduced-motion` respected globally
 
+## 📦 Publishing
+
+Official releases run through CI only: **GitHub Actions → `publish-packages` → Run workflow** (inputs: `package=ui-kit`, `version_type` = patch/minor/major). The workflow gates test/typecheck/build on the freshest `main`, bumps version + generates the CHANGELOG entry from the commit range, publishes via `scripts/publish-npm.sh` (secret `NPM_TOKEN`), then verifies the registry before tagging `<pkg>-v<version>` + a GitHub release. It never overwrites an existing version — a collision skips the run cleanly. The old `publish-uikit` workflow (push `release/ui-kit`) was removed 2026-10-29 in favor of this. Local script runs are debugging only (`--force-local` required when the tree is dirty or HEAD ≠ `origin/main`). Full checklist: [RELEASE.md](./RELEASE.md).
+
 ## 📚 Documentation
 
 - [USAGE.md](./USAGE.md) — deep dives per group (forms, icons, subpaths, z-index, customize pass slots)

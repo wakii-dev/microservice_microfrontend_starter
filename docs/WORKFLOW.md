@@ -94,7 +94,7 @@ report -> reproduce (bằng chứng thật: lệnh/log/screenshot — không fix
 > không có `app/ui-kit`) → **bỏ qua mục này** trừ khi bạn fork về đúng upstream flow. Ai duy trì upstream:
 > làm theo flow dưới đây.
 
-Áp dụng `@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack` — mỗi package có `app/<pkg>/scripts/publish-npm.sh`; ui-kit có checklist đầy đủ ở [RELEASE.md](../app/ui-kit/RELEASE.md). Ngoài ra upstream có `.github/workflows/publish-uikit.yml` (push nhánh `release/ui-kit` hoặc workflow_dispatch — cần secret `NPM_TOKEN`).
+Áp dụng `@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack` — mỗi package có `app/<pkg>/scripts/publish-npm.sh`; ui-kit có checklist đầy đủ ở [RELEASE.md](../app/ui-kit/RELEASE.md). Đường CHÍNH THỨC (2026-10-29): CI workflow `.github/workflows/publish-packages.yml` (Actions → Run workflow; inputs `package` + `version_type`; gate→bump→publish→verify; cần secret `NPM_TOKEN`). Publish tay bằng script chỉ để DEBUG — script tự chặn khi tree dirty / HEAD lệch origin/main (`--force-local` để vượt có chủ đích).
 
 ```
 code merged main + tests xanh -> git fetch + pull (publish CHỈ từ main mới nhất)

@@ -29,6 +29,10 @@ GH_PACKAGES_TOKEN=ghp_xxx pnpm --filter "@wakii/ui-kit" publish --no-git-checks
 # không cần env. NPM_TOKEN=npm_xxx vẫn ưu tiên nếu có.
 ```
 
+> 2026-10-29: đường CHÍNH THỨC là CI workflow `publish-packages` (mục 6) —
+> script này chỉ để DEBUG. Script tự chặn khi tree dirty / không ở main /
+> HEAD lệch origin/main; vượt có chủ đích bằng `--force-local`.
+
 ## 4. Deploy Storybook mới lên Vercel
 
 ```bash
@@ -50,21 +54,25 @@ cd - && rm -rf /tmp/sb-deploy
 git add -A && git commit -m "release: <version>" && git push   # PR → merge main
 ```
 
-## 6. Publish npmjs qua CI (GitHub Action — nhánh `release/ui-kit`)
+## 6. Publish npmjs qua CI (workflow `publish-packages` — chính thức)
 
-Workflow `.github/workflows/publish-uikit.yml` tự publish khi push vào nhánh
-`release/ui-kit` (hoặc chạy tay qua tab Actions → Run workflow). Điều kiện:
+> 2026-10-29: workflow `publish-uikit.yml` cũ (push nhánh `release/ui-kit`) đã
+> XOÁ — thay bằng `.github/workflows/publish-packages.yml` chung cho cả 3
+> package (@wakii/ui-kit · create-wakii-app · create-wakii-stack).
+
+Chạy: tab Actions → **publish-packages** → Run workflow, chọn
+`package=ui-kit` + `version_type` (patch/minor/major). Điều kiện:
 
 1. Repo bật GitHub Actions (2026-10-24 đang DISABLE vì billing — xem CLAUDE.md mục CI).
 2. Secret `NPM_TOKEN` (bảng token ở đầu file này) set trong Settings → Secrets
    and variables → Actions.
-3. Bump version trong `app/ui-kit/package.json` + thêm mục CHANGELOG.md, rồi
-   push/merge vào `release/ui-kit`.
 
-CI tự làm: install workspace → gate test + typecheck + build → gọi
-`scripts/publish-npm.sh` với `NPM_TOKEN` từ secret → tag `v<version>` +
-GitHub release với notes trích từ CHANGELOG.md (tag đã tồn tại = bỏ qua,
-chạy lại an toàn).
+CI tự làm HẾT (không bump tay nữa): checkout main mới nhất → gate test +
+typecheck + build → bump version + sinh mục CHANGELOG từ commit range (commit
+thẳng main) → gọi `scripts/publish-npm.sh` với `NPM_TOKEN` từ secret → verify
+registry (đợi lan 90s + retry tới ~4.5 phút, `dist-tags.latest` phải khớp) →
+tag `<pkg>-v<version>` + GitHub release với notes trích CHANGELOG. Version đã
+tồn tại trên registry → run SKIP sạch có giải thích, không đè bao giờ.
 
 ## Bản đồ tên (đừng nhầm)
 

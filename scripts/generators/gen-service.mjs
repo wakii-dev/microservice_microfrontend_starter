@@ -40,7 +40,8 @@ const HELP = helpText({
     'Idempotent-guard: anything that already exists → error, never overwritten.',
   flags: [
     '<name>                 kebab-case, e.g. notification-svc (required, first positional)',
-    '--lang ts|go|spring    default ts (Fastify+TS, real CRUD). go = chi, spring = Boot 3 (skeletons)',
+    '--lang ts|go|spring    default ts (Fastify+TS). All three generate REAL CRUD ' +
+      '(paginated list/get/create/patch/delete on `items`): ts = Fastify, go = chi + pgx, spring = Boot 3 + JPA/Flyway',
     '--port N               service port (conventions/05). Default: next free port in 3002–3199',
     '--db shared|dedicated  shared (default in interactive mode): one postgres, own schema <service> + role ' +
       '(schema-per-service, pattern of platform/postgres/init/01-init.sh) | dedicated: own DATABASE + role ' +
@@ -343,7 +344,10 @@ export async function runGenService(opts) {
     snake: snake(name),
     dbRole: dbRole(name),
     port,
-    db,
+    // templates key off ctx.db truthiness — 'none' must be falsy (no pg repo,
+    // no DATABASE_URL requirement). Raw `db` above keeps the 'none' string for
+    // the compose/init-script/next_steps switches.
+    db: db === 'none' ? null : db,
     date,
     pkg: 'com.example.' + camel(name),
     goModule: null,
@@ -482,16 +486,25 @@ export async function runGenService(opts) {
   } else if (lang === 'go') {
     res.next(
       `run: cd services/${name} && go mod tidy && go build ./...  # generate go.sum, build the scaffold`,
-      `add: services/${name}/main_test.go — httptest health shape + 401 envelope (conventions/02+04); port the real CRUD from the TS template`,
+      `verify: cd services/${name} && go test ./...  # convention + CRUD smoke (httptest, in-memory store) PASS`,
     );
   } else {
-    res.next(`verify: cd services/${name} && ./mvnw -B test  # HealthCheckTest smoke (needs the copied mvnw)`);
+    res.next(
+      `copy: mvnw + .mvn from services/spring-svc if the generator could not (the Dockerfile needs mvnw)`,
+      `verify: cd services/${name} && ./mvnw -B test  # convention + CRUD smoke (@SpringBootTest${db ? ' — H2, no postgres needed' : ''}) PASS`,
+    );
   }
   res.next(
     'run: pnpm lint:contracts  # spectral lint of contracts/openapi/' + name + '.yaml PASSes',
     `run: docker compose -f platform/docker-compose.yml --env-file platform/.env.example config -q  # compose VALID`,
-    `edit: contracts/openapi/${name}.yaml — rename the default \`items\` resource to the real domain (contract-first) then pnpm --filter ${name} generate:types`,
-    `edit: services/${name}/src/repo.ts + src/repo.pg.ts + src/routes/items.ts — rename fields/queries to the real domain (CRUD already works)`,
+    lang === 'ts'
+      ? `edit: contracts/openapi/${name}.yaml — rename the default \`items\` resource to the real domain (contract-first) then pnpm --filter ${name} generate:types`
+      : `edit: contracts/openapi/${name}.yaml — rename the default \`items\` resource to the real domain (contract-first — CRUD already works)`,
+    lang === 'ts'
+      ? `edit: services/${name}/src/repo.ts + src/repo.pg.ts + src/routes/items.ts — rename fields/queries to the real domain (CRUD already works)`
+      : lang === 'go'
+        ? `edit: services/${name}/internal/store/store.go${db ? ' + pg.go + migrations/' : ''} + internal/api/items.go — rename fields/queries to the real domain (CRUD already works)`
+        : `edit: services/${name}/ .../service/ItemStore impl + web/ItemsController.java${db ? ' + domain/ + a NEW Flyway V2 (never edit V1)' : ''} — rename fields/queries to the real domain (CRUD already works)`,
   );
   if (db === 'shared') {
     res.next(

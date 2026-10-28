@@ -1,7 +1,7 @@
 # Epic Spec — Kafka + Transactional Outbox + Saga (mở rộng FI-62)
 
 > Story: pending epic ID · tạo 2026-10-13 · pipeline: story-workflow CREATE
-> Repo: `__STACK_ORG__/architecture-overview` (main @0785930 — boilerplate FI-62 đã merge)
+> Repo: `wakii-dev/architecture-overview` (main @0785930 — boilerplate FI-62 đã merge)
 > Phase 0: analyst xong (3 P0 đã hấp thụ: CHECK constraint 2 đầu, resolver bearer, CI go-svc hard-code ingest)
 > Rev 2 — sau spec-critic (FIX-P0-FIRST): varchar(40) cho action; PATCH event matrix chốt; TaskStatus tách writable/extended; ownership activity.yaml→SF-3, DDL-node-cụm→SF-2 nguyên tử; go workflow 3 touch points pin phương án; resolver login backoff + lazy re-login; compensation UPDATE conditional
 > Rev 3 — sau plan-critic (FIX-P0-FIRST, 5 P0): SF-1 pre-add env consumers (compose+.env.example); SF-2 thêm task services-node-svc.yml kafka boot-smoke + pin schema-diff.test whitelist outbox; SF-1 golden envelope fixtures (2 đầu test load chung); FE remote-tasks badge → SF-3; SF-4 cắt false dep (tier 0 song song SF-1); checkpoint-1 convergence đỏ tạm ghi rõ; e2e assert DLQ; activity.yaml ×2 file + diff-guard

@@ -1,6 +1,6 @@
 # Plan: ui-kit split + Storybook Phase 1
 
-Spec: `docs/superpowers/specs/2026-10-17-ui-kit-split.md` · Nhánh: `__STACK_ORG__/ui-kit-split` · 2026-10-17
+Spec: `docs/superpowers/specs/2026-10-17-ui-kit-split.md` · Nhánh: `wakii-dev/ui-kit-split` · 2026-10-17
 
 | # | Task | Exit criteria |
 |---|------|---------------|

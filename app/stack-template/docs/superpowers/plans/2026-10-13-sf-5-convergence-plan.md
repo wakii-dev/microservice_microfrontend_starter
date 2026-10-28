@@ -1,6 +1,6 @@
 # Plan — SF-5 Convergence + ADR sync + docs (FI-81, story FI-76)
 
-> Context pack: `docs/superpowers/contexts/sf-5.md` · Epic spec rev 3 §Tier 2 · Branch `__STACK_ORG__/sf-5-convergence` @f23d217.
+> Context pack: `docs/superpowers/contexts/sf-5.md` · Epic spec rev 3 §Tier 2 · Branch `wakii-dev/sf-5-convergence` @f23d217.
 > Verify: CI-only (máy dev không Docker) — push + `gh run watch` convergence. Services/FE/contracts READ-ONLY.
 
 ## Tasks

@@ -1,6 +1,6 @@
 # SF-2 Spec — node-svc task API (FI-70)
 
-> Derived từ epic spec `2026-10-12-boilerplate-microservice-mfe.md` rev 3 (đã user-approved + spec-critic + plan-critic ở epic level) + context pack `docs/superpowers/contexts/sf-2.md`. SF dispatch 2026-10-12, worktree `__STACK_ORG__/sf-2-node-svc`. Spec-critic vòng 1: FIX-P0-FIRST → 2 P0 đã resolve + P1/P2 pinned (xem §Decisions).
+> Derived từ epic spec `2026-10-12-boilerplate-microservice-mfe.md` rev 3 (đã user-approved + spec-critic + plan-critic ở epic level) + context pack `docs/superpowers/contexts/sf-2.md`. SF dispatch 2026-10-12, worktree `wakii-dev/sf-2-node-svc`. Spec-critic vòng 1: FIX-P0-FIRST → 2 P0 đã resolve + P1/P2 pinned (xem §Decisions).
 
 ## Problem
 `services/node-svc/` là khung rỗng. Epic cần service task CRUD chạy được qua gateway để chứng minh acceptance #2 (tạo task → user được spring validate).

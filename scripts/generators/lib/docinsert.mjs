@@ -98,3 +98,31 @@ export function removeRspackExpose(text, exposedModule) {
   const re = new RegExp(`^\\s*'${exposedModule}': '[^']*',\\n`, 'm');
   return text.replace(re, '');
 }
+
+/**
+ * Add an item to a `NAV_ITEMS` array (shell NavBar pattern):
+ *   const NAV_ITEMS = [ { to: '/', label: '…' }, … ] as const;
+ * Inserts before the array's closing `]`, indent copied from the last item
+ * (flat array — items are single-line). Anchor missing → null (caller adds a
+ * next_step with manual instructions). Existing path → throws (idempotent-guard).
+ */
+export function insertNavItem(text, { to, label }) {
+  if (new RegExp(`to: '${to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`).test(text)) {
+    throw new Error(`nav already has an item for '${to}' — idempotent-guard`);
+  }
+  const declIdx = text.indexOf('NAV_ITEMS');
+  if (declIdx === -1) return null;
+  const openIdx = text.indexOf('[', declIdx);
+  if (openIdx === -1) return null;
+  const closeIdx = text.indexOf(']', openIdx);
+  if (closeIdx === -1) return null;
+  const before = text.slice(openIdx + 1, closeIdx);
+  let indent = '  ';
+  const lastItem = before.lastIndexOf('{');
+  if (lastItem !== -1) {
+    const lineStart = text.lastIndexOf('\n', openIdx + 1 + lastItem) + 1;
+    indent = text.slice(lineStart).match(/^[ \t]*/)?.[0] ?? '  ';
+  }
+  const entry = `${before.endsWith('\n') ? '' : '\n'}${indent}{ to: '${to}', label: '${label}' },\n`;
+  return text.slice(0, closeIdx) + entry + text.slice(closeIdx);
+}

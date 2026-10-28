@@ -1,5 +1,5 @@
 # Plan: SF-5 FE shell — MF host (Rspack)
-Date: 2026-10-12 | Linear: FI-73 | Worktree: __STACK_ORG__/sf-5-fe-shell | Story: FI-62
+Date: 2026-10-12 | Linear: FI-73 | Worktree: wakii-dev/sf-5-fe-shell | Story: FI-62
 
 ## 0. Root cause analysis (WHY)
 

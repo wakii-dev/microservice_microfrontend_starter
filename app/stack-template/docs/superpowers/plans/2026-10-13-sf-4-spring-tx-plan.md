@@ -1,5 +1,5 @@
 # Plan: SF-4 spring-svc @Transactional demo (FI-78)
-Date: 2026-10-13 | Linear: FI-78 | Worktree: sf-4-spring-tx-demo (branch __STACK_ORG__/sf-4-spring-tx-demo)
+Date: 2026-10-13 | Linear: FI-78 | Worktree: sf-4-spring-tx-demo (branch wakii-dev/sf-4-spring-tx-demo)
 Spec slice: docs/superpowers/contexts/sf-4.md · Epic spec rev 3 §SF-4 · Story FI-76
 
 ## 0. Root cause analysis (WHY)

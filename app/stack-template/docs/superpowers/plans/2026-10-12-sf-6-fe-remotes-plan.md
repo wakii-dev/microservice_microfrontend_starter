@@ -1,5 +1,5 @@
 # Plan: SF-6 FE remotes — tasks + activity (FI-74)
-Date: 2026-10-12 | Linear: FI-74 | Worktree: __STACK_ORG__/sf-6-fe-remotes | Story: FI-62
+Date: 2026-10-12 | Linear: FI-74 | Worktree: wakii-dev/sf-6-fe-remotes | Story: FI-62
 Spec slice: docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md rev 3 §SF-6 | Context pack: docs/superpowers/contexts/sf-6.md
 
 ## 0. Root cause analysis (WHY)

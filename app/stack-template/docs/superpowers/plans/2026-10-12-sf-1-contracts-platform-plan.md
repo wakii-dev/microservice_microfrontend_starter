@@ -1,7 +1,7 @@
 # Plan — SF-1 Contracts & Platform Foundation (FI-64)
 
 > Story FI-62 · spec: `docs/superpowers/specs/2026-10-12-boilerplate-microservice-mfe.md` rev 3 · slice: `docs/superpowers/contexts/sf-1.md`
-> Worktree: `__STACK_ORG__/sf-1-contracts-platform` (fork từ `__STACK_ORG__/story-fi62-micro-boilerplate`) · merge target: nhánh story (coordinator merge)
+> Worktree: `wakii-dev/sf-1-contracts-platform` (fork từ `wakii-dev/story-fi62-micro-boilerplate`) · merge target: nhánh story (coordinator merge)
 > Tier: Full (16 tasks) · Ràng buộc: dev machine KHÔNG Docker — verify docker qua CI; Java/Go không local
 
 ## Key design decisions (contract-level — các SF sau fork từ đây)
@@ -36,7 +36,7 @@
 
 ## Verification (exit criteria)
 
-1. CI xanh trên nhánh `__STACK_ORG__/sf-1-contracts-platform`: spectral pass, compose config validate, gitleaks pass, boot-smoke auth-mock xanh, schemathesis scaffold chạy.
+1. CI xanh trên nhánh `wakii-dev/sf-1-contracts-platform`: spectral pass, compose config validate, gitleaks pass, boot-smoke auth-mock xanh, schemathesis scaffold chạy.
 2. Từng dòng ACCEPTANCE trong `docs/superpowers/contexts/sf-1.md` kiểm riêng (Phase 5).
 3. auth-mock: chạy native local → curl login nhận JWT decode đúng claims + TTL 8h; swagger UI mở được bằng mắt (browser verify).
 4. Spike MF: host load remote hello-world thật (evidence: build output + screenshot/log).

@@ -1,6 +1,6 @@
 # Phase 0 — Impact Analysis — SF-3 spring-svc (FI-71)
 
-> Story FI-62 · spec rev 3 · slice: `docs/superpowers/contexts/sf-3.md` · worktree `__STACK_ORG__/sf-3-spring-svc`
+> Story FI-62 · spec rev 3 · slice: `docs/superpowers/contexts/sf-3.md` · worktree `wakii-dev/sf-3-spring-svc`
 > Tier: Full (9 tasks). Chạy autonomous theo brief — decisions đã chốt ở epic, không hỏi lại.
 
 ## 1. Problem framing

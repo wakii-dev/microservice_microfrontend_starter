@@ -28,6 +28,15 @@ If-then directives. Every gotcha here is an incident that actually happened on t
 - IF `EADDRINUSE`, or the browser shows a bizarre stale UI on a port THEN an old dev server is still hanging (a previous session died without cleanup) → `lsof -iTCP:<port> -sTCP:LISTEN` + kill the PID.
 - IF the mission is done THEN shut down every server you started.
 
+### compose-host-port-conflict-multi-project
+- IF `docker compose up` fails with `Bind for 0.0.0.0:<port> failed: port is already allocated` THEN ANOTHER compose project (or a local service) owns the HOST port — `docker ps` (all projects!) + `lsof -iTCP:<port> -sTCP:LISTEN` to find the owner. Do NOT `down` the other project — it may be another session's stack.
+- IF you need your stack up on a busy host THEN override the HOST-side port in `platform/.env` (e.g. `POSTGRES_PORT=15432`) — inter-service traffic goes over the compose network (`postgres:5432`), the host mapping is dev-only (conventions/05).
+- IF `docker compose up -d` exits 0 but a container later looks wrong THEN the compose exit code does NOT prove containers are healthy — `docker ps` + probe the service (`curl /readyz`); a container can report `(healthy)` (in-container probe) while attached to no network (`docker inspect --format '{{json .NetworkSettings.Networks}}'` = `{}` → peers get `ENOTFOUND`).
+
+### verify-json-stdout
+- IF a program parses `pnpm verify:quick --json` output THEN `JSON.parse(stdout)` FAILS — the `pnpm` wrapper prints its banner (`> r5-onboard@0.1.0 verify:quick …`) to stdout ahead of the JSON. Run the script DIRECTLY for a clean stream: `bash scripts/verify-quick.sh --json`.
+- IF verify:quick reports PASS but a test suite is red THEN the step picker ran only typecheck-ish fallback steps — verify:quick samples steps per changed path, it does not guarantee the full suite; run the suite explicitly (`pnpm --filter <pkg> test`) before claiming tests pass.
+
 ### docker-parallel-build
 - IF 2 docker builds run in parallel on one engine THEN it overloads → hangs/crashes mid-build → build sequentially; IF the engine already crashed THEN restart Docker Desktop cleanly + `docker builder prune` + rebuild.
 

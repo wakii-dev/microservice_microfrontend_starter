@@ -35,7 +35,8 @@ IF new to the repo THEN read in this order; IF the task is docs-only THEN skip 4
 ## 3. Verify directives
 
 - IF code changed THEN run `pnpm verify:quick` — the script picks steps per changed path; exit code 0 = PASS. (Landing via the verify lane — if missing at your commit, use the table below.)
-- IF a program/agent needs to read results THEN `pnpm verify:quick --json` → `[{step, status, duration}]` + exit code. **JSON is the primary contract**; the default text output is for humans — do not parse it.
+- IF working in a scaffolded project (create-wakii-stack) THEN `git init && git add -A && git commit -m "init"` FIRST — verify:quick needs git; a `.gitignore` ships with the scaffold (node_modules/.env excluded), so `git add -A` is safe there.
+- IF a program/agent needs to read results THEN `pnpm verify:quick --json` → `[{step, status, duration}]` + exit code. **JSON is the primary contract**; the default text output is for humans — do not parse it. For a parseable stream run the script DIRECTLY (`bash scripts/verify-quick.sh --json`) — through the `pnpm` wrapper the banner lines land on stdout too.
 - IF verifying through a pipe (`cmd | tail`) THEN `$?` belongs to the LAST command — conclude PASS only from the real exit code or `--json`.
 - IF installing node-svc / auth-svc THEN `cd services/<svc> && pnpm install --frozen-lockfile --ignore-workspace` (standalone lockfile).
 

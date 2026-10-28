@@ -1,6 +1,6 @@
 # ADR 0011 — dotnet-svc: .NET as the 4th language (partially supersedes ADR-0001)
 
-Date: 2026-10-27 · Status: Accepted · Source: lead mission brief (__STACK_ORG__/feat-dotnet-svc)
+Date: 2026-10-27 · Status: Accepted · Source: lead mission brief (wakii-dev/feat-dotnet-svc)
 
 ## Context
 

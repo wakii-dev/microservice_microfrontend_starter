@@ -9,6 +9,8 @@ description: Use when releasing/bumping/publishing a wakii npm package (@wakii/u
 
 The docs/WORKFLOW.md §4 flow as directives. Publishing = outward action — every checkpoint has a gate; STOP at steps needing the user's auth/token, never bypass.
 
+> **Scope guard (R5 onboarding 2026-10-28):** publishable packages (`@wakii/ui-kit`, `create-wakii-app`, `create-wakii-stack`) live ONLY in the UPSTREAM repo (which has `app/ui-kit/` + `app/<pkg>/scripts/publish-npm.sh`). A project scaffolded by `create-wakii-stack` contains NONE — every `package.json` is `private:true`. IF running in a scaffolded copy THEN STOP: this skill does not apply there; tell the user this skill is upstream-only.
+
 ## Directives
 
 1. IF starting THEN `git fetch origin && git pull` — publish ONLY from the freshest main (stale main once overwrote a version — create-wakii-stack 0.1.9).

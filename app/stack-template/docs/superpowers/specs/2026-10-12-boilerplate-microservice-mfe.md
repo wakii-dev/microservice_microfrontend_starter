@@ -3,7 +3,7 @@
 > Story: pending epic ID · tạo 2026-10-12 · pipeline: story-workflow CREATE
 > Rev 2 — sau spec-critic vòng 1 (NO-GO): sửa 2 P0 (fe-shared ownership, activity event flow) + 7 P1 (auth claims, seed users, failure semantics, schema grants, standalone-copy, gateway topology, smoke/scaffold semantics)
 > Rev 3 — sau plan-critic (NO-GO): P0 canonical tasks DDL + edge SF-7→SF-3; P1 compose pre-seed (không 3 SF cùng sửa compose), boot-smoke CI per service, event-push fire-and-forget, CORS dev có chủ, spike fe-shared ở SF-1, grant qua default privileges, users fixture chung, smoke = script committed, exit criteria CI-verifiable
-> Repo: `__STACK_ORG__/architecture-overview` (greenfield — chỉ README, 1 commit)
+> Repo: `wakii-dev/architecture-overview` (greenfield — chỉ README, 1 commit)
 
 ## IDEA-BRIEF (8 chiều)
 

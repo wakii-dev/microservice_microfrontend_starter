@@ -231,6 +231,30 @@ describe('scaffold — gateway conf + env + paths', () => {
   });
 });
 
+describe('scaffold — git-ready + không mang meta máy gốc', () => {
+  it('dest có .gitignore sẵn (git-ready scaffold — R5 onboarding): node_modules/.env bị ignore', async () => {
+    const result = await scaffold({ selection: selection({ appName: 'hop-stack' }), dest, templateRoot });
+
+    expect(existsSync(join(dest, '.gitignore'))).toBe(true);
+    expect(result.files).toContain('.gitignore');
+    const gitignore = await readFile(join(dest, '.gitignore'), 'utf8');
+    expect(gitignore).toContain('node_modules/');
+    expect(gitignore).toContain('dist/');
+    expect(gitignore).toContain('.env');
+    expect(gitignore).toContain('coverage/');
+    expect(gitignore).toContain('.DS_Store');
+    expect(gitignore).toContain('*.log');
+  });
+
+  it('.git FILE (worktree link) của template KHÔNG được copy vào dest — R5-fix regression', async () => {
+    // đúng hình dạng thật: file `.git` 1 dòng `gitdir: …` (không phải directory)
+    await writeFile(join(templateRoot, '.git'), 'gitdir: /Users/someone/repo/.git/worktrees/wt-x\n');
+    await scaffold({ selection: selection({ appName: 'hop-stack' }), dest, templateRoot });
+
+    expect(existsSync(join(dest, '.git'))).toBe(false);
+  });
+});
+
 describe('scaffold — dọn workspace refs sau prune', () => {
   it('Dockerfile COPY + pnpm-lock importer + workspace glob trỏ dir đã prune bị dọn hết', async () => {
     // fixture mở rộng: tooling/spike + Dockerfile FE + lockfile + workspace

@@ -4,7 +4,13 @@
 # Nguồn template cho create-wakii-stack; engine prune theo stack-manifest.json.
 #
 # Thiết kế tầng 1 (brief Mission #8):
-# - rsync FULL repo trừ build-artifacts + nội bộ team — template chạy được ngay.
+# - rsync FULL repo trừ build-artifacts + nội bộ team + publish meta KHÔNG thuộc
+#   stack sinh ra (.changeset — upstream release tool; publish-uikit.yml — workflow
+#   publish package upstream, scaffold không chứa package nào publishable)
+#   — template chạy được ngay. LƯU Ý `.git` không có slash: exclude cả FILE lẫn
+#   DIR — worktree link (`gitdir: …` file 72 byte) lọt template = scaffold sinh ra
+#   sẽ resolve nhầm git repo của máy gốc (R5-fix 2026-10-28, trả giá 1 commit nhầm
+#   branch).
 # - Placeholder hoá CHỈ chỗ an toàn: root package.json "name" + README H1 +
 #   compose `name:` → __STACK_NAME__; wakii-dev trong README + docs hướng dẫn
 #   → __STACK_ORG__. KHÔNG sed trong services/ — tên compose service giữ
@@ -38,6 +44,8 @@ rsync -a --exclude='go.sum' \
   --exclude='/app/stack-template/' \
   --exclude='/app/create-wakii-app/' \
   --exclude='/app/create-wakii-stack/' \
+  --exclude='/.changeset/' \
+  --exclude='/.github/workflows/publish-uikit.yml' \
   --exclude='/app/starter-templates/' \
   --exclude='/app/spike/' \
   --exclude='/app/ui-kit/' \
@@ -58,7 +66,7 @@ if [ -n "$KEPT" ]; then cp "$KEPT" "$MANIFEST"; rm -f "$KEPT"; fi
 
 # Placeholder hoá — python chính xác từng chỗ (không sed lan), KHÔNG vào services/
 python3 - "$DEST" <<'PY'
-import json, pathlib, sys
+import json, pathlib, re, sys
 
 dest = pathlib.Path(sys.argv[1])
 
@@ -79,12 +87,15 @@ readme.write_text('\n'.join(lines).replace('wakii-dev', '__STACK_ORG__'))
 compose = dest / 'platform' / 'docker-compose.yml'
 compose.write_text(compose.read_text().replace('name: boilerplate', 'name: __STACK_NAME__'))
 
-# 4) wakii-dev → __STACK_ORG__ trong docs hướng dẫn (*.md dưới docs/ — hiện chỉ
-#    git-flow.md chứa; ADR/spec history không chứa nên nguyên vẹn)
+# 4) wakii-dev → __STACK_ORG__ trong docs hướng dẫn (*.md dưới docs/) — CHỈ occurrence
+#    trần (org attribution); `wakii-dev/` là BRANCH PREFIX (git-flow.md, WORKFLOW.md,
+#    ai/workflow.md) và .husky/pre-push của scaffold enforce đúng prefix này → giữ
+#    nguyên (R5 onboarding 2026-10-28: replace mù render docs scaffold thành
+#    `wakii/<loại>-<slug>` lệch với rule `wakii-dev/…` của AGENTS.md + husky).
 for md in (dest / 'docs').rglob('*.md'):
     text = md.read_text()
     if 'wakii-dev' in text:
-        md.write_text(text.replace('wakii-dev', '__STACK_ORG__'))
+        md.write_text(re.sub(r'wakii-dev(?!/)', '__STACK_ORG__', text))
 PY
 
 echo "✓ $DEST sinh xong — $(find "$DEST" -type f | wc -l | tr -d ' ') files"

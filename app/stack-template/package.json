@@ -11,12 +11,17 @@
     "pnpm": ">=9"
   },
   "scripts": {
+    "gen:service": "node scripts/generators/gen-service.mjs",
+    "gen:app": "node scripts/generators/gen-app.mjs",
+    "gen:feature": "node scripts/generators/gen-feature.mjs",
     "lint:contracts": "spectral lint contracts/openapi/*.yaml",
-    "verify:quick": "bash scripts/verify-quick.sh",
-    "prepare": "test -e .git && husky || true"
+    "prepare": "test -e .git && husky || true",
+    "remove:service": "node scripts/generators/remove-service.mjs",
+    "verify:quick": "bash scripts/verify-quick.sh"
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.17.0",
-    "husky": "^9.1.0"
+    "husky": "^9.1.0",
+    "yaml": "^2.9.1"
   }
 }

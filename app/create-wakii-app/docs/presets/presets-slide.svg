@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="500" viewBox="0 0 960 500" role="img" aria-label="create-wakii-app — 5 preset screenshots in an autoplay carousel">
-  <desc>Autoplay carousel 4s/slide (SMIL, loop): each slide is a REAL screenshot of an app scaffolded by create-wakii-app (PNG embedded as base64 so the SVG renders as <img> on GitHub camo and npm). Mirrors the @wakii/ui-kit Carousel.</desc>
+  <desc>Autoplay carousel 4s/slide (SMIL, loop): each slide is a REAL screenshot of an app scaffolded by create-wakii-app (PNG embedded as base64 so the SVG renders inside an img element on GitHub camo and npm). Mirrors the @wakii/ui-kit Carousel.</desc>
   <rect width="960" height="500" fill="#010102"/>
   <g font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
   <text x="48" y="36" fill="#f7f8f8" font-size="16" font-weight="600">npm create wakii-app — 5 presets · real screenshots · autoplay</text>

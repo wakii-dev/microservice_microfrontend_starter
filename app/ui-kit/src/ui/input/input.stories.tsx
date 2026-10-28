@@ -235,3 +235,36 @@ export const TextareaCustomStyled: Story = {
     </div>
   ),
 };
+
+/* ── autoSize (MUI/antd parity) — JS measure: grows with content, clamps at maxRows ── */
+
+/** Uncontrolled autoSize demo — type a paragraph to watch it grow; at maxRows it scrolls. */
+function TextareaDemoAutoSize(props: { mode: 'boolean' | 'clamp' }) {
+  const [v, setV] = useState('');
+  const isClamp = props.mode === 'clamp';
+  return (
+    <Textarea
+      aria-label={isClamp ? 'Autosize clamped textarea' : 'Autosize textarea'}
+      autoSize={isClamp ? { minRows: 2, maxRows: 5 } : true}
+      value={v}
+      onChange={(e) => setV(e.target.value)}
+      maxLength={isClamp ? 200 : undefined}
+      showCount={isClamp}
+      placeholder={
+        isClamp
+          ? 'Type a paragraph — grows to 5 rows, then scrolls…'
+          : 'Type a paragraph — grows unbounded from 2 rows…'
+      }
+      className="max-w-[480px]"
+    />
+  );
+}
+
+export const TextareaAutoSize: Story = {
+  name: 'Textarea — autoSize boolean (unbounded from 2 rows)',
+  render: () => <TextareaDemoAutoSize mode="boolean" />,
+};
+export const TextareaAutoSizeClamp: Story = {
+  name: 'Textarea — autoSize {minRows:2, maxRows:5} + showCount',
+  render: () => <TextareaDemoAutoSize mode="clamp" />,
+};

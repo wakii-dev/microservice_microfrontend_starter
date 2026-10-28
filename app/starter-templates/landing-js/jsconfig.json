@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+
+    /* Path alias — đồng bộ với vite.config.mjs + vitest.config.mjs (chỉ để IDE
+     * hiểu `@/` — checkJs: false nên KHÔNG type-check gì). */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.js", "src/**/*.jsx"]
+}

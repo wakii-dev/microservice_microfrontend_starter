@@ -44,6 +44,14 @@ async function makeTemplates(): Promise<string> {
   );
   await writeFile(join(t, 'minimal-ts', 'src', 'main.tsx'), "// minimal main {{appName}}");
   await writeFile(join(t, 'minimal-ts', 'src', 'routes', 'home.tsx'), '// minimal home {{appName}}');
+  // preset minimal-js (bản JS của minimal — file .jsx NGUYÊN BẢN, không rename runtime)
+  await mkdir(join(t, 'minimal-js', 'src', 'routes'), { recursive: true });
+  await writeFile(
+    join(t, 'minimal-js', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '^19', 'react-router': '^7.9.0' } }),
+  );
+  await writeFile(join(t, 'minimal-js', 'src', 'main.jsx'), "// minimal-js main {{appName}}");
+  await writeFile(join(t, 'minimal-js', 'src', 'routes', 'home.jsx'), '// minimal-js home {{appName}}');
   // preset product-ts (data layer đóng gói sẵn)
   await mkdir(join(t, 'product-ts', 'src', 'routes'), { recursive: true });
   await mkdir(join(t, 'product-ts', 'src', 'features', 'tasks'), { recursive: true });
@@ -62,10 +70,20 @@ async function makeTemplates(): Promise<string> {
   );
   await writeFile(join(t, 'landing-ts', 'src', 'main.tsx'), "// landing main {{appName}}");
   await writeFile(join(t, 'landing-ts', 'src', 'App.tsx'), 'export function App() { return <h1>landing {{appName}}</h1>; }');
-  // overlay admin — đè lên product-ts (mirror cấu trúc dest 1:1)
+  // preset landing-js (bản JS của landing — trang đơn, không router)
+  await mkdir(join(t, 'landing-js', 'src'), { recursive: true });
+  await writeFile(
+    join(t, 'landing-js', 'package.json'),
+    JSON.stringify({ name: '{{appName}}', dependencies: { react: '^19', '@wakii/ui-kit': '^0.6.4' } }),
+  );
+  await writeFile(join(t, 'landing-js', 'src', 'main.jsx'), "// landing-js main {{appName}}");
+  await writeFile(join(t, 'landing-js', 'src', 'App.jsx'), 'export function App() { return <h1>landing-js {{appName}}</h1>; }');
+  // overlay admin — đè lên product-ts (mirror cấu trúc dest 1:1) + khai báo deps
+  // riêng qua _deps.json (engine merge vào package.json đích, KHÔNG copy ra output)
   await mkdir(join(t, 'template-feats', 'admin', 'src', 'routes'), { recursive: true });
   await writeFile(join(t, 'template-feats', 'admin', 'src', 'routes', 'home.tsx'), '// ADMIN home {{appName}}');
   await writeFile(join(t, 'template-feats', 'admin', 'src', 'routes', 'login.tsx'), '// admin login {{appName}}');
+  await writeFile(join(t, 'template-feats', 'admin', '_deps.json'), JSON.stringify({ 'chart.js': '^4.5.1' }));
   // overlay router (TS gốc) — overlay tree MIRROR cấu trúc dest (1:1):
   // template-feats/router/src/App.tsx → dest/src/App.tsx
   await mkdir(join(t, 'template-feats', 'router', 'src'), { recursive: true });
@@ -90,6 +108,7 @@ async function run(planOverrides: Partial<ScaffoldInput['plan']>, templatesRoot:
     preset: 'demo' as const,
     variant: 'vite' as const,
     skipInstall: false,
+    dryRun: false,
     ...planOverrides,
   };
   const log = vi.fn();
@@ -218,6 +237,19 @@ describe('scaffold — presets (minimal/product/admin)', () => {
     expect(log).toHaveBeenCalledWith('Apply overlay: admin (layout + dashboard + auth)');
   });
 
+  it('preset admin → overlay _deps.json merge chart.js vào package.json đích, KHÔNG lộ file', async () => {
+    const templatesRoot = await makeTemplates();
+    const { result, log } = await run({ appName: 'adm-ch', preset: 'admin', router: true }, templatesRoot);
+
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['chart.js']).toBe('^4.5.1'); // từ _deps.json overlay admin
+    expect(pkg.dependencies['@tanstack/react-query']).toBe('^5'); // deps product nguyên vẹn
+    // _deps.json là config cho engine — KHÔNG được xuất hiện trong output files[]
+    expect(result.files.some((f) => f.includes('_deps.json'))).toBe(false);
+    expect(existsSync(join(dest, '_deps.json'))).toBe(false);
+    expect(log).toHaveBeenCalledWith('Merge overlay dep: chart.js@^4.5.1');
+  });
+
   it('overlay admin thiếu trong templatesRoot → throw message rõ', async () => {
     const t = await makeTemplates();
     await rm(join(t, 'template-feats', 'admin'), { recursive: true, force: true });
@@ -247,5 +279,47 @@ describe('scaffold — presets (minimal/product/admin)', () => {
     const t = await makeTemplates();
     await rm(join(t, 'landing-ts'), { recursive: true, force: true });
     await expect(run({ preset: 'landing', router: true }, t)).rejects.toThrow('Không thấy template base');
+  });
+});
+
+describe('scaffold — preset JS variants (minimal-js/landing-js)', () => {
+  it('preset minimal + lang js → base minimal-js (.jsx nguyên bản, không rename)', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'mini-js', preset: 'minimal', lang: 'js', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'main.jsx'), 'utf8')).toContain('minimal-js main mini-js');
+    expect(await readFile(join(dest, 'src', 'routes', 'home.jsx'), 'utf8')).toContain('minimal-js home mini-js');
+    expect(existsSync(join(dest, 'src', 'main.tsx'))).toBe(false); // không trộn variant
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['react-router']).toBe('^7.9.0'); // deps template nguyên vẹn
+    expect(log).toHaveBeenCalledWith('Copy base template (minimal-js)');
+  });
+
+  it('preset landing + lang js → base landing-js, 1 trang không router', async () => {
+    const templatesRoot = await makeTemplates();
+    const { log } = await run({ appName: 'lnd-js', preset: 'landing', lang: 'js', router: true }, templatesRoot);
+
+    expect(await readFile(join(dest, 'src', 'App.jsx'), 'utf8')).toContain('landing-js lnd-js');
+    expect(existsSync(join(dest, 'src', 'App.tsx'))).toBe(false); // không trộn variant
+    const pkg = JSON.parse(await readFile(join(dest, 'package.json'), 'utf8'));
+    expect(pkg.dependencies['react-router']).toBeUndefined(); // landing trang đơn
+    expect(log).toHaveBeenCalledWith('Copy base template (landing-js)');
+  });
+
+  it('preset minimal + lang js thiếu minimal-js → throw "Không thấy template base"', async () => {
+    const t = await makeTemplates();
+    await rm(join(t, 'minimal-js'), { recursive: true, force: true });
+    await expect(run({ preset: 'minimal', lang: 'js', router: true }, t)).rejects.toThrow('Không thấy template base');
+  });
+});
+
+describe('scaffold — dry-run', () => {
+  it('dryRun: liệt kê files nhưng KHÔNG ghi đĩa', async () => {
+    const templatesRoot = await makeTemplates();
+    const result = await scaffold({ plan: { appName: 'x', lang: 'ts', router: true, extras: [], preset: 'demo', variant: 'vite', skipInstall: true, dryRun: true }, dest, templatesRoot, dryRun: true });
+    expect(result.files.length).toBeGreaterThan(0);
+    // dry-run không mkdir không ghi — dest phải KHÔNG tồn tại
+    const { existsSync } = await import('node:fs');
+    expect(existsSync(dest)).toBe(false);
   });
 });

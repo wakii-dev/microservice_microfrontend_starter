@@ -1,7 +1,9 @@
-// DashboardPage — UI thuần: KPI row (Statistic + CountUp), Card + Table gần đây,
-// Card + Timeline hoạt động. Data demo TĨNH qua props — nối data thật bằng
-// useQuery trong DashboardContainer rồi bơm props (không fetch trong ui).
+// DashboardPage — UI thuần: KPI row (Statistic + CountUp), Card chart "Weekly
+// throughput" (subpath @wakii/ui-kit/chart), Card + Table gần đây, Card + Timeline
+// hoạt động. Data demo TĨNH qua props — nối data thật bằng useQuery trong
+// DashboardContainer rồi bơm props (không fetch trong ui).
 import { Card, Reveal, Statistic, CountUp, Table, Tag, Text, Timeline, type TableColumn } from '@wakii/ui-kit';
+import { Chart } from '@wakii/ui-kit/chart';
 
 export interface ActivityItem {
   id: number;
@@ -24,8 +26,14 @@ export interface RecentRow {
   status: string;
 }
 
+export interface WeeklyPoint {
+  day: string;
+  value: number;
+}
+
 export interface DashboardPageProps {
   stats: DashboardStats;
+  weekly: WeeklyPoint[];
   recent: RecentRow[];
   activity: ActivityItem[];
 }
@@ -38,7 +46,7 @@ const RECENT_COLUMNS: TableColumn<RecentRow>[] = [
   { key: 'status', title: 'Trạng thái', render: (row: RecentRow) => <Tag>{row.status}</Tag> },
 ];
 
-export function DashboardPage({ stats, recent, activity }: DashboardPageProps) {
+export function DashboardPage({ stats, weekly, recent, activity }: DashboardPageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* KPI row — CountUp đếm số khi vào viewport */}
@@ -58,6 +66,23 @@ export function DashboardPage({ stats, recent, activity }: DashboardPageProps) {
           </Card>
         </div>
       </Reveal>
+
+      {/* Weekly throughput — bar qua subpath @wakii/ui-kit/chart (peer chart.js do
+          overlay _deps.json khai báo). Không truyền màu → kit tự resolve token theo
+          theme (light/dark live). animation:false — render đồng bộ. */}
+      <Card title="Weekly throughput">
+        <div className="h-64">
+          <Chart
+            config={{
+              type: 'bar',
+              labels: weekly.map((w) => w.day),
+              datasets: [{ label: 'Tasks completed', data: weekly.map((w) => w.value) }],
+              options: { responsive: true, maintainAspectRatio: false, animation: false },
+            }}
+            height={256}
+          />
+        </div>
+      </Card>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card title="Gần đây" className="lg:col-span-2">

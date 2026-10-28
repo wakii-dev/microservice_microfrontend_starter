@@ -1,9 +1,9 @@
 {
   "name": "create-wakii-app",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "CLI scaffold app React + @wakii/ui-kit — pnpm create wakii-app my-app (spec: /tmp/starter-spec.md → docs khi publish)",
+  "description": "Scaffold React apps on the Wakii design system — 5 presets (demo · minimal · product · admin · landing) × 3 frameworks (Vite · Next.js · Astro), TanStack Query + zod + MSW architecture included",
   "keywords": [
     "wakii",
     "create-app",
@@ -45,5 +45,9 @@
   "files": [
     "dist",
     "starter-templates"
-  ]
+  ],
+  "homepage": "https://github.com/wakii-dev/microservice_microfrontend_starter/tree/main/app/create-wakii-app",
+  "bugs": {
+    "url": "https://github.com/wakii-dev/microservice_microfrontend_starter/issues"
+  }
 }

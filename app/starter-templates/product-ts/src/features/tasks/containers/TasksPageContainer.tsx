@@ -10,7 +10,7 @@ import { TasksPage } from '../ui/TasksPage';
 
 export function TasksPageContainer() {
   const queryClient = useQueryClient();
-  const { query, toggle } = useTasks();
+  const { query, toggle, refetch } = useTasks();
 
   const remove = useMutation({
     mutationFn: (task: Task) => tasksApi.remove(task.id),
@@ -26,6 +26,7 @@ export function TasksPageContainer() {
       tasks={query.data ?? []}
       loading={query.isPending}
       error={query.isError ? (query.error instanceof Error ? query.error.message : String(query.error)) : null}
+      onRetry={() => void refetch()}
       onToggle={(task) => toggle.mutate(task)}
       onDelete={(task) => remove.mutate(task)}
       deleting={remove.isPending}

@@ -1,5 +1,22 @@
 # create-wakii-app
 
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/wakii-dev/microservice_microfrontend_starter/main/app/ui-kit/docs/assets/hero.svg" alt="@wakii/ui-kit — the design system every preset ships with" width="640" />
+
+</div>
+
+**5 presets × 3 frameworks. Scaffold → install → run — no cleanup required.**
+
+| Bạn là ai | Dùng lệnh này |
+|---|---|
+| Lần đầu thấy Wakii kit | `npm create wakii-app@latest my-app` *(preset demo)* |
+| Bắt sản phẩm sạch | `… my-app --preset minimal` |
+| App thật có API | `… my-app --preset product` — TanStack Query + zod + MSW + containers/ui/hooks/api |
+| Tool nội bộ/dashboard | `… my-app --preset admin` |
+| Landing page | `… my-app --preset landing` |
+| Next.js / Astro | thêm `--variant next` / `--variant astro` |
+
 [![npm](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app)](https://www.npmjs.com/package/create-wakii-app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)

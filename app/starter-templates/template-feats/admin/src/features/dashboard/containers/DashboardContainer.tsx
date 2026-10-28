@@ -2,7 +2,7 @@
 // backend cho overlay admin); khi nối API thật: dùng useQuery + shared client
 // như feature tasks rồi bơm props — giữ ui/ thuần.
 import { DashboardPage } from '../ui/DashboardPage';
-import type { ActivityItem, DashboardStats, RecentRow } from '../ui/DashboardPage';
+import type { ActivityItem, DashboardStats, RecentRow, WeeklyPoint } from '../ui/DashboardPage';
 
 const STATS: DashboardStats = {
   users: 128,
@@ -10,6 +10,13 @@ const STATS: DashboardStats = {
   completionRate: 87,
   revenue: 96,
 };
+
+const WEEKLY: WeeklyPoint[] = [
+  { day: 'Mon', value: 12 },
+  { day: 'Tue', value: 19 },
+  { day: 'Wed', value: 8 },
+  { day: 'Thu', value: 22 },
+];
 
 const RECENT: RecentRow[] = [
   { id: 1, item: 'Triển khai bản tuần này', owner: 'Alice', status: 'đang chạy' },
@@ -26,5 +33,5 @@ const ACTIVITY: ActivityItem[] = [
 ];
 
 export function DashboardContainer() {
-  return <DashboardPage stats={STATS} recent={RECENT} activity={ACTIVITY} />;
+  return <DashboardPage stats={STATS} weekly={WEEKLY} recent={RECENT} activity={ACTIVITY} />;
 }

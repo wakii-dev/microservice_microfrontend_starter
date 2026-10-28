@@ -18,8 +18,9 @@ export const tasksKeys = createQueryKeys('tasks');
 const TASKS_PATH = '/tasks';
 
 export const tasksApi = {
-  async list(): Promise<Task[]> {
-    const raw = await apiFetch<unknown>(TASKS_PATH);
+  /** `params` đi thẳng vào query string — dùng cho flag demo (?empty=1/?boom=1). */
+  async list(params?: Record<string, string>): Promise<Task[]> {
+    const raw = await apiFetch<unknown>(TASKS_PATH, { query: params });
     return taskSchema.array().parse(raw);
   },
 

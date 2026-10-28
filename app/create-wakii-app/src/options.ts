@@ -29,6 +29,8 @@ export interface CliOptions {
   variant?: Variant;
   yes: boolean;
   skipInstall: boolean;
+  /** --dry-run: scaffold tính toán + log danh sách file, KHÔNG ghi đĩa. */
+  dryRun?: boolean;
   /** --help — index.ts in usage (options không tự in). */
   help?: boolean;
   /** --extras có mặt trên argv — CLI flow dùng để bỏ prompt multiselect. */
@@ -46,6 +48,7 @@ export interface ScaffoldPlan {
   preset: Preset;
   variant: Variant;
   skipInstall: boolean;
+  dryRun: boolean;
 }
 
 function parseExtrasList(raw: string): { ok: true; extras: Extra[] } | { ok: false; message: string } {
@@ -73,6 +76,8 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       options.yes = true;
     } else if (arg === '--skip-install') {
       options.skipInstall = true;
+    } else if (arg === '--dry-run') {
+      options.dryRun = true;
     } else if (arg === '--router') {
       options.router = true;
     } else if (arg === '--no-router') {
@@ -149,7 +154,8 @@ export function parseArgs(argv: readonly string[]): ParseResult {
  * 2026-10-24: copy-overlay không thể mở route khi thiếu BrowserRouter):
  * có extras mà router bị TẮT TƯỜNG MINH → lỗi rõ cho user bỏ một trong hai.
  * Preset khác demo: luôn có router (template đóng gói sẵn), KHÔNG nhận extras
- * (demo-only) và KHÔNG nhận lang js (chỉ sinh bản ts). */
+ * (demo-only); product/admin KHÔNG nhận lang js (chỉ có bản ts) — minimal/
+ * landing có template -js riêng nên nhận cả hai. */
 export function resolveOptions(options: CliOptions): ScaffoldPlan {
   const preset = options.preset ?? 'demo';
   const variant = options.variant ?? 'vite';
@@ -159,7 +165,9 @@ export function resolveOptions(options: CliOptions): ScaffoldPlan {
   if (preset !== 'demo' && options.extras.length > 0) {
     throw new Error(`--extras chỉ dành cho preset demo (preset '${preset}' có cấu trúc riêng) — bỏ --extras hoặc dùng --preset demo`);
   }
-  if (preset !== 'demo' && options.lang === 'js') {
+  // minimal/landing có bản -js trong starter-templates — lang js hợp lệ;
+  // product/admin chỉ đóng gói bản ts → chặn sớm với message rõ.
+  if ((preset === 'product' || preset === 'admin') && options.lang === 'js') {
     throw new Error(`Preset '${preset}' hiện chỉ hỗ trợ TypeScript — bỏ --lang js (hoặc dùng --preset demo)`);
   }
   if (variant !== 'vite' && preset !== 'demo') {
@@ -179,5 +187,6 @@ export function resolveOptions(options: CliOptions): ScaffoldPlan {
     preset,
     variant,
     skipInstall: options.skipInstall,
+    dryRun: options.dryRun ?? false,
   };
 }

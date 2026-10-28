@@ -61,7 +61,7 @@
     <text class="fade f3" x="386" y="108"><tspan class="a">platform/</tspan> <tspan class="m">compose · gateway · kafka-init</tspan></text>
     <text class="fade f4" x="386" y="130"><tspan class="a">contracts/</tspan> <tspan class="m">openapi · events · db</tspan></text>
     <text class="fade f5" x="386" y="152"><tspan class="a">AGENTS.md</tspan> <tspan class="m">· WORKFLOW · generators</tspan></text>
-    <text class="fade f6" x="386" y="174" class="g">.gitignore · lockfile (frozen ✓)</text>
+    <text class="fade f6 g" x="386" y="174">.gitignore · lockfile (frozen ✓)</text>
   </g>
 
   <!-- ══ Panel 3: browser :8080 ══ -->
@@ -75,9 +75,9 @@
   <rect class="bar b1" x="672" y="104" width="120" height="22" rx="6" fill="#1f2b3d"/>
   <rect class="bar b2" x="672" y="132" width="120" height="22" rx="6" fill="#1f2b3d"/>
   <rect class="bar b3" x="672" y="160" width="120" height="22" rx="6" fill="#1f2b3d"/>
-  <text class="fade f5" x="808" y="118" class="m" font-size="9">kanban drag</text>
-  <text class="fade f5" x="808" y="146" class="m" font-size="9">activity feed</text>
-  <text class="fade f5" x="808" y="174" class="m" font-size="9">saga · DLQ</text>
+  <text class="fade f5 m" x="808" y="118" font-size="9">kanban drag</text>
+  <text class="fade f5 m" x="808" y="146" font-size="9">activity feed</text>
+  <text class="fade f5 m" x="808" y="174" font-size="9">saga · DLQ</text>
   <circle class="dot pulse" cx="880" cy="60" r="4" fill="#52c41a"/>
   <circle class="dot d2 pulse" cx="895" cy="60" r="4" fill="#52c41a"/>
   <circle class="dot d3 pulse" cx="910" cy="60" r="4" fill="#52c41a"/>

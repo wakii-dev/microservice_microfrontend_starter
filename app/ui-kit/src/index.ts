@@ -49,6 +49,7 @@ export { Result, type ResultProps, type ResultStatus , type ResultClassNames } f
 export { Descriptions, type DescriptionsProps, type DescriptionsClassNames, type DescriptionsItem } from './ui/descriptions/index.js';
 export { Collapse, type CollapseProps, type CollapseItem , type CollapseClassNames } from './ui/collapse/index.js';
 export { UiImage, type ImageProps , type UiImageClassNames } from './ui/image/index.js';
+export { ImageList, type ImageListProps, type ImageListItem, type ImageListClassNames } from './ui/image-list/index.js';
 export { Table, type TableProps, type TableColumn } from './ui/table/index.js';
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem , type BreadcrumbClassNames } from './ui/breadcrumb/index.js';
 export { Steps, type StepsProps, type StepsClassNames, type StepItem } from './ui/steps/index.js';

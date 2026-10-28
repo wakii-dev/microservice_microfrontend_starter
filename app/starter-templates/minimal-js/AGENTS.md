@@ -1,31 +1,31 @@
-# AGENTS.md — luật kiến trúc cho AI agents (và người mới)
+# AGENTS.md — architecture rules for AI agents (and newcomers) — JS variant
 
-File này là nguồn sự thật về CẤU TRÚC project. Đổi cấu trúc = sửa file này trước,
-code theo sau. ESLint (`pnpm lint`) enforce phần lớn luật bằng
-`eslint-plugin-boundaries` — vi phạm = lỗi lint, không phải chuyện "thích thì bỏ qua".
+This file is the source of truth for the project STRUCTURE. Change the structure = update this file first,
+code second. ESLint (`pnpm lint`) enforces most of these rules via
+`eslint-plugin-boundaries` — a violation is a lint error, not a matter of taste.
 
-## Cấu trúc thư mục
+## Directory structure
 
 ```
 src/
-├── main.jsx            # Entry: styles.css → Providers → BrowserRouter → Router (chỉ wire)
-├── env.js              # Chốt biến môi trường bằng zod — fail nhanh khi sai
-├── styles.css          # CSS kit (tokens/dark/base/tailwind) + @source — KHÔNG viết style mới ở đây
-├── app/                # Wiring tầng app: providers, router, theme
-│   ├── providers.jsx   # ErrorBoundary + UiKitProvider — thêm provider mới ở đây
-│   ├── router.jsx      # Header sticky + lazy Routes (Suspense Skeleton)
-│   └── theme.js        # useAppTheme() — dark mode qua data-bp-theme
-├── routes/             # 1 file = 1 trang (default export component), lazy-loaded
+├── main.jsx            # Entry: styles.css → Providers → BrowserRouter → Router (wiring only)
+├── env.js              # Environment variables validated with zod — fail fast when wrong
+├── styles.css          # Kit CSS (tokens/dark/base/tailwind) + @source — do NOT add styles here
+├── app/                # App-tier wiring: providers, router, theme
+│   ├── providers.jsx   # ErrorBoundary + UiKitProvider — add new providers here
+│   ├── router.jsx      # Sticky header + lazy Routes (Suspense Skeleton)
+│   └── theme.js        # useAppTheme() — dark mode via data-bp-theme
+├── routes/             # 1 file = 1 page (default-exported component), lazy-loaded
 └── shared/
-    ├── ui/             # Component UI xài chung (PageHeader…) — KHÔNG fetch data
-    └── lib/            # Helper thuần (utils.js) — không React, không DOM
+    ├── ui/             # Shared UI components (PageHeader…) — NO data fetching
+    └── lib/            # Pure helpers (utils.ts) — no React, no DOM
 ```
 
-## Bảng luật import (enforce bằng eslint-plugin-boundaries)
+## Import rules (enforced by eslint-plugin-boundaries)
 
-Cột "được import" = nguồn ĐƯỢC phép; mọi thứ ngoài bảng = cấm (default disallow).
+The "may import" column lists what each layer is ALLOWED to import; anything outside the table is forbidden (default deny).
 
-| Từ ↓ vào → | `app/` | `routes/` | `shared/ui` | `shared/lib` | `env.js` |
+| From ↓ into → | `app/` | `routes/` | `shared/ui` | `shared/lib` | `env.js` |
 |---|---|---|---|---|---|
 | `main.jsx` (entry) | ✅ | — | — | — | — |
 | `app/` | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -33,51 +33,50 @@ Cột "được import" = nguồn ĐƯỢC phép; mọi thứ ngoài bảng = c�
 | `shared/ui` | ❌ | ❌ | — | ✅ | ❌ |
 | `shared/lib` | ❌ | ❌ | ❌ | ✅* | ❌ |
 
-\* lib tự import lẫn nhau trong shared. Đọc ngược bảng: `routes/` KHÔNG được
-import lên `app/` (router điều phối routes, không chiều ngược lại); `shared/`
-"nguội" — không biết gì về app/routes, do đó tái sử dụng được mọi nơi.
+\* lib files may import each other within shared. Read the table backwards: `routes/` must NOT
+import from `app/` (the router orchestrates routes, never the reverse); `shared/` is "cool" —
+it knows nothing about app/routes, which is exactly why it stays reusable everywhere.
 
-- Import giữa các module dùng alias `@/` → `src/` (vd `@/shared/ui/PageHeader`).
-- Ngoại lệ duy nhất: file `*.test.js(x)` được import tự do (fixture, nội bộ).
-- External packages (react, react-router, @wakii/ui-kit, zod…) không bị luật này ràng.
+- Use the `@/` alias (→ `src/`) for internal imports (e.g. `@/shared/ui/PageHeader`).
+- Single exception: `*.test.js(x)` files may import freely (fixtures, internals).
+- External packages (react, react-router, @wakii/ui-kit, zod…) are not bound by these rules.
 
-## Quy ước đặt tên
+## Naming conventions
 
-| Thứ | Tên | Ví dụ |
+| Thing | Convention | Example |
 |---|---|---|
 | Route page | kebab-case file, default export | `routes/task-detail.jsx` → `export default function TaskDetailPage()` |
-| Component | PascalCase trùng tên file | `PageHeader.jsx` → `PageHeader` |
-| Hook | `use` + camelCase, file trùng tên | `useAppTheme` |
+| Component | PascalCase matching the file | `PageHeader.jsx` → `PageHeader` |
+| Hook | `use` + camelCase, same-name file | `useAppTheme` |
 | Helper | camelCase | `cx` |
-| Props | JSDoc `@param` cùng file (bản JS không có interface) | `PageHeader` |
-| Test | cạnh file, `+ .test.js(x)` | `home.test.jsx` |
+| Props type | `PascalCase + Props`, exported alongside | `PageHeaderProps` |
+| Test | next to the file, `+ .test.ts(x)` | `home.test.jsx` |
 
-Khi project phình (nhiều feature có data/API/form), nâng cấp theo cấu trúc
-feature của preset `product` (`pnpm create wakii-app --preset product` để xem mẫu):
-`src/features/<tên>/{containers,ui,hooks,api,schema}` — page chỉ import qua
-`features/<tên>/index.ts`, luồng phụ thuộc: container → (hooks → api) → ui.
+When the project grows (multiple features with data/API/forms), upgrade to the
+feature architecture of the `product` preset (run `pnpm create wakii-app --preset product` to see the reference):
+`src/features/<name>/{containers,ui,hooks,api,schema}` — pages import only through
+`features/<name>/index.js`; the dependency flow is container → (hooks → api) → ui.
 
-## Recipe — thêm 1 trang mới (5 bước)
+## Recipe — adding a new page (5 steps)
 
-1. Tạo `src/routes/<tên>.jsx`, default export component trang. Trang chỉ dựng
-   layout từ `@wakii/ui-kit` + `@/shared/ui` — không import gì từ `app/`.
-2. Đăng ký route trong `src/app/router.jsx`: thêm `lazy(() => import('@/routes/<tên>'))`
-   + 1 dòng `<Route element={…} path="/…" />`.
-3. Cần link trong header? Thêm `NavLink` trong `router.jsx` (xem product-ts khi
-   có >2 route — lúc đó nên chuyển sang Menu/Sidebar của kit).
-4. Cần dữ liệu từ backend? Đừng fetch trong page — đó là lúc nâng cấp sang cấu
-   trúc `features/` (mục Quy ước trên).
-5. Viết test cạnh file (`<tên>.test.jsx`): render + assert theo role/text, chạy
-   `pnpm test`. Chốt: `pnpm lint` phải xanh trước khi commit (bản JS — jsconfig
-   để `checkJs: false`, không có bước typecheck).
+1. Create `src/routes/<name>.jsx` with the page as the default export. Pages only compose
+   layout from `@wakii/ui-kit` + `@/shared/ui` — never import from `app/`.
+2. Register the route in `src/app/router.jsx`: add `lazy(() => import('@/routes/<name>'))`
+   + one `<Route element={…} path="/…" />` line.
+3. Need a header link? Add a `NavLink` in `router.jsx` (see product-ts once you have >2
+   routes — at that point switch to the kit's Menu/Sidebar).
+4. Need backend data? Do not fetch inside the page — that is the signal to upgrade to the
+   `features/` structure (see Naming above).
+5. Write a test next to the file (`<name>.test.jsx`): render + assert by role/text, run
+   `pnpm test`. Final gate: `pnpm lint && pnpm typecheck` green before commit.
 
-## Quy ước UI (@wakii/ui-kit)
+## UI conventions (@wakii/ui-kit)
 
 - Tokens-only: `bg-canvas/s1/s2/s3`, `text-ink/ink2/ink3`, `border-line`,
-  `text-accent`, `bg-accent` — không hex trong className.
-- Dark mode tự cascade qua `data-bp-theme` (đã wire trong `theme.js`) — không
-  code riêng cho dark.
-- Giữ dòng `@source '../node_modules/@wakii/ui-kit/src'` + `…/dist` trong
-  `src/styles.css` — thiếu là utilities của kit không được generate (UI vỡ).
-- Icon: `<Icon name="…" size={n} />` từ bộ của kit; z-index chỉ dạng
-  `z-[var(--z-…)]`; motion 150–200ms với easing token.
+  `text-accent`, `bg-accent` — no hex in classNames.
+- Dark mode cascades automatically via `data-bp-theme` (wired in `theme.js`) — never
+  write dark-specific code.
+- Keep the `@source '../node_modules/@wakii/ui-kit/src'` + `…/dist` lines in
+  `src/styles.css` — without them the kit's utilities are not generated (the UI breaks).
+- Icons: `<Icon name="…" size={n} />` from the kit's set; z-index only as
+  `z-[var(--z-…)]`; motion 150–200ms with easing tokens.

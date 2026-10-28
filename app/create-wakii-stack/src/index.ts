@@ -2,16 +2,21 @@
 // create-wakii-stack — CLI scaffold full-stack (Hybrid C: full-copy + prune theo
 // manifest). Flow: parse flags → prompt multiselect services (default all) →
 // confirm → scaffold spinner → next-steps. Engine logic ở options/manifest/scaffold.
+// Subcommand `add-remote <name> [dest]` — add a new MF remote to an existing
+// scaffolded stack (clone of the template `tasks` remote + registration patches);
+// dispatch happens before the scaffold arg-parse so both flows stay independent.
 import * as p from '@clack/prompts';
 import { existsSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs, resolveOptions, type StackSelection } from './options.js';
 import { loadManifest } from './manifest.js';
 import { scaffold, DEFAULT_TEMPLATE_ROOT } from './scaffold.js';
+import { runAddRemoteCli } from './add-remote/cli.js';
 
 const USAGE = `create-wakii-stack — scaffold full-stack FE+BE (Hybrid C: full-copy + prune)
 
 Usage: pnpm create wakii-stack [stackName] [flags]
+       pnpm create wakii-stack add-remote <name> [dest] [--port n]
 
 Flags:
   --services <list>  Services phẩy ngăn cách (vd node-svc,spring-svc,shell,tasks,activity,admin)
@@ -41,7 +46,14 @@ function printNextSteps(selection: StackSelection, gatewayUrl: string | undefine
 }
 
 async function main(): Promise<void> {
-  const parsed = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  // subcommand dispatch — add-remote owns its own argv shape (name/dest/--port),
+  // the scaffold flow below is untouched
+  if (argv[0] === 'add-remote') {
+    process.exitCode = await runAddRemoteCli(argv.slice(1));
+    return;
+  }
+  const parsed = parseArgs(argv);
   if (!parsed.ok) {
     p.log.error(parsed.message);
     console.error(USAGE);

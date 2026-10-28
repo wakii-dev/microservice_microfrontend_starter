@@ -1,12 +1,14 @@
-// scaffold — copy đệ quy template → render {{appName}} → áp overlays router/
-// extras → merge deps vào package.json. Tách hàm thuần (test được với tmp dir
-// thật, KHÔNG network). Placeholder DUY NHẤT: {{appName}} — file binary (có
-// byte 0x00) copy nguyên bản KHÔNG render (spec: không regex trên binary).
+// scaffold — copy đệ quy template → render {{appName}} + {{remoteName}} → áp overlays
+// router/extras → merge deps vào package.json. Tách hàm thuần (test được với tmp dir
+// thật, KHÔNG network). Placeholders: {{appName}} (mọi template) + {{remoteName}} —
+// MF container name derive từ appName (identifier-safe; chỉ remote-ts dùng, render ở
+// cả CONTENT và TÊN FILE — file expose đặt tên theo page). File binary (có byte 0x00)
+// copy nguyên bản KHÔNG render (spec: không regex trên binary).
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Extra, Lang, Preset, ScaffoldPlan } from './options.js';
+import { toRemoteName, type Extra, type Lang, type Preset, type ScaffoldPlan } from './options.js';
 
 /** Nguồn template mặc định — 2 layout: repo (src|dist → app/starter-templates)
  * và npm package (dist → <pkg>/starter-templates, publish script bundle vào).
@@ -63,13 +65,18 @@ function renameForJs(path: string): string {
   return path.replace(/\.tsx$/, '.jsx').replace(/\.ts$/, '.js');
 }
 
-async function copyTree(srcDir: string, destDir: string, opts: { appName: string; renameExt: boolean; files: string[]; dryRun?: boolean }): Promise<void> {
+async function copyTree(
+  srcDir: string,
+  destDir: string,
+  opts: { appName: string; remoteName: string; renameExt: boolean; files: string[]; dryRun?: boolean },
+): Promise<void> {
   if (!opts.dryRun) await mkdir(destDir, { recursive: true });
   for (const entry of await readdir(srcDir, { withFileTypes: true })) {
     if (entry.name === '.DS_Store' || entry.name === '_deps.json') continue; // rác macOS — spec bỏ; _deps.json khai báo deps của overlay
     const srcPath = join(srcDir, entry.name);
     const outName = opts.renameExt ? renameForJs(entry.name) : entry.name;
-    const destPath = join(destDir, outName);
+    // {{remoteName}} render cả ở TÊN FILE (page expose đặt tên theo component)
+    const destPath = join(destDir, outName.replaceAll('{{remoteName}}', opts.remoteName));
     if (entry.isDirectory()) {
       await copyTree(srcPath, destPath, opts);
       continue;
@@ -81,7 +88,10 @@ async function copyTree(srcDir: string, destDir: string, opts: { appName: string
       // binary — copy nguyên bản, KHÔNG render (spec)
       await writeFile(destPath, buffer);
     } else {
-      const text = buffer.toString('utf8').replaceAll('{{appName}}', opts.appName);
+      const text = buffer
+        .toString('utf8')
+        .replaceAll('{{appName}}', opts.appName)
+        .replaceAll('{{remoteName}}', opts.remoteName);
       await writeFile(destPath, text);
     }
   }
@@ -148,25 +158,31 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     next: 'next-ts',
     astro: 'astro-ts',
   };
-  const baseName = plan.preset === 'demo' ? demoBase[variant] : presetBase[plan.preset](plan.lang);
+  // --as-remote: base remote-ts (rspack + MF expose) — preset/variant/overlay machinery
+  // does not apply (resolveOptions rejects conflicting flags before we get here).
+  const baseName = plan.asRemote ? 'remote-ts' : plan.preset === 'demo' ? demoBase[variant] : presetBase[plan.preset](plan.lang);
   const baseDir = join(templatesRoot, baseName);
   if (!existsSync(baseDir)) {
     throw new Error(`Không thấy template base: ${baseDir} (cần ${baseName} trong starter-templates)`);
   }
+  // MF container name — identifier-safe, derived from appName; rendered in template
+  // content AND file names (see copyTree).
+  const remoteName = toRemoteName(plan.appName);
   // Overlay router/extras + markers là cơ chế riêng demo × vite — next/astro
-  // có routing/trang riêng trong template, overlay đè sẽ vỡ boot.
-  const isViteDemo = plan.preset === 'demo' && variant === 'vite';
+  // có routing/trang riêng trong template, overlay đè sẽ vỡ boot. as-remote:
+  // remote-ts đóng gói sẵn — không overlay nào áp.
+  const isViteDemo = !plan.asRemote && plan.preset === 'demo' && variant === 'vite';
 
   const files: string[] = [];
   log?.(`Copy base template (${baseName})`);
-  await copyTree(baseDir, dest, { appName: plan.appName, renameExt: false, files, dryRun });
+  await copyTree(baseDir, dest, { appName: plan.appName, remoteName, renameExt: false, files, dryRun });
 
   const featsDir = join(templatesRoot, 'template-feats');
-  if (plan.preset === 'admin') {
+  if (!plan.asRemote && plan.preset === 'admin') {
     const adminDir = join(featsDir, 'admin');
     if (!existsSync(adminDir)) throw new Error(`Không thấy overlay admin: ${adminDir}`);
     log?.('Apply overlay: admin (layout + dashboard + auth)');
-    await copyTree(adminDir, dest, { appName: plan.appName, renameExt: false, files, dryRun });
+    await copyTree(adminDir, dest, { appName: plan.appName, remoteName, renameExt: false, files, dryRun });
     // Overlay được khai báo deps riêng (_deps.json) — merge vào package.json đích,
     // vd admin cần chart.js cho dashboard. Cơ chế chung cho mọi overlay tương lai.
     const adminDepsPath = join(adminDir, '_deps.json');
@@ -188,13 +204,14 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     log?.('Apply overlay: router');
     await copyTree(useJsVariant ? jsVariantDir : routerDir, dest, {
       appName: plan.appName,
+      remoteName,
       renameExt: plan.lang === 'js' && !useJsVariant,
       files,
       dryRun,
     });
   }
 
-  for (const extra of plan.extras) {
+  for (const extra of plan.asRemote ? [] : plan.extras) {
     const extraDir = join(featsDir, 'extras', extra);
     if (!existsSync(extraDir)) throw new Error(`Không thấy overlay extra '${extra}': ${extraDir}`);
     const jsVariantDir = join(extraDir, 'vite-js');
@@ -202,6 +219,7 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     log?.(`Apply overlay: ${extra}`);
     await copyTree(useJsVariant ? jsVariantDir : extraDir, dest, {
       appName: plan.appName,
+      remoteName,
       renameExt: plan.lang === 'js' && !useJsVariant,
       files,
       dryRun,
@@ -213,7 +231,9 @@ export async function scaffold(input: ScaffoldInput): Promise<ScaffoldResult> {
     await renderExtraMarkers(dest, plan, plan.lang === 'js');
   }
 
-  if (!dryRun) await mergeDeps(dest, plan, log);
+  // as-remote: package.json của remote-ts đóng gói đủ deps (pin MF matrix) —
+  // không merge gì thêm.
+  if (!dryRun && !plan.asRemote) await mergeDeps(dest, plan, log);
   return { files: files.map((f) => f.slice(dest.length + 1)) };
 }
 

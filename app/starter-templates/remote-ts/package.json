@@ -1,0 +1,38 @@
+{
+  "name": "{{appName}}",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Module Federation remote — exposes ./{{remoteName}}Page to an MF host (Wakii shell) and runs standalone for development.",
+  "scripts": {
+    "dev": "rspack serve",
+    "build": "rspack build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "@wakii/ui-kit": "^0.7.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@module-federation/enhanced": "0.21.6",
+    "@rspack/cli": "1.7.12",
+    "@rspack/core": "1.7.12",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "~6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.3",
+    "jsdom": "^27.0.0",
+    "postcss-loader": "^8.2.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.0",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

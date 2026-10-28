@@ -5,7 +5,7 @@
 import * as p from '@clack/prompts';
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { EXTRAS, PRESETS, VARIANTS, parseArgs, resolveOptions, type Preset, type ScaffoldPlan, type Variant } from './options.js';
+import { EXTRAS, PRESETS, VARIANTS, parseArgs, resolveOptions, toRemoteName, type Preset, type ScaffoldPlan, type Variant } from './options.js';
 import { scaffold } from './scaffold.js';
 
 const USAGE = `create-wakii-app — scaffold app React + @wakii/ui-kit
@@ -20,6 +20,10 @@ Flags:
   --router/--no-router  react-router v7, preset demo (default: có)
   --extras <list>     Extras phẩy ngăn cách: chart,carousel,schedule,editor —
                       chỉ dành cho preset demo
+  --as-remote         Scaffold 1 MF remote đứng mình (rspack + Module Federation
+                      expose ./<Name>Page) — sẵn sàng cắm vào stack Wakii; bỏ qua
+                      preset/variant/router/extras. Tên MF = identifier derive từ
+                      appName (vd my-remote → MyRemote)
   --yes               Lấy toàn bộ default, không prompt
   --skip-install      Bỏ gợi ý 'pnpm install' ở next-steps
   -h, --help          In hướng dẫn
@@ -40,6 +44,7 @@ Ví dụ:
   pnpm create wakii-app my-app --preset minimal --lang js
   pnpm create wakii-app my-app --variant next
   pnpm create wakii-app my-app --lang ts --router --extras chart,carousel
+  pnpm create wakii-app my-remote --as-remote --yes
 `;
 
 const PRESET_PROMPTS: Record<Preset, string> = {
@@ -68,9 +73,25 @@ const VARIANT_PROMPTS: Record<Variant, string> = {
 function printNextSteps(plan: ScaffoldPlan): void {
   const steps = [`cd ${plan.appName}`];
   if (!plan.skipInstall) steps.push('pnpm install');
-  steps.push('pnpm dev');
+  if (plan.asRemote) {
+    steps.push('pnpm dev      # standalone debug — http://localhost:4101');
+    steps.push('pnpm build    # dist/remoteEntry.js — cái mà host load');
+  } else {
+    steps.push('pnpm dev');
+  }
   p.log.info('Next steps:');
   for (const step of steps) p.log.step(`  ${step}`);
+  if (plan.asRemote) {
+    // appName có thể là PATH (next-steps cd theo path) — derive từ BASENAME cho khớp
+    // với những gì engine đã render vào files (engine luôn dùng basename).
+    const baseName = plan.appName.split(/[\\/]/).pop() ?? plan.appName;
+    const remoteName = toRemoteName(baseName);
+    p.log.info(
+      `Cắm vào stack Wakii: register remote "${remoteName}" ở shell ` +
+        `(name@…/remoteEntry.js → import('./${remoteName}Page')) + gateway route ` +
+        `/remotes/${baseName}/ — chi tiết trong README.md`,
+    );
+  }
 }
 
 // Node guard — engines khai báo >=22 nhưng cảnh báo THẬT lúc chạy (node 18 sẽ
@@ -104,8 +125,10 @@ async function main(): Promise<void> {
     }
     options = { ...options, appName: name.trim() };
   }
-  // Preset hỏi TRƯỚC (định hình các prompt sau: non-demo luôn có router, bỏ extras)
-  if (options.preset === undefined && !options.yes) {
+  // Preset hỏi TRƯỚC (định hình các prompt sau: non-demo luôn có router, bỏ extras).
+  // as-remote: không prompt preset/variant/router/extras — remote-ts đóng gói sẵn,
+  // mọi prompt chỉ tạo cấu hình chắc chắn bị resolveOptions từ chối.
+  if (!options.asRemote && options.preset === undefined && !options.yes) {
     const preset = await p.select<Preset>({
       message: 'Chọn preset?',
       initialValue: 'demo',
@@ -120,7 +143,7 @@ async function main(): Promise<void> {
   // Variant hỏi NGAY SAU preset (chỉ demo) — next/astro có trang + routing riêng
   // trong template, overlay router/extras của vite không áp dụng.
   const presetIsDemo = (options.preset ?? 'demo') === 'demo';
-  if (presetIsDemo && options.variant === undefined && !options.yes) {
+  if (!options.asRemote && presetIsDemo && options.variant === undefined && !options.yes) {
     const variant = await p.select<Variant>({
       message: 'Framework cho demo?',
       initialValue: 'vite',
@@ -135,7 +158,7 @@ async function main(): Promise<void> {
   // Router/extras là overlay demo × vite — chọn next/astro thì bỏ prompt (tránh
   // tạo cấu hình chắc chắn lỗi ở resolveOptions).
   const variantIsVite = (options.variant ?? 'vite') === 'vite';
-  if (presetIsDemo && variantIsVite && options.router === undefined && options.extras.length === 0 && !options.yes) {
+  if (!options.asRemote && presetIsDemo && variantIsVite && options.router === undefined && options.extras.length === 0 && !options.yes) {
     const withRouter = await p.confirm({ message: 'Thêm react-router v7?', initialValue: true });
     if (p.isCancel(withRouter)) {
       p.cancel('Huỷ — không scaffold gì.');
@@ -143,7 +166,7 @@ async function main(): Promise<void> {
     }
     options = { ...options, router: withRouter };
   }
-  if (presetIsDemo && variantIsVite && !options.yes && !options.extrasProvided) {
+  if (!options.asRemote && presetIsDemo && variantIsVite && !options.yes && !options.extrasProvided) {
     const chosen = await p.multiselect({
       message: 'Extras (tuỳ chọn — demo subpath component nặng)',
       options: EXTRAS.map((value) => ({ value, label: value })),

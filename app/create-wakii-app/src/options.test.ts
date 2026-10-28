@@ -1,6 +1,6 @@
 // Tests options — flags + defaults + invalid (spec: parse flags, defaults, invalid).
 import { describe, expect, it } from 'vitest';
-import { parseArgs, resolveOptions } from './options.js';
+import { parseArgs, resolveOptions, toRemoteName } from './options.js';
 
 describe('parseArgs — preset', () => {
   it('--preset product (tách) và --preset=product (dấu =) đều nhận', () => {
@@ -91,12 +91,13 @@ describe('resolveOptions', () => {
       extras: [],
       preset: 'demo',
       variant: 'vite',
+      asRemote: false,
       skipInstall: false,
       dryRun: false,
     });
     // extras kéo theo router; tắt router tường minh + extras → lỗi rõ
     expect(resolveOptions({ appName: 'x', lang: 'js', router: true, extras: ['chart'], yes: false, skipInstall: true })).toEqual({
-      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', variant: 'vite', skipInstall: true, dryRun: false,
+      appName: 'x', lang: 'js', router: true, extras: ['chart'], preset: 'demo', variant: 'vite', asRemote: false, skipInstall: true, dryRun: false,
     });
     expect(() => resolveOptions({ lang: 'ts', router: false, extras: ['chart'], yes: true, skipInstall: false })).toThrow(/mâu thuẫn/);
   });
@@ -194,5 +195,64 @@ describe('dry-run', () => {
     if (r.ok) expect(r.options.dryRun).toBe(true);
     expect(resolveOptions({ lang: 'ts', extras: [], yes: true, skipInstall: false, dryRun: true }).dryRun).toBe(true);
     expect(resolveOptions({ lang: 'ts', extras: [], yes: true, skipInstall: false }).dryRun).toBe(false);
+  });
+});
+
+describe('parseArgs — as-remote', () => {
+  it('--as-remote sets the boolean flag; absent → undefined (no prompt path)', () => {
+    expect(parseArgs(['my-remote', '--as-remote'])).toMatchObject({
+      ok: true,
+      options: { asRemote: true, appName: 'my-remote' },
+    });
+    const r = parseArgs([]);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.options.asRemote).toBeUndefined();
+  });
+});
+
+describe('resolveOptions — as-remote', () => {
+  it('defaults: preset demo forced, router NOT applied (false), lang ts, asRemote true', () => {
+    expect(resolveOptions({ appName: 'my-remote', lang: 'ts', extras: [], yes: true, skipInstall: false, asRemote: true })).toEqual({
+      appName: 'my-remote',
+      lang: 'ts',
+      router: false,
+      extras: [],
+      preset: 'demo',
+      variant: 'vite',
+      asRemote: true,
+      skipInstall: false,
+      dryRun: false,
+    });
+    // explicit --router is IGNORED — remote-ts ships no router
+    expect(resolveOptions({ lang: 'ts', router: true, extras: [], yes: true, skipInstall: false, asRemote: true })).toMatchObject({
+      router: false,
+      asRemote: true,
+    });
+  });
+
+  it('conflicts → clear errors (preset ≠ demo, variant ≠ vite, lang js, extras)', () => {
+    expect(() => resolveOptions({ lang: 'ts', preset: 'product', extras: [], yes: true, skipInstall: false, asRemote: true })).toThrow(
+      /--as-remote cannot be combined with --preset/,
+    );
+    expect(() => resolveOptions({ lang: 'ts', extras: [], yes: true, skipInstall: false, asRemote: true, variant: 'next' })).toThrow(
+      /--as-remote cannot be combined with --variant next/,
+    );
+    expect(() => resolveOptions({ lang: 'js', extras: [], yes: true, skipInstall: false, asRemote: true })).toThrow(
+      /--as-remote currently supports TypeScript only/,
+    );
+    expect(() => resolveOptions({ lang: 'ts', extras: ['chart'], yes: true, skipInstall: false, asRemote: true })).toThrow(
+      /--as-remote cannot be combined with --extras/,
+    );
+  });
+});
+
+describe('toRemoteName — MF container name (identifier-safe)', () => {
+  it('kebab/snake/space → PascalCase; leading digits stripped; empty fallback', () => {
+    expect(toRemoteName('remote-check')).toBe('RemoteCheck');
+    expect(toRemoteName('my_app')).toBe('MyApp');
+    expect(toRemoteName('Admin Panel')).toBe('AdminPanel');
+    expect(toRemoteName('3app')).toBe('App');
+    expect(toRemoteName('Activity')).toBe('Activity');
+    expect(toRemoteName('---')).toBe('Remote');
   });
 });

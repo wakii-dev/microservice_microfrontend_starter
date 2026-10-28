@@ -1,12 +1,12 @@
 # create-wakii-stack
 
-[![npm](https://img.shields.io/badge/npm-create--wakii--stack-cb3837?logo=npm&logoColor=white)]
+[![npm](https://img.shields.io/npm/v/create-wakii-stack?logo=npm&label=create-wakii-stack&color=cb3837)](https://www.npmjs.com/package/create-wakii-stack)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
 Scaffold the **full Wakii architecture** (FE + BE + infra) as a pruned monorepo snapshot — CRA-style CLI: interactive multiselect, non-interactive flags. Strategy **Hybrid C**: copy the full template, then **prune against a manifest** (delete paths, cut compose blocks, clean `depends_on`, filter gateway conf/env keys) — no template engine, original content untouched.
 
-> **Not on npm yet — publishing soon.** The CLI ships in this repository today.
+> **Published on npm** — `npm create wakii-stack@latest`. Also mirrored on [GitHub Packages](https://github.com/orgs/wakii-dev/packages) (`@wakii-dev/create-wakii-stack`). Docs below reflect the published CLI.
 
 ## Usage
 
@@ -21,7 +21,7 @@ Interactive flow — pick services from the manifest (**11**: `postgres · kafka
 ```
 cd my-stack
 cp platform/.env.example platform/.env   # fill in secrets before up
-docker compose --env-file platform/.env up -d
+docker compose -f platform/docker-compose.yml --env-file platform/.env up -d
 
 URLs: gateway http://localhost:8080 · shell http://localhost:3000 (if you picked FE)
 ```

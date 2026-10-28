@@ -49,6 +49,8 @@ Tạo một task ở Kanban → event đi qua **Kafka** → xuất hiện ngay �
 Gắn task cho user `fail@demo.local` → saga rollback → event vào **DLQ**. Tất cả
 được kiểm chứng bởi [`scripts/smoke/e2e.sh`](scripts/smoke/e2e.sh) chạy trong CI.
 
+<img src="docs/assets/readme/stack-output.svg" width="880" alt="create-wakii-stack — real output + 3-step usage (animated)" />
+
 ## Bắt đầu trong 30 giây
 
 <div align="center">

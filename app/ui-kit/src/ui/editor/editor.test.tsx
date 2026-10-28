@@ -15,7 +15,11 @@ const pm = () => {
   return el as HTMLElement;
 };
 
-const waitForMounted = () => waitFor(() => expect(document.querySelector('.ProseMirror')).toBeInTheDocument());
+// Flaky root cause: Tiptap EditorView mount qua dynamic import (EDITOR_INNER_ENTRY
+// lazy) — dưới tải nặng (vitest nhiều worker) 1s mặc định của waitFor không đủ →
+// test pass khi chạy lại. Tăng timeout riêng cho mount (bắt từ R2 flaky-hunt
+// 2026-10-29: 1/6 run fail đúng test này, 5/6 pass).
+const waitForMounted = () => waitFor(() => expect(document.querySelector('.ProseMirror')).toBeInTheDocument(), { timeout: 5000 });
 
 describe('Editor — render', () => {
   it('render → .ProseMirror tồn tại + contentEditable + content khởi tạo', async () => {

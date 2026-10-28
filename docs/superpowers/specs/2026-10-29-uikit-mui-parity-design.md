@@ -20,7 +20,7 @@ MUI-parity audit found 4 missing components + 1 feature gap. Consuming apps (she
 |---|---|---|
 | Textarea autosize technique | JS `scrollHeight` measure — antd parity, all browsers, precise row clamp | CSS `field-sizing: content` (Chrome 123+ only, no row clamp) |
 | Masonry technique | CSS multi-column — exact MUI mechanics, 0 JS | JS shortest-column balancer (deviates from MUI, more test surface) |
-| Circular progress API | `shape: 'line' \| 'circle'` prop on existing `Progress` (antd `type` semantics) | Separate `CircularProgress` export; `Progress.Circle` subcomponent |
+| Circular progress API | Extend existing `type` prop to `'line' \| 'circle'` (antd type-prop parity; source already has `type?: 'line'` — widening beats a new prop) | New `shape` prop; separate `CircularProgress` export; `Progress.Circle` subcomponent |
 | ImageList variants | standard + masonry only | Full MUI parity (quilted/woven — niche) |
 
 ## 4. Component designs
@@ -73,13 +73,13 @@ interface ImageItem { src: string; alt: string; caption?: string }
 - **Tests**: children land in document.body by default; custom container honored; function container lazy-evaluated once per render; inline fallback when container null.
 - **Stories**: default body portal (DOM-assert + visible box), custom container.
 
-### 4.5 `Progress` shape circular (P2) — modify `ui/progress/`
+### 4.5 `Progress` type circular (P2) — modify `ui/progress/`
 
 ```tsx
-shape?: 'line' | 'circle'  (default 'line') · size?: number (circle px, default 40) · percent · status · showInfo
+type?: 'line' | 'circle'  (default 'line' — widening the existing prop) · size?: number (circle px, default 40) · percent · status · showInfo · indeterminate (existing prop reused)
 ```
 
-- Circle: SVG `r` from size, `stroke-dasharray = C × percent/100`, `stroke-linecap: round`, track `--line` + bar `--accent` (token classes only — no hex), rotate -90° origin center. `percent` undefined → indeterminate: `animate-[spin]` with motion token + `prefers-reduced-motion` honored (global block).
+- Circle: SVG `r` from size, `stroke-dasharray = C × percent/100`, `stroke-linecap: round`, track `--line2` + arc `--accent`/`--st-done`/`--st-fail` (token classes only — no hex), rotate -90° origin center. Existing `indeterminate` prop reused: circle mode = 25% arc rotating (`animate-spin`, `motion-reduce:animate-none`).
 - `role="progressbar"` + `aria-valuenow={percent}` + `aria-valuemin/max` + `aria-label` from `label` prop (or visible text). `showInfo` renders centered % text.
 - **Tests**: line default unchanged (regression); circle renders SVG with dasharray = expected fraction; aria-valuenow set; status=exception recolors (token class); indeterminate class when percent undefined.
 - **Stories**: line (regression), circle determinate 0/40/100, circle indeterminate, statuses, sizes.

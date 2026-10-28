@@ -32,6 +32,7 @@ export { Tooltip, type TooltipProps, type TooltipClassNames } from './ui/tooltip
 export { Select, type SelectProps, type SelectClassNames, type SelectOption } from './ui/select/index.js';
 export { Popconfirm, type PopconfirmProps , type PopconfirmClassNames } from './ui/popconfirm/index.js';
 export { Popover, type PopoverProps, type PopoverClassNames, type PopoverPlacement, type PopoverTriggerAction } from './ui/popover/index.js';
+export { Portal, type PortalProps } from './ui/portal/index.js';
 export { Pagination, pageList, type PaginationProps , type PaginationClassNames } from './ui/pagination/index.js';
 export { Checkbox, type CheckboxProps, type CheckboxClassNames } from './ui/checkbox/index.js';
 export { Radio, RadioGroup, type RadioProps, type RadioGroupClassNames , type RadioClassNames } from './ui/radio/index.js';

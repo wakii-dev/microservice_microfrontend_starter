@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/readme/hero.svg" alt="microservice_microfrontend_starter — animated hero: blossom logo, token dots quỹ đạo, ripple pulse" width="880" />
+<img src="docs/assets/readme/hero.svg" alt="microservice_microfrontend_starter — animated hero: blossom logo, orbiting token dots, ripple pulse" width="880" />
 
 # microservice_microfrontend_starter
 
@@ -8,8 +8,8 @@
 
 Rules as **directives** ([AGENTS.md](AGENTS.md)) · contracts **machine-checkable** (spectral + drift-guard) · one-command verify (`pnpm verify:quick`) · generators (`gen:service` / `gen:app` / `gen:feature`) · **N-lane** team workflow with a watchdog.
 
-Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của repo này** — chạy bằng
-`docker compose up`, không mock, không screenshot từ dự án khác.
+Everything in the screenshots below is **this repo's real output** — booted with
+`docker compose up`. No mocks, no screenshots from other projects.
 
 **90+** components · **1328** tests · **3** npm packages · **11** services
 
@@ -30,28 +30,28 @@ Mọi thứ bạn thấy trong ảnh dưới là **sản phẩm thật của rep
 | **Verify** — one command before any PASS | `pnpm verify:quick` | `--json` → `[{step, status, duration}]` + exit code |
 | **Team** — N parallel lanes | [docs/team/TEAM.md](docs/team/TEAM.md) · `bash scripts/team/lanes-status.sh` | 1 coordinator with independent gates — N workers, one worktree each |
 
-<img src="docs/assets/readme/stack-marquee.svg" alt="Stack chạy ngang vô hạn — React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion" width="920" />
+<img src="docs/assets/readme/stack-marquee.svg" alt="Infinite tech marquee — React 19 · Tailwind v4 · Rspack · Module Federation · Fastify · Spring Boot 3 · Go · PostgreSQL · Kafka · nginx · framer-motion" width="920" />
 
 </div>
 
 ---
 
-## Sản phẩm thật, không lời hứa
+## Real output, not promises
 
-<img src="docs/assets/readme/landing.png" alt="Landing showcase — hero 3D + bento + marquee, chạy thật từ stack trong repo" width="920" />
+<img src="docs/assets/readme/landing.png" alt="Landing showcase — 3D hero + bento + marquee, real output from the repo stack" width="920" />
 
-| Kanban — kéo card đổi status | Activity — Kafka realtime |
+| Kanban — drag a card to change status | Activity — Kafka realtime |
 |:---:|:---:|
-| <img src="docs/assets/readme/kanban.png" alt="Kanban board — drag đổi status qua framer-motion" width="440" /> | <img src="docs/assets/readme/activity.png" alt="Activity feed — event Kafka hiện realtime sau khi tạo task" width="440" /> |
-| <img src="docs/assets/readme/kanban-drag.svg" alt="Animated kanban — card tự trượt todo → doing → done, cột đích sáng, badge đếm nhảy số" width="440" /> | <img src="docs/assets/readme/feed-pulse.svg" alt="Animated activity feed — event pop-in, live dot pulse" width="440" /> |
+| <img src="docs/assets/readme/kanban.png" alt="Kanban board — drag to change status via framer-motion" width="440" /> | <img src="docs/assets/readme/activity.png" alt="Activity feed — Kafka events appear in realtime after task creation" width="440" /> |
+| <img src="docs/assets/readme/kanban-drag.svg" alt="Animated kanban — card slides todo → doing → done, target column glows, count badge jumps" width="440" /> | <img src="docs/assets/readme/feed-pulse.svg" alt="Animated activity feed — event pop-in, live dot pulse" width="440" /> |
 
-Tạo một task ở Kanban → event đi qua **Kafka** → xuất hiện ngay ở Activity feed.
-Gắn task cho user `fail@demo.local` → saga rollback → event vào **DLQ**. Tất cả
-được kiểm chứng bởi [`scripts/smoke/e2e.sh`](scripts/smoke/e2e.sh) chạy trong CI.
+Create a task in Kanban → the event flows through **Kafka** → it appears instantly in the Activity feed.
+Assign a task to `fail@demo.local` → saga rollback → event lands in the **DLQ**. All of it
+is verified by [`scripts/smoke/e2e.sh`](scripts/smoke/e2e.sh) in CI.
 
 <img src="docs/assets/readme/stack-output.svg" width="880" alt="create-wakii-stack — real output + 3-step usage (animated)" />
 
-## Bắt đầu trong 30 giây
+## Start in 30 seconds
 
 <div align="center">
 
@@ -65,25 +65,25 @@ npm create wakii-app@latest my-app                     # demo — showcase ui-ki
 npm create wakii-app@latest my-app --preset product    # TanStack Query + zod + MSW
 npm create wakii-app@latest my-app --variant next      # hoặc astro
 
-# ② cả nền tảng — FE + 3 backend + gateway + postgres + kafka
+# ② the whole platform — FE + backends + gateway + postgres + kafka
 npm create wakii-stack@latest my-stack
 cd my-stack && cp platform/.env.example platform/.env
 docker compose --env-file platform/.env up -d      # → http://localhost:8080
 
-# ③ design system một mình
+# ③ the design system alone
 pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 ```
 
-> Đăng nhập demo: `alice@demo.local / demo-password` · Storybook:
+> Demo login: `alice@demo.local / demo-password` · Storybook:
 > [storybook-static-khaki-two.vercel.app](https://storybook-static-khaki-two.vercel.app)
 
-## Ba packages, một hệ sinh thái
+## Three packages, one ecosystem
 
-| | Package | Là gì |
+| | Package | What it is |
 |---|---|---|
 | 🎨 | **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 90+ React components (antd × PrimeReact parity) — tokens-first, Tailwind v4, `UiKitProvider` theming, peer-deps optional sau subpath (`/carousel` `/chart` `/editor` `/schedule` `/experience3d`) |
-| ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, extras demo, dark toggle chạy thật |
-| 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — chọn services qua manifest, prune compose/lock/workspace đúng selection, `kafka-init` chống race topic |
+| ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, demo extras, working dark toggle |
+| 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — pick services via manifest, compose/lock/workspace pruned to your selection, `kafka-init` prevents the topic race |
 
 ```bash
 pnpm add @wakii/ui-kit                   # 🎨 design system
@@ -93,31 +93,31 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 
 <div align="center">
 
-<img src="docs/assets/readme/token-palette.svg" alt="Design tokens nhấp nháy theo lượt — accent · ink · line · done · doing · fail" width="920" />
+<img src="docs/assets/readme/token-palette.svg" alt="Design tokens blinking in turn — accent · ink · line · done · doing · fail" width="920" />
 
 </div>
 
-> Cả ba cũng có **mirror trên [GitHub Packages](https://github.com/orgs/wakii-dev/packages)** (`@wakii-dev/ui-kit` · `@wakii-dev/create-wakii-app` · `@wakii-dev/create-wakii-stack`) — registry `npm.pkg.github.com`, tiện cho org cài nội bộ. npmjs vẫn là bản canonical.
+> All three are also **mirrored on [GitHub Packages](https://github.com/orgs/wakii-dev/packages)** (registry `npm.pkg.github.com`) for org-internal installs. npmjs remains canonical.
 
 ## Motion & dark mode built-in
 
 <div align="center">
 
-<img src="docs/assets/readme/dark-switch.svg" alt="Dark mode — hai panel cross-fade light/dark ngược pha, sun/moon xoay swap theo data-bp-theme" width="480" />
+<img src="docs/assets/readme/dark-switch.svg" alt="Dark mode — two panels cross-fade light/dark in opposite phase, sun/moon rotate-swap with data-bp-theme" width="480" />
 
-<img src="docs/assets/readme/motion-wave.svg" alt="Motion curves — enter ease-out, exit ease-in, toggle spring, tự vẽ + dot chạy theo đường cong" width="920" />
+<img src="docs/assets/readme/motion-wave.svg" alt="Motion curves — enter ease-out, exit ease-in, toggle spring, self-drawing with a dot riding each path" width="920" />
 
 </div>
 
-## Bên dưới là gì
+## What's underneath
 
 <div align="center">
 
-<img src="docs/assets/readme/arch-flow.svg" alt="Diagram kiến trúc chạy — Browser → gateway :8080 pulse → 4 services sáng lần lượt → postgres pulse + kafka topic ring, packet chạy cong vào activity feed" width="920" />
+<img src="docs/assets/readme/arch-flow.svg" alt="Live architecture diagram — browser → gateway :8080 pulse → 4 services light up in turn → postgres pulse + kafka topic ring, packets curve into the activity feed" width="920" />
 
 </div>
 
-| Tầng | Thành phần |
+| Layer | Components |
 |---|---|
 | **Experience** | shell (landing 3D + nav) · remotes (kanban drag · feed realtime) · admin showcase |
 | **Edge** | nginx gateway — routing · JWT presence · `/remotes/*` registry |
@@ -129,7 +129,7 @@ npm create wakii-stack@latest my-stack   # 🏗️ full platform
 ```
 contracts/    source of truth — openapi (spectral CI) · canonical DDL · token contract
 platform/     compose + kafka-init · postgres init · gateway · 9 conventions
-services/     node · spring · go · dotnet · auth — README standalone từng service
+services/     node · spring · go · dotnet · auth — each with a standalone README
 app/
   ui-kit/     @wakii/ui-kit — components · hooks · tokens · Storybook
   shared/     fe-shared — api client · token storage · MF bootstrap
@@ -137,24 +137,24 @@ app/
   remotes/    tasks (kanban) · activity (feed)
   admin/      showcase SPA — DataTable virtual · zod forms · upload
   create-*/   scaffolders npm + starter-templates + stack-template
-docs/         walkthrough · 10 ADR · toolchain · assets/readme (ảnh thật)
+docs/         walkthrough · 10 ADRs · toolchain · assets/readme (real screenshots)
 scripts/      smoke/e2e.sh · scaffold · snapshot-stack-template
 ```
 
-## Quy tắc sống còn
+## Ground rules
 
-1. **Contract-first** — sửa `contracts/openapi/*.yaml` trước, spectral phải pass ([ADR 0003](docs/adr/0003-contract-first.md))
+1. **Contract-first** — edit `contracts/openapi/*.yaml` first; spectral must pass ([ADR 0003](docs/adr/0003-contract-first.md))
 2. **Gateway chỉ presence-check JWT** — service tự verify signature ([token-contract §4](contracts/auth/token-contract.md))
-3. **Kafka lazy-connect + kafka-init** — topic tồn tại trước consumer, không `depends_on` broker ([ADR 0008](docs/adr/))
-4. **Đổi port = 4 chỗ cùng commit** — conventions/05 · `.env.example` · compose · README
-5. **Stack scaffold kèm** `app/shared` (source); `app/ui-kit` cài từ npm — `@wakii/ui-kit` latest, không kèm source ([ADR 0010](docs/adr/0010-stack-fe-npm-deps.md))
-6. **Đổi kiến trúc** — đọc ADR trước (mỗi ADR ghi Consequences + điểm cắm thay thế)
+3. **Kafka lazy-connect + kafka-init** — topics exist before consumers; never `depends_on` the broker ([ADR 0008](docs/adr/))
+4. **Changing a port = 4 places in one commit** — conventions/05 · `.env.example` · compose · README
+5. **The scaffold ships** `app/shared` (source); `app/ui-kit` installs from npm — `@wakii/ui-kit` latest, no vendored source ([ADR 0010](docs/adr/0010-stack-fe-npm-deps.md))
+6. **Changing architecture** — read the ADR first (each ADR records Consequences + swap points)
 
 ---
 
 <div align="center">
 
-<img src="docs/assets/readme/constellation.svg" alt="Constellation — 14 nhóm component nối nhau bằng đường dữ liệu chảy + packet glow" width="920" />
+<img src="docs/assets/readme/constellation.svg" alt="Constellation — 14 component groups linked by flowing data lines + glowing packets" width="920" />
 
 <sub>
 

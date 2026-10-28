@@ -83,6 +83,22 @@ services:
       retries: 12
       start_period: 20s
 
+  kafka-init:
+    # Create topics BEFORE consumers boot (prevents empty-assignment race —
+    # go-svc joins group before auto-created topic exists => assignment empty forever).
+    # Idempotent --if-not-exists; go-svc EnsureTopics is the second belt.
+    image: apache/kafka:3.9.0
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic task-events --partitions 1 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic task-events.dlq --partitions 1 --replication-factor 1
+
   auth-svc:
     build: ../services/auth-svc # auth thật (VU-59) thay auth-mock — cùng surface :8090 /api/auth/*
     environment:
@@ -155,6 +171,8 @@ services:
     ports:
       - "${NODE_SVC_PORT:-3001}:3001" # host-side
     depends_on:
+      kafka-init:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       spring-svc:

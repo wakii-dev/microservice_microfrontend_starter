@@ -27,6 +27,10 @@ cp -r dist README.md package.json "$TMP/"
 # Guard 2 file sống còn: engine load stack-manifest.json ngay khi scaffold; template
 # thiếu package.json là scaffold ra app hỏng. Thiếu → chạy scripts/snapshot-stack-template.sh --force.
 rsync -a --exclude='.DS_Store' ../stack-template/ "$TMP/stack-template/"
+# README embeds the animated output SVG — npm readers can't fetch relative
+# paths or raw.githubusercontent (private repo) → serve from the tarball via unpkg.
+mkdir -p "$TMP/docs/assets/readme"
+cp ../../docs/assets/readme/stack-output.svg "$TMP/docs/assets/readme/"
 [ -f "$TMP/stack-template/stack-manifest.json" ] || { echo "✗ thiếu stack-manifest.json sau copy — chạy scripts/snapshot-stack-template.sh --force"; exit 1; }
 [ -f "$TMP/stack-template/package.json" ] || { echo "✗ thiếu stack-template/package.json sau copy"; exit 1; }
 
@@ -37,7 +41,7 @@ python3 - "$TMP" << 'PY'
 import json, sys
 p = json.load(open(f'{sys.argv[1]}/package.json'))
 p['publishConfig'] = {'registry': 'https://registry.npmjs.org', 'access': 'public'}
-p['files'] = ['dist', 'stack-template', 'README.md']
+p['files'] = ['dist', 'stack-template', 'README.md', 'docs/assets/readme/stack-output.svg']
 for k in ('devDependencies', 'scripts', 'private'): p.pop(k, None)
 json.dump(p, open(f'{sys.argv[1]}/package.json', 'w'), indent=2, ensure_ascii=False)
 open(f'{sys.argv[1]}/package.json', 'a').write('\n')

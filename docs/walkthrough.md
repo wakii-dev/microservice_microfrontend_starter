@@ -1,12 +1,16 @@
-# Fresh-clone walkthrough — từ clone đến demo chạy được
+# Fresh-clone walkthrough — from clone to a running demo
 
-Checklist cho người MỚI copy boilerplate. Mọi lệnh dưới đây là những gì đã chạy thật trong CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — convergence 11 services + e2e 2 chiều; các SF trước: `evidence/sf-*/`).
+Checklist for newcomers copying the boilerplate. Every command below is something that actually
+ran in CI (evidence: `docs/superpowers/evidence/sf-5-convergence/test-run.txt` — 11-service
+convergence + two-way e2e; earlier SFs: `evidence/sf-*/`).
 
-## 0. Toolchain cần có
+## 0. Toolchain you need
 
-Đọc [toolchain.md](toolchain.md). Tóm tắt: Node 22 + pnpm 9 (corepack) + JDK 21 + Go 1.24 + bash/curl. Docker TÙY CHỌN (không có vẫn xong được — chọn đường A hoặc B bên dưới). LƯU Ý: saga demo (mục 4b) + DLQ cần Kafka → đường A (compose); đường B chỉ chạy happy path (`SMOKE_SAGA=0`).
+Read [toolchain.md](toolchain.md). Summary: Node 22 + pnpm 9 (corepack) + JDK 21 + Go 1.24 + bash/curl.
+Docker is OPTIONAL (you can finish without it — pick route A or B below). NOTE: the saga demo (§4b)
++ DLQ need Kafka → route A (compose); route B covers the happy path only (`SMOKE_SAGA=0`).
 
-## 1. Clone + cài đặt
+## 1. Clone + install
 
 ```bash
 git clone <repo> && cd <repo>
@@ -17,46 +21,48 @@ cd services/auth-svc && pnpm install --frozen-lockfile --ignore-workspace && cd 
 
 ## 2. Postgres + seed
 
-Cần Postgres 16 chạy sẵn với init script của platform (schemas + roles + readonly grants):
+You need Postgres 16 running with the platform init script (schemas + roles + readonly grants):
 
-- **Có Docker (dễ nhất):** `cd platform && cp .env.example .env` (điền mật khẩu) → `docker compose up -d postgres` — init script `platform/postgres/init/01-init.sh` tự chạy lần đầu.
-- **Không Docker:** cài/portable Postgres 16, `initdb` một data dir rồi chạy nội dung `platform/postgres/init/01-init.sh` tay (tạo db `boilerplate`, roles `node_svc`/`spring_svc`/`go_svc`/`go_readonly`/`auth_svc` với mật khẩu khớp .env, schemas + default privileges).
+- **With Docker (easiest):** `cd platform && cp .env.example .env` (fill in the password) → `docker compose up -d postgres` — init script `platform/postgres/init/01-init.sh` runs on first boot.
+- **Without Docker:** install or use a portable Postgres 16, `initdb` a data dir, then run the contents of `platform/postgres/init/01-init.sh` by hand (create db `boilerplate`, roles `node_svc`/`spring_svc`/`go_svc`/`go_readonly`/`auth_svc` with passwords matching .env, schemas + default privileges).
 
-## 3. Chọn đường chạy demo
+## 3. Pick a demo route
 
-### Đường A — Compose (có Docker — khuyến nghị)
+### Route A — Compose (Docker — recommended)
 
 ```bash
 cd platform
-cp .env.example .env                # điền JWT_SECRET (openssl rand -base64 48) + passwords
-docker compose down -v              # ⚠️ CHẠY 1 LẦN sau pull nếu máy có pgdata volume TỪ bản cũ:
-                                    #    (1) Flyway V2 seed user svc-fail/svc-activity + (2) init script tạo
-                                    #    schema `auth` + role `auth_svc` (auth-real SF-5) CHỈ chạy lúc volume
-                                    #    MỚI — volume cũ thiếu → saga chết ở auth/validate, auth-svc chết ở
-                                    #    DATABASE auth (healthcheck /readyz đỏ, gateway không lên được).
-                                    # ⚠️ `.env` tạo từ bản cũ: thêm `AUTH_SVC_DB_PASSWORD` (cp từ .env.example).
-# Kafka KHÔNG có data volume — topics mất sau mỗi `down` → tạo tường minh
-# TRƯỚC khi boot services (giống CI convergence.yml; tránh 2 race: go consumer
-# kẹt empty-assignment khi subscribe trước topic + DLQ publish Unknown Topic):
+cp .env.example .env                # fill in JWT_SECRET (openssl rand -base64 48) + passwords
+docker compose down -v              # ⚠️ RUN ONCE after pulling if the machine has an OLD pgdata volume:
+                                    #    (1) Flyway V2 seeds user svc-fail/svc-activity + (2) the init script
+                                    #    creates schema `auth` + role `auth_svc` (auth-real SF-5) — these only
+                                    #    run on a NEW volume — an old volume misses them → the saga dies at
+                                    #    auth/validate, auth-svc dies on DATABASE auth (healthcheck /readyz red,
+                                    #    gateway never comes up).
+                                    # ⚠️ An `.env` created from an older version: add `AUTH_SVC_DB_PASSWORD`
+                                    #    (copy from .env.example).
+# Kafka has NO data volume — topics are lost on every `down` → create them explicitly
+# BEFORE booting services (same as CI convergence.yml; avoids 2 races: the go consumer
+# stuck in empty-assignment when subscribing before the topic + DLQ publish Unknown Topic):
 docker compose up -d postgres kafka
 until docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1; do sleep 2; done
 for topic in task-events task-events.dlq; do
   docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 \
     --create --if-not-exists --topic "$topic" --partitions 1 --replication-factor 1
 done
-docker compose up -d --build        # health-gated chain tự đợi đúng thứ tự (11 services, kafka lazy-connect)
-bash ../scripts/smoke/e2e.sh        # từ platform/ — script ở repo root. PASS = 15 bước, 3 luồng:
-                                    #   happy     : login→task→feed QUA KAFKA (outbox → topic → go consumer)
+docker compose up -d --build        # health-gated chain waits in the right order (11 services, kafka lazy-connect)
+bash ../scripts/smoke/e2e.sh        # from platform/ — script lives at repo root. PASS = 15 steps, 3 flows:
+                                    #   happy     : login→task→feed THROUGH KAFKA (outbox → topic → go consumer)
                                     #   auth-real : register→refresh rotation→reuse→401→logout + RBAC (user DELETE 403, alice 204)
-                                    #   saga      : assign svc-fail → task assignment_failed + event gốc ở task-events.dlq
-# Mở browser: http://localhost:8080/ → login alice@demo.local / demo-password
-#             (hoặc tự register account mới — tab Register, mục 4a)
+                                    #   saga      : assign svc-fail → task assignment_failed + original event in task-events.dlq
+# Open a browser: http://localhost:8080/ → login alice@demo.local / demo-password
+#                (or register a fresh account — Register tab, §4a)
 ```
 
-### Đường B — Native (không Docker — từng service một)
+### Route B — Native (no Docker — one service at a time)
 
 ```bash
-# 5 service BE — mỗi lệnh 1 terminal, env theo .env.example (placeholder dev):
+# 5 backend services — one terminal per command, env per .env.example (dev placeholders):
 cd services/auth-svc && JWT_SECRET=<dev-secret> PORT=8090 \
   DATABASE_URL="postgres://auth_svc:<pw>@localhost:5432/boilerplate" \
   USERS_FIXTURE_PATH=$(pwd)/../../contracts/auth/users.json \
@@ -79,139 +85,205 @@ cd services/go-svc && JWT_SECRET=<dev-secret> PORT=8082 \
 cd services/dotnet-svc/src/DotnetSvc && JWT_SECRET=<dev-secret> DOTNET_SVC_PORT=8083 \
   DATABASE_URL="postgres://dotnet_svc:<pw>@localhost:5432/boilerplate" dotnet run   # needs .NET SDK 8 (unlike the other 4 services)
 
-# FE (3 terminal):
+# FE (3 terminals):
 cd app/shell   && pnpm dev   # :3000
 cd app/remotes/tasks    && pnpm dev   # :4001
 cd app/remotes/activity && pnpm dev   # :4002
 ```
 
-Native mode KHÔNG có nginx gateway — FE gọi thẳng service port theo conventions/07 (CORS dev đã mở). Chain 3 service "qua một cổng" là đặc tính của compose mode (đường A) + CI e2e-smoke job.
+Native mode has NO nginx gateway — the FE calls service ports directly per conventions/07 (dev
+CORS is open). The 3-service chain "through one port" is a property of compose mode (route A) +
+the CI e2e-smoke job.
 
-### Verify chain bằng smoke script (cả hai đường)
+### Verify the chain with the smoke script (both routes)
 
-Script gọi qua prefix `/api/<svc>` (giống gateway routing — conventions/08):
-- Đường A (từ repo root, không cd platform): `bash scripts/smoke/e2e.sh` (mặc định `GATEWAY_URL=http://localhost:8080`). Mặc định chạy **2 chiều** — happy + saga kèm DLQ assert (cần docker để exec `kafka-console-consumer` trong container kafka).
-- Đường B (native, không Kafka): `SMOKE_SAGA=0 bash scripts/smoke/e2e.sh` — happy + auth-real (bỏ saga + DLQ). Không có gateway thật — chứng minh chain bằng cách gọi service trực tiếp, hoặc dựng proxy mapping `/api/*` (SF-7 dùng mini Node proxy cục bộ khi verify native — KHÔNG commit vì chỉ phục vụ verify).
+The script calls through the `/api/<svc>` prefix (mirrors gateway routing — conventions/08):
+- Route A (from repo root, no need to cd platform): `bash scripts/smoke/e2e.sh` (default `GATEWAY_URL=http://localhost:8080`). By default it runs **two-way** — happy + saga with DLQ assert (needs docker to exec `kafka-console-consumer` inside the kafka container).
+- Route B (native, no Kafka): `SMOKE_SAGA=0 bash scripts/smoke/e2e.sh` — happy + auth-real (skips saga + DLQ). There is no real gateway — prove the chain by calling services directly, or stand up a proxy mapping `/api/*` (SF-7 used a local mini Node proxy when verifying native — DO NOT commit it; it only exists for verify).
 
-## 4. Browser walkthrough (human gate — KHÔNG trong CI)
+## 4. Browser walkthrough (human gate — NOT in CI)
 
-Trên máy có stack sống (đường A hoặc B + FE dev servers). UI theo light **antd-look** (decision 2026-10-17 — spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`): nền canvas `#f5f5f5`, khối trắng `#ffffff`, 1 accent `#1677ff`, badge pill chấm-màu; dark (palette direction B cũ) là theme phụ qua `UiKitProvider` (`data-bp-theme`).
+On a machine with a live stack (route A or B + FE dev servers). The UI follows the light
+**antd-look** (decision 2026-10-17 — spec `docs/superpowers/specs/2026-10-17-antd-look-tokens.md`):
+canvas background `#f5f5f5`, white blocks `#ffffff`, a single accent `#1677ff`, dot color-badge
+pills; dark (the older palette direction B) is a secondary theme via `UiKitProvider`
+(`data-bp-theme`).
 
-1. Mở `http://localhost:8080/` (đường A) hoặc `http://localhost:3000/` (đường B) → thấy **dashboard chào** với quick links Tasks/Activity + box **TÀI KHOẢN DEMO** (`alice@demo.local / demo-password`, `fail@demo.local`). Login → nav phải hiện user chip (avatar + email) + nút **Đăng xuất**.
-2. Nav → **Tasks** (active pill accent) — **Kanban board 3 cột** (Cần làm / Đang làm / Xong) + toolbar (search debounce · sort mới/cũ nhất · **＋ Thêm** mở Modal tạo) + progress bar n/N xong. Thử tiếp:
-   - **Kéo card sang cột khác** → đổi status (framer-motion drag; fallback combobox status trên card cho bàn phím).
-   - **Sửa**: nút *Sửa* trên card → Modal sửa (tên/mô tả) → *Lưu* (PATCH thật).
-   - **Đổi status không kéo**: combobox trên card (`Cần làm` / `Đang làm` / `Xong`).
-   - **Search server-side**: ô tìm kiếm lọc qua `?q=` (ILIKE node-svc) — task chưa tải cũng tìm thấy; sort mới/cũ nhất.
-   - **Tải thêm**: nếu total > số đã tải, nút *Tải thêm* cuối danh sách nạp trang kế (limit/offset thật), "x/total" tăng dần tới đủ.
-   - **Xoá**: nút *Xoá* → xác nhận inline ("Xoá task này?" → *Xác nhận xoá* / *Huỷ*) — xoá thật qua DELETE.
-   - Mỗi card hiển thị assignee (UUID rút gọn monospace, hover thấy đủ), "Chưa gán" nếu trống, + createdAt vi-VN.
-3. Nav → **Activity**: **stats cards** (Tổng task / Cần làm / Đang làm / Xong / Sự kiện 24h qua) + **feed timeline nhóm theo ngày** phản ánh mọi thao tác ở bước 2 qua Kafka (outbox → `task-events` → go consumer): badge "đã tạo / đã cập nhật / đã giao / đã xoá" từng màu, tên task, time vi-VN. Nút *Làm mới* load lại.
-4. **Remote-down fallback**: dừng 1 remote rồi reload shell — đường A: `docker stop boilerplate-remote-tasks-1`; đường B: Ctrl-C dev server `:4001`. Shell vẫn nguyên (nav + user chip), slot Tasks hiện fallback "Không tải được phần **tasks**…" + nút **Thử lại**; **Activity vẫn chạy bình thường**. Khôi phục: khởi động lại remote (`docker start` / chạy lại `pnpm dev`) rồi nút *Thử lại* tải lại remote; nếu nút chưa ăn (MF runtime giữ rejection cũ) thì **reload trang** — remote sống lại mount bình thường.
+1. Open `http://localhost:8080/` (route A) or `http://localhost:3000/` (route B) → you land on a
+   **welcome dashboard** with quick links Tasks/Activity + a **DEMO ACCOUNT** box (on-screen:
+   `TÀI KHOẢN DEMO`) listing `alice@demo.local / demo-password` and `fail@demo.local`. Log in →
+   the nav now shows the user chip (avatar + email) + the **Log out** button (`Đăng xuất`).
+2. Nav → **Tasks** (accent active pill) — a **3-column Kanban board** (`Cần làm` / `Đang làm` /
+   `Xong` — Todo / Doing / Done) + toolbar (debounced search · newest/oldest sort · **＋ Add**
+   opens a create Modal) + an n/N-done progress bar. Keep going:
+   - **Drag a card to another column** → status changes (framer-motion drag; the keyboard
+     fallback is the status combobox on the card).
+   - **Edit**: the *Edit* button on the card → edit Modal (title/description) → *Save* (a real PATCH).
+   - **Change status without dragging**: the combobox on the card (`Todo` / `Doing` / `Done`).
+   - **Server-side search**: the search box filters via `?q=` (ILIKE in node-svc) — tasks not yet
+     loaded are found too; newest/oldest sort.
+   - **Load more**: if total > loaded, a *Load more* button at the end of the list fetches the
+     next page (real limit/offset); "x/total" grows until complete.
+   - **Delete**: the *Delete* button → inline confirm ("Delete this task?" → *Confirm delete* /
+     *Cancel*) — a real DELETE.
+   - Each card shows the assignee (truncated monospace UUID, hover for the full value),
+     "Unassigned" when empty, + createdAt formatted vi-VN.
+3. Nav → **Activity**: **stats cards** (Total tasks / Todo / Doing / Done / Events in last 24h) +
+   a **feed timeline grouped by day** reflecting every action from step 2 through Kafka (outbox →
+   `task-events` → go consumer): "created / updated / assigned / deleted" badges in per-type
+   colors, task name, vi-VN time. The *Refresh* button reloads.
+4. **Remote-down fallback**: stop one remote and reload the shell — route A:
+   `docker stop boilerplate-remote-tasks-1`; route B: Ctrl-C the `:4001` dev server. The shell
+   stays intact (nav + user chip), the Tasks slot shows the fallback "Failed to load **tasks**…"
+   + a **Retry** button; **Activity keeps working**. To recover: start the remote again
+   (`docker start` / rerun `pnpm dev`) then hit *Retry* to reload the remote; if the button
+   doesn't take (the MF runtime holds the old rejection) do a **full page reload** — the remote
+   mounts normally again.
 
-### 4a. Auth thật — register / refresh / logout-all 2 tab (epic auth-real)
+### 4a. Real auth — register / refresh / logout-all in 2 tabs (epic auth-real)
 
-1. **Register**: mở `http://localhost:8080/` → tab **Register** trên login screen → email mới + password (8–72 ký tự) + tên hiển thị → tạo xong là đăng nhập luôn (roles `["user"]`). Đăng xuất → đăng nhập lại bằng account vừa tạo ✓.
-2. **Refresh rotation (2 tab)**: đăng nhập cùng account ở 2 tab. Tab 1 đứng yên đến khi access token hết hạn (30m) — request kế tab 1 tự refresh (rotate) rồi retry, KHÔNG bị văng về login. (Nhạy hơn: `POST /api/auth/refresh` tay bằng refreshToken trong `localStorage['bp.rt']` — response trả cặp mới, token cũ không dùng lại được.)
-3. **Logout-all (chuẩn acceptance — 1 tab chết, 1 tab còn)**: tab 2 bấm **Đăng xuất** (chỉ revoke refresh của tab đó — tab 1 VẪN sống vì access token 30m còn hạn). Để chết HẾT tab: gọi logout-all (chưa có nút UI — dùng token của account). P2 security-audit SF-5: đừng dán token thẳng vào lệnh (rơi shell history) — dùng `read -rs`:
+1. **Register**: open `http://localhost:8080/` → the **Register** tab on the login screen →
+   new email + password (8–72 chars) + display name → the account is created and you are logged
+   in right away (roles `["user"]`). Log out → log back in with the new account ✓.
+2. **Refresh rotation (2 tabs)**: log in with the same account in 2 tabs. Leave tab 1 idle until
+   the access token expires (30m) — tab 1's next request auto-refreshes (rotates) the token and
+   retries, WITHOUT bouncing back to the login screen. (More sensitive: hand-call
+   `POST /api/auth/refresh` with the refreshToken from `localStorage['bp.rt']` — the response
+   returns a new pair; the old token can never be reused.)
+3. **Logout-all (the acceptance — 1 tab dies, 1 tab survives)**: in tab 2 hit **Log out** (it
+   only revokes that tab's refresh token — tab 1 STAYS alive because its 30m access token is
+   still valid). To kill ALL tabs: call logout-all (no UI button yet — use the account's token).
+   P2 security-audit SF-5: don't paste a token straight into a command (it lands in shell
+   history) — use `read -rs`:
    ```bash
-   read -rs TOKEN   # dán access token rồi Enter (không echo)
+   read -rs TOKEN   # paste the access token then Enter (not echoed)
    curl -X POST http://localhost:8080/api/auth/logout-all -H "Authorization: Bearer $TOKEN"
    unset TOKEN
    ```
-   Quay lại tab 1, bấm bất kỳ thao tác gọi API kế tiếp → 401 → auto-refresh fail (token bị revoke-all) → về màn login. Đó là hành vi ĐÚNG (không cross-tab realtime — kiểm ở request kế).
-4. **RBAC demo**: login `bob@demo.local` / `demo-password` (roles `["user"]`) → tạo task → nút **Xoá** → bị chặn (403 FORBIDDEN — hiện thông báo lỗi, task còn nguyên). Login `alice@demo.local` (roles `["admin"]`) → xoá cùng task → thành công. e2e assert cùng chuỗi (bước 11–12).
+   Back in tab 1, trigger any next API call → 401 → auto-refresh fails (token revoked for all
+   sessions) → back to the login screen. That is the CORRECT behavior (no cross-tab realtime —
+   checked at the next request).
+4. **RBAC demo**: log in `bob@demo.local` / `demo-password` (roles `["user"]`) → create a task →
+   hit **Delete** → blocked (403 FORBIDDEN — an error is shown, the task is untouched). Log in
+   `alice@demo.local` (roles `["admin"]`) → delete the same task → success. e2e asserts the same
+   chain (steps 11–12).
 
-### 4b. Saga demo (story FI-76 — cần đường A, có Kafka)
+### 4b. Saga demo (story FI-76 — needs route A, with Kafka)
 
-1. Trong **Tasks**, tạo task (vd `saga-demo`) rồi gán cho user fixture fail: **`fail@demo.local`** — UI hiển thị assignee ở chế độ read-only (UUID rút gọn), việc gán đi qua API: `PATCH /api/tasks/{id}` với `assigneeId=55555555-5555-4555-8555-555555555555` (swagger `:8080/api/tasks/docs` hoặc curl với Bearer token).
-2. Go consumer cố tình fail ×3 (simulate hook — assignee trùng svc-fail) → publish compensating event `task.assignment_failed` vào topic chung → node compensation consumer cập nhật status.
-3. Quan sát trên **Tasks**: task chuyển badge **"Gán thất bại"** (pill đỏ chấm đỏ — nhận diện rõ; task ở trạng thái này không còn select status — system-owned). Event gốc (task.assigned) nằm ở `task-events.dlq`:
+1. In **Tasks**, create a task (e.g. `saga-demo`) then assign it to the fail fixture user:
+   **`fail@demo.local`** — the UI shows the assignee read-only (truncated UUID); assignment goes
+   through the API: `PATCH /api/tasks/{id}` with
+   `assigneeId=55555555-5555-4555-8555-555555555555` (swagger at `:8080/api/tasks/docs`, or curl
+   with a Bearer token).
+2. The go consumer deliberately fails ×3 (simulate hook — assignee matches svc-fail) → publishes
+   the compensating event `task.assignment_failed` to the shared topic → the node compensation
+   consumer updates the status.
+3. Watch **Tasks**: the task switches to the **"Gán thất bại"** badge (assignment failed — red
+   pill with a red dot, easy to spot; a task in this state no longer offers a status select —
+   it is system-owned). The original event (task.assigned) sits in `task-events.dlq`:
    ```bash
    docker compose -f platform/docker-compose.yml --env-file platform/.env.example exec -T kafka \
      /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 \
      --topic task-events.dlq --from-beginning --timeout-ms 15000
-   # mỗi dòng = 1 DLQ message: {"schemaVersion":1,"originalEvent":"{...task.assigned...}","error":{"reason":...,"retries":3,...}}
+   # each line = 1 DLQ message: {"schemaVersion":1,"originalEvent":"{...task.assigned...}","error":{"reason":...,"retries":3,...}}
    ```
-4. **Recovery**: re-assign cho user hợp lệ (bob, id `22222222-2222-4222-8222-222222222222`) → saga chạy lại từ đầu (bob ≠ svc-fail, go handler xử lý thường). LƯU Ý: `assignment_failed` là system-owned — re-assign KHÔNG tự reset status (repo `update()` chỉ set field trong patch); muốn đưa task về luồng hiển thị bình thường, PATCH tường minh `{"assigneeId":"<bob-id>","status":"todo"}` (status writable 3 giá trị — `assignment_failed` PATCH cấm). Trên UI task có lại badge "Cần làm" + select status.
+4. **Recovery**: re-assign to a valid user (bob, id `22222222-2222-4222-8222-222222222222`) →
+   the saga reruns from the start (bob ≠ svc-fail, the go handler processes normally). NOTE:
+   `assignment_failed` is system-owned — re-assigning does NOT reset the status by itself (the
+   repo `update()` only sets fields present in the patch); to bring the task back to the normal
+   flow, PATCH explicitly `{"assigneeId":"<bob-id>","status":"todo"}` (status accepts exactly 3
+   writable values — PATCHing `assignment_failed` is forbidden). In the UI the task gets its
+   "Todo" badge + status select back.
 
-> ℹ️ BUG-1 standalone prod trắng trang (report VU-53, 2026-10-14) **ĐÃ FIX** (sf-5b): shared `eager:true` + entry `standalone` static + nginx alias `/remotes/<name>/` — standalone :4001/:4002 render đầy đủ ở build prod. Evidence: `docs/superpowers/evidence/sf-5b-ui-redesign-fix/` (browser walkthrough + phantom-grep trước/sau).
+> ℹ️ BUG-1 standalone prod white screen (report VU-53, 2026-10-14) **IS FIXED** (sf-5b): shared
+> `eager:true` + `standalone` static entry + nginx alias `/remotes/<name>/` — standalone
+> :4001/:4002 render fully in the prod build. Evidence:
+> `docs/superpowers/evidence/sf-5b-ui-redesign-fix/` (browser walkthrough + phantom-grep
+> before/after).
 
-> ℹ️ Job `convergence/e2e-smoke` (GitHub Actions) mô tả chuỗi saga assert status + DLQ bằng `kafka-console-consumer` (không cần browser) — **hiện workflow ĐANG DISABLE (billing, xem CLAUDE.md)**; gate khi push là `.husky/pre-push` (chỉ FE checks, không chạy e2e). Cần verify saga thì chạy tay: `bash scripts/smoke/e2e.sh` (mục "Verify chain bằng smoke script" trên).
+> ℹ️ The `convergence/e2e-smoke` job (GitHub Actions) asserts the saga chain — status + DLQ via
+> `kafka-console-consumer` (no browser needed) — **the workflow is currently DISABLED (billing,
+> see CLAUDE.md)**; the gate on push is `.husky/pre-push` (FE checks only, no e2e). To verify the
+> saga, run it by hand: `bash scripts/smoke/e2e.sh` (see "Verify the chain with the smoke script" above).
 
-### 4c. Storybook — design system sống (Templates + 129 titles)
+### 4c. Storybook — the living design system (Templates + 129 titles)
 
-UI của shell/remotes build từ `@wakii/ui-kit` — xem toàn bộ + thử template ghép sẵn:
+The shell/remotes UI is built from `@wakii/ui-kit` — browse everything and try the precomposed
+templates:
 
 ```bash
-pnpm --filter @wakii/ui-kit storybook   # → http://localhost:6006 (script tự stamp version)
+pnpm --filter @wakii/ui-kit storybook   # → http://localhost:6006 (script stamps the version itself)
 ```
 
-Số liệu thật (index Storybook 2026-10-18): **129 titles · 623 story exports**, trong đó
-nhóm **Templates** — 6 template "trang thật" (controlled state sống, không phải mock render):
+Real numbers (Storybook index 2026-10-18): **129 titles · 623 story exports**, including the
+**Templates** group — 6 templates of "real pages" (live controlled state, not mock renders):
 
-| Template | Story path (`?path=/story/…`) | Ghép từ |
+| Template | Story path (`?path=/story/…`) | Composed from |
 |----------|-------------------------------|---------|
-| Dashboard admin | `templates-dashboard--dashboard` | `Layout` (Sider+Header) + Row/Col + Card/Statistic + Table + Timeline + Chart |
-| Kanban project | `templates-kanban-project--project-board` | `KanbanBoard` (4 cột + WIP limit) + Segmented/Input.Search/Select filter + `Timesheet` + `message` toast khi move |
-| CRUD table | `templates-crud-table--full-demo` | `Table` (sort 3-state/selection/expandable/fixed header/summary) + `Drawer` form (useForm+zod) + `Popconfirm` + `message` |
+| Admin dashboard | `templates-dashboard--dashboard` | `Layout` (Sider+Header) + Row/Col + Card/Statistic + Table + Timeline + Chart |
+| Project kanban | `templates-kanban-project--project-board` | `KanbanBoard` (4 columns + WIP limit) + Segmented/Input.Search/Select filters + `Timesheet` + `message` toast on move |
+| CRUD table | `templates-crud-table--full-demo` | `Table` (3-state sort/selection/expandable/fixed header/summary) + `Drawer` form (useForm+zod) + `Popconfirm` + `message` |
 | Auth | `templates-auth--sign-in` · `--sign-up` · `--split-layout` | `useForm` + zod + Field/Input/Button + `Layout` split |
 | Landing | `templates-landing--landing-alive` | `Parallax` + `Reveal` + `CountUp`/`Statistic` + `Grid` |
 | Settings | `templates-settings--settings` | `Tabs` + `Switch` + `Field` + live theme toggle |
 
-Mẹo: toolbar Storybook có **toggle dark** (`data-bp-theme` trên body preview — mọi component
-theo token nên cả index đổi theme 1 click). AI agents đọc [AGENTS.md](../AGENTS.md) +
-[docs/ai/recipes.md](ai/recipes.md) — bản đồ khi-dùng + 12 recipe copy-chạy. Chi tiết
-Templates: `app/ui-kit/README.md` § Templates.
+Tip: the Storybook toolbar has a **dark toggle** (`data-bp-theme` on the preview body — every
+component is token-driven, so the whole index re-themes in one click). AI agents: read
+[AGENTS.md](../AGENTS.md) + [docs/ai/recipes.md](ai/recipes.md) — a when-to-use map + 12
+copy-paste recipes. Template details: `app/ui-kit/README.md` § Templates.
 
-## 5. Copy/scaffold project mới
+## 5. Copy/scaffold a new project
 
 ```bash
 bash scripts/scaffold/scaffold.sh my-project
 cd my-project
-pnpm install --no-frozen-lockfile   # lần đầu non-frozen — xem SCAFFOLD.md
-# rồi lặp lại mục 2-4 trong project mới
+pnpm install --no-frozen-lockfile   # first run is non-frozen — see SCAFFOLD.md
+# then repeat sections 2–4 in the new project
 ```
 
-Cấu trúc output theo cơ chế scaffold:
+Output structure depends on the scaffold mechanism:
 
-- **`npm create wakii-stack`** (CLI chính thức, engine prune): `app/ui-kit` **không còn**
-  trong project sinh ra — FE apps cài `@wakii/ui-kit` từ npm registry (dist-tag `latest`,
-  lockfile ghim bản cụ thể ngay lúc scaffold; nâng cấp = `pnpm update @wakii/ui-kit`).
-  `app/shared` (fe-shared) vẫn kèm, consumed-qua-source. Chi tiết: [ADR-0010](adr/0010-stack-fe-npm-deps.md).
-- **`scripts/scaffold/scaffold.sh`** (copy repo sống cho dev nội bộ — lệnh trên): vẫn kèm
-  cả `app/shared` + `app/ui-kit` qua source.
+- **`npm create wakii-stack`** (official CLI, engine prune): `app/ui-kit` is **gone** from the
+  generated project — FE apps install `@wakii/ui-kit` from the npm registry (dist-tag `latest`,
+  lockfile pins the exact version at scaffold time; upgrading = `pnpm update @wakii/ui-kit`).
+  `app/shared` (fe-shared) is still included, consumed-via-source. Details:
+  [ADR-0010](adr/0010-stack-fe-npm-deps.md).
+- **`scripts/scaffold/scaffold.sh`** (copies the live repo for internal dev — the command above):
+  still includes both `app/shared` + `app/ui-kit` via source.
 
-Phát triển tiếp project mới theo story workflow (Wakii): xem [wakii-playbook.md](wakii-playbook.md) — decision tree story/single/fix + 4 archetype chia SF + gates.
+Continue developing the new project with the story workflow (Wakii): see
+[wakii-playbook.md](wakii-playbook.md) — story/single/fix decision tree + 4 SF-split archetypes + gates.
 
-## 6. CI báo gì
+## 6. What CI proves
 
-| Workflow | Chạy khi | Bằng chứng |
+| Workflow | Runs when | Evidence |
 |----------|---------|-----------|
-| `contracts` | contracts/**, platform/** đổi | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
-| `services-*` / `shell` / `remotes-*` | thư mục tương ứng đổi | build + test + docker build + boot-smoke (node/go có kafka boot-smoke) |
-| `convergence` (SF-5, story FI-76) | mọi push | e2e 2 chiều trên compose 11 services (happy qua Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output build được |
+| `contracts` | contracts/**, platform/** change | spectral + gitleaks + compose config + boot-smoke auth-svc + schemathesis FULL (auth.yaml v2) |
+| `services-*` / `shell` / `remotes-*` | the matching folder changes | build + test + docker build + boot-smoke (node/go include a kafka boot-smoke) |
+| `convergence` (SF-5, story FI-76) | every push | two-way e2e on the 11-service compose (happy via Kafka + saga → `assignment_failed` + DLQ assert) + copy-dir standalone + scaffold output builds |
 
-## 7. Hành trình team — app-fit 4 apps + tài liệu nội bộ (2026-10-18)
+## 7. Team journey — app-fit 4 apps + internal docs (2026-10-18)
 
-**App-fit**: 4 app FE đã migrate hết sang `@wakii/ui-kit` (tokens + components qua source):
+**App-fit**: all 4 FE apps migrated to `@wakii/ui-kit` (tokens + components via source):
 
-| App | Đã fit |
+| App | What was fitted |
 |-----|--------|
-| `app/shell` (MF host :3000) | layout + nav + tokens từ phiên trước |
-| `app/remotes/tasks` (:4001) | `TaskForm`/`TaskItem` chuyển `useForm` + zod + `Field`/`Input`/`Textarea` (+`useFieldArray` sẵn trong kit), `TaskList` giữ contract (EmptyState ở page level) |
-| `app/remotes/activity` (:4002) | `ActivityPage` + `StatTile` → `Card`/`Statistic` ui-kit |
-| `app/admin` | dashboard layout `Grid`/`Card`/`Statistic` giữ stat-intent |
+| `app/shell` (MF host :3000) | layout + nav + tokens from the previous iteration |
+| `app/remotes/tasks` (:4001) | `TaskForm`/`TaskItem` moved to `useForm` + zod + `Field`/`Input`/`Textarea` (+`useFieldArray` already in the kit); `TaskList` keeps the contract (EmptyState at page level) |
+| `app/remotes/activity` (:4002) | `ActivityPage` + `StatTile` → `Card`/`Statistic` from ui-kit |
+| `app/admin` | dashboard layout `Grid`/`Card`/`Statistic` keeps stat-intent |
 
-**Templates**: 6 trang mẫu ghép sẵn trong Storybook (bảng §4) — copy điểm khởi đầu cho
-trang thật; recipes kèm tại [docs/ai/recipes.md](ai/recipes.md).
+**Templates**: 6 precomposed sample pages in Storybook (table in §4c) — copy them as starting
+points for real pages; recipes at [docs/ai/recipes.md](ai/recipes.md).
 
-**Hướng tới 0.3.0**: megagate 32 commits (241416f..HEAD) đã gate xanh — release notes
-draft soạn sẵn tại [`docs/superpowers/specs/2026-10-18-0.3.0-release-notes.md`](superpowers/specs/2026-10-18-0.3.0-release-notes.md) — merge PR là chốt release
-(ui-kit consumed qua source nên "release" = điểm merge, xem CHANGELOG head).
+**Toward 0.3.0**: the megagate of 32 commits (241416f..HEAD) is gated green — release notes
+drafted at
+[`docs/superpowers/specs/2026-10-18-0.3.0-release-notes.md`](superpowers/specs/2026-10-18-0.3.0-release-notes.md) —
+merging the PR finalizes the release (ui-kit is consumed via source, so "release" = the merge
+point, see the CHANGELOG head).
 
-**Tài liệu nội bộ team (local-only, gitignored — không vào PR)**: `docs/team/` chứa
-[RULES.md](team/RULES.md) (hiến phần vận hành: vai trò, vòng làm việc, thang tin cậy
-T1→T3, sở hữu file), `TEAM.md` (roster + standup + report log), `DECISIONS.md`
-(tiền-duyệt), `inbox/` (thư peer-to-peer), `CHANNEL.md`. Bản tóm tắt in-repo cho
-session mới: [CLAUDE.md](../CLAUDE.md) § "Team protocol".
+**Internal team docs (local-only, gitignored — never in a PR)**: `docs/team/` holds
+[RULES.md](team/RULES.md) (operating charter: roles, work cycle, T1→T3 trust ladder, file
+ownership), `TEAM.md` (roster + standup + report log), `DECISIONS.md` (pre-approvals),
+`inbox/` (peer-to-peer mail), `CHANNEL.md`. The in-repo summary for fresh sessions:
+[CLAUDE.md](../CLAUDE.md) § "Team protocol".

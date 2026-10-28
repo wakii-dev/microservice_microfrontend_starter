@@ -83,10 +83,10 @@
   <circle class="dot d3 pulse" cx="910" cy="60" r="4" fill="#52c41a"/>
 
   <!-- ══ Usage guide — 3 steps ══ -->
-  <text x="20" y="238" class="t" font-size="15" font-weight="700">Cách dùng — 3 bước</text>
+  <text x="20" y="238" class="t" font-size="15" font-weight="700">How to use — 3 steps</text>
   <g font-size="12.5" font-family="ui-monospace,Menlo,monospace">
     <rect class="hl"    x="20" y="254" width="920" height="34" rx="8"/>
-    <text x="34" y="276"><tspan class="a">1</tspan>  cd my-stack <tspan class="m">&amp;&amp;</tspan> cp platform/.env.example platform/.env <tspan class="m"># điền JWT_SECRET + passwords</tspan></text>
+    <text x="34" y="276"><tspan class="a">1</tspan>  cd my-stack <tspan class="m">&amp;&amp;</tspan> cp platform/.env.example platform/.env <tspan class="m"># fill JWT_SECRET + passwords</tspan></text>
     <rect class="hl h2" x="20" y="294" width="920" height="34" rx="8"/>
     <text x="34" y="316"><tspan class="a">2</tspan>  git init <tspan class="m">&amp;&amp;</tspan> docker compose -f platform/docker-compose.yml --env-file platform/.env up -d</text>
     <rect class="hl h3" x="20" y="334" width="920" height="34" rx="8"/>
@@ -100,11 +100,11 @@
     <rect x="182" y="384" width="170" height="26" rx="13" fill="#1f2b3d"/>
     <text x="267" y="401" class="a" text-anchor="middle">🧪 56/56 tests green out-of-box</text>
     <rect x="364" y="384" width="200" height="26" rx="13" fill="#1f2b3d"/>
-    <text x="464" y="401" class="a" text-anchor="middle">🤖 AGENTS + gen:* kèm sẵn</text>
+    <text x="464" y="401" class="a" text-anchor="middle">🤖 AGENTS + gen:* included</text>
     <rect x="576" y="384" width="200" height="26" rx="13" fill="#1f2b3d"/>
-    <text x="676" y="401" class="a" text-anchor="middle">📦 ui-kit latest tự lock</text>
+    <text x="676" y="401" class="a" text-anchor="middle">📦 ui-kit latest, locked</text>
     <rect x="788" y="384" width="152" height="26" rx="13" fill="#1f2b3d"/>
     <text x="864" y="401" class="a" text-anchor="middle">🔁 kafka-init race-safe</text>
   </g>
-  <text x="480" y="422" class="m" font-size="10" text-anchor="middle">create-wakii-stack — real output, machine-verified · verified by AI-native 10-round audit</text>
+  <text x="480" y="422" class="m" font-size="10" text-anchor="middle">create-wakii-stack — real output, machine-verified · AI-native 10-round audited</text>
 </svg>

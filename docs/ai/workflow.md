@@ -27,6 +27,10 @@ Rules:
 - if verify:quick FAIL → đọc 30 dòng cuối log (script in sẵn ở stderr), fix, chạy lại. KHÔNG commit lên cây đỏ.
 - if dùng worktree chung → check `git status` từng file TRƯỚC khi đụng; WIP người khác không đụng, không commit (`git add <path cụ thể>`, không `git add -A`).
 - if đổi behavior đáng kể theo story workflow → chụp evidence vào `docs/superpowers/evidence/`.
+- if publish package npm (upstream) → CI workflow `publish-packages` (tab Actions → Run workflow;
+  inputs `package` + `version_type`) là đường CHÍNH THỨC duy nhất — tự gate trên main mới nhất, bump
+  version + CHANGELOG, publish, verify registry. Script `publish-npm.sh` local chỉ để DEBUG: script
+  từ chối chạy khi tree dirty / không ở main / HEAD lệch origin/main (`--force-local` để vượt có chủ đích).
 
 ## Contract-first (if đổi API/DDL/event)
 
@@ -67,7 +71,7 @@ Template đầy đủ tự áp khi `gh pr create`: `.github/pull_request_templat
 | Đổi port | sửa 4 chỗ CÙNG commit: `platform/conventions/05-ports.md` + `.env.example` + compose + README |
 | Đổi API/contract | skill `sync-contracts` — flow contract-first ở trên |
 | Story/epic mới | skill `story-workflow` + [docs/wakii-playbook.md](../wakii-playbook.md) (chọn archetype chia SF) |
-| Publish package npm | UPSTREAM repo thôi — scaffold không chứa publishable packages (private:true). Upstream: `bash app/<pkg>/scripts/publish-npm.sh` — luồng đầy đủ WORKFLOW.md §4; ui-kit: [app/ui-kit/RELEASE.md](../../app/ui-kit/RELEASE.md) |
+| Publish package npm | UPSTREAM repo thôi — scaffold không chứa publishable packages (private:true). Đường CHÍNH THỨC: CI workflow **`publish-packages`** (Actions → Run workflow; inputs `package` + `version_type`) — chi tiết WORKFLOW.md §4; script `bash app/<pkg>/scripts/publish-npm.sh` chỉ DEBUG (`--force-local` để vượt guard); ui-kit: [app/ui-kit/RELEASE.md](../../app/ui-kit/RELEASE.md) |
 | Scaffold project mới | `bash scripts/scaffold/scaffold.sh <tên-mới>` |
 | Chạy demo full stack | `run.compose` trong [orca.yaml](../../orca.yaml) → login `alice@demo.local` / `demo-password` |
 | Verify nhanh theo diff | `pnpm verify:quick` (text) · `pnpm verify:quick --json` (contract: `[{step,status,duration}]` + exit code) |

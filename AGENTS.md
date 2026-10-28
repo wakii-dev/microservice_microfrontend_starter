@@ -83,7 +83,13 @@ IF verify:quick is unavailable THEN run per package:
 - IF `app/ui-kit/.storybook/manager-head.html` turns dirty THEN the badge was auto-generated (`scripts/stamp-build.cjs`) — do NOT commit it.
 - IF date/month tests flip red/green oddly THEN the TZ pin in `vitest.config.ts` (`test.env`) was dropped/missing — keep the pin.
 
-## 7. UI
+## 7. Publish directives (npm packages — upstream only)
+
+- IF publishing a package (`@wakii/ui-kit` · `create-wakii-app` · `create-wakii-stack`) THEN use the CI workflow **`publish-packages`** (GitHub → Actions tab → *publish-packages* → Run workflow; inputs: `package` + `version_type` = patch/minor/major). Pipeline: gate (verify on FRESHEST main) → bump (version + CHANGELOG entry auto-generated from the commit range, committed to main) → publish (`NPM_TOKEN` secret) → registry verify (wait for 2–5 min propagation, never trust an immediate `npm view`). Official publishes go through CI ONLY — local publishes from stale checkouts caused the 0.1.9 / 0.2.5 incidents. Details: [docs/WORKFLOW.md §4](docs/WORKFLOW.md).
+- IF running a local publish script (`app/<pkg>/scripts/publish-npm.sh`) THEN it is for DEBUGGING only: it refuses to run when the git tree is dirty, the branch is not `main`, or HEAD ≠ origin/main; pass `--force-local` to override deliberately.
+- IF a CI publish reports that the target version already exists THEN the run SKIPS cleanly (nothing is published, nothing overwritten) — fix the stale `version` on main first, then re-run.
+
+## 8. UI
 
 IF writing UI THEN read Part II (end of this file) + [docs/ai/recipes.md](docs/ai/recipes.md); compare against Storybook :6006. ui-kit is consumed from source — edits show instantly.
 

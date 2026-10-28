@@ -1,0 +1,358 @@
+name: publish-packages
+
+# ============================================================================
+# PUBLISH CHÍNH THỨC cho 3 npm packages: @wakii/ui-kit · create-wakii-app ·
+# create-wakii-stack (2026-10-29 — generalize pattern của publish-uikit.yml cũ,
+# đã xoá; chặn tái diễn 2 sự cố stale-publish 0.1.9 / 0.2.5 + version chết
+# cwa 0.2.0 + 71 versions/17 ngày do publish tay từ checkout cũ).
+#
+# Trigger: CHỈ workflow_dispatch (Actions → publish-packages → Run workflow)
+#   inputs: package      = ui-kit | create-wakii-app | create-wakii-stack
+#           version_type = patch | minor | major
+#
+# Pipeline: gate (verify trên main MỚI NHẤT) → bump (version + CHANGELOG entry
+# tự sinh từ commit range, commit thẳng main bằng GITHUB_TOKEN) → publish
+# (scripts/publish-npm.sh với secret NPM_TOKEN, đúng SHA đã bump) → verify
+# (đợi registry lan 90s + retry tới ~4.5 phút, `npm view` dist-tags.latest phải
+# khớp version mới). Mọi job fail → step summary kèm link run + log-failed.
+#
+# Quy tắc cứng:
+#  - KHÔNG BAO GIỜ đè version đã tồn tại: job bump hỏi registry TRƯỚC khi bump
+#    (scripts/release/bump-version.mjs) — target đã tồn tại / không mới hơn
+#    latest → run kết thúc SẠCH với summary ghi rõ lý do, không sửa file.
+#  - Publish chạy đúng SHA đã bump (checkout ref=sha) — không thể publish tree
+#    khác cái đã gate/bump.
+#  - concurrency theo package, cancel-in-progress: false — publish đang chạy
+#    không bị huỷ giữa chừng.
+#
+# ⚠️ ĐIỀU KIỆN ĐỂ CHẠY THẬT:
+#  (a) Secret `NPM_TOKEN` (npm_... classic Automation — account npm wakii, quyền
+#      publish scope @wakii; xem app/ui-kit/RELEASE.md) phải set trong repo
+#      Settings → Secrets and variables → Actions. Đã có từ thời publish-uikit.
+#  (b) 2026-10: GitHub Actions đang DISABLE (billing — CLAUDE.md mục CI). Khi
+#      bật lại, workflow này sẵn sàng chạy ngay.
+#  (c) Job bump PUSH THẲNG main bằng GITHUB_TOKEN (commit bump version +
+#      CHANGELOG). Nếu sau này main bật branch protection chặn GITHUB_TOKEN thì
+#      đổi bước push thành mở PR tự động — chưa cần lúc này.
+#  (d) Push bằng GITHUB_TOKEN không kích hoạt workflow khác (GitHub mặc định)
+#      — vòng CI path-based không chạy lại trên commit bump, đúng ý.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish'
+        type: choice
+        required: true
+        options:
+          - ui-kit
+          - create-wakii-app
+          - create-wakii-stack
+      version_type:
+        description: 'SemVer bump type'
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write # job bump: commit version+CHANGELOG vào main; job verify: tag + GitHub release
+  actions: read   # job failure summary: đọc log-failed của run
+
+concurrency:
+  group: publish-packages-${{ github.event.inputs.package }}
+  cancel-in-progress: false # publish đang chạy không bao giờ bị huỷ giữa chừng
+
+env:
+  PNPM_VERSION: '9.15.9' # đồng bộ packageManager root package.json (chuẩn các workflow)
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # ---------------------------------------------------------------- (a) gate
+  gate:
+    name: gate — verify ${{ inputs.package }} trên main mới nhất
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout main MỚI NHẤT (đầy đủ history cho commit range)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - id: head
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install workspace (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # pnpm filter: ui-kit là scoped name @wakii/ui-kit; 2 CLI là tên thường.
+      # Verify ĐỦ test + typecheck + build (build cũng là bước đầu của publish
+      # script — bắt sớm cho rẻ; ui-kit build = tsup + CSS compiled).
+      - name: Gate — test
+        env:
+          FILTER: ${{ inputs.package == 'ui-kit' && '@wakii/ui-kit' || inputs.package }}
+        run: pnpm --filter "$FILTER" test
+      - name: Gate — typecheck
+        env:
+          FILTER: ${{ inputs.package == 'ui-kit' && '@wakii/ui-kit' || inputs.package }}
+        run: pnpm --filter "$FILTER" typecheck
+      - name: Gate — build
+        env:
+          FILTER: ${{ inputs.package == 'ui-kit' && '@wakii/ui-kit' || inputs.package }}
+        run: pnpm --filter "$FILTER" build
+
+      - name: ':rotating_light: Gate FAILED — summary'
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## ❌ publish-packages — gate FAILED"
+            echo "- package: \`${{ inputs.package }}\` — bump \`${{ inputs.version_type }}\`"
+            echo "- main đã verify: \`${{ steps.head.outputs.sha }}\`"
+            echo "- publish ĐÃ DỪNG trước khi bump/publish — không ảnh hưởng registry."
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo '```'
+            gh run view "${{ github.run_id }}" --log-failed 2>/dev/null | tail -80 || echo '(log chưa đọc được — mở run ở link trên)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------- (b) bump
+  bump:
+    name: bump version + CHANGELOG → commit main (hoặc SKIP sạch)
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      target: ${{ steps.bump.outputs.target }}
+      skipped: ${{ steps.bump.outputs.skipped }}
+      reason: ${{ steps.bump.outputs.reason }}
+      sha: ${{ steps.push.outputs.sha }}
+    steps:
+      - name: Checkout main (freshest tại thời điểm job chạy)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Exit 2 = skip sạch (target đã tồn tại / không mới hơn latest) — run
+      # vẫn XANH, summary ghi rõ; các job sau bị skip qua output `skipped`.
+      - id: bump
+        name: Bump version + sinh CHANGELOG entry từ commit range
+        run: |
+          set +e
+          node scripts/release/bump-version.mjs \
+            --package "${{ inputs.package }}" \
+            --type "${{ inputs.version_type }}" \
+            --json > /tmp/bump-out.json
+          rc=$?
+          set -e
+          if [ "$rc" -eq 2 ]; then
+            REASON="$(node -p "JSON.parse(require('fs').readFileSync('/tmp/bump-out.json','utf8')).reason")"
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
+            {
+              echo "## ⏭ publish-packages — SKIPPED (không publish)"
+              echo "- package: \`${{ inputs.package }}\` — \`${{ inputs.version_type }}\`"
+              echo "- Lý do: ${REASON}"
+              echo "- Registry không đổi. Kiểm tra version trên main vs \`npm view ${{ inputs.package == 'ui-kit' && '@wakii/ui-kit' || inputs.package }}\` rồi bump trên main trước."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::bump-version thất bại (exit $rc)"
+            exit "$rc"
+          fi
+          # bump OK — đọc target từ JSON (file, không đọc stdin 2 lần)
+          echo "target=$(node -p "JSON.parse(require('fs').readFileSync('/tmp/bump-out.json','utf8')).target")" >> "$GITHUB_OUTPUT"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
+
+      - id: push
+        name: Commit bump vào main
+        if: steps.bump.outputs.skipped != 'true'
+        run: |
+          TARGET="${{ steps.bump.outputs.target }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "app/${{ inputs.package }}/package.json" "app/${{ inputs.package }}/CHANGELOG.md"
+          git commit -m "chore(${{ inputs.package }}): v${TARGET} — auto bump + CHANGELOG via publish-packages [skip ci]"
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          {
+            echo "## 🚀 publish-packages — \`${{ inputs.package }}\` → v${TARGET}"
+            echo "- Gate PASS trên main mới nhất → bump \`${{ inputs.version_type }}\` → commit \`$(git rev-parse --short HEAD)\` đã push main."
+            echo "- Tiếp theo: publish lên npmjs + verify registry (đang chạy)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ':rotating_light: Bump FAILED — summary'
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## ❌ publish-packages — bump FAILED"
+            echo "- package: \`${{ inputs.package }}\` — \`${{ inputs.version_type }}\`"
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo '```'
+            gh run view "${{ github.run_id }}" --log-failed 2>/dev/null | tail -80 || echo '(log chưa đọc được — mở run ở link trên)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ------------------------------------------------------------- (c) publish
+  publish:
+    name: publish ${{ inputs.package }} lên npmjs (đúng SHA đã bump)
+    needs: bump
+    if: needs.bump.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # ĐÚNG SHA đã bump+push — publish không bao giờ lệch tree đã gate.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install workspace (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Script tự: build lại → TMP copy tách nguồn → strip devDeps/scripts →
+      # .npmrc từ NPM_TOKEN → npm publish --access public. CI=true nên guard
+      # stale-publish local trong script tự bỏ qua.
+      - name: Publish lên npmjs.org
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PKG: ${{ inputs.package }}
+        run: bash "app/${PKG}/scripts/publish-npm.sh"
+
+      - name: ':rotating_light: Publish FAILED — summary'
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## ❌ publish-packages — publish FAILED"
+            echo "- package: \`${{ inputs.package }}\` — target \`${{ needs.bump.outputs.target }}\`"
+            echo "- SHA đã bump (đã lên main): \`${{ needs.bump.outputs.sha }}\` — version mới đã commit nhưng CHƯA lên registry."
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo '```'
+            gh run view "${{ github.run_id }}" --log-failed 2>/dev/null | tail -80 || echo '(log chưa đọc được — mở run ở link trên)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # -------------------------------------------------------------- (d) verify
+  verify:
+    name: verify registry (lan 90s + retry) → tag + release
+    needs: [bump, publish]
+    if: needs.bump.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      NAME: ${{ inputs.package == 'ui-kit' && '@wakii/ui-kit' || inputs.package }}
+      TARGET: ${{ needs.bump.outputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Registry lan 2–5 phút (trap #1 AGENTS.md): đợi 90s rồi retry tới
+      # ~4.5 phút. dist-tags.latest phải == target (concurrency theo package
+      # nên không có publish song song cùng package).
+      - name: Đợi registry lan (90s)
+        run: sleep 90
+      - name: Verify — dist-tags.latest == version mới + version resolve được
+        run: |
+          ok=0
+          for i in $(seq 1 8); do
+            latest="$(npm view "$NAME" dist-tags.latest 2>/dev/null || true)"
+            if [ "$latest" = "$TARGET" ]; then ok=1; break; fi
+            echo "thử $i/8: dist-tags.latest=${latest:-<không có>} != target=${TARGET} — đợi 30s nữa"
+            sleep 30
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Registry chưa lan sau ~4.5 phút: latest=${latest:-<không có>} != target=${TARGET}. KHÔNG publish lại — kiểm tra tay bằng npm view."
+            exit 1
+          fi
+          resolved="$(npm view "$NAME@$TARGET" version)"
+          [ "$resolved" = "$TARGET" ] || { echo "::error::npm view $NAME@$TARGET trả '$resolved'"; exit 1; }
+          echo "✓ registry xác nhận: $NAME@$TARGET (latest=$latest)"
+
+      # Tag scoped theo package (ui-kit-v0.7.3 — không đụng tag package khác)
+      # + GitHub release với notes = mục CHANGELOG vừa sinh. Tag đã tồn tại →
+      # coi như đã release version này (bỏ qua sạch).
+      - name: Tag <pkg>-v<version> + GitHub release (notes từ CHANGELOG)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PKG: ${{ inputs.package }}
+        run: |
+          TAG="${PKG}-v${TARGET}"
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} đã tồn tại — bỏ qua."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "${NAME} ${TAG}"
+            git push origin "${TAG}"
+          fi
+          # Notes: mục CHANGELOG khớp version (so khớp prefix LITERAL bằng
+          # index() — tránh regex với dấu '.'), cắt tới heading `## [` kế tiếp.
+          awk -v ver="[${TARGET}]" '
+            index($0, "## " ver) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' "app/${PKG}/CHANGELOG.md" > /tmp/notes.md
+          [ -s /tmp/notes.md ] || printf 'Release %s của %s.\n' "${TAG}" "${NAME}" > /tmp/notes.md
+          if gh release view "${TAG}" --json id >/dev/null 2>&1; then
+            echo "Release ${TAG} đã tồn tại — bỏ qua."
+          else
+            gh release create "${TAG}" --title "${NAME} ${TAG}" --notes-file /tmp/notes.md --target "${{ needs.bump.outputs.sha }}"
+          fi
+          {
+            echo "## ✅ publish-packages — \`${NAME}\` @ \`${TARGET}\` ĐÃ LÊN npmjs"
+            echo "- Verify registry PASS (latest=${TARGET}) · tag \`${TAG}\` · release tạo xong."
+            echo "- Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ':rotating_light: Verify FAILED — summary'
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## ❌ publish-packages — verify FAILED"
+            echo "- package: \`${{ inputs.package }}\` — target \`${{ needs.bump.outputs.target }}\`"
+            echo "- npm publish đã chạy — nếu registry chưa lan, ĐỪNG publish lại; chờ rồi \`npm view\` kiểm tra tay."
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo '```'
+            gh run view "${{ github.run_id }}" --log-failed 2>/dev/null | tail -80 || echo '(log chưa đọc được — mở run ở link trên)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

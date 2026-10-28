@@ -108,7 +108,7 @@ jobs:
           curl -sf http://localhost:8090/healthz | grep -q '"status":"ok"'
           curl -sf http://localhost:8090/readyz | grep -q '"status":"ok"'
           curl -sf http://localhost:8090/api/auth/healthz | grep -q '"status":"ok"' # mirror conventions/02 rule 6
-      - name: Smoke — seed fixture: alice login được bằng AUTH_DEV_PASSWORD (claims admin)
+      - name: 'Smoke — seed fixture (alice login với AUTH_DEV_PASSWORD, claims admin)'
         run: |
           CODE=$(curl -s -o /tmp/alice.json -w '%{http_code}' -X POST http://localhost:8090/api/auth/login \
             -H 'Content-Type: application/json' -d '{"email":"alice@demo.local","password":"demo-password"}')

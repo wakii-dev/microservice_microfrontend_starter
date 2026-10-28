@@ -46,7 +46,7 @@
     <tspan class="a">$</tspan> <tspan class="type">npx create-wakii-stack my-stack --all</tspan><tspan class="cursor" fill="#e8eaf0">▌</tspan>
   </text>
   <g class="fade f2" font-size="11" font-family="ui-monospace,Menlo,monospace">
-    <text x="40" y="96" class="g">✓ 509 files · 5 services · 4 FE apps</text>
+    <text x="40" y="96" class="g">✓ 540 files · 5 BE services · 4 FE apps</text>
     <text x="40" y="114" class="m">pruned tooling · registry deps locked</text>
     <text x="40" y="140" fill="#e8eaf0"><tspan class="a">$</tspan> docker compose up -d</text>
     <text x="40" y="158" class="g">✓ 11 containers healthy — gateway :8080</text>
@@ -96,9 +96,9 @@
   <!-- ══ Footer chips ══ -->
   <g font-size="11">
     <rect x="20" y="384" width="150" height="26" rx="13" fill="#1f2b3d"/>
-    <text x="95" y="401" class="a" text-anchor="middle">⚡ boot ~96s (build)</text>
+    <text x="95" y="401" class="a" text-anchor="middle">⚡ boot 96s (measured)</text>
     <rect x="182" y="384" width="170" height="26" rx="13" fill="#1f2b3d"/>
-    <text x="267" y="401" class="a" text-anchor="middle">🧪 56/56 tests green dán hộp</text>
+    <text x="267" y="401" class="a" text-anchor="middle">🧪 56/56 tests green out-of-box</text>
     <rect x="364" y="384" width="200" height="26" rx="13" fill="#1f2b3d"/>
     <text x="464" y="401" class="a" text-anchor="middle">🤖 AGENTS + gen:* kèm sẵn</text>
     <rect x="576" y="384" width="200" height="26" rx="13" fill="#1f2b3d"/>

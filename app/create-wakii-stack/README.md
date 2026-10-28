@@ -6,8 +6,6 @@
 
 Scaffold the **full Wakii architecture** (FE + BE + infra) as a pruned monorepo snapshot — CRA-style CLI: interactive multiselect, non-interactive flags. Strategy **Hybrid C**: copy the full template, then **prune against a manifest** (delete paths, cut compose blocks, clean `depends_on`, filter gateway conf/env keys) — no template engine, original content untouched.
 
-> **Published on npm** — `npm create wakii-stack@latest`. Also mirrored on [GitHub Packages](https://github.com/orgs/wakii-dev/packages) (`@wakii-dev/create-wakii-stack`). Docs below reflect the published CLI.
-
 ## Usage
 
 ```bash

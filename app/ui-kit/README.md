@@ -67,7 +67,7 @@ npm install @wakii/ui-kit
 ```
 
 <p align="center">
-  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs version 0.5.0, done in 1.4s, blinking block cursor">
+  <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/terminal.svg" width="640" alt="Terminal recording — pnpm add @wakii/ui-kit installs the latest version, done in 1.4s, blinking block cursor">
 </p>
 
 ```tsx
@@ -113,7 +113,7 @@ const form = useForm({ schema, mode: 'onBlur' });
 </Field>
 ```
 
-## 🆕 What's new in 0.4.0
+## 🆕 What's new (2.0.0 — wakii 1.0 stable)
 
 - **Hooks wave — barrel mở trọn**: 12 lifecycle/scroll hooks (`useScrollProgress`, `useInView`, `useInfiniteScroll`, `useControllableState`, `useMeasure`…) + **utils** (`formatCurrency`, `formatRelativeTime`, `chunk`, `groupBy`, `flattenTree`, `getScrollParent`, `cx`…) + `ScrollPage` section-snap — table grouped below.
 - **Dark theme, toàn diện**: dark tokens polish mirror-antd (alert alpha tints, disabled surface, heavier shadows) + `color-scheme` per-theme — Storybook **manager chrome ships both palettes**.
@@ -169,7 +169,7 @@ log giờ đều chạy), không phải mock render. Copy về app, đổi data 
 | **Parallax Landing** | `Parallax` · `Reveal` · `CountUp`/`Statistic` — depth-trio hero + parallax lab | `templates-parallax-landing--landing` · `--hero-depth` · `--parallax-lab-only` |
 | **Cinematic Experience** | `ChapterShell` glass-nav chapters + hero variants | `templates-cinematic-experience--experience` · `--hero-only` · `--atlas` · `--dark-snow` |
 
-> Trạng thái thật (0.4.0): **8 templates live** — Dashboard, Kanban Project, CRUD Table,
+> Trạng thái thật (2.0.0): **8 templates live** — Dashboard, Kanban Project, CRUD Table,
 > Auth, Settings, Landing, Parallax Landing, Cinematic Experience (kèm demo Team-OS
 > components trong story riêng). Recipes copy-chạy: [recipes.md](../../docs/ai/recipes.md).
 

@@ -110,7 +110,7 @@
     <rect x="28" y="26" width="126" height="24" rx="12" fill="#1a2130" stroke="#2a3040"/>
     <text x="91" y="42" text-anchor="middle" fill="#e8eaf0">115 components</text>
     <rect x="862" y="26" width="70" height="24" rx="12" fill="#1a2130" stroke="#2a3040"/>
-    <text x="897" y="42" text-anchor="middle" fill="#e8eaf0">v0.6</text>
+    <text x="897" y="42" text-anchor="middle" fill="#e8eaf0">v2.0</text>
   </g>
 
   <!-- title + tagline -->

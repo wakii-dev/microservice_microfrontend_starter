@@ -22,7 +22,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
 
-Scaffold a React app wired with [@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit) — CRA-style: interactive prompts, non-interactive flags. **Published as [`create-wakii-app@0.1.0`](https://www.npmjs.com/package/create-wakii-app) on npmjs.org.**
+Scaffold a React app wired with [@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit) — CRA-style: interactive prompts, non-interactive flags. **Published on npmjs.org (now 2.0.0 — wakii 1.0 stable).**
 
 ## Usage
 
@@ -111,7 +111,7 @@ Publishing to npmjs: `./scripts/publish-npm.sh` — builds (tsup), then bundles 
 
 ## CI
 
-Golden-path workflow [`.github/workflows/starter-templates.yml`](../../.github/workflows/starter-templates.yml) — runs on every push/PR touching `app/create-wakii-app/**` or `app/starter-templates/**`: CLI test + typecheck → tsup build → scaffolds all 7 flavors (`demo-ts` · `demo-js` · `next` · `astro` · `minimal` · `product` · `admin`) into `/tmp` → each app must `pnpm install` + `pnpm build` (plus `pnpm test` for `product`/`admin`). Any failing step turns the job red — a pre-publish guard against a repeat of the 0.5.0/0.6.x incidents (templates published while scaffolded apps failed to build). Note: repo Actions are currently disabled (billing) — the workflow will run once enabled.
+Golden-path workflow [`.github/workflows/starter-templates.yml`](../../.github/workflows/starter-templates.yml) — runs on every push/PR touching `app/create-wakii-app/**` or `app/starter-templates/**`: CLI test + typecheck → tsup build → scaffolds all 7 flavors (`demo-ts` · `demo-js` · `next` · `astro` · `minimal` · `product` · `admin`) into `/tmp` → each app must `pnpm install` + `pnpm build` (plus `pnpm test` for `product`/`admin`). Any failing step turns the job red — a pre-publish guard against a repeat of past registry incidents (templates published while scaffolded apps failed to build). CI runs on every push (verified green).
 
 ## License
 

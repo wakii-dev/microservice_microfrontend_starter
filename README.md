@@ -11,7 +11,7 @@ Rules as **directives** ([AGENTS.md](AGENTS.md)) · contracts **machine-checkabl
 Everything in the screenshots below is **this repo's real output** — booted with
 `docker compose up`. No mocks, no screenshots from other projects.
 
-**90+** components · **1328** tests · **3** npm packages · **11** services
+**117** components · **1,565** tests · **3** npm packages · **11** services
 
 [![npm @wakii/ui-kit](https://img.shields.io/npm/v/@wakii/ui-kit?logo=npm&label=%40wakii%2Fui-kit&color=cb3837)](https://www.npmjs.com/package/@wakii/ui-kit)
 [![npm create-wakii-app](https://img.shields.io/npm/v/create-wakii-app?logo=npm&label=create-wakii-app&color=cb3837)](https://www.npmjs.com/package/create-wakii-app)
@@ -93,7 +93,7 @@ cd my-stack && cp platform/.env.example platform/.env
 docker compose --env-file platform/.env up -d      # → http://localhost:8080
 
 # ③ the design system alone
-pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
+pnpm add @wakii/ui-kit        # 117 components, dark/light, motion, a11y
 ```
 
 > Demo login: `alice@demo.local / demo-password` · Storybook:
@@ -103,7 +103,7 @@ pnpm add @wakii/ui-kit        # 90+ components, dark/light, motion, a11y
 
 | | Package | What it is |
 |---|---|---|
-| 🎨 | **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 90+ React components (antd × PrimeReact parity) — tokens-first, Tailwind v4, `UiKitProvider` theming, peer-deps optional sau subpath (`/carousel` `/chart` `/editor` `/schedule` `/experience3d`) |
+| 🎨 | **[@wakii/ui-kit](https://www.npmjs.com/package/@wakii/ui-kit)** | 117 React components (antd × PrimeReact × MUI parity) — tokens-first, Tailwind v4, `UiKitProvider` theming, peer-deps optional sau subpath (`/carousel` `/chart` `/editor` `/schedule` `/experience3d`) |
 | ⚡ | **[create-wakii-app](https://www.npmjs.com/package/create-wakii-app)** | CRA-style starter — TS/JS, router v7, demo extras, working dark toggle |
 | 🏗️ | **[create-wakii-stack](https://www.npmjs.com/package/create-wakii-stack)** | Full-architecture starter — pick services via manifest, compose/lock/workspace pruned to your selection, `kafka-init` prevents the topic race |
 

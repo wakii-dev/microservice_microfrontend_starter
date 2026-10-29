@@ -3,6 +3,13 @@
 Read this before writing code. This app is an **MF remote island**: it exposes exactly
 one module (`./{{remoteName}}Page`) to a host, and runs standalone only for development.
 
+## Working agreement (wakii ecosystem v0.2 — 2026-10-29)
+
+- **Input gate**: AI asks ONCE for direction on large work, then runs autonomously; stops only for permissions/spending.
+- **Quality = machine gates** (`pnpm build` + tests green = pass). No per-change human review.
+- **This app is private** — no npm publish from here.
+- **Multi-session**: small scoped commits; follow the upstream [WORKFLOW](https://github.com/wakii-dev/microservice_microfrontend_starter/blob/main/docs/WORKFLOW.md) when contributing back.
+
 ## What is what
 
 ```

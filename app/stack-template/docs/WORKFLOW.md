@@ -1,4 +1,10 @@
-# WORKFLOW — luồng làm việc trên wakii
+# WORKFLOW — luồng làm việc trên wakii (scaffold)
+
+> **v0.2 — aligned with upstream 2026-10-29:**
+> 1. **Input gate**: AI asks ONCE for direction (3 options + recommendation) on large/ambiguous work — then runs autonomously. Stop only for permissions/spending.
+> 2. **Quality = machine gates** (typecheck + tests + `pnpm verify:quick` + branch protection). No per-merge human review — retro report instead.
+> 3. This scaffold ships NO publishable packages (all `private:true`) — upstream publish rules don't apply.
+> 4. **Federated multi-session** — small path-scoped PRs; >10 files changed → note the area in `docs/team/CHANNEL.md` first.
 
 Contract workflow cho **AI làm việc trên repo này** (người đọc theo được cùng luồng).
 Style: directive if-then, ngắn, parse được. Vòng AI chi tiết: [docs/ai/workflow.md](ai/workflow.md) ·

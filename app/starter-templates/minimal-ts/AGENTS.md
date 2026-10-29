@@ -4,6 +4,13 @@ This file is the source of truth for the project STRUCTURE. Change the structure
 code second. ESLint (`pnpm lint`) enforces most of these rules via
 `eslint-plugin-boundaries` — a violation is a lint error, not a matter of taste.
 
+## Working agreement (wakii ecosystem v0.2 — 2026-10-29)
+
+- **Input gate**: AI asks ONCE for direction on large work, then runs autonomously; stops only for permissions/spending.
+- **Quality = machine gates** (`pnpm build` + tests green = pass). No per-change human review.
+- **This app is private** — no npm publish from here.
+- **Multi-session**: small scoped commits; follow the upstream [WORKFLOW](https://github.com/wakii-dev/microservice_microfrontend_starter/blob/main/docs/WORKFLOW.md) when contributing back.
+
 ## Directory structure
 
 ```

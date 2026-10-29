@@ -1,6 +1,6 @@
 # Changelog — create-wakii-app
 
-## [2.0.0] — 2026-10-29
+## [2.0.0] — 2026-10-29 (STABLE — "wakii 1.0" milestone) — 2026-10-29
 
 ### Changed (auto — 4d12760..4d12760 qua CI workflow publish-packages)
 

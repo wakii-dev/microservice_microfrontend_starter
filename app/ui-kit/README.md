@@ -6,7 +6,7 @@
   <img src="https://unpkg.com/@wakii/ui-kit@latest/docs/assets/hero.svg" width="960" alt="@wakii/ui-kit animated hero — blossom logo with orbiting token dots, ripple pulses, grid background and typing indicator">
 </p>
 
-**A production-grade React design system built AI-first — 90+ components, 31 hooks, tokens-first, motion, dark theme.**
+**A production-grade React design system built AI-first — 117 components, 31 hooks, tokens-first, motion, dark theme.**
 
 Benchmarked against Ant Design & PrimeReact. Ships with `AGENTS.md` + recipes so AI agents build real features correctly on day one.
 
@@ -47,7 +47,7 @@ This library is **AI-consumable by design**. Every agent (Claude Code, Codex, ZC
 
 | | |
 |---|---|
-| 🧩 **90+ components** | From DataTable with **virtual scroll (5k+ rows)** to Upload Dropzone, TreeSelect, TimePicker, range DatePicker — the parts real apps actually need |
+| 🧩 **117 components** | From DataTable with **virtual scroll (5k+ rows)** to Upload Dropzone, TreeSelect, TimePicker, range DatePicker — the parts real apps actually need |
 | 🪝 **31 battle-tested hooks** | `useForm` (zod-powered), `useDebounce`, `useClickAway`, `useInView`, `useScrollProgress`, `useControllableState`… every hook ships behavior tests |
 | 🌗 **Dark theme, done right** | One attribute — `<html data-bp-theme="dark">`. CSS-variable cascade, no flash, no JS, no rebuild — dark tokens polished mirror-antd (alert tints, disabled, shadows), Storybook manager chrome ships both palettes |
 | 🎯 **Tokens-first** | One `tokens.css` is the single source of truth — colors, spacing, radii, shadows, even a **z-index scale**. No hardcoded hex in components |

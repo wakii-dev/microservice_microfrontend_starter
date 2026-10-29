@@ -1,5 +1,9 @@
 # Changelog — create-wakii-app
 
+## [1.0.0] — 2026-10-29 (STABLE)
+
+7 presets × 4 variants (vite/next/astro/remote) × TS/JS, AGENTS.md working agreement v0.2 trong từng template, @wakii/ui-kit 1.0.0, golden-path CI xanh.
+
 ## [0.3.0] — 2026-10-28
 
 ### Added

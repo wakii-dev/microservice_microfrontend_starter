@@ -94,3 +94,7 @@ If-then directives. Every gotcha here is an incident that actually happened on t
 ## Gotcha: thêm service mới → 3 workflows services-* cần env role mới
 
 IF a service with a DB role lands (like dotnet-svc did) THEN check that ALL `.github/workflows/services-*.yml` files that run `platform/postgres/init/01-init.sh` pass the new `<SVC>_DB_PASSWORD` env — the init script uses `set -u` and dies with "unbound variable" on missing roles. Evidence: spring (#192), go + node (#193) all broke when dotnet-svc landed.
+
+## Gotcha: npm token cho CI publish — đúng loại ngay từ đầu
+
+IF publishing via CI THEN use a **Granular Access Token** with "Read and write" + "All packages". Classic tokens require OTP (2FA) on publish → EOTP error in CI, unusable. Read-only granular → E404. Evidence 2026-10-29: 4 attempts (read-only granular → E404; classic → EOTP; correct granular → success). Never put npm tokens in ~/.npmrc on dev machines (WORKFLOW v0.2: CI-only).

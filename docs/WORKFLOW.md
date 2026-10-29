@@ -1,5 +1,11 @@
 # WORKFLOW — luồng làm việc trên wakii
 
+> **v0.2 — thỏa thuận 2026-10-29 (user-approved):**
+> 1. **Input gate**: AI hỏi ĐÚNG 1 lần hướng (3 options + recommendation) cho việc lớn/mơ hồ — sau đó tự chạy hết. Chỉ dừng thêm khi cần quyền/mất tiền (publish, deploy).
+> 2. **Quality = machine gates** (typecheck + 1.532 tests + e2e Kafka + golden-path + branch protection). KHÔNG human review trước merge — thay bằng **báo cáo tối** (bảng merge + CI kết quả) cho user duyệt retro.
+> 3. **Publish npm = CI-only** (workflow `publish-packages`, NPM_TOKEN chỉ trong GitHub secret). Local scripts chỉ debug (`--force-local`), token npm bị xoá khỏi máy dev.
+> 4. **Federated multi-session** — mỗi session theo WORKFLOW này + PR nhỏ theo path-group. Session sửa >10 files PHẢI comment 1 dòng vào `docs/team/CHANNEL.md` trước khi PR (lock vùng).
+
 Contract workflow cho **AI làm việc trên repo này** (người đọc theo được cùng luồng).
 Style: directive if-then, ngắn, parse được. Vòng AI chi tiết: [docs/ai/workflow.md](ai/workflow.md) ·
 quy tắc vận hành agent: [AGENTS.md](../AGENTS.md) · gotchas: [docs/ai/knowledge.md](ai/knowledge.md).

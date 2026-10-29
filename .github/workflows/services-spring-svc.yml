@@ -66,6 +66,7 @@ jobs:
           GO_SVC_DB_PASSWORD: change-me-go
           GO_READONLY_DB_PASSWORD: change-me-goreadonly
           AUTH_SVC_DB_PASSWORD: change-me-auth
+          DOTNET_SVC_DB_PASSWORD: change-me-dotnet
         run: bash platform/postgres/init/01-init.sh
       - uses: actions/setup-java@v4
         with:

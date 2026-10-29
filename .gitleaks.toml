@@ -1,0 +1,5 @@
+[allowlist]
+  description = "CI smoke scripts pass tokens via env vars ($TOKEN) — not literal secrets"
+  paths = [
+    '''\.github/workflows/.*\.yml$''',
+  ]

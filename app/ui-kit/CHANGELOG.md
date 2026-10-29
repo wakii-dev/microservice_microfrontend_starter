@@ -4,6 +4,12 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [2.0.1] — 2026-10-29
+
+### Changed (auto — 6d02d74..5422542 qua CI workflow publish-packages)
+
+- 5422542 docs: refresh all READMEs to wakii 1.0 (2.0.0) — stats 117/1565, hero v2.0, stale version mentions (#198)
+- 159648d docs: mark 2.0.0 as wakii 1.0 stable milestone (#196)
 ## [2.0.0] — 2026-10-29 (STABLE — "wakii 1.0" milestone) — 2026-10-29
 
 ### Changed (auto — 4d12760..08a0806 qua CI workflow publish-packages)

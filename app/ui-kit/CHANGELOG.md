@@ -8,6 +8,21 @@ mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
 First stable release. 117 components (antd × PrimeReact × MUI parity), classNames slots + style passthrough toàn thư viện, UiKitProvider dark/light + accent, subpath exports cho 5 engine nặng, 1.565 tests, coverage gate 88%, animated SVG docs via unpkg CDN. Ecosystem: create-wakii-app 1.0.0 + create-wakii-stack 1.0.0 ship cùng ngày.
 
+## [0.8.3] — 2026-10-29
+
+### Changed (auto — f73af29..f73af29 qua CI workflow publish-packages)
+
+- (không có commit chạm app/ui-kit/ trong range f73af29..f73af29 — bump only)
+## [0.8.2] — 2026-10-29
+
+### Changed (auto — 4c1486e..4c1486e qua CI workflow publish-packages)
+
+- (không có commit chạm app/ui-kit/ trong range 4c1486e..4c1486e — bump only)
+## [0.8.1] — 2026-10-29
+
+### Changed (auto — 8f34bf5..b05b78e qua CI workflow publish-packages)
+
+- (không có commit chạm app/ui-kit/ trong range 8f34bf5..b05b78e — bump only)
 ## [0.8.0] — 2026-10-29 (MUI parity — Textarea autoSize, ButtonGroup, ImageList, Portal, Progress circle)
 
 ### Added

@@ -4,6 +4,10 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [1.0.0] — 2026-10-29 (STABLE — wakii ecosystem 1.0)
+
+First stable release. 117 components (antd × PrimeReact × MUI parity), classNames slots + style passthrough toàn thư viện, UiKitProvider dark/light + accent, subpath exports cho 5 engine nặng, 1.565 tests, coverage gate 88%, animated SVG docs via unpkg CDN. Ecosystem: create-wakii-app 1.0.0 + create-wakii-stack 1.0.0 ship cùng ngày.
+
 ## [0.8.3] — 2026-10-29
 
 ### Changed (auto — f73af29..f73af29 qua CI workflow publish-packages)

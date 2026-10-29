@@ -4,6 +4,11 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.8.2] — 2026-10-29
+
+### Changed (auto — 4c1486e..4c1486e qua CI workflow publish-packages)
+
+- (không có commit chạm app/ui-kit/ trong range 4c1486e..4c1486e — bump only)
 ## [0.8.1] — 2026-10-29
 
 ### Changed (auto — 8f34bf5..b05b78e qua CI workflow publish-packages)

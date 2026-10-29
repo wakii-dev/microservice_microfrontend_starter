@@ -64,6 +64,7 @@ jobs:
           GO_SVC_DB_PASSWORD=ci-go-password \
           GO_READONLY_DB_PASSWORD=ci-goreadonly-password \
           AUTH_SVC_DB_PASSWORD=ci-auth-password \
+          DOTNET_SVC_DB_PASSWORD=ci-dotnet-password \
           bash platform/postgres/init/01-init.sh
       - uses: actions/setup-go@v5
         with:

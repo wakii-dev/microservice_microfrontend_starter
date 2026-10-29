@@ -15,6 +15,7 @@
 import cx from 'classnames';
 import { useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Spinner } from '../spinner/index';
+import { useButtonGroup } from './group-context.js';
 
 /** Ripple click — span overlay scale từ điểm chạm (bp-ripple, motion identity). */
 interface Ripple {
@@ -80,11 +81,12 @@ const DANGER: Partial<Record<ButtonType, string>> = {
 };
 
 export function Button(props: ButtonProps) {
+  const group = useButtonGroup();
   const {
-    type = 'default',
+    type: typeProp,
     htmlType = 'button',
     danger = false,
-    size = 'middle',
+    size: sizeProp,
     loading = false,
     block = false,
     icon,
@@ -96,6 +98,10 @@ export function Button(props: ButtonProps) {
     classNames,
     ...rest
   } = props;
+  // ButtonGroup cascade: explicit prop wins, then group default, then antd defaults.
+  // No group ancestor → context is {} → resolved values identical to the old defaults.
+  const type = typeProp ?? group?.type ?? 'default';
+  const size = sizeProp ?? group?.size ?? 'middle';
   const slots = classNames;
   const variant = danger ? (DANGER[type] ?? VARIANTS[type]) : VARIANTS[type];
   // icon chỉ bọc span khi consumer truyền classNames.icon — default path giữ DOM y hệt

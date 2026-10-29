@@ -105,3 +105,44 @@ describe('Progress — customize (slots wave 3)', () => {
     expect((container.firstElementChild as HTMLElement).style.padding).toBe('4px');
   });
 });
+
+describe('Progress circle', () => {
+  const R = 18, C = 2 * Math.PI * R; // size 40, stroke 4
+
+  it('renders svg progressbar with dash math for 50%', () => {
+    const { container } = render(<Progress type="circle" percent={50} />);
+    const svg = container.querySelector('svg[role="progressbar"]') as SVGSVGElement;
+    const arc = svg.querySelectorAll('circle')[1] as SVGCircleElement;
+    expect(svg).toHaveAttribute('aria-valuenow', '50');
+    expect(parseFloat(arc.getAttribute('stroke-dasharray')!)).toBeCloseTo(C, 3);
+    expect(parseFloat(arc.getAttribute('stroke-dashoffset')!)).toBeCloseTo(C * 0.5, 3);
+  });
+
+  it('100% → done stroke', () => {
+    const { container } = render(<Progress type="circle" percent={100} />);
+    expect((container.querySelectorAll('circle')[1] as SVGElement).style.stroke).toBe('var(--st-done)');
+  });
+
+  it('exception → fail stroke', () => {
+    const { container } = render(<Progress type="circle" percent={30} status="exception" />);
+    expect((container.querySelectorAll('circle')[1] as SVGElement).style.stroke).toBe('var(--st-fail)');
+  });
+
+  it('indeterminate → spin class (via getAttribute), no aria-valuenow', () => {
+    const { container } = render(<Progress type="circle" indeterminate />);
+    const svg = container.querySelector('svg')!;
+    expect(svg.getAttribute('class')).toContain('animate-spin');
+    expect(svg).not.toHaveAttribute('aria-valuenow');
+  });
+
+  it('showInfo centers the % label', () => {
+    render(<Progress type="circle" percent={40} />);
+    expect(screen.getByText('40%')).toBeInTheDocument();
+  });
+
+  it('line regression — default unchanged', () => {
+    render(<Progress percent={42} />);
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '42');
+    expect(screen.getByText('42%')).toBeInTheDocument();
+  });
+});

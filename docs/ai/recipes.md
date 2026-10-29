@@ -1568,6 +1568,69 @@ Ma trận import đầy đủ xem `AGENTS.md` trong scaffold.
 ---
 
 
+## 21. AutoSizeTextarea — Textarea autoSize trong form zod
+
+Long-form fields (notes, descriptions) grow with content instead of scrolling a fixed box. Combine with `showCount`/`maxLength` and zod validation — measure runs on every value change (controlled) AND on every keystroke (uncontrolled).
+
+```tsx
+import { Button, Field, Input, Textarea, useForm } from '@wakii/ui-kit';
+import { z } from 'zod';
+
+const schema = z.object({
+  title: z.string().min(3, 'Ít nhất 3 ký tự'),
+  notes: z.string().max(400, 'Tối đa 400 ký tự'),
+});
+
+export function TaskNotesForm({ initial }: { initial?: { title: string; notes: string } }) {
+  const form = useForm({ schema, initialValues: { title: '', notes: '', ...initial }, mode: 'onSubmit' });
+  return (
+    <form className="flex max-w-md flex-col gap-3" onSubmit={form.handleSubmit(async (data) => console.log(data))}>
+      <Field label="Title" htmlFor="title" error={form.errors.title}>
+        <Input id="title" name="title" value={form.values.title}
+          invalid={!!form.errors.title} onChange={form.handleChange('title')} />
+      </Field>
+      <Field label="Notes" htmlFor="notes" error={form.errors.notes}>
+        <Textarea id="notes" name="notes" value={form.values.notes}
+          invalid={!!form.errors.notes} onChange={form.handleChange('notes')}
+          autoSize={{ minRows: 3, maxRows: 8 }} showCount maxLength={400} />
+      </Field>
+      <Button type="primary" htmlType="submit">Save</Button>
+    </form>
+  );
+}
+
+- `autoSize` (boolean) = grow unbounded from 2 rows; `{minRows, maxRows}` clamps then scrolls.
+- `rows` prop is ignored when `autoSize` is on; without `autoSize` the default path is unchanged.
+
+## 22. GalleryMasonry — ImageList masonry + click select
+
+Gallery with mixed-ratio photos: `variant="masonry"` lays out via CSS columns (MUI-identical — visual order runs top-to-bottom per column, fine for unordered galleries). Tiles become keyboard-activatable buttons when `onItemClick` is set.
+
+```tsx
+import { EmptyState, ImageList, type ImageListItem } from '@wakii/ui-kit';
+
+const items: ImageListItem[] = photos.map((p) => ({ src: p.url, alt: p.name, caption: p.place }));
+
+export function PhotoGallery({ photos, onOpen }: { photos: Photo[]; onOpen: (i: number) => void }) {
+  if (photos.length === 0) return <EmptyState title="Chưa có ảnh" />;
+  return (
+    <ImageList
+      items={items}
+      variant="masonry"
+      cols={3}
+      gap={8}
+      onItemClick={onOpen} // Tab + Enter/Space also fire this
+    />
+  );
+}
+```
+
+- `variant="standard"` (default) = tidy grid with fixed `rowHeight` crop; masonry keeps natural heights.
+- `gap` is the column gap; vertical rhythm is fixed `mb-2`.
+- Custom tile? `renderItem={(item, i) => …}` takes over completely.
+
+---
+
 ## Bảng "khi nào dùng" — nhóm Primitives + Navigation
 
 | Component | Khi nào dùng | Đừng dùng khi |

@@ -12,7 +12,8 @@ export { EmptyState, type EmptyStateProps, type EmptyStateClassNames } from './u
 export { Skeleton, type SkeletonProps , type SkeletonClassNames } from './ui/skeleton/index.js';
 export { Spinner, type SpinnerProps, type SpinnerClassNames } from './ui/spinner/index.js';
 export { Button, type ButtonProps, type ButtonType, type ButtonClassNames } from './ui/button/index.js';
-export { Input, Textarea, type InputProps, type InputClassNames, type TextareaProps, type TextareaClassNames } from './ui/input/index.js';
+export { ButtonGroup, type ButtonGroupProps, type ButtonGroupClassNames } from './ui/button/group.js';
+export { Input, Textarea, type InputProps, type InputClassNames, type TextareaProps, type TextareaClassNames, type AutoSize } from './ui/input/index.js';
 export { Tag, type TagProps, type TagClassNames, type CheckableTagProps, type CheckableTagClassNames } from './ui/tag/index.js';
 export { Alert, type AlertProps, type AlertType , type AlertClassNames } from './ui/alert/index.js';
 export { Anchor, type AnchorProps, type AnchorLinkItem, type AnchorGetContainer , type AnchorClassNames } from './ui/anchor/index.js';
@@ -31,6 +32,7 @@ export { Tooltip, type TooltipProps, type TooltipClassNames } from './ui/tooltip
 export { Select, type SelectProps, type SelectClassNames, type SelectOption } from './ui/select/index.js';
 export { Popconfirm, type PopconfirmProps , type PopconfirmClassNames } from './ui/popconfirm/index.js';
 export { Popover, type PopoverProps, type PopoverClassNames, type PopoverPlacement, type PopoverTriggerAction } from './ui/popover/index.js';
+export { Portal, type PortalProps } from './ui/portal/index.js';
 export { Pagination, pageList, type PaginationProps , type PaginationClassNames } from './ui/pagination/index.js';
 export { Checkbox, type CheckboxProps, type CheckboxClassNames } from './ui/checkbox/index.js';
 export { Radio, RadioGroup, type RadioProps, type RadioGroupClassNames , type RadioClassNames } from './ui/radio/index.js';
@@ -47,6 +49,7 @@ export { Result, type ResultProps, type ResultStatus , type ResultClassNames } f
 export { Descriptions, type DescriptionsProps, type DescriptionsClassNames, type DescriptionsItem } from './ui/descriptions/index.js';
 export { Collapse, type CollapseProps, type CollapseItem , type CollapseClassNames } from './ui/collapse/index.js';
 export { UiImage, type ImageProps , type UiImageClassNames } from './ui/image/index.js';
+export { ImageList, type ImageListProps, type ImageListItem, type ImageListClassNames } from './ui/image-list/index.js';
 export { Table, type TableProps, type TableColumn } from './ui/table/index.js';
 export { Breadcrumb, type BreadcrumbProps, type BreadcrumbItem , type BreadcrumbClassNames } from './ui/breadcrumb/index.js';
 export { Steps, type StepsProps, type StepsClassNames, type StepItem } from './ui/steps/index.js';

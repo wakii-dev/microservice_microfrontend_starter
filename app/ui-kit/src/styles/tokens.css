@@ -90,6 +90,9 @@
   --z-modal: 1050;
   --z-toast: 1070;
   --z-tooltip: 1090;
+  /* Intra-content stacking (far below the overlay ladder) — e.g. a focused
+     ButtonGroup child lifting above the -ml-px joined seam. */
+  --z-stacked: 1;
   /* Font stacks (antd — system UI, KHÔNG webfont) */
   --f: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
     "Noto Sans", sans-serif;

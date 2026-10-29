@@ -4,6 +4,18 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [0.8.0] — 2026-10-29 (MUI parity — Textarea autoSize, ButtonGroup, ImageList, Portal, Progress circle)
+
+### Added
+
+- `Textarea autoSize` — antd-parity auto-grow: `true` = unbounded from 2 rows; `{minRows, maxRows}` clamps via JS scrollHeight measure. Controlled and uncontrolled both re-measure; default path (no autoSize) byte-identical.
+- `ButtonGroup` — attached row/column of Buttons: joined chrome (`-ml-px` seam, outer corners keep `rounded-lg`), `orientation`, size/type cascade via context (explicit child prop wins), `role="group"` + required `ariaLabel`.
+- `ImageList` — gallery grid: `standard` (fixed `rowHeight`, cropped) / `masonry` (CSS columns, MUI-identical mechanics, visual order top-to-bottom per column); `onItemClick` → keyboard-activatable tiles with focus ring; `renderItem` override.
+- `Portal` — standalone `createPortal` primitive: `container` element or getter; `undefined` = `document.body`, `null` = inline render; SSR-safe.
+- `Progress type="circle"` — SVG dash arc (`size` px, default 40), status strokes via CSS vars, `indeterminate` = spinning arc (`motion-reduce` honored), centered `%` with `showInfo`.
+
+## [0.7.0] – [0.7.2] — 2026-10-26 → 2026-10-28 (backfill: slots-DOM 113/113, dark polish, useChartPalette, npm 0.7.2 — see git log #121–#158)
+
 ## [0.6.0] — 2026-10-25 (customize pass — classNames slots + style passthrough toàn thư viện)
 
 ### Added

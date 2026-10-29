@@ -1,8 +1,10 @@
 // Input/Textarea tests — antd look: border line, focus ring accent, invalid đỏ.
-import { cleanup, render, screen } from '@testing-library/react';
+import { useState } from 'react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Input, Textarea } from './index.js';
+import { computeAutoSizeHeight, resolveAutoSize } from './autosize.js';
 
 afterEach(cleanup);
 
@@ -181,5 +183,112 @@ describe('Textarea — classNames slots + style (SÓNG-3)', () => {
     expect(el.className.indexOf('slot-textarea')).toBeLessThan(el.className.indexOf('user-last'));
     await userEvent.setup().type(el, 'ok');
     expect(onChange).toHaveBeenCalledTimes(2);
+  });
+});
+
+// --- autoSize (pure math) ---
+describe('resolveAutoSize', () => {
+  it('true → {minRows: 2} (unbounded)', () => {
+    expect(resolveAutoSize(true)).toEqual({ minRows: 2 });
+  });
+  it('object passes through', () => {
+    expect(resolveAutoSize({ minRows: 3, maxRows: 6 })).toEqual({ minRows: 3, maxRows: 6 });
+  });
+});
+
+describe('computeAutoSizeHeight', () => {
+  const base = { lineHeight: 22, paddingY: 24, scrollHeight: 0 };
+  it('grows to natural rows (ceil), respects minRows floor', () => {
+    expect(computeAutoSizeHeight({ ...base, scrollHeight: 200, minRows: 3 }))
+      .toEqual({ height: 8 * 22 + 24, overflowY: 'hidden' });
+  });
+  it('empty content floors at minRows', () => {
+    expect(computeAutoSizeHeight({ ...base, scrollHeight: 10, minRows: 3 }).height).toBe(3 * 22 + 24);
+  });
+  it('clamps at maxRows + overflowY auto', () => {
+    expect(computeAutoSizeHeight({ ...base, scrollHeight: 500, maxRows: 4 }))
+      .toEqual({ height: 4 * 22 + 24, overflowY: 'auto' });
+  });
+  it('lineHeight<=0 falls back to 22 (jsdom)', () => {
+    expect(computeAutoSizeHeight({ ...base, lineHeight: 0, scrollHeight: 46, minRows: 2 }).height).toBe(2 * 22 + 24);
+  });
+});
+
+// --- autoSize (DOM wiring) ---
+/** Stateful harness — controlled Textarea like a real form. */
+function TextareaHarness(props: { autoSize?: boolean | { minRows?: number; maxRows?: number }; maxRowsCase?: boolean }) {
+  const [value, setValue] = useState('');
+  return (
+    <Textarea
+      autoSize={props.autoSize}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      maxLength={props.maxRowsCase ? 400 : undefined}
+      showCount={props.maxRowsCase}
+    />
+  );
+}
+
+function stubMetrics(ta: HTMLTextAreaElement, scrollHeight: number) {
+  Object.defineProperty(ta, 'scrollHeight', { configurable: true, get: () => scrollHeight });
+  return vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+    lineHeight: '22px', paddingTop: '12px', paddingBottom: '12px',
+  } as CSSStyleDeclaration);
+}
+
+describe('Textarea autoSize', () => {
+  it('controlled: typing grows to clamp then shrinks to floor', () => {
+    const { container } = render(<TextareaHarness autoSize={{ minRows: 2, maxRows: 4 }} />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    let scroll = 500;
+    Object.defineProperty(ta, 'scrollHeight', { configurable: true, get: () => scroll }); // mutable getter
+    const cs = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      lineHeight: '22px', paddingTop: '12px', paddingBottom: '12px',
+    } as CSSStyleDeclaration);
+    fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } }); // state → rerender → effect
+    expect(ta.style.height).toBe(`${4 * 22 + 24}px`); // clamped at maxRows 4
+    expect(ta.style.overflowY).toBe('auto');
+    scroll = 46;
+    fireEvent.change(ta, { target: { value: 'ab' } });
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`); // floor minRows 2
+    expect(ta.style.overflowY).toBe('hidden');
+    cs.mockRestore();
+  });
+
+  it('uncontrolled: onChange path measures without any re-render', () => {
+    const { container } = render(<Textarea autoSize={{ minRows: 2, maxRows: 4 }} defaultValue="" />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 500);
+    fireEvent.change(ta, { target: { value: 'line\n'.repeat(30) } }); // no state anywhere
+    expect(ta.style.height).toBe(`${4 * 22 + 24}px`);
+    cs.mockRestore();
+  });
+
+  it('autoSize wins over the rows attribute', () => {
+    const { container } = render(<Textarea autoSize rows={5} defaultValue="y" />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 46);
+    fireEvent.change(ta, { target: { value: 'x' } }); // real value change — React swallows same-value change events
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`); // minRows 2, rows={5} ignored
+    expect(ta).toHaveAttribute('rows', '5'); // attribute still passed through, height governed by autoSize
+    cs.mockRestore();
+  });
+
+  it('coexists with showCount + maxLength', () => {
+    const { container } = render(<TextareaHarness autoSize maxRowsCase />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    const cs = stubMetrics(ta, 68);
+    fireEvent.change(ta, { target: { value: 'abc' } });
+    // scroll 68 → content 44 → 2 rows → minRows 2 → 2*22+24 = 68px
+    expect(ta.style.height).toBe(`${2 * 22 + 24}px`);
+    expect(screen.getByText('3/400')).toBeInTheDocument();
+    cs.mockRestore();
+  });
+
+  it('no autoSize → height untouched (default path identical)', () => {
+    const { container } = render(<Textarea value="x" onChange={() => {}} rows={3} />);
+    const ta = container.querySelector('textarea') as HTMLTextAreaElement;
+    expect(ta.style.height).toBe('');
+    expect(ta).toHaveAttribute('rows', '3');
   });
 });

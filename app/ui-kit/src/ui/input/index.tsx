@@ -11,6 +11,8 @@
 // Customize pass (slots wave 3): ghép slot qua package classnames (bỏ slot helper).
 import classNames from 'classnames';
 import type { ChangeEvent, CSSProperties, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import { useLayoutEffect, useRef, useCallback } from 'react';
+import { computeAutoSizeHeight, resolveAutoSize, type AutoSize } from './autosize.js';
 import { Icon } from '../icons/index.js';
 import { SearchInput } from './input-search';
 
@@ -145,6 +147,8 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   invalid?: boolean;
   /** Hiện đếm ký tự (cần maxLength) — antd showCount. */
   showCount?: boolean;
+  /** antd autoSize — true = grow unbounded from 2 rows; {minRows,maxRows} clamps. */
+  autoSize?: AutoSize;
   className?: string;
   /** Inline style — passthrough thẳng lên <textarea>. */
   style?: CSSProperties;
@@ -160,11 +164,41 @@ export function Textarea(props: TextareaProps) {
     style,
     value,
     maxLength,
+    autoSize,
+    onChange,
     ...rest
   } = props;
   const slots = props.classNames;
   const count = showCount && maxLength ? String(value ?? '').length : null;
   const ringCls = invalid ? RING_INVALID : RING_OK;
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const auto = autoSize ? resolveAutoSize(autoSize) : null;
+
+  const measure = useCallback(() => {
+    const el = taRef.current;
+    if (!el || !auto) return; // default path (no autoSize) — no side effects, height untouched
+    const cs = window.getComputedStyle(el);
+    const lineHeight = parseFloat(cs.lineHeight) || 0;
+    const paddingY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    el.style.height = 'auto';
+    const { height, overflowY } = computeAutoSizeHeight({
+      scrollHeight: el.scrollHeight,
+      lineHeight,
+      paddingY,
+      minRows: auto.minRows,
+      maxRows: auto.maxRows,
+    });
+    el.style.height = `${height}px`;
+    el.style.overflowY = overflowY;
+  }, [auto?.minRows, auto?.maxRows]);
+
+  useLayoutEffect(measure); // every render — controlled value changes re-render → re-measure
+
+  function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
+    onChange?.(e);
+    if (auto) measure(); // uncontrolled typing never re-renders — measure now (antd rc-textarea pattern)
+  }
+
   return (
     <div className={classNames('w-full', slots?.root)}>
       <textarea
@@ -172,6 +206,8 @@ export function Textarea(props: TextareaProps) {
         maxLength={maxLength}
         className={classNames(FIELD_BASE, 'py-2', invalid ? FIELD_INVALID : FIELD_OK, ringCls, slots?.textarea, className)}
         {...rest}
+        ref={taRef}
+        onChange={auto ? handleChange : onChange}
         style={style}
       />
       {count !== null && (
@@ -182,3 +218,5 @@ export function Textarea(props: TextareaProps) {
     </div>
   );
 }
+
+export type { AutoSize } from './autosize.js';

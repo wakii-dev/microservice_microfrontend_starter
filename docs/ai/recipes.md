@@ -1573,8 +1573,7 @@ Ma trận import đầy đủ xem `AGENTS.md` trong scaffold.
 Long-form fields (notes, descriptions) grow with content instead of scrolling a fixed box. Combine with `showCount`/`maxLength` and zod validation — measure runs on every value change (controlled) AND on every keystroke (uncontrolled).
 
 ```tsx
-import { Button } from '@wakii/ui-kit';
-import { Field, Input, Textarea, useForm } from '@wakii/ui-kit';
+import { Button, Field, Input, Textarea, useForm } from '@wakii/ui-kit';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -1583,26 +1582,22 @@ const schema = z.object({
 });
 
 export function TaskNotesForm({ initial }: { initial?: { title: string; notes: string } }) {
-  const { register, handleSubmit, errors } = useForm({ schema, mode: 'onSubmit' });
+  const form = useForm({ schema, initialValues: { title: '', notes: '', ...initial }, mode: 'onSubmit' });
   return (
-    <form onSubmit={handleSubmit((v) => console.log(v))} className="max-w-md space-y-4">
-      <Field label="Title" error={errors.title}>
-        <Input {...register('title')} defaultValue={initial?.title} />
+    <form className="flex max-w-md flex-col gap-3" onSubmit={form.handleSubmit(async (data) => console.log(data))}>
+      <Field label="Title" htmlFor="title" error={form.errors.title}>
+        <Input id="title" name="title" value={form.values.title}
+          invalid={!!form.errors.title} onChange={form.handleChange('title')} />
       </Field>
-      <Field label="Notes" error={errors.notes}>
-        <Textarea
-          {...register('notes')}
-          defaultValue={initial?.notes}
-          autoSize={{ minRows: 3, maxRows: 8 }}
-          showCount
-          maxLength={400}
-        />
+      <Field label="Notes" htmlFor="notes" error={form.errors.notes}>
+        <Textarea id="notes" name="notes" value={form.values.notes}
+          invalid={!!form.errors.notes} onChange={form.handleChange('notes')}
+          autoSize={{ minRows: 3, maxRows: 8 }} showCount maxLength={400} />
       </Field>
       <Button type="primary" htmlType="submit">Save</Button>
     </form>
   );
 }
-```
 
 - `autoSize` (boolean) = grow unbounded from 2 rows; `{minRows, maxRows}` clamps then scrolls.
 - `rows` prop is ignored when `autoSize` is on; without `autoSize` the default path is unchanged.

@@ -48,3 +48,17 @@ describe('ButtonGroup', () => {
     expect(container.querySelector('button')!.className).toContain('bg-accent');
   });
 });
+
+describe('ButtonGroup slots (SÓNG-3)', () => {
+  it('classNames.root slot + style + className merge đúng element (root div)', () => {
+    const { container } = render(
+      <ButtonGroup ariaLabel="x" className="gap-x" classNames={{ root: 'slot-root' }} style={{ gap: '4px' }}>
+        <Button>A</Button>
+      </ButtonGroup>,
+    );
+    const group = container.firstElementChild as HTMLElement;
+    expect(group.className).toContain('slot-root');
+    expect(group.className).toContain('gap-x'); // className vẫn merge sau slot
+    expect(group.style.gap).toBe('4px');
+  });
+});

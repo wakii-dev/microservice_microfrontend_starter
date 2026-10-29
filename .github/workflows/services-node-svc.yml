@@ -120,6 +120,7 @@ jobs:
     env:
       JWT_SECRET: ci-smoke-secret-placeholder-not-real-32chars
       NODE_SVC_DB_PASSWORD: ci-node-password-not-real
+      DOTNET_SVC_DB_PASSWORD: change-me-dotnet
       POSTGRES_PASSWORD: ci-postgres-password-not-real
     steps:
       - uses: actions/checkout@v4

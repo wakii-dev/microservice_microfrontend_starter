@@ -90,3 +90,7 @@ If-then directives. Every gotcha here is an incident that actually happened on t
 | Why the architecture is this way | `docs/adr/0001–0010` |
 | AI agents + skills | `.claude/agents/` (fe-dev · be-dev · e2e-runner · contracts-keeper · service-dev · ui-dev · gate-keeper · release-manager) · `.claude/skills/` (add-service · sync-contracts · wakii-ship-feature · wakii-publish · wakii-debug-kafka · use-ui-kit) |
 | Onboarding a new human / first run | `docs/walkthrough.md` + `docs/toolchain.md` |
+
+## Gotcha: thêm service mới → 3 workflows services-* cần env role mới
+
+IF a service with a DB role lands (like dotnet-svc did) THEN check that ALL `.github/workflows/services-*.yml` files that run `platform/postgres/init/01-init.sh` pass the new `<SVC>_DB_PASSWORD` env — the init script uses `set -u` and dies with "unbound variable" on missing roles. Evidence: spring (#192), go + node (#193) all broke when dotnet-svc landed.

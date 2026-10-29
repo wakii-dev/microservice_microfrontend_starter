@@ -1,5 +1,10 @@
 # Changelog — create-wakii-app
 
+## [2.0.0] — 2026-10-29
+
+### Changed (auto — 4d12760..4d12760 qua CI workflow publish-packages)
+
+- (không có commit chạm app/create-wakii-app/ trong range 4d12760..4d12760 — bump only)
 ## [1.0.0] — 2026-10-29 (STABLE)
 
 7 presets × 4 variants (vite/next/astro/remote) × TS/JS, AGENTS.md working agreement v0.2 trong từng template, @wakii/ui-kit 1.0.0, golden-path CI xanh.

@@ -4,6 +4,11 @@ Format theo [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); đánh s�
 ui-kit **consumed qua source** (ADR-0009) nên "release" = điểm merge PR vào `main`;
 mục `[Unreleased]` gom các batch giữa 2 lần merge.
 
+## [2.0.2] — 2026-10-29
+
+### Changed (auto — ef1c2ef..dec37b4 qua CI workflow publish-packages)
+
+- dec37b4 docs(ui-kit): README con sót 2 chỗ '90+' → 117 (tarball 2.0.1 mới pack vẫn 90+) (#199)
 ## [2.0.1] — 2026-10-29
 
 ### Changed (auto — 6d02d74..5422542 qua CI workflow publish-packages)

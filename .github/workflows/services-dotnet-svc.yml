@@ -5,6 +5,7 @@ name: services-dotnet-svc
 # (setup-dotnet + dotnet test), docker-build (xunit runs inside the build stage),
 # boot-smoke (compose postgres + auth-svc + dotnet-svc → health + real CRUD).
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

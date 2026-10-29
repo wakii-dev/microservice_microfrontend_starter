@@ -5,6 +5,7 @@ name: contracts
 # SF-5 (VU-59): boot auth-svc thay auth-mock (decommission) + schemathesis FULL
 # paths (auth-svc implement đủ register/refresh/logout* — hết thời gian scope hẹp).
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

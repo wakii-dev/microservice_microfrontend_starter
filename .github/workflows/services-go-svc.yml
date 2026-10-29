@@ -5,6 +5,7 @@ name: services-go-svc
 # boot-smoke (compose up + health + migration + kafka consumer event→feed + stats),
 # drift-guard (snapshot activity.yaml khớp contracts — precedent spring users.yaml).
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

@@ -1,5 +1,10 @@
 # Changelog — create-wakii-stack
 
+## [0.3.3] — 2026-10-29
+
+### Changed (auto — cdd8dd4..3d8cd91 qua CI workflow publish-packages)
+
+- (không có commit chạm app/create-wakii-stack/ trong range cdd8dd4..3d8cd91 — bump only)
 ## [0.3.2] — 2026-10-29
 
 ### Changed (auto — 35cda6d..35b8866 qua CI workflow publish-packages)

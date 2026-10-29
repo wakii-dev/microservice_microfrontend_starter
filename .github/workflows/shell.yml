@@ -4,6 +4,7 @@ name: shell
 # Lưu ý: job chạy trên pnpm-lock.yaml của NHÁNH — nếu SF-6 đang regenerate song song, lockfile
 # stale là việc coordinator resolve khi merge, KHÔNG phải bug code (P2 plan-critic note).
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

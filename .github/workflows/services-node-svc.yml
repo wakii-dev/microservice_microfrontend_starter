@@ -5,6 +5,7 @@ name: services-node-svc
 # (DATABASE_URL từ compose entry — node_svc role, fix ab207d8), migration chạy
 # lúc boot, healthz/readyz 200, task create/list/delete smoke với JWT tự ký.
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

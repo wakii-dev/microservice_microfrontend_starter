@@ -3,6 +3,7 @@ name: services-spring-svc
 # SF-3 (FI-71) — copy từ .github/workflow-templates/services-ci.yml.example
 # path-filter THÊM contracts/openapi/users.yaml (drift-guard không mù khi đổi contract)
 on:
+  workflow_dispatch:
   push:
     branches: ["**"]
     paths:

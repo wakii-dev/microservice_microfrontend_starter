@@ -135,3 +135,57 @@ Workers (Smith, Weaver, etc. trong worktrees)
 - **Ngay bây giờ:** Dùng P2 (auto-heal) — cải thiện P1 với safety net
 - **Khi cần 24/7:** Chuyển sang P3 (dedicated Captain terminal)
 - **P3 là đích:** Captain = Claude Code agent 24/7, Zcode = relay/interface cho user
+
+---
+
+## ⭐ Phương án 4: `/goal` COMMAND (Claude Code native — KHUYẾN NGHỊ)
+
+**Nguyên lý:** Claude Code có built-in persistent goal. Sau mỗi turn, small fast model đánh giá completion condition. Chưa đạt → tự động turn tiếp. Đây là agent loop NATIVE, không cần tự chế.
+
+### Cách dùng
+
+```bash
+# Trong Claude Code terminal:
+/goal all tasks in the current orchestration run are completed. \
+Verify: run 'orca orchestration task-list --json' and check all tasks \
+have status "completed" or "failed". Or stop after 50 turns.
+```
+
+### Non-interactive (headless)
+```bash
+claude -p "/goal npm test exits 0 and pnpm lint passes" \
+  --output-format stream-json --verbose
+```
+
+### Captain Loop với /goal
+```bash
+# Tạo Captain terminal + set goal MỘT LẦN:
+orca terminal send --terminal <captain> --text "
+/goal all tasks in orchestration run are completed and all changes are merged.
+Check: orca orchestration task-list shows all completed.
+After each worker completion: verify evidence, merge, dispatch next task.
+Or stop after 100 turns.
+"
+```
+
+### Ưu điểm so với P1-P3
+- ✅ KHÔNG cần re-arm (Claude Code tự duy trì loop)
+- ✅ KHÔNG cần launchd daemon
+- ✅ KHÔNG cần shell scripts
+- ✅ Built-in evaluator (small fast model check completion)
+- ✅ Auto-retry khi lỗi tạm thời (server overload, disconnect)
+- ✅ Check-in mechanism (30 phút, back-off)
+- ✅ Non-interactive support (`claude -p`)
+
+### Condition template cho Captain
+```
+/goal all tasks in the current orchestration run are completed.
+After each worker_done message:
+1. Verify evidence (run the task's DoD commands yourself)
+2. If pass: commit + merge + cleanup worktree
+3. If fail: re-dispatch (max 3 attempts per task)
+4. Dispatch next task from the DAG
+5. Post audit to Linear
+Verify completion: orca orchestration task-list --json shows all tasks completed.
+Or stop after 50 turns.
+```

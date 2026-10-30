@@ -1,5 +1,5 @@
-# Team Workflow — Operating Manual v2.1
-**Updated:** 2026-10-30 · **Source:** pilot projects (10 lessons + agent naming + Orca 249-cmd research)
+# Wakii Team Workflow — Operating Manual v2.1
+**Updated:** 2026-10-30 · **Source:** VU-66 + VU-67 rehearsals (10 lessons + agent naming + Orca 249-cmd research)
 
 ---
 
@@ -21,7 +21,7 @@
 
 | Tên | Nhóm | Agent type | Vai trò |
 |---|---|---|---|
-| **Captain** | Leadership | Coordinator AI | PM — điều phối toàn team, hire, review, merge |
+| **Captain** | Leadership | Zcode | PM — điều phối toàn team, hire, review, merge |
 | **Smith** | Builders | Claude worker | BE developer — viết services (api/domain/db) |
 | **Weaver** | Builders | Claude worker | FE developer — viết UI remotes, components |
 | **Forge** | Builders | Claude worker | Infra — compose, nginx, CI/CD config |
@@ -40,10 +40,10 @@
 **Cách dùng tên khi dispatch:**
 ```bash
 # Hire Smith (BE):
-orca orchestration worker-start --task T1 --agent claude --name be-<service-name> --worktree new-top-level ...
+orca orchestration worker-start --task T1 --agent claude --name smith-auth-svc --worktree new-top-level ...
 
 # Hire Weaver (FE):
-orca orchestration worker-start --task T2 --agent claude --name fe-<remote-name> --worktree new-top-level ...
+orca orchestration worker-start --task T2 --agent claude --name weaver-ai-mock-ui --worktree new-top-level ...
 
 # Dispatch Pathfinder (research):
 Agent(subagent_type="Explore", prompt="...")
@@ -62,7 +62,7 @@ Agent definitions nằm ở **`.claude/agents/`** — Claude Code tự load khi 
 | **be-dev** | `.claude/agents/be-dev.md` | Backend — services, API, DB, Kafka |
 | **service-dev** | `.claude/agents/service-dev.md` | Tạo service mới qua gen:service |
 | **fe-dev** | `.claude/agents/fe-dev.md` | Frontend — remotes, MF, shell |
-| **ui-dev** | `.claude/agents/ui-dev.md` | UI với @wakii/ui-kit (npm) |
+| **ui-dev** | `.claude/agents/ui-dev.md` | UI với @wakii/ui-kit |
 | **forge** | `.claude/agents/forge.md` | DevOps — Docker, nginx, CI/CD, monitoring |
 | **mason** | `.claude/agents/mason.md` | QA — tests, characterization, load-tests |
 | **contracts-keeper** | `.claude/agents/contracts-keeper.md` | Giữ contracts nhất quán |
@@ -73,9 +73,9 @@ Agent definitions nằm ở **`.claude/agents/`** — Claude Code tự load khi 
 **Skills** (Claude Code tự discover) nằm ở **`.claude/skills/`**:
 - `add-service` · `sync-contracts` · `use-ui-kit` · `wakii-debug-kafka` · `wakii-publish` · `wakii-ship-feature`
 
-**Role mapping:**
+**Mapping Wakii naming ↔ existing agents:**
 
-| Role | Claude agent | Khi nào dùng |
+| Wakii tên | Claude agent | Khi nào dùng |
 |---|---|---|
 | Smith | `be-dev` hoặc `service-dev` | Task BE |
 | Weaver | `fe-dev` hoặc `ui-dev` | Task FE |
@@ -306,7 +306,7 @@ orca terminal close --terminal <handle> --json  # KHÔNG phải kill
 > **Coordinator KHÔNG kết thúc turn khi TODO còn mục không cần user-input.**
 > Turn chỉ kết thúc khi: (a) đích đạt · (b) kẹt user-only · (c) context critical.
 
-## 6. Lessons Learned
+## 6. 10 Lessons (từ VU-66 + VU-67)
 
 | # | Lesson | Fix |
 |---|---|---|
@@ -323,7 +323,7 @@ orca terminal close --terminal <handle> --json  # KHÔNG phải kill
 
 ## 7. Metrics (đo hiệu quả team)
 
-| Metric | Baseline | Current | Mục tiêu |
+| Metric | VU-66 | VU-67 | Mục tiêu |
 |---|---|---|---|
 | Tasks hoàn thành | 4/4 | 5/5 (running) | — |
 | User interventions | 0 | 0 | 0 |

@@ -118,35 +118,17 @@ Khi làm worker trong terminal Orca của repo này (điều phối bởi ZCode 
 6. Session chết giữa chừng: lead cứu WIP từ git (commit ghi rõ "recovered by coordinator") — luôn giữ tree ở trạng gian test-xanh-được.
 - **Peer-to-peer**: cần gì ở teammate → `docs/team/inbox/<tên>.md` (format `[HH:MM] @<bạn> → nội dung`); lead giao thư mỗi chu kỳ; broadcast → `docs/team/CHANNEL.md`.
 
-## Team Workflow — Multi-Agent (Orca orchestration)
+## Captain Loop — /goal (2026-10-30)
 
-> Chi tiết: [docs/superpowers/team/TEAM-WORKFLOW.md](docs/superpowers/team/TEAM-WORKFLOW.md)
-> Orca cheat sheet: [docs/superpowers/team/ORCA-CHEATSHEET.md](docs/superpowers/team/ORCA-CHEATSHEET.md)
-> Worker brief: [docs/superpowers/team/WORKER-BRIEF-TEMPLATE.md](docs/superpowers/team/WORKER-BRIEF-TEMPLATE.md)
+Kích hoạt Captain (PM/coordinator) chạy tự động: gõ `/goal` trong Claude Code terminal.
 
-### Agents sẵn có (`.claude/agents/`)
-| Agent | Dùng khi | Gọi |
-|---|---|---|
-| `be-dev` | Services, API, DB, Kafka | `/agent be-dev` |
-| `fe-dev` | FE remotes, MF, shell | `/agent fe-dev` |
-| `service-dev` | Tạo service mới | `/agent service-dev` |
-| `ui-dev` | UI với @wakii/ui-kit | `/agent ui-dev` |
-| `forge` | Docker, nginx, CI/CD | `/agent forge` |
-| `mason` | Tests, characterization | `/agent mason` |
-| `contracts-keeper` | Sync contracts | `/agent contracts-keeper` |
-| `gate-keeper` | Verify trước merge | `/agent gate-keeper` |
-| `e2e-runner` | Chạy stack + e2e | `/agent e2e-runner` |
-| `release-manager` | Publish npm | `/agent release-manager` |
-
-### Skills sẵn có (`.claude/skills/`)
-`add-service` · `sync-contracts` · `use-ui-kit` · `wakii-debug-kafka` · `wakii-publish` · `wakii-ship-feature`
-
-### Captain loop (coordinator)
 ```
-1. Tạo ticket: task-create + status ready
-2. Hire dev: worker-start --agent claude
-3. Chờ báo: check --wait --types worker_done (background task)
-4. Review: tự chạy DoD (không tin report) + gate-resolve
-5. Merge: commit + merge + worktree remove
-6. Lặp: dispatch task kế → arm check --wait → end turn
+/goal <end-state condition của SẢN PHẨM, không phải milestone>
 ```
+
+**Ví dụ đúng:** `/goal Wakii :8080 có full student flow: login → đề thi → kết quả`
+**Ví dụ SAI:** `/goal all tasks in run completed` (quá hẹp — sẽ stop ở milestone)
+
+Sau mỗi turn, evaluator tự check condition. Chưa đạt → auto-continue. Đạt → Captain stop.
+
+Chi tiết: [docs/superpowers/team/TEAM-WORKFLOW.md](docs/superpowers/team/TEAM-WORKFLOW.md) section Wake-Chain.

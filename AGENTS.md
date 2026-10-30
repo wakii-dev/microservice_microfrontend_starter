@@ -302,3 +302,14 @@ Quick compare: `Menubar` = compact 1-level dropdown · `MegaMenu` = multi-column
 - Consumers install peer-deps themselves: `zod` (useForm) · `swiper` (carousel subpath) · `chart.js` · `@tiptap/*` · `@fullcalendar/*` (optional).
 - Heavy components import via **subpath**: `@wakii/ui-kit/carousel|chart|schedule|editor` — NOT in the main barrel (`Carousel` since 0.5.0; `Chart`/`Schedule`/`Editor` since 0.6.0 — corresponding types remain type-only exports from the barrel).
 - Zod schema = validation source of truth; `mode: 'onSubmit' | 'onBlur' | 'onChange'`; on failure → `errors.field` + auto-focus the first `[name=…]`.
+
+## Agent Loop — /goal (mới 2026-10-30)
+
+Captain (coordinator) chạy agent loop qua `/goal` — built-in Claude Code command:
+- Gõ `/goal <end-state>` trong terminal → Claude tự duy trì loop
+- Condition phải là END STATE sản phẩm (không phải milestone)
+- Evaluator tự check sau mỗi turn → auto-continue cho đến khi đạt
+- Không cần custom scripts, launchd, hay background task chain
+
+Agents có sẵn trong `.claude/agents/`: be-dev, fe-dev, service-dev, ui-dev, forge, mason, contracts-keeper, gate-keeper, e2e-runner, release-manager.
+Skills có sẵn trong `.claude/skills/`: add-service, sync-contracts, use-ui-kit, wakii-debug-kafka, wakii-publish, wakii-ship-feature.

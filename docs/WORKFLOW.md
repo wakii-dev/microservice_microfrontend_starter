@@ -36,6 +36,23 @@ Rules ngang mọi luồng:
 - COORDINATOR (×1): chia mission theo path-group → viết brief → dispatch → **gate độc lập** → commit/PR/merge → publish → log board. KHÔNG tự làm implementation (trừ fix ≤ vài dòng giữa gate, và việc chỉ coordinator làm: git/PR/merge/publish, browser verify).
 - WORKER (×N terminal lane, mỗi lane một métier: ui-kit/hooks · docs/stories · remotes/compose…): làm đúng scope brief trong **worktree riêng** → verify theo brief → report → DỪNG. KHÔNG tự push · KHÔNG đụng file ngoài scope · KHÔNG checkout worktree chung.
 
+**Agent routing (v2.2 — wire .claude/agents vào lanes, 2026-10-30):**
+
+| IF việc là… | THEN dùng agent | Skill BẮT BUỘC nạp |
+|---|---|---|
+| UI trong app/ (shell, remotes, admin) | `ui-dev` | `use-ui-kit` |
+| BE service mới hoặc sửa | `be-dev` | `add-service` (tạo) / — (sửa) |
+| Đổi API/DDL/event contract | `contracts-keeper` | `sync-contracts` |
+| Verify/gate trước merge | `gate-keeper` (read-only) | — |
+| Publish npm | `release-manager` | `wakii-publish` |
+| Debug Kafka/consumer | — | `wakii-debug-kafka` |
+| Ship 1 feature trọn vòng | — | `wakii-ship-feature` |
+| Infra/compose/CI | `forge` | — |
+| QA/test chuyên sâu | `mason` | — |
+| E2E stack thật | `e2e-runner` | — |
+
+- IF viết brief (coordinator) THEN thêm dòng `AGENTS/SKILLS: <agent> + <skill>` — worker load agent definition + skill TRƯỚC khi làm. Không chỉ định → brief thiếu cấu phần.
+
 Vòng đời mission:
 
 ```

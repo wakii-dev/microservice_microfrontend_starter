@@ -15,6 +15,7 @@ IF new to the repo THEN read in this order; IF the task is docs-only THEN skip 4
 | 5 | [docs/adr/0001–0010](docs/adr/README.md) | IF you need architecture rationale |
 | 6 | [docs/ai/knowledge.md](docs/ai/knowledge.md) | IF hitting a trap / need a task→file map |
 | 7 | [docs/ai/recipes.md](docs/ai/recipes.md) | IF writing UI |
+| 8 | [.claude/agents/](.claude/agents/) + [.claude/skills/](.claude/skills/) | IF acting as a worker lane — load the matching agent definition + required skill BEFORE starting; routing table in [docs/WORKFLOW.md §1](docs/WORKFLOW.md#1-team-workflow--coordinator--worker-lanes) |
 
 ## 1. Git directives
 

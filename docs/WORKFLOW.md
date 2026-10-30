@@ -56,7 +56,7 @@ Rules ngang mọi luồng:
 Vòng đời mission:
 
 ```
-coordinator : recon code thật -> chia path-group -> brief /tmp/worker-brief-<tên>.md (scope file + gate verify)
+coordinator : recon code thật -> chia path-group -> brief từ [brief-template](team/brief-template.md) (AGENTS/SKILLS bắt buộc + scope + gate verify) -> /tmp/worker-brief-<tên>.md
             -> dispatch terminal (mỗi lane 1 worktree riêng, nhánh wakii-dev/*)
 worker      : làm theo brief -> verify theo brief -> report /tmp/worker-*-report.md (kèm bằng chứng lệnh thật) -> DỪNG
 coordinator : gate độc lập trên diff thật (verify:quick + tests + build; + browser light/dark nếu đụng UI)

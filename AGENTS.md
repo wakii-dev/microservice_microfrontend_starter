@@ -15,6 +15,7 @@ IF new to the repo THEN read in this order; IF the task is docs-only THEN skip 4
 | 5 | [docs/adr/0001–0010](docs/adr/README.md) | IF you need architecture rationale |
 | 6 | [docs/ai/knowledge.md](docs/ai/knowledge.md) | IF hitting a trap / need a task→file map |
 | 7 | [docs/ai/recipes.md](docs/ai/recipes.md) | IF writing UI |
+| 8 | [.claude/agents/](.claude/agents/) + [.claude/skills/](.claude/skills/) | IF acting as a worker lane — load the matching agent definition + required skill BEFORE starting; routing table in [docs/WORKFLOW.md §1](docs/WORKFLOW.md#1-team-workflow--coordinator--worker-lanes) |
 
 ## 1. Git directives
 
@@ -302,3 +303,14 @@ Quick compare: `Menubar` = compact 1-level dropdown · `MegaMenu` = multi-column
 - Consumers install peer-deps themselves: `zod` (useForm) · `swiper` (carousel subpath) · `chart.js` · `@tiptap/*` · `@fullcalendar/*` (optional).
 - Heavy components import via **subpath**: `@wakii/ui-kit/carousel|chart|schedule|editor` — NOT in the main barrel (`Carousel` since 0.5.0; `Chart`/`Schedule`/`Editor` since 0.6.0 — corresponding types remain type-only exports from the barrel).
 - Zod schema = validation source of truth; `mode: 'onSubmit' | 'onBlur' | 'onChange'`; on failure → `errors.field` + auto-focus the first `[name=…]`.
+
+## Agent Loop — /goal (mới 2026-10-30)
+
+Captain (coordinator) chạy agent loop qua `/goal` — built-in Claude Code command:
+- Gõ `/goal <end-state>` trong terminal → Claude tự duy trì loop
+- Condition phải là END STATE sản phẩm (không phải milestone)
+- Evaluator tự check sau mỗi turn → auto-continue cho đến khi đạt
+- Không cần custom scripts, launchd, hay background task chain
+
+Agents có sẵn trong `.claude/agents/`: be-dev, fe-dev, service-dev, ui-dev, forge, mason, contracts-keeper, gate-keeper, e2e-runner, release-manager.
+Skills có sẵn trong `.claude/skills/`: add-service, sync-contracts, use-ui-kit, wakii-debug-kafka, wakii-publish, wakii-ship-feature.

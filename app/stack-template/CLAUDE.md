@@ -117,3 +117,18 @@ Khi làm worker trong terminal Orca của repo này (điều phối bởi ZCode 
 5. **Gate độc lập**: lead tự chạy verify trên diff thật trước khi commit — report của worker là đầu vào, không phải chân lý.
 6. Session chết giữa chừng: lead cứu WIP từ git (commit ghi rõ "recovered by coordinator") — luôn giữ tree ở trạng gian test-xanh-được.
 - **Peer-to-peer**: cần gì ở teammate → `docs/team/inbox/<tên>.md` (format `[HH:MM] @<bạn> → nội dung`); lead giao thư mỗi chu kỳ; broadcast → `docs/team/CHANNEL.md`.
+
+## Captain Loop — /goal (2026-10-30)
+
+Kích hoạt Captain (PM/coordinator) chạy tự động: gõ `/goal` trong Claude Code terminal.
+
+```
+/goal <end-state condition của SẢN PHẨM, không phải milestone>
+```
+
+**Ví dụ đúng:** `/goal Wakii :8080 có full student flow: login → đề thi → kết quả`
+**Ví dụ SAI:** `/goal all tasks in run completed` (quá hẹp — sẽ stop ở milestone)
+
+Sau mỗi turn, evaluator tự check condition. Chưa đạt → auto-continue. Đạt → Captain stop.
+
+Chi tiết: [docs/superpowers/team/TEAM-WORKFLOW.md](docs/superpowers/team/TEAM-WORKFLOW.md) section Wake-Chain.

@@ -117,3 +117,36 @@ Khi làm worker trong terminal Orca của repo này (điều phối bởi ZCode 
 5. **Gate độc lập**: lead tự chạy verify trên diff thật trước khi commit — report của worker là đầu vào, không phải chân lý.
 6. Session chết giữa chừng: lead cứu WIP từ git (commit ghi rõ "recovered by coordinator") — luôn giữ tree ở trạng gian test-xanh-được.
 - **Peer-to-peer**: cần gì ở teammate → `docs/team/inbox/<tên>.md` (format `[HH:MM] @<bạn> → nội dung`); lead giao thư mỗi chu kỳ; broadcast → `docs/team/CHANNEL.md`.
+
+## Team Workflow — Multi-Agent (Orca orchestration)
+
+> Chi tiết: [docs/superpowers/team/TEAM-WORKFLOW.md](docs/superpowers/team/TEAM-WORKFLOW.md)
+> Orca cheat sheet: [docs/superpowers/team/ORCA-CHEATSHEET.md](docs/superpowers/team/ORCA-CHEATSHEET.md)
+> Worker brief: [docs/superpowers/team/WORKER-BRIEF-TEMPLATE.md](docs/superpowers/team/WORKER-BRIEF-TEMPLATE.md)
+
+### Agents sẵn có (`.claude/agents/`)
+| Agent | Dùng khi | Gọi |
+|---|---|---|
+| `be-dev` | Services, API, DB, Kafka | `/agent be-dev` |
+| `fe-dev` | FE remotes, MF, shell | `/agent fe-dev` |
+| `service-dev` | Tạo service mới | `/agent service-dev` |
+| `ui-dev` | UI với @wakii/ui-kit | `/agent ui-dev` |
+| `forge` | Docker, nginx, CI/CD | `/agent forge` |
+| `mason` | Tests, characterization | `/agent mason` |
+| `contracts-keeper` | Sync contracts | `/agent contracts-keeper` |
+| `gate-keeper` | Verify trước merge | `/agent gate-keeper` |
+| `e2e-runner` | Chạy stack + e2e | `/agent e2e-runner` |
+| `release-manager` | Publish npm | `/agent release-manager` |
+
+### Skills sẵn có (`.claude/skills/`)
+`add-service` · `sync-contracts` · `use-ui-kit` · `wakii-debug-kafka` · `wakii-publish` · `wakii-ship-feature`
+
+### Captain loop (coordinator)
+```
+1. Tạo ticket: task-create + status ready
+2. Hire dev: worker-start --agent claude
+3. Chờ báo: check --wait --types worker_done (background task)
+4. Review: tự chạy DoD (không tin report) + gate-resolve
+5. Merge: commit + merge + worktree remove
+6. Lặp: dispatch task kế → arm check --wait → end turn
+```

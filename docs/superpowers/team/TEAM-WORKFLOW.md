@@ -49,6 +49,42 @@ orca orchestration worker-start --task T2 --agent claude --name weaver-ai-mock-u
 Agent(subagent_type="Explore", prompt="...")
 ```
 
+**Interaction Protocol:**
+- User = **Owner/CEO** → "Hey Captain" = gọi PM (Zcode) → PM báo cáo + nhận chỉ đạo
+- "How's Smith doing?" → Captain checks Smith's worktree + reports
+
+### 0.1 Agent Definitions (chuyên môn chi tiết)
+
+Mỗi agent có file definition riêng tại `agents/` — **worker PHẢI đọc trước khi bắt đầu:**
+
+| Agent | File | Chuyên môn | Boundaries |
+|---|---|---|---|
+| **Smith** | [`agents/smith.md`](agents/smith.md) | Contract-first API, domain logic, DB migrations, Kafka outbox | Không đụng FE (app/**), không đụng platform/** |
+| **Weaver** | [`agents/weaver.md`](agents/weaver.md) | MF remotes, @wakii/ui-kit, Tailwind v4, rspack | Không đụng services/**, không fork ui-kit |
+| **Forge** | [`agents/forge.md`](agents/forge.md) | Docker multi-stage, nginx routes, CI/CD, Prometheus | Không đụng src/** hay app/** |
+| **Mason** | [`agents/mason.md`](agents/mason.md) | Characterization golden-master, vitest, k6 load-test | KHÔNG sửa production code — chỉ tests |
+| **Pathfinder** | [`agents/pathfinder.md`](agents/pathfinder.md) | Deep codebase analysis, audit (read-only) | KHÔNG ghi file — chỉ đọc + phân tích |
+| **Warden** | [`agents/warden.md`](agents/warden.md) | Code review (adversarial), coverage-pass, verdict format | KHÔNG tự fix — chỉ review + đề xuất |
+
+Mỗi definition chứa 6 sections:
+```
+1. IDENTITY     — tên, nhóm, chuyên môn, agent type
+2. CAPABILITIES — TÔI LÀM (cụ thể theo repo conventions)
+3. BOUNDARIES   — TÔI KHÔNG LÀM (không đụng territory người khác)
+4. CONVENTIONS  — repo-specific patterns (conventions/01-08)
+5. QUALITY      — DONE nghĩa là gì (checklist đo được)
+6. DEFAULT LOAD — files phải đọc trước khi bắt đầu
+```
+
+**Worker brief template (từ giờ):**
+```
+Read docs/agents/<name>.md before starting.
+
+<task-specific brief với DoD + budget + boundary>
+
+Kết thúc: DONE <files> <verify> hoặc BLOCKED <lý do>
+```
+
 ---
 
 ## 1. Team Composition (6 thành phần)

@@ -1,5 +1,53 @@
-# Wakii Team Workflow — Operating Manual v2.0
-**Updated:** 2026-10-30 · **Source:** VU-66 + VU-67 rehearsals (10 lessons learned)
+# Wakii Team Workflow — Operating Manual v2.1
+**Updated:** 2026-10-30 · **Source:** VU-66 + VU-67 rehearsals (10 lessons + agent naming + Orca 249-cmd research)
+
+---
+
+## 0. Team Roster — Agents với Tên
+
+```
+                    ┌─────────────┐
+                    │   CAPTAIN   │  ← Zcode
+                    │   (Zcode)   │     PM / Coordinator
+                    └──────┬──────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+   ┌──────┴──────┐  ┌─────┴──────┐  ┌─────┴──────┐
+   │  BUILDERS   │  │   SCOUTS   │  │  GUARDIANS │
+   │ (Developers)│  │ (Researchers)│  │ (Reviewers)│
+   └─────────────┘  └────────────┘  └────────────┘
+```
+
+| Tên | Nhóm | Agent type | Vai trò |
+|---|---|---|---|
+| **Captain** | Leadership | Zcode | PM — điều phối toàn team, hire, review, merge |
+| **Smith** | Builders | Claude worker | BE developer — viết services (api/domain/db) |
+| **Weaver** | Builders | Claude worker | FE developer — viết UI remotes, components |
+| **Forge** | Builders | Claude worker | Infra — compose, nginx, CI/CD config |
+| **Mason** | Builders | Claude worker | Tests — characterization, tooling, automation |
+| **Pathfinder** | Scouts | Explore agent | Research codebase (read-only) |
+| **Radar** | Scouts | General-purpose | Research linh hoạt + fix nhỏ |
+| **Sentinel** | Guardians | spec-critic | Review spec (Phase 2) |
+| **Arbiter** | Guardians | plan-critic | Review plan (Phase 3) |
+| **Warden** | Guardians | code-reviewer | Review code trước merge (Phase 4) |
+| **Verifier** | Guardians | verification | Final check (Phase 5) |
+| **Aegis** | Guardians | security-audit | OWASP security check (Phase 5) |
+| **Scribe** | Specialists | background task | Ghi audit Linear, cập nhật docs |
+| **Herald** | Specialists | notification | Push notification khi gate chờ |
+| **Watchman** | Specialists | launchd daemon | Canh worktrees 24/7 |
+
+**Cách dùng tên khi dispatch:**
+```bash
+# Hire Smith (BE):
+orca orchestration worker-start --task T1 --agent claude --name smith-auth-svc --worktree new-top-level ...
+
+# Hire Weaver (FE):
+orca orchestration worker-start --task T2 --agent claude --name weaver-ai-mock-ui --worktree new-top-level ...
+
+# Dispatch Pathfinder (research):
+Agent(subagent_type="Explore", prompt="...")
+```
 
 ---
 

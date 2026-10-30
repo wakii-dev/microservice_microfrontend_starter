@@ -53,37 +53,40 @@ Agent(subagent_type="Explore", prompt="...")
 - User = **Owner/CEO** → "Hey Captain" = gọi PM (Zcode) → PM báo cáo + nhận chỉ đạo
 - "How's Smith doing?" → Captain checks Smith's worktree + reports
 
-### 0.1 Agent Definitions (chuyên môn chi tiết)
+### 0.1 Agent Definitions (nơi AI THỰC SỰ đọc)
 
-Mỗi agent có file definition riêng tại `agents/` — **worker PHẢI đọc trước khi bắt đầu:**
+Agent definitions nằm ở **`.claude/agents/`** — Claude Code tự load khi `/agent <name>`:
 
-| Agent | File | Chuyên môn | Boundaries |
-|---|---|---|---|
-| **Smith** | [`agents/smith.md`](agents/smith.md) | Contract-first API, domain logic, DB migrations, Kafka outbox | Không đụng FE (app/**), không đụng platform/** |
-| **Weaver** | [`agents/weaver.md`](agents/weaver.md) | MF remotes, @wakii/ui-kit, Tailwind v4, rspack | Không đụng services/**, không fork ui-kit |
-| **Forge** | [`agents/forge.md`](agents/forge.md) | Docker multi-stage, nginx routes, CI/CD, Prometheus | Không đụng src/** hay app/** |
-| **Mason** | [`agents/mason.md`](agents/mason.md) | Characterization golden-master, vitest, k6 load-test | KHÔNG sửa production code — chỉ tests |
-| **Pathfinder** | [`agents/pathfinder.md`](agents/pathfinder.md) | Deep codebase analysis, audit (read-only) | KHÔNG ghi file — chỉ đọc + phân tích |
-| **Warden** | [`agents/warden.md`](agents/warden.md) | Code review (adversarial), coverage-pass, verdict format | KHÔNG tự fix — chỉ review + đề xuất |
+| Agent | File | Vai trò |
+|---|---|---|
+| **be-dev** | `.claude/agents/be-dev.md` | Backend — services, API, DB, Kafka |
+| **service-dev** | `.claude/agents/service-dev.md` | Tạo service mới qua gen:service |
+| **fe-dev** | `.claude/agents/fe-dev.md` | Frontend — remotes, MF, shell |
+| **ui-dev** | `.claude/agents/ui-dev.md` | UI với @wakii/ui-kit |
+| **forge** | `.claude/agents/forge.md` | DevOps — Docker, nginx, CI/CD, monitoring |
+| **mason** | `.claude/agents/mason.md` | QA — tests, characterization, load-tests |
+| **contracts-keeper** | `.claude/agents/contracts-keeper.md` | Giữ contracts nhất quán |
+| **gate-keeper** | `.claude/agents/gate-keeper.md` | Verify gate trước merge |
+| **e2e-runner** | `.claude/agents/e2e-runner.md` | Chạy stack thật + e2e |
+| **release-manager** | `.claude/agents/release-manager.md` | Publish npm packages |
 
-Mỗi definition chứa 6 sections:
-```
-1. IDENTITY     — tên, nhóm, chuyên môn, agent type
-2. CAPABILITIES — TÔI LÀM (cụ thể theo repo conventions)
-3. BOUNDARIES   — TÔI KHÔNG LÀM (không đụng territory người khác)
-4. CONVENTIONS  — repo-specific patterns (conventions/01-08)
-5. QUALITY      — DONE nghĩa là gì (checklist đo được)
-6. DEFAULT LOAD — files phải đọc trước khi bắt đầu
-```
+**Skills** (Claude Code tự discover) nằm ở **`.claude/skills/`**:
+- `add-service` · `sync-contracts` · `use-ui-kit` · `wakii-debug-kafka` · `wakii-publish` · `wakii-ship-feature`
 
-**Worker brief template (từ giờ):**
-```
-Read docs/agents/<name>.md before starting.
+**Mapping Wakii naming ↔ existing agents:**
 
-<task-specific brief với DoD + budget + boundary>
+| Wakii tên | Claude agent | Khi nào dùng |
+|---|---|---|
+| Smith | `be-dev` hoặc `service-dev` | Task BE |
+| Weaver | `fe-dev` hoặc `ui-dev` | Task FE |
+| Forge | `forge` | Task infra |
+| Mason | `mason` | Task tests |
+| Warden | `gate-keeper` | Verify trước merge |
+| — | `contracts-keeper` | Sync contracts |
+| — | `e2e-runner` | Chạy e2e |
+| — | `release-manager` | Publish npm |
 
-Kết thúc: DONE <files> <verify> hoặc BLOCKED <lý do>
-```
+**Worker brief từ giờ:** dùng Claude agent name (`/agent be-dev`) thay vì Wakii name. Brief template trong worker-start prompt reference đúng agent.
 
 ---
 
